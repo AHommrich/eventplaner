@@ -16,6 +16,7 @@ class Guest extends Model
         'family_id',
         'beer',
         'wine',
+        'likelihood',
     ];
 
     public function badge()

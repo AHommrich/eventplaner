@@ -31,15 +31,17 @@ const guestForm = useForm<{
     beer_thirst: number | null;
     wine: boolean;
     wine_thirst: number | null;
+    likelihood: string;
 }>({
     firstname: '',
     lastname: '',
     badge_id: '',
     family_id: '',
     beer: false,
-    beer_thirst: null,
+    beer_thirst: 5,
     wine: false,
-    wine_thirst: null,
+    wine_thirst: 5,
+    likelihood: 'maybe',
 });
 const submitGuest = () => guestForm.post(route('guests.store'), { onSuccess: () => guestForm.reset() });
 
@@ -163,6 +165,17 @@ function deleteGuest(id: number) {
                         </div>
                     </div>
 
+                    <div>
+                        <label>Wahrscheinlichkeit</label>
+                        <select v-model="guestForm.likelihood" class="w-full rounded border p-2">
+                            <option value="sure">Sicher</option>
+                            <option value="likely">Wahrscheinlich</option>
+                            <option value="maybe">Vielleicht</option>
+                            <option value="unlikely">Unwahrscheinlich</option>
+                            <option value="no">Nein</option>
+                        </select>
+                    </div>
+
                     <!-- Submit -->
                     <div class="col-span-2 flex justify-end">
                         <button type="submit" class="w-full rounded bg-blue-600 px-4 py-2 text-white sm:w-auto" :disabled="guestForm.processing">
@@ -185,6 +198,7 @@ function deleteGuest(id: number) {
                             <th class="p-3">Nachname</th>
                             <th class="p-3">Kategorie</th>
                             <th class="p-3">Familie</th>
+                            <th class="p-3">Wahrscheinlichkeit</th>
                             <th class="p-3">Bier (1–10)</th>
                             <th class="p-3">Wein (1–10)</th>
                             <th class="p-3 text-right">Aktionen</th>
@@ -196,6 +210,34 @@ function deleteGuest(id: number) {
                             <td class="p-3">{{ guest.lastname }}</td>
                             <td class="p-3">{{ guest.badge?.title ?? '-' }}</td>
                             <td class="p-3">{{ guest.family?.name ?? '-' }}</td>
+
+                            <!-- Likelihood mit deutschen Übersetzungen und Farben -->
+                            <td class="p-3">
+                                <span
+                                    :class="[
+                                        'rounded px-2 py-1 text-sm font-medium text-white',
+                                        {
+                                            'bg-green-600': guest.likelihood === 'sure',
+                                            'bg-lime-500': guest.likelihood === 'likely',
+                                            'bg-yellow-400 text-black': guest.likelihood === 'maybe',
+                                            'bg-orange-500': guest.likelihood === 'unlikely',
+                                            'bg-red-600': guest.likelihood === 'no',
+                                        },
+                                    ]"
+                                >
+                                    {{
+                                        guest.likelihood === 'sure'
+                                            ? 'Sicher'
+                                            : guest.likelihood === 'likely'
+                                              ? 'Wahrscheinlich'
+                                              : guest.likelihood === 'maybe'
+                                                ? 'Vielleicht'
+                                                : guest.likelihood === 'unlikely'
+                                                  ? 'Unwahrscheinlich'
+                                                  : 'Nein'
+                                    }}
+                                </span>
+                            </td>
 
                             <!-- Bier Durstgrad -->
                             <td class="p-3">
@@ -212,9 +254,6 @@ function deleteGuest(id: number) {
                                     Löschen
                                 </button>
                             </td>
-                        </tr>
-                        <tr v-if="guests.length === 0">
-                            <td colspan="7" class="p-3 text-center text-gray-500">Keine Gäste vorhanden</td>
                         </tr>
                     </tbody>
                 </table>
