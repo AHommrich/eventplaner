@@ -12,11 +12,12 @@ Route::get('/', function () {
 
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard', [
-        'badges' => Badge::all(['id', 'title']),
+        'badges' => Badge::orderBy('title', 'asc')->get(['id', 'title']),
         'guests' => Guest::with('badge', 'family', 'drinks')->get(),
-        'families' => Family::all(['id', 'name']),
+        'families' => Family::orderBy('name', 'asc')->get(['id', 'name']),
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
+
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

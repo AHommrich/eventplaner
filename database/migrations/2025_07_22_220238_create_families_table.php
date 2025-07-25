@@ -16,7 +16,7 @@ return new class extends Migration
 
         // guests table ergänzen
         Schema::table('guests', function (Blueprint $table) {
-            $table->foreignId('family_id')->nullable()->constrained('families')->nullOnDelete();
+            $table->foreignId('family_id')->nullable()->constrained('families')->nullOnDelete()->after('badge_id');;
         });
     }
 
