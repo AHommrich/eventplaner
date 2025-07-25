@@ -20,6 +20,8 @@ class GuestController extends Controller
             'beer_thirst'  => 'nullable|integer|min:0|max:10',
             'wine'         => 'boolean',
             'wine_thirst'  => 'nullable|integer|min:0|max:10',
+                'likelihood'  => 'required|in:sure,likely,maybe,unlikely,no',
+
         ]);
 
         // Falls eine Familie gewählt wurde und kein Nachname übergeben wurde,
@@ -39,6 +41,7 @@ class GuestController extends Controller
             'family_id' => $data['family_id'] ?? null,
             'beer'      => $data['beer'] ?? false,
             'wine'      => $data['wine'] ?? false,
+            'likelihood' => $data['likelihood'] ?? 'maybe',
         ]);
 
         // Drinks für Gast anlegen
