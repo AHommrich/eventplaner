@@ -17,15 +17,16 @@ COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 # Arbeitsverzeichnis setzen
 WORKDIR /var/www
 
-# Composer-Abhängigkeiten cachen
+# Composer-Abhängigkeiten installieren (mit Cache)
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
-# Code kopieren
+# Projektcode kopieren
 COPY . .
 
-# Artisan-Events ausführen
-RUN composer run-script post-autoload-dump || true
+# Composer Autoload & Laravel Key (nur wenn Laravel)
+RUN composer run-script post-autoload-dump || true \
+    && if [ -f artisan ]; then php artisan key:generate --force || true; fi
 
 # Vue/Inertia Build
 RUN npm install && npm run build
@@ -35,6 +36,9 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
 # Nginx Konfiguration kopieren
 COPY docker/nginx/default.conf /etc/nginx/sites-enabled/default
+
+# Expose Ports (Standard PHP-FPM + Nginx)
+EXPOSE 80
 
 # Startbefehl
 CMD service nginx start && php-fpm
