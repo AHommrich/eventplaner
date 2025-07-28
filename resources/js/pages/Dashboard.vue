@@ -2,7 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 // Breadcrumbs
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', href: '/dashboard' }];
@@ -16,6 +16,15 @@ const families = computed(() => page.props.families as { id: number; name: strin
 // Kategorie-Formular
 const categoryForm = useForm({ title: '' });
 const submitCategory = () => categoryForm.post(route('badges.store'), { onSuccess: () => categoryForm.reset() });
+
+// Filter
+const badgeFilter = ref('');
+
+// Gefilterte Gäste
+const filteredGuests = computed(() => {
+    if (!badgeFilter.value) return guests.value;
+    return guests.value.filter((guest: any) => guest.badge?.title === badgeFilter.value);
+});
 
 // Family-Formular
 const familyForm = useForm({ name: '' });
@@ -190,6 +199,19 @@ function deleteGuest(id: number) {
         <!-- Gäste Liste -->
         <div class="m-4 rounded-xl border bg-white p-4 dark:bg-gray-900">
             <h2 class="mb-4 text-lg font-semibold">Aktuelle Gäste</h2>
+
+            <!-- Filter -->
+            <div class="mb-4 flex items-center space-x-4">
+                <label for="badgeFilter" class="font-medium">Nach Kategorie filtern:</label>
+                <select id="badgeFilter" v-model="badgeFilter" class="rounded border p-2">
+                    <option value="">Alle</option>
+                    <option v-for="badge in [...new Set(guests.map((g) => g.badge?.title).filter(Boolean))]" :key="badge" :value="badge">
+                        {{ badge }}
+                    </option>
+                </select>
+            </div>
+
+            <!-- Gäste Liste -->
             <div class="overflow-x-auto">
                 <table class="w-full table-auto border-collapse text-left">
                     <thead>
@@ -205,13 +227,13 @@ function deleteGuest(id: number) {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="guest in guests" :key="guest.id" class="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <tr v-for="guest in filteredGuests" :key="guest.id" class="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
                             <td class="p-3">{{ guest.firstname }}</td>
                             <td class="p-3">{{ guest.lastname }}</td>
                             <td class="p-3">{{ guest.badge?.title ?? '-' }}</td>
                             <td class="p-3">{{ guest.family?.name ?? '-' }}</td>
 
-                            <!-- Likelihood mit deutschen Übersetzungen und Farben -->
+                            <!-- Likelihood -->
                             <td class="p-3">
                                 <span
                                     :class="[
