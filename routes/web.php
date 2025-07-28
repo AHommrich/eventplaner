@@ -3,7 +3,7 @@
 use App\Models\Badge;
 use App\Models\Family;
 use App\Models\Guest;
-use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -17,6 +17,25 @@ Route::get('dashboard', function () {
         'families' => Family::orderBy('name', 'asc')->get(['id', 'name']),
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::get('table', function (Request $request) {
+    $query = Guest::with('badge', 'family', 'drinks');
+
+    // Filter nach Badge-ID
+    if ($request->filled('badge_id')) {
+        $query->where('badge_id', $request->badge_id);
+    }
+
+    return Inertia::render('Table', [
+        'guests'  => $query->get(),
+        'badges'  => Badge::orderBy('title', 'asc')->get(['id', 'title']),
+        'families'=> Family::orderBy('name', 'asc')->get(['id', 'name']),
+        'filters' => [
+            'badge_id' => $request->badge_id,
+        ],
+    ]);
+})->middleware(['auth', 'verified'])->name('table');
+
 
 
 require __DIR__.'/settings.php';
