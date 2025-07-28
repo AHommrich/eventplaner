@@ -60,7 +60,12 @@ function deleteGuest(id: number) {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="guest in filteredGuests" :key="guest.id" class="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <tr
+                            v-for="guest in filteredGuests"
+                            :key="guest.id"
+                            class="cursor-pointer border-b hover:bg-gray-50 dark:hover:bg-gray-800"
+                            @click="router.visit(route('guests.edit', guest.id))"
+                        >
                             <td class="p-3">{{ guest.firstname }}</td>
                             <td class="p-3">{{ guest.lastname }}</td>
                             <td class="p-3">{{ guest.badge?.title ?? '-' }}</td>
@@ -105,7 +110,7 @@ function deleteGuest(id: number) {
                             </td>
 
                             <td class="p-3 text-right">
-                                <button @click="deleteGuest(guest.id)" class="rounded bg-red-600 px-3 py-1 text-white hover:bg-red-700">
+                                <button @click.stop="deleteGuest(guest.id)" class="rounded bg-red-600 px-3 py-1 text-white hover:bg-red-700">
                                     Löschen
                                 </button>
                             </td>

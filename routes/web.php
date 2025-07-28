@@ -42,7 +42,16 @@ require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
 Route::post('/badges', [\App\Http\Controllers\BadgeController::class, 'store'])
     ->name('badges.store');
+Route::post('/families', [\App\Http\Controllers\FamilyController::class, 'store'])->name('families.store');
+
+
+
 Route::post('/guests', [\App\Http\Controllers\GuestController::class, 'store'])->name('guests.store');
 Route::delete('/guests/{guest}', [\App\Http\Controllers\GuestController::class, 'destroy'])
     ->name('guests.destroy');
-Route::post('/families', [\App\Http\Controllers\FamilyController::class, 'store'])->name('families.store');
+Route::get('/guests/{guest}/edit', [\App\Http\Controllers\GuestController::class, 'edit'])
+    ->middleware(['auth', 'verified'])
+    ->name('guests.edit');
+Route::put('/guests/{guest}', [\App\Http\Controllers\GuestController::class, 'update'])
+    ->middleware(['auth', 'verified'])
+    ->name('guests.update');
