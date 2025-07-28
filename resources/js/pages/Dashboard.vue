@@ -140,7 +140,7 @@ function deleteGuest(id: number) {
                         </button>
                         <div v-if="guestForm.beer" class="flex items-center gap-2">
                             <input type="range" v-model="guestForm.beer_thirst" min="1" max="10" class="w-full accent-green-600" />
-                            <span class="w-6 text-center font-semibold text-green-700">{{ guestForm.beer_thirst }}</span>
+                            <span class="w-6 text-center font-semibold">{{ guestForm.beer_thirst }}</span>
                         </div>
                     </div>
 
@@ -161,7 +161,7 @@ function deleteGuest(id: number) {
                         </button>
                         <div v-if="guestForm.wine" class="flex items-center gap-2">
                             <input type="range" v-model="guestForm.wine_thirst" min="1" max="10" class="w-full accent-green-600" />
-                            <span class="w-6 text-center font-semibold text-green-700">{{ guestForm.wine_thirst }}</span>
+                            <span class="w-6 text-center font-semibold">{{ guestForm.wine_thirst }}</span>
                         </div>
                     </div>
 
