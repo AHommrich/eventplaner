@@ -6,6 +6,8 @@ use App\Models\Guest;
 use App\Models\GuestDrink;
 use App\Models\Family;
 use Illuminate\Http\Request;
+    use Inertia\Inertia;
+use App\Models\Badge;
 
 class GuestController extends Controller
 {
@@ -69,4 +71,63 @@ class GuestController extends Controller
         $guest->delete(); // Löscht auch GuestDrinks (wenn FK mit cascade)
         return redirect()->back()->with('success', 'Gast wurde gelöscht.');
     }
+
+
+
+public function edit(Guest $guest)
+{
+    $guest->load('badge', 'family', 'drinks');
+
+    return Inertia::render('Guests/Edit', [
+        'guest'     => $guest,
+        'badges'    => Badge::orderBy('title', 'asc')->get(['id', 'title']),
+        'families'  => Family::orderBy('name', 'asc')->get(['id', 'name']),
+    ]);
+}
+
+public function update(Request $request, Guest $guest)
+{
+    $data = $request->validate([
+        'firstname'   => 'required|string|max:255',
+        'lastname'    => 'nullable|string|max:255',
+        'badge_id'    => 'nullable|exists:badges,id',
+        'family_id'   => 'nullable|exists:families,id',
+        'beer'        => 'boolean',
+        'beer_thirst' => 'nullable|integer|min:0|max:10',
+        'wine'        => 'boolean',
+        'wine_thirst' => 'nullable|integer|min:0|max:10',
+        'likelihood'  => 'required|in:sure,likely,maybe,unlikely,no',
+    ]);
+
+    $guest->update([
+        'firstname' => $data['firstname'],
+        'lastname'  => $data['lastname'] ?? '',
+        'badge_id'  => $data['badge_id'],
+        'family_id' => $data['family_id'],
+        'beer'      => $data['beer'] ?? false,
+        'wine'      => $data['wine'] ?? false,
+        'likelihood'=> $data['likelihood'],
+    ]);
+
+    // Drinks aktualisieren
+    $guest->drinks()->where('drink_type', 'beer')->delete();
+    $guest->drinks()->where('drink_type', 'wine')->delete();
+
+    if (!empty($data['beer']) && !empty($data['beer_thirst']) && $data['beer_thirst'] > 0) {
+        $guest->drinks()->create([
+            'drink_type'   => 'beer',
+            'thirst_level' => $data['beer_thirst'],
+        ]);
+    }
+
+    if (!empty($data['wine']) && !empty($data['wine_thirst']) && $data['wine_thirst'] > 0) {
+        $guest->drinks()->create([
+            'drink_type'   => 'wine',
+            'thirst_level' => $data['wine_thirst'],
+        ]);
+    }
+
+    return redirect()->route('table')->with('success', 'Gast erfolgreich aktualisiert.');
+}
+
 }
