@@ -10,6 +10,7 @@ use App\Http\Controllers\BadgeController;
 use App\Http\Controllers\FamilyController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TableController;
+use App\Http\Controllers\FoodSpecialController;
 
 //Main Routes
 Route::get('/', function () {return Inertia::render('Welcome');})->name('home');
@@ -17,6 +18,7 @@ Route::get('dashboard', [DashboardController::class, 'index'])->middleware(['aut
 Route::get('table', [TableController::class, 'index'])->middleware(['auth', 'verified'])->name('table');
 Route::post('/badges', [BadgeController::class, 'store'])->name('badges.store');
 Route::post('/families', [FamilyController::class, 'store'])->name('families.store');
+Route::post('/foodspecials', [FoodSpecialController::class, 'store'])->name('foodspecials.store');
 
 //Guests
 Route::post('/guests', [GuestController::class, 'store'])->name('guests.store');

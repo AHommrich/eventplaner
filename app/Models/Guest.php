@@ -33,4 +33,10 @@ class Guest extends Model
 {
     return $this->hasMany(GuestDrink::class);
 }
+
+public function foodSpecials()
+{
+    return $this->belongsToMany(FoodSpecial::class, 'guest_food_special');
+}
+
 }
