@@ -19,14 +19,6 @@ const internalValue = ref<number[]>([...props.modelValue]);
 watch(internalValue, (val) => {
     emit('update:modelValue', val);
 });
-
-// Synchronisiere parent → internalValue (nur wenn parent updated)
-watch(
-    () => props.modelValue,
-    (val) => {
-        internalValue.value = [...val];
-    },
-);
 </script>
 
 <template>
