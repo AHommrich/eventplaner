@@ -79,9 +79,9 @@ function deleteGuest(id: number) {
 
                 <!-- Food Special Formular -->
                 <div class="rounded-xl border bg-white p-4 dark:bg-gray-900">
-                    <h2 class="mb-2 text-lg font-semibold">Neues Food Special</h2>
+                    <h2 class="mb-2 text-lg font-semibold">Neue Essensbesonderheit</h2>
                     <form @submit.prevent="submitFoodSpecial" class="flex flex-col gap-2 sm:flex-row">
-                        <input v-model="foodSpecialForm.name" type="text" placeholder="Food Special" class="flex-1 rounded border p-2" />
+                        <input v-model="foodSpecialForm.name" type="text" placeholder="Essensbesonderheit" class="flex-1 rounded border p-2" />
                         <button
                             type="submit"
                             class="w-full rounded bg-blue-600 px-4 py-2 text-white sm:w-auto"
