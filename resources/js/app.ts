@@ -11,6 +11,10 @@ import { initializeTheme } from './composables/useAppearance';
 axios.defaults.baseURL = '/';
 axios.defaults.withCredentials = true;
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const Ziggy = (window as any).Ziggy;
+
+Ziggy.url = '';
+Ziggy.absolute = false;
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
@@ -18,7 +22,7 @@ createInertiaApp({
     setup({ el, App, props, plugin }) {
         createApp({ render: () => h(App, props) })
             .use(plugin)
-            .use(ZiggyVue)
+            .use(ZiggyVue, Ziggy)
             .mount(el);
     },
     progress: {
