@@ -18,10 +18,12 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
+
+public function boot(): void
 {
-    if (app()->environment('production')) {
+    if (config('app.env') === 'production') {
         URL::forceScheme('https');
+        URL::forceRootUrl(config('app.url')); // setzt Basis-Host sauber auf https://hommrich.app
     }
 }
 }
