@@ -3,11 +3,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: laravel-app
     restart: unless-stopped
-
     volumes:
-      - .:/var/www
+      - app_storage:/var/www/storage
+      - app_cache:/var/www/bootstrap/cache
     depends_on:
       - db
     expose:
@@ -15,7 +14,6 @@ services:
 
   db:
     image: mariadb:11.0
-    container_name: mariadb
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root
@@ -26,4 +24,6 @@ services:
       - db_data:/var/lib/mysql
 
 volumes:
+  app_storage:
+  app_cache:
   db_data:
