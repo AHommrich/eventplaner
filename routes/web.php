@@ -11,7 +11,7 @@ use App\Http\Controllers\FamilyController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TableController;
 use App\Http\Controllers\FoodSpecialController;
-Route::get('/_scheme', function (\Illuminate\Http\Request $r) {
+Route::get('/_scheme', function (Request $r) {
     return [
         'url()'        => url('/'),
         'asset(build)' => asset('build/app.js'),
