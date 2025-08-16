@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
   && rm -rf /var/lib/apt/lists/*
 
 # Node.js 20
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | sh - \
   && apt-get update && apt-get install -y nodejs \
   && rm -rf /var/lib/apt/lists/*
 
@@ -45,63 +45,59 @@ RUN { \
 
 # Nginx Konfiguration (serve /public, fastcgi zu php-fpm)
 RUN mkdir -p /var/log/nginx /var/cache/nginx /etc/nginx/sites-enabled
-RUN bash -lc 'cat > /etc/nginx/nginx.conf << "EOF"\n\
-user  www-data;\n\
-worker_processes auto;\n\
-pid /run/nginx.pid;\n\
-events { worker_connections 1024; }\n\
-http {\n\
-  include       /etc/nginx/mime.types;\n\
-  default_type  application/octet-stream;\n\
-  sendfile      on;\n\
-  tcp_nopush    on;\n\
-  tcp_nodelay   on;\n\
-  keepalive_timeout  65;\n\
-  types_hash_max_size 4096;\n\
-  server_tokens off;\n\
-  gzip on;\n\
-  include /etc/nginx/sites-enabled/*;\n\
-}\n\
+RUN /bin/sh -lc 'cat > /etc/nginx/nginx.conf << "EOF"
+user  www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+events { worker_connections 1024; }
+http {
+  include       /etc/nginx/mime.types;
+  default_type  application/octet-stream;
+  sendfile      on;
+  tcp_nopush    on;
+  tcp_nodelay   on;
+  keepalive_timeout  65;
+  types_hash_max_size 4096;
+  server_tokens off;
+  gzip on;
+  include /etc/nginx/sites-enabled/*;
+}
 EOF'
+RUN /bin/sh -lc 'cat > /etc/nginx/sites-enabled/default << "EOF"
+server {
+    listen 80 default_server;
+    server_name _;
+    root /var/www/public;
 
-RUN bash -lc 'cat > /etc/nginx/sites-enabled/default << "EOF"\n\
-server {\n\
-    listen 80 default_server;\n\
-    server_name _;\n\
-    root /var/www/public;\n\
-\n\
-    index index.php index.html;\n\
-    client_max_body_size 25m;\n\
-\n\
-    location / {\n\
-        try_files $uri $uri/ /index.php?$query_string;\n\
-    }\n\
-\n\
-    location ~ \\.php$ {\n\
-        include fastcgi_params;\n\
-        fastcgi_intercept_errors on;\n\
-        fastcgi_pass 127.0.0.1:9000;\n\
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;\n\
-        fastcgi_param PATH_INFO $fastcgi_path_info;\n\
-    }\n\
-\n\
-    location ~* \\.(?:ico|gif|jpe?g|png|svg|webp|css|js|map|woff2?)$ {\n\
-        expires 7d;\n\
-        access_log off;\n\
-    }\n\
-}\n\
+    index index.php index.html;
+    client_max_body_size 25m;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_intercept_errors on;
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param PATH_INFO $fastcgi_path_info;
+    }
+
+    location ~* \.(?:ico|gif|jpe?g|png|svg|webp|css|js|map|woff2?)$ {
+        expires 7d;
+        access_log off;
+    }
+}
 EOF'
 
 # Expose für Coolify (interner Port)
 EXPOSE 80
 
 # Start: Nginx im Vordergrund + php-fpm + Laravel Warmup
-#  - storage:link (idempotent)
-#  - caches bauen (env-aware)
-#  - migrations best-effort (scheitert nicht hart)
-CMD bash -lc '\
+CMD /bin/sh -lc '\
   php -v && nginx -t && php-fpm -v && \
-  php -r "echo \"\\nWaiting for DB (if configured)...\\n\";" ; \
+  echo "\nWaiting for DB (if configured)..." ; \
   (php artisan config:clear || true) && \
   (php artisan route:clear || true) && \
   (php artisan view:clear || true) && \
