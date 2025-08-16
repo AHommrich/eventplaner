@@ -43,11 +43,11 @@ services:
       - '--max-connections=200'
     volumes:
       - db_data:/var/lib/mysql
-    healthcheck:
-      test: ['CMD-SHELL', 'mysqladmin ping -u$$MYSQL_USER -p$$MYSQL_PASSWORD -h 127.0.0.1 --silent']
-      interval: 10s
-      timeout: 10s
-      retries: 12
+    test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -uroot -p\"$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 40s
 
 volumes:
   app_storage:
