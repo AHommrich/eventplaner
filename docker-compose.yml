@@ -2,6 +2,7 @@ version: '3.9'
 
 services:
   app:
+    profiles: ['run']
     build:
       context: .
       dockerfile: Dockerfile
@@ -28,6 +29,7 @@ services:
       retries: 10
 
   db:
+    profiles: ['run']
     image: mariadb:11.0
     restart: unless-stopped
     environment:
@@ -43,7 +45,8 @@ services:
       - '--max-connections=200'
     volumes:
       - db_data:/var/lib/mysql
-    test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -uroot -p\"$MYSQL_ROOT_PASSWORD\" --silent"]
+    healthcheck:
+      test: ['CMD-SHELL', 'mariadb-admin ping -h 127.0.0.1 -uroot -p"$MYSQL_ROOT_PASSWORD" --silent']
       interval: 5s
       timeout: 5s
       retries: 60
