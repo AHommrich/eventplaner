@@ -1,6 +1,7 @@
 import '../css/app.css';
 
 import { createInertiaApp } from '@inertiajs/vue3';
+import axios from 'axios';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
@@ -9,19 +10,37 @@ import { initializeTheme } from './composables/useAppearance';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
+/** Axios nur relative URLs + XHR-Header */
+axios.defaults.baseURL = '/';
+axios.defaults.withCredentials = true;
+axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+
+/** Ziggy: absolute Links deaktivieren + URL setzen, falls vorhanden */
+declare global {
+    interface Window {
+        Ziggy?: any;
+    }
+}
+if (typeof window !== 'undefined' && window.Ziggy) {
+    window.Ziggy.absolute = false;
+    if (import.meta.env.VITE_APP_URL) {
+        window.Ziggy.url = import.meta.env.VITE_APP_URL;
+    }
+}
+
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     resolve: (name) => resolvePageComponent(`./pages/${name}.vue`, import.meta.glob<DefineComponent>('./pages/**/*.vue')),
     setup({ el, App, props, plugin }) {
-        createApp({ render: () => h(App, props) })
+        const vue = createApp({ render: () => h(App, props) })
             .use(plugin)
-            .use(ZiggyVue)
-            .mount(el);
+            // Falls @routes eingebunden ist, geben wir Ziggy an das Plugin durch:
+            .use(ZiggyVue, typeof window !== 'undefined' ? (window as any).Ziggy : undefined);
+
+        vue.mount(el);
     },
-    progress: {
-        color: '#4B5563',
-    },
+    progress: { color: '#4B5563' },
 });
 
-// This will set light / dark mode on page load...
+// Theme setzen (Light/Dark)
 initializeTheme();
