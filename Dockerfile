@@ -41,7 +41,7 @@ run printf '%s\n' \
   'opcache.interned_strings_buffer=16' \
   > /usr/local/etc/php/conf.d/opcache.ini
 
-# Nginx config (ohne Heredoc → stabil)
+# Nginx config (mit map für HTTPS-Erkennung + Proxy-Header)
 run mkdir -p /etc/nginx/sites-enabled /var/log/nginx /var/cache/nginx
 run printf '%s\n' \
   'user  www-data;' \
@@ -58,6 +58,8 @@ run printf '%s\n' \
   '  types_hash_max_size 4096;' \
   '  server_tokens off;' \
   '  gzip on;' \
+  '  # Map X-Forwarded-Proto -> HTTPS für PHP/Laravel' \
+  '  map $http_x_forwarded_proto $fastcgi_https { default off; https on; }' \
   '  include /etc/nginx/sites-enabled/*;' \
   '}' \
   > /etc/nginx/nginx.conf
@@ -81,6 +83,13 @@ run printf '%s\n' \
   '        fastcgi_pass 127.0.0.1:9000;' \
   '        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;' \
   '        fastcgi_param PATH_INFO $fastcgi_path_info;' \
+  '        # --- Forward original proxy headers to PHP ---' \
+  '        fastcgi_param HTTP_X_FORWARDED_PROTO $http_x_forwarded_proto;' \
+  '        fastcgi_param HTTP_X_FORWARDED_HOST  $host;' \
+  '        fastcgi_param HTTP_X_FORWARDED_PORT  $server_port;' \
+  '        fastcgi_param HTTP_X_FORWARDED_FOR   $proxy_add_x_forwarded_for;' \
+  '        # Setze HTTPS je nach X-Forwarded-Proto (wir definieren $fastcgi_https in nginx.conf)' \
+  '        fastcgi_param HTTPS $fastcgi_https;' \
   '    }' \
   '' \
   '    location ~* \.(?:ico|gif|jpe?g|png|svg|webp|css|js|map|woff2?)$ {' \
