@@ -1,6 +1,8 @@
 services:
   app:
     build:
+      args:
+        LARAVEL_ENV_FILE: .env.docker
       context: .
       dockerfile: Dockerfile
     container_name: laravel-app
