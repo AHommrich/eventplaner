@@ -5,7 +5,7 @@ import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 // Breadcrumbs
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', href: '/dashboard' }];
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Gäste', href: '/dashboard' }];
 
 // Zugriff auf Daten von Inertia
 const page = usePage();
