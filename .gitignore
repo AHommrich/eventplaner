@@ -11,8 +11,8 @@
 .env.backup
 .env.coolify
 .env.production
-.env.docker
 .env.develop
+.env.docker
 .phpactor.json
 .phpunit.result.cache
 Homestead.json
