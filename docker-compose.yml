@@ -1,3 +1,5 @@
+ 
+
 services:
   app:
     build:
@@ -8,29 +10,30 @@ services:
     container_name: laravel-app
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "8080:8080"      
     volumes:
-      - .:/var/www
-    # Laufzeit-ENV-Overrides (wichtig: DB_HOST passt zum container_name der DB)
+      - .:/var/www      
     environment:
       DB_HOST: mariadb
       DB_PORT: 3306
       DB_DATABASE: laravel
       DB_USERNAME: laravel
       DB_PASSWORD: secret
-      # temporär, damit artisan-Befehle ohne DB laufen
       CACHE_DRIVER: file
-      CACHE_STORE: file
       SESSION_DRIVER: file
     depends_on:
       db:
         condition: service_healthy
-    # optionaler Healthcheck für die App (nur Beispiel)
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1/ || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 10
+    command: sh -lc "php artisan serve --host=0.0.0.0 --port=8080"
+
+  vite:
+    image: node:20
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+    ports:
+      - "5173:5173"     
+    command: sh -lc "npm ci && npm run dev -- --host"
 
   db:
     image: mariadb:11.0
@@ -42,11 +45,10 @@ services:
       MYSQL_USER: laravel
       MYSQL_PASSWORD: secret
     ports:
-      - "3307:3306"   # nur für externen Zugriff vom Host; intern bleibt es 3306
+      - "3307:3306"      
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
-      # nutzt das im Image mitgelieferte Script
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 5s
       timeout: 5s
