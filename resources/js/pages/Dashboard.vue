@@ -6,7 +6,7 @@ import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 // Breadcrumbs
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', href: '/dashboard' }];
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Formulare', href: '/dashboard' }];
 
 // Zugriff auf Daten von Inertia
 const page = usePage();
@@ -55,6 +55,7 @@ function deleteGuest(id: number) {
             <div class="flex flex-col gap-4">
                 <!-- Kategorie Formular -->
                 <div class="rounded-xl border bg-white p-4 dark:bg-gray-900">
+                    <p>Funktioniert</p>
                     <h2 class="mb-2 text-lg font-semibold">Neue Kategorie</h2>
                     <form @submit.prevent="submitCategory" class="flex flex-col gap-2 sm:flex-row">
                         <input v-model="categoryForm.title" type="text" placeholder="Kategoriename" class="flex-1 rounded border p-2" />
