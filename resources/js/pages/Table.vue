@@ -28,7 +28,7 @@ function deleteGuest(id: number) {
 </script>
 
 <template>
-    <Head title="Tabelle" />
+    <Head title="Gäste" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="m-4 rounded-xl border bg-white p-4 dark:bg-gray-900">
             <h2 class="mb-4 text-lg font-semibold">Aktuelle Gäste</h2>
