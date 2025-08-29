@@ -8,3 +8,6 @@
 
 CHANGELOG.md export-ignore
 README.md export-ignore
+
+Dockerfile            merge=ours
+docker-compose.yml            merge=ours
