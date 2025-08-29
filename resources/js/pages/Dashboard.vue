@@ -48,7 +48,7 @@ function deleteGuest(id: number) {
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head title="Formulare" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="grid h-full flex-1 grid-cols-1 gap-4 p-4 md:grid-cols-2">
             <!-- Linke Spalte: Kategorie, Familie, FoodSpecial -->
