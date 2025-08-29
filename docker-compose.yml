@@ -1,18 +1,36 @@
 services:
   app:
     build:
-      args:
-        LARAVEL_ENV_FILE: .env.docker
       context: .
       dockerfile: Dockerfile
+      args:
+        LARAVEL_ENV_FILE: .env.docker
     container_name: laravel-app
     restart: unless-stopped
     ports:
-      - '80:80'
+      - "80:80"
     volumes:
       - .:/var/www
+    # Laufzeit-ENV-Overrides (wichtig: DB_HOST passt zum container_name der DB)
+    environment:
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_DATABASE: laravel
+      DB_USERNAME: laravel
+      DB_PASSWORD: secret
+      # temporär, damit artisan-Befehle ohne DB laufen
+      CACHE_DRIVER: file
+      CACHE_STORE: file
+      SESSION_DRIVER: file
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    # optionaler Healthcheck für die App (nur Beispiel)
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
 
   db:
     image: mariadb:11.0
@@ -24,9 +42,16 @@ services:
       MYSQL_USER: laravel
       MYSQL_PASSWORD: secret
     ports:
-      - '3307:3306'
+      - "3307:3306"   # nur für externen Zugriff vom Host; intern bleibt es 3306
     volumes:
       - db_data:/var/lib/mysql
+    healthcheck:
+      # nutzt das im Image mitgelieferte Script
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
 
 volumes:
   db_data:
