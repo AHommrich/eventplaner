@@ -29,10 +29,6 @@ const submitFoodSpecial = () => foodSpecialForm.post(route('foodspecials.store')
 
 // Filter
 const badgeFilter = ref('');
-const filteredGuests = computed(() => {
-    if (!badgeFilter.value) return guests.value;
-    return guests.value.filter((guest: any) => guest.badge?.title === badgeFilter.value);
-});
 
 // Gast anlegen (wird von GuestForm genutzt)
 function handleCreate(form: any) {
@@ -131,7 +127,7 @@ function deleteGuest(id: number) {
                 </thead>
                 <tbody>
                     <tr
-                        v-for="guest in filteredGuests"
+                        v-for="guest in guests"
                         :key="guest.id"
                         class="cursor-pointer border-b hover:bg-gray-50 dark:hover:bg-gray-800"
                         @click="router.visit(route('guests.edit', guest.id))"
