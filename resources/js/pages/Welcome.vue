@@ -31,7 +31,16 @@ import { Head, Link } from '@inertiajs/vue3';
                     >
                         Registrieren
                     </Link>
+
+
+                     <div >
+  <a :href="route('oauth.google.redirect')" class="block border text-white rounded px-3 py-2 text-center">
+    Mit Google anmelden
+  </a>
+</div>
                 </template>
+
+
             </nav>
         </header>
     </div>
