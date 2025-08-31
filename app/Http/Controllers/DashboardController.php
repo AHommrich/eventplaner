@@ -14,8 +14,10 @@ class DashboardController extends Controller
     {
         return Inertia::render('Dashboard', [
             'badges'        => Badge::orderBy('title', 'asc')->get(['id', 'title']),
-            'guests'        => Guest::with('badge', 'family', 'drinks', 'foodSpecials')->get(),
-            'families'      => Family::orderBy('name', 'asc')->get(['id', 'name']),
+'guests'        => Guest::with(['badge', 'family', 'drinks', 'foodSpecials'])
+                            ->latest()
+                            ->take(10)
+                            ->get(),            'families'      => Family::orderBy('name', 'asc')->get(['id', 'name']),
             'food_specials' => FoodSpecial::orderBy('name')->get(['id', 'name']), // <- wichtig
         ]);
     }
