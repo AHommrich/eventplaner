@@ -1,4 +1,6 @@
 import '../css/app.css';
+import { registerSW } from 'virtual:pwa-register'
+registerSW({ immediate: true })
 
 import { createInertiaApp } from '@inertiajs/vue3';
 import axios from 'axios';
