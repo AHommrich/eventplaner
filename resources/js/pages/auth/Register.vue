@@ -78,6 +78,12 @@ const submit = () => {
                 Already have an account?
                 <TextLink :href="route('login')" class="underline underline-offset-4" :tabindex="6">Log in</TextLink>
             </div>
+
+            <div class="mt-4">
+  <a :href="route('oauth.google.redirect')" class="block border rounded px-3 py-2 text-center">
+    Mit Google anmelden
+  </a>
+</div>
         </form>
     </AuthBase>
 </template>
