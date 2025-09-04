@@ -1,60 +1,59 @@
- 
+
 
 services:
   app:
-    profiles: ['run']
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        LARAVEL_ENV_FILE: .env.docker
+    container_name: laravel-app
     restart: unless-stopped
-    env_file:
-      - .env
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/var/www
     environment:
-      APP_ENV: production
-      APP_DEBUG: 'false'
-      TRUSTED_PROXIES: '*'
-      APP_URL: ${APP_URL}
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_DATABASE: laravel
+      DB_USERNAME: laravel
+      DB_PASSWORD: secret
+      CACHE_DRIVER: file
+      SESSION_DRIVER: file
     depends_on:
       db:
         condition: service_healthy
-    expose:
-      - '80'
+    command: sh -lc "php artisan serve --host=0.0.0.0 --port=8080"
+
+  vite:
+    image: node:20
+    working_dir: /var/www
     volumes:
-      - app_storage:/var/www/storage
-      - app_cache:/var/www/bootstrap/cache
-    healthcheck:
-      test: ['CMD-SHELL', 'curl -fsS http://127.0.0.1/ || exit 1']
-      interval: 15s
-      timeout: 5s
-      retries: 10
+      - .:/var/www
+    ports:
+      - "5173:5173"
+    command: sh -lc "npm ci && npm run dev -- --host"
 
   db:
-    profiles: ['run']
     image: mariadb:11.0
+    container_name: mariadb
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: laravel
       MYSQL_USER: laravel
       MYSQL_PASSWORD: secret
-      MARIADB_AUTO_UPGRADE: '1'
-    command:
-      - '--character-set-server=utf8mb4'
-      - '--collation-server=utf8mb4_unicode_ci'
-      - '--innodb-file-per-table=1'
-      - '--max-connections=200'
+    ports:
+      - "3307:3306"
     volumes:
       - db_data:/var/lib/mysql
-    ports:
-      - "127.0.0.1:3308:3306" 
     healthcheck:
-      test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 5s
       timeout: 5s
       retries: 60
-      start_period: 40s
+      start_period: 30s
 
 volumes:
-  app_storage:
-  app_cache:
   db_data:
