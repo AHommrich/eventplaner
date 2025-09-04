@@ -1,118 +1,70 @@
-from php:8.3-fpm
+# Dockerfile.dev — Laravel + Artisan Serve (für lokale Entwicklung)
+FROM php:8.3-cli
 
-# Systempakete + Nginx + PHP-Extensions
-run apt-get update && apt-get install -y \
-    git unzip zip curl libpng-dev libonig-dev libxml2-dev libzip-dev \
-    mariadb-client nginx ca-certificates \
- && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip opcache \
+# Optional: UID/GID an den Host anpassen, damit es keine Rechteprobleme mit dem Bind-Mount gibt
+ARG PUID=1000
+ARG PGID=1000
+
+# Systempakete & Build-Deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git unzip zip curl \
+    pkg-config \
+    libonig-dev \
+    libjpeg62-turbo-dev libpng-dev libfreetype6-dev \
+    libzip-dev libxml2-dev \
+    mariadb-client \
  && rm -rf /var/lib/apt/lists/*
 
-# Node.js 20
-run curl -fsSL https://deb.nodesource.com/setup_20.x | sh - \
- && apt-get update && apt-get install -y nodejs \
- && rm -rf /var/lib/apt/lists/*
+# PHP-Extensions (GD mit JPEG/FreeType)
+RUN docker-php-ext-configure gd --with-jpeg --with-freetype \
+ && docker-php-ext-install -j"$(nproc)" \
+    pdo pdo_mysql mbstring exif pcntl bcmath gd zip
 
 # Composer
-copy --from=composer:2.7 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 
-workdir /var/www
+# Arbeitsverzeichnis (Code kommt per Bind-Mount)
+WORKDIR /var/www
 
-# Composer (Layer-Caching)
-copy composer.json composer.lock ./
-run composer install --no-dev --optimize-autoloader --no-interaction --no-progress --no-scripts
+# www-data an Host-UID/GID angleichen (vermeidet Schreib-/Besitzprobleme im Mount)
+RUN groupmod -o -g ${PGID} www-data \
+ && usermod  -o -u ${PUID} -g www-data www-data \
+ && mkdir -p /var/www/storage /var/www/bootstrap/cache \
+ && chown -R www-data:www-data /var/www
 
-# App-Code
-copy . .
+# Dev-Startscript: Composer installieren (falls nötig), .env anlegen, Key generieren,
+# Caches leeren, optional migrate, dann Artisan-Server starten
+RUN printf '%s\n' \
+'#!/bin/sh' \
+'set -e' \
+'cd /var/www' \
+'echo "[start] Laravel Dev Bootstrap…"' \
+'# Rechte sicherstellen (Mount kann Besitz verlieren)' \
+'chown -R www-data:www-data storage bootstrap/cache || true' \
+'mkdir -p storage bootstrap/cache' \
+'# Composer installieren, falls vendor fehlt' \
+'if [ ! -d vendor ]; then' \
+'  echo "[start] Running composer install (dev)";' \
+'  composer install --no-interaction --prefer-dist;' \
+'fi' \
+'# .env aus Beispiel übernehmen, falls nicht vorhanden' \
+'if [ ! -f .env ] && [ -f .env.example ]; then' \
+'  cp .env.example .env;' \
+'fi' \
+'# App-Key generieren, falls leer' \
+'su -s /bin/sh -c "php artisan key:generate --force || true" www-data' \
+'# Caches leeren (damit Compose-ENV sicher greift)' \
+'su -s /bin/sh -c "php artisan config:clear || true" www-data' \
+'su -s /bin/sh -c "php artisan cache:clear || true"  www-data' \
+'su -s /bin/sh -c "php artisan route:clear  || true" www-data' \
+'su -s /bin/sh -c "php artisan view:clear   || true" www-data' \
+'# (Optional) Migrations – im Dev ok; Fehler ignorieren wenn DB noch nicht ready' \
+'su -s /bin/sh -c "php artisan migrate --force || true" www-data' \
+'echo "[start] Starting artisan serve on 0.0.0.0:${APP_PORT:-8080}"' \
+'exec php artisan serve --host=0.0.0.0 --port="${APP_PORT:-8080}"' \
+> /usr/local/bin/dev-start.sh \
+ && chmod +x /usr/local/bin/dev-start.sh
 
-# Frontend-Build (Vite/Inertia)
-run npm ci --prefer-offline --no-audit --no-fund && npm run build
-
-# Permissions
-run mkdir -p /var/www/storage /var/www/bootstrap/cache \
- && chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
-
-# OPcache
-run printf '%s\n' \
-  'opcache.enable=1' \
-  'opcache.enable_cli=1' \
-  'opcache.validate_timestamps=0' \
-  'opcache.max_accelerated_files=20000' \
-  'opcache.memory_consumption=192' \
-  'opcache.interned_strings_buffer=16' \
-  > /usr/local/etc/php/conf.d/opcache.ini
-
-# Nginx config (mit map für HTTPS-Erkennung + Proxy-Header)
-run mkdir -p /etc/nginx/sites-enabled /var/log/nginx /var/cache/nginx
-run printf '%s\n' \
-  'user  www-data;' \
-  'worker_processes auto;' \
-  'pid /run/nginx.pid;' \
-  'events { worker_connections 1024; }' \
-  'http {' \
-  '  include       /etc/nginx/mime.types;' \
-  '  default_type  application/octet-stream;' \
-  '  sendfile      on;' \
-  '  tcp_nopush    on;' \
-  '  tcp_nodelay   on;' \
-  '  keepalive_timeout  65;' \
-  '  types_hash_max_size 4096;' \
-  '  server_tokens off;' \
-  '  gzip on;' \
-  '  # Map X-Forwarded-Proto -> HTTPS für PHP/Laravel' \
-  '  map $http_x_forwarded_proto $fastcgi_https { default off; https on; }' \
-  '  include /etc/nginx/sites-enabled/*;' \
-  '}' \
-  > /etc/nginx/nginx.conf
-
-run printf '%s\n' \
-  'server {' \
-  '    listen 80 default_server;' \
-  '    server_name _;' \
-  '    root /var/www/public;' \
-  '' \
-  '    index index.php index.html;' \
-  '    client_max_body_size 25m;' \
-  '' \
-  '    location / {' \
-  '        try_files $uri $uri/ /index.php?$query_string;' \
-  '    }' \
-  '' \
-  '    location ~ \.php$ {' \
-  '        include fastcgi_params;' \
-  '        fastcgi_intercept_errors on;' \
-  '        fastcgi_pass 127.0.0.1:9000;' \
-  '        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;' \
-  '        fastcgi_param PATH_INFO $fastcgi_path_info;' \
-  '        # --- Forward original proxy headers to PHP ---' \
-  '        fastcgi_param HTTP_X_FORWARDED_PROTO $http_x_forwarded_proto;' \
-  '        fastcgi_param HTTP_X_FORWARDED_HOST  $host;' \
-  '        fastcgi_param HTTP_X_FORWARDED_PORT  $server_port;' \
-  '        fastcgi_param HTTP_X_FORWARDED_FOR   $proxy_add_x_forwarded_for;' \
-  '        # Setze HTTPS je nach X-Forwarded-Proto (wir definieren $fastcgi_https in nginx.conf)' \
-  '        fastcgi_param HTTPS $fastcgi_https;' \
-  '    }' \
-  '' \
-  '    location ~* \.(?:ico|gif|jpe?g|png|svg|webp|css|js|map|woff2?)$ {' \
-  '        expires 7d;' \
-  '        access_log off;' \
-  '    }' \
-  '}' \
-  > /etc/nginx/sites-enabled/default
-
-expose 80
-
-# Start (nur /bin/sh, kein bash)
-cmd ["/bin/sh","-lc", "\
-  php -v && nginx -t && php-fpm -v && \
-  echo 'Waiting for app warmup...' ; \
-  (php artisan config:clear || true) && \
-  (php artisan route:clear || true) && \
-  (php artisan view:clear || true) && \
-  (php artisan storage:link || true) && \
-  (php artisan config:cache || true) && \
-  (php artisan route:cache || true) && \
-  (php artisan view:cache || true) && \
-  (php artisan migrate --force || true) && \
-  php-fpm -D && \
-  exec nginx -g 'daemon off;' \
-"]
+EXPOSE 8080
+USER www-data
+CMD ["/usr/local/bin/dev-start.sh"]
