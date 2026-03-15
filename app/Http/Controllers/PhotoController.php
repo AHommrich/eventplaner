@@ -30,7 +30,7 @@ class PhotoController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'photo' => ['required', 'file', 'mimes:jpeg,png,heic,heif', 'max:10240'],
+            'photo' => ['required', 'file', 'mimes:jpeg,png', 'max:10240'],
         ]);
 
         $extension = $request->file('photo')->getClientOriginalExtension();
