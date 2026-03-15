@@ -22,6 +22,7 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 /** Axios nur relative URLs + XHR-Header */
 axios.defaults.baseURL = '/';
 axios.defaults.withCredentials = true;
+axios.defaults.withXSRFToken = true;
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
 /** Ziggy: absolute Links deaktivieren + URL setzen, falls vorhanden */
