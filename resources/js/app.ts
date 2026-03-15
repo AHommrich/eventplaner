@@ -20,9 +20,12 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 /** Axios nur relative URLs + XHR-Header */
+const csrfCookieName = import.meta.env.VITE_CSRF_COOKIE_NAME || 'XSRF-TOKEN';
 axios.defaults.baseURL = '/';
 axios.defaults.withCredentials = true;
 axios.defaults.withXSRFToken = true;
+axios.defaults.xsrfCookieName = csrfCookieName;
+axios.defaults.xsrfHeaderName = `X-${csrfCookieName}`;
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
 /** Ziggy: absolute Links deaktivieren + URL setzen, falls vorhanden */
