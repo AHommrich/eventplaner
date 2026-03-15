@@ -5,6 +5,9 @@ from php:8.3-fpm
 run apt-get update && apt-get install -y \
     git unzip zip curl libpng-dev libonig-dev libxml2-dev libzip-dev \
     mariadb-client nginx ca-certificates \
+    libmagickwand-dev libheif-dev \
+ && pecl install imagick \
+ && docker-php-ext-enable imagick \
  && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip opcache \
  && rm -rf /var/lib/apt/lists/*
 

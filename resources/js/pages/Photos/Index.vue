@@ -14,6 +14,7 @@ defineProps<{ photos: Photo[] }>();
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const form = useForm({ photo: null as File | null });
+const selected = ref<Photo | null>(null);
 
 function onFileChange(e: Event) {
     const file = (e.target as HTMLInputElement).files?.[0] ?? null;
@@ -33,6 +34,7 @@ function submitUpload() {
 
 function deletePhoto(id: number) {
     if (!confirm('Foto löschen?')) return;
+    selected.value = null;
     router.delete(route('photos.destroy', id));
 }
 </script>
@@ -47,7 +49,7 @@ function deletePhoto(id: number) {
                     <input
                         ref="fileInput"
                         type="file"
-                        accept="image/jpeg,image/png,image/heic"
+                        accept="image/jpeg,image/png"
                         class="hidden"
                         @change="onFileChange"
                     />
@@ -69,7 +71,8 @@ function deletePhoto(id: number) {
                 <div
                     v-for="photo in photos"
                     :key="photo.id"
-                    class="group relative overflow-hidden rounded-lg border bg-muted"
+                    class="group relative cursor-pointer overflow-hidden rounded-lg border bg-muted"
+                    @click="selected = photo"
                 >
                     <img
                         :src="photo.url"
@@ -80,11 +83,47 @@ function deletePhoto(id: number) {
                         <div class="font-medium">{{ photo.guest_name }}</div>
                         <div class="text-white/70">{{ photo.created_at }}</div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detail Modal -->
+        <div
+            v-if="selected"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+            @click.self="selected = null"
+        >
+            <div class="relative flex w-full max-w-2xl flex-col rounded-xl bg-background shadow-xl">
+                <div class="flex items-center justify-between border-b px-4 py-3">
+                    <div>
+                        <p class="font-semibold">{{ selected.guest_name }}</p>
+                        <p class="text-muted-foreground text-sm">{{ selected.created_at }}</p>
+                    </div>
                     <button
-                        class="absolute right-1 top-1 hidden rounded bg-red-600 px-2 py-1 text-xs text-white group-hover:block"
-                        @click="deletePhoto(photo.id)"
+                        class="text-muted-foreground hover:text-foreground text-xl leading-none"
+                        @click="selected = null"
                     >
                         ✕
+                    </button>
+                </div>
+                <img
+                    :src="selected.url"
+                    :alt="selected.guest_name"
+                    class="max-h-[70vh] w-full rounded-b-xl object-contain"
+                />
+                <div class="flex justify-between border-t px-4 py-3">
+                    <a
+                        :href="selected.url"
+                        target="_blank"
+                        class="rounded-md border px-4 py-2 text-sm hover:bg-muted"
+                    >
+                        Öffnen
+                    </a>
+                    <button
+                        class="rounded-md bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700"
+                        @click="deletePhoto(selected.id)"
+                    >
+                        Löschen
                     </button>
                 </div>
             </div>
