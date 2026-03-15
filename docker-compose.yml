@@ -43,6 +43,8 @@ services:
       - '--collation-server=utf8mb4_unicode_ci'
       - '--innodb-file-per-table=1'
       - '--max-connections=200'
+    ports:
+      - "${DB_EXTERNAL_PORT:-3306}:3306"
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
