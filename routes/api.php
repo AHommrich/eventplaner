@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\PhotoController;
 use App\Http\Controllers\Api\QrAuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -21,3 +22,9 @@ Route::delete('/auth/logout', function (Request $request) {
     $request->user()->currentAccessToken()->delete();
     return response()->json(['message' => 'Logged out.']);
 })->middleware('auth:sanctum');
+
+// Fotos: hochladen und abrufen
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/photos', [PhotoController::class, 'store']);
+    Route::get('/photos', [PhotoController::class, 'index']);
+});
