@@ -20,6 +20,8 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 /** Axios nur relative URLs + XHR-Header */
+// WORKAROUND: Axios muss denselben Cookie-Namen lesen wie das Backend ihn setzt.
+// Siehe VerifyCsrfToken.php – nötig weil staging/prod auf derselben Parent-Domain laufen.
 const csrfCookieName = import.meta.env.VITE_CSRF_COOKIE_NAME || 'XSRF-TOKEN';
 axios.defaults.baseURL = '/';
 axios.defaults.withCredentials = true;
