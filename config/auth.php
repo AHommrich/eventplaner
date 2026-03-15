@@ -65,6 +65,12 @@ return [
             'model' => env('AUTH_MODEL', App\Models\User::class),
         ],
 
+        // Gäste als eigener Auth-Provider für Sanctum API-Tokens
+        'guests' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Guest::class,
+        ],
+
         // 'users' => [
         //     'driver' => 'database',
         //     'table' => 'users',
