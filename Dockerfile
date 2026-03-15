@@ -1,5 +1,6 @@
 from php:8.3-fpm
 
+# Production Dockerfile – nginx + php-fpm + Vite build
 # Systempakete + Nginx + PHP-Extensions
 run apt-get update && apt-get install -y \
     git unzip zip curl libpng-dev libonig-dev libxml2-dev libzip-dev \
