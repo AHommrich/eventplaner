@@ -77,7 +77,7 @@ class GuestController extends Controller
 
     public function edit(Request $request, Guest $guest)
 {
-    $guest->load('badge', 'family', 'drinks', 'foodSpecials');
+    $guest->load('badge', 'family.invitationToken', 'drinks', 'foodSpecials', 'invitationToken');
 
     // Ursprungsseite aus ?return_to=... oder Fallback auf vorherige URL
     $returnTo = $request->query('return_to', url()->previous());
@@ -90,8 +90,16 @@ class GuestController extends Controller
     $guestData = $guest->toArray();
     $guestData['food_specials'] = $guest->foodSpecials->pluck('id');
 
+    $invitationToken = $guest->invitationToken?->token
+        ?? $guest->family?->invitationToken?->token;
+
+    $qrUrl = $invitationToken
+        ? url('/api/auth/qr/' . $invitationToken)
+        : null;
+
     return Inertia::render('Guests/Edit', [
         'guest'         => $guestData,
+        'qr_url'        => $qrUrl,
         'badges'        => Badge::orderBy('title', 'asc')->get(['id', 'title']),
         'families'      => Family::orderBy('name', 'asc')->get(['id', 'name']),
         'food_specials' => FoodSpecial::orderBy('name')->get(['id', 'name']),
