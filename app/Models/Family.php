@@ -15,4 +15,9 @@ class Family extends Model
     {
         return $this->hasMany(Guest::class);
     }
+
+    public function invitationToken()
+    {
+        return $this->hasOne(InvitationToken::class);
+    }
 }

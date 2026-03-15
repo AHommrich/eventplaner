@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Sanctum\HasApiTokens;
 
 class Guest extends Model
 {
-    use HasFactory;
+    use HasFactory, HasApiTokens;
 
     protected $fillable = [
         'firstname',
@@ -37,6 +38,11 @@ class Guest extends Model
 public function foodSpecials()
 {
     return $this->belongsToMany(FoodSpecial::class, 'guest_food_special');
+}
+
+public function invitationToken()
+{
+    return $this->hasOne(InvitationToken::class);
 }
 
 }
