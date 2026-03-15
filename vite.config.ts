@@ -72,6 +72,7 @@ export default defineConfig({
         ],
       },
       workbox: {
+        navigateFallback: null,
         globPatterns: ['**/*.{js,css,svg,png,woff2}'],
         runtimeCaching: [
           // HTML/SSR-Dokumente: niemals cachen (CSRF-Token ist session-spezifisch)
