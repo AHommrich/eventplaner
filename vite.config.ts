@@ -72,16 +72,12 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        globPatterns: ['**/*.{js,css,svg,png,woff2}'],
         runtimeCaching: [
-          // HTML/SSR-Dokumente
+          // HTML/SSR-Dokumente: niemals cachen (CSRF-Token ist session-spezifisch)
           {
             urlPattern: ({ request }) => request.destination === 'document',
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'pages',
-              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 },
-            },
+            handler: 'NetworkOnly',
           },
           // Bundles/Assets
           {
