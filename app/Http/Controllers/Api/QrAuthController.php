@@ -31,6 +31,9 @@ class QrAuthController extends Controller
             return response()->json(['message' => 'Keine Gäste für diesen Token gefunden.'], 404);
         }
 
+        $isFamily  = $invitation->family_id !== null;
+        $familyName = $isFamily ? $invitation->family->name : null;
+
         // Für jeden Gast einen Sanctum-Token ausstellen
         $result = $guests->map(function ($guest) {
             // Alte Tokens löschen damit kein Token-Müll entsteht
@@ -47,7 +50,11 @@ class QrAuthController extends Controller
         });
 
         return response()->json([
-            'guests' => $result,
+            // type: "family" | "solo" — für die App um den richtigen Screen zu zeigen
+            'type'        => $isFamily ? 'family' : 'solo',
+            // family_name: z.B. "Müller" — für Familienbegrüßung "Willkommen, Familie Müller!"
+            'family_name' => $familyName,
+            'guests'      => $result,
         ]);
     }
 }
