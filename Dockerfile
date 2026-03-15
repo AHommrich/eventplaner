@@ -106,6 +106,7 @@ expose 80
 cmd ["/bin/sh","-lc", "\
   php -v && nginx -t && php-fpm -v && \
   echo 'Waiting for app warmup...' ; \
+  (php artisan package:discover --ansi || true) && \
   (php artisan config:clear || true) && \
   (php artisan route:clear || true) && \
   (php artisan view:clear || true) && \
