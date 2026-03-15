@@ -87,7 +87,6 @@ run printf '%s\n' \
   '        # --- Forward original proxy headers to PHP ---' \
   '        fastcgi_param HTTP_X_FORWARDED_PROTO $http_x_forwarded_proto;' \
   '        fastcgi_param HTTP_X_FORWARDED_HOST  $host;' \
-  '        fastcgi_param HTTP_X_FORWARDED_PORT  $server_port;' \
   '        fastcgi_param HTTP_X_FORWARDED_FOR   $proxy_add_x_forwarded_for;' \
   '        # Setze HTTPS je nach X-Forwarded-Proto (wir definieren $fastcgi_https in nginx.conf)' \
   '        fastcgi_param HTTPS $fastcgi_https;' \
