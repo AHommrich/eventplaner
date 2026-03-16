@@ -12,4 +12,9 @@ class Drink extends Model
     {
         return $this->belongsTo(Event::class);
     }
+
+    public function logs()
+    {
+        return $this->hasMany(DrinkLog::class);
+    }
 }
