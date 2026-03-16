@@ -11,12 +11,14 @@ use App\Http\Controllers\TableController;
 use App\Http\Controllers\FoodSpecialController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\PhotoController;
+use App\Http\Controllers\InvitationTokenController;
 
 //Main Routes
 Route::get('/', function () { return Inertia::render('Welcome'); })->name('home');
 Route::get('dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 Route::get('table', [TableController::class, 'index'])->middleware(['auth', 'verified'])->name('table');
 Route::get('invitations', [InvitationController::class, 'index'])->middleware(['auth', 'verified'])->name('invitations');
+Route::post('invitations/generate', [InvitationTokenController::class, 'generate'])->middleware(['auth', 'verified'])->name('invitations.generate');
 Route::get('photos', [PhotoController::class, 'index'])->middleware(['auth', 'verified'])->name('photos');
 Route::post('photos', [PhotoController::class, 'store'])->middleware(['auth', 'verified'])->name('photos.store');
 Route::delete('photos/{photo}', [PhotoController::class, 'destroy'])->middleware(['auth', 'verified'])->name('photos.destroy');
