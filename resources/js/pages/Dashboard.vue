@@ -118,8 +118,6 @@ function deleteGuest(id: number) {
                         <th class="p-3">Kategorie</th>
                         <th class="p-3">Gruppe</th>
                         <th class="p-3">Wahrscheinlichkeit</th>
-                        <th class="p-3">Bier (1–10)</th>
-                        <th class="p-3">Wein (1–10)</th>
                         <th class="p-3">Einladung</th>
                         <th class="p-3">Food Specials</th>
                         <th class="p-3 text-right">Aktionen</th>
@@ -162,14 +160,6 @@ function deleteGuest(id: number) {
                                               : 'Nein'
                                 }}
                             </span>
-                        </td>
-
-                        <td class="p-3">
-                            {{ guest.drinks?.find((d: any) => d.drink_type === 'beer')?.thirst_level ?? '-' }}
-                        </td>
-
-                        <td class="p-3">
-                            {{ guest.drinks?.find((d: any) => d.drink_type === 'wine')?.thirst_level ?? '-' }}
                         </td>
 
                         <td class="p-3">

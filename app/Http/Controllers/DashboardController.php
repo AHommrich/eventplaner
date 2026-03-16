@@ -15,7 +15,7 @@ class DashboardController extends Controller
         return Inertia::render('Dashboard', [
             'categories'    => Category::orderBy('title', 'asc')->get(['id', 'title']),
             'guests'        => $event
-                                ? $event->guests()->with(['category', 'group', 'drinks', 'foodSpecials'])->latest()->take(10)->get()
+                                ? $event->guests()->with(['category', 'group', 'foodSpecials'])->latest()->take(10)->get()
                                 : collect(),
             'groups'        => $event
                                 ? $event->groups()->orderBy('name')->get(['id', 'name'])
