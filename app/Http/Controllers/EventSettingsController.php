@@ -19,7 +19,7 @@ class EventSettingsController extends Controller
             'event' => $event->only([
                 'id', 'name', 'date', 'rsvp_deadline',
                 'cover_image_url', 'venue_name', 'venue_address',
-                'dresscode', 'schedule', 'color_primary', 'color_secondary',
+                'dresscode', 'schedule', 'color_primary', 'color_secondary', 'color_home_text',
             ]),
         ]);
     }
@@ -39,6 +39,7 @@ class EventSettingsController extends Controller
             'schedule'        => 'nullable|string|max:5000',
             'color_primary'   => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'color_secondary' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'color_home_text' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
         ]);
 
         $event->update($data);
