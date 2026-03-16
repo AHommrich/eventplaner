@@ -30,6 +30,10 @@ class QrAuthController extends Controller
             return response()->json(['message' => 'Keine Gäste für diesen Token gefunden.'], 404);
         }
 
+        if ($guests->every(fn($g) => !$g->app_access)) {
+            return response()->json(['message' => 'Der App-Zugang wurde für diesen Gast deaktiviert.'], 403);
+        }
+
         $isGroup   = $invitation->group_id !== null;
         $groupName = $isGroup ? $invitation->group->name : null;
 

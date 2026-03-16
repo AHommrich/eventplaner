@@ -21,10 +21,12 @@ class Guest extends Model
         'rsvp_set_by_guest_id',
         'rsvp_set_by_user_id',
         'rsvp_set_at',
+        'app_access',
     ];
 
     protected $casts = [
-        'rsvp_set_at' => 'datetime',
+        'rsvp_set_at'  => 'datetime',
+        'app_access'   => 'boolean',
     ];
 
     public function event()

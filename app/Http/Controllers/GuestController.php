@@ -139,4 +139,18 @@ class GuestController extends Controller
 
         return redirect()->route('guests.edit', $guest->id);
     }
+
+    public function updateAppAccess(Request $request, Guest $guest)
+    {
+        $event = $this->activeEvent();
+        abort_if($guest->event_id !== $event?->id, 403);
+
+        $data = $request->validate([
+            'app_access' => 'required|boolean',
+        ]);
+
+        $guest->update(['app_access' => $data['app_access']]);
+
+        return redirect()->route('guests.edit', $guest->id);
+    }
 }
