@@ -84,7 +84,10 @@
     "coverRemoved": "Titelbild entfernt",
     "coverError": "Fehler beim Hochladen",
     "appAccessEnabled": "App-Zugang freigeschaltet",
-    "appAccessDisabled": "App-Zugang gesperrt"
+    "appAccessDisabled": "App-Zugang gesperrt",
+    "drinksAccessEnabled": "Getränke-Tracking freigeschaltet",
+    "drinksAccessDisabled": "Getränke-Tracking gesperrt",
+    "drinkLogsReset": "Getränke-Logs zurückgesetzt"
   },
   "requests": {
     "title": "Anfragen",
@@ -146,7 +149,16 @@
     "appAccessDisabled": "App-Zugang gesperrt",
     "appAccessDesc": "Bestimmt ob dieser Gast die App nutzen kann.",
     "appAccessRevoke": "Zugang sperren",
-    "appAccessGrant": "Zugang freischalten"
+    "appAccessGrant": "Zugang freischalten",
+    "drinksAccess": "Getränke-Spiel",
+    "drinksAccessEnabled": "Getränke-Tracking aktiv",
+    "drinksAccessDisabled": "Getränke-Tracking gesperrt",
+    "drinksAccessDesc": "Bestimmt ob dieser Gast Getränke tracken kann.",
+    "drinksAccessRevoke": "Tracking sperren",
+    "drinksAccessGrant": "Tracking freischalten",
+    "drinksReset": "Logs zurücksetzen",
+    "drinksResetTitle": "Getränke-Logs löschen?",
+    "drinksResetDesc": "Alle getrackten Getränke dieses Gastes werden unwiderruflich gelöscht."
   },
   "category": {
     "new": "Neue Kategorie",
