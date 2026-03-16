@@ -57,7 +57,7 @@ class GuestController extends Controller
     {
         $event = $this->activeEvent();
 
-        $guest->load('category', 'group.invitationToken', 'foodSpecials', 'invitationToken');
+        $guest->load('category', 'group.invitationToken', 'foodSpecials', 'invitationToken', 'rsvpSetByGuest', 'rsvpSetByUser');
 
         $returnTo = $request->query('return_to', url()->previous());
         if ($returnTo && Str::startsWith($returnTo, url('/'))) {
@@ -66,6 +66,12 @@ class GuestController extends Controller
 
         $guestData = $guest->toArray();
         $guestData['food_specials'] = $guest->foodSpecials->pluck('id');
+        $guestData['rsvp_set_by_guest'] = $guest->rsvpSetByGuest
+            ? ['id' => $guest->rsvpSetByGuest->id, 'firstname' => $guest->rsvpSetByGuest->firstname, 'lastname' => $guest->rsvpSetByGuest->lastname]
+            : null;
+        $guestData['rsvp_set_by_user'] = $guest->rsvpSetByUser
+            ? ['id' => $guest->rsvpSetByUser->id, 'name' => $guest->rsvpSetByUser->name]
+            : null;
 
         $qrToken = $guest->getQrToken();
         $qrUrl   = $qrToken ? url('/api/auth/qr/' . $qrToken->token) : null;
@@ -109,5 +115,28 @@ class GuestController extends Controller
         }
 
         return redirect()->route('table')->with('success', 'Gast erfolgreich aktualisiert.');
+    }
+
+    /**
+     * POST /guests/{guest}/rsvp
+     * Admin/Event-Owner setzt RSVP manuell — ignoriert Deadline.
+     */
+    public function adminRsvp(Request $request, Guest $guest)
+    {
+        $event = $this->activeEvent();
+        abort_if($guest->event_id !== $event?->id, 403);
+
+        $data = $request->validate([
+            'rsvp_status' => 'nullable|in:accepted_pending,accepted,declined_pending,declined,revocation_requested',
+        ]);
+
+        $guest->update([
+            'rsvp_status'          => $data['rsvp_status'] ?? null,
+            'rsvp_set_by_guest_id' => null,
+            'rsvp_set_by_user_id'  => $request->user()->id,
+            'rsvp_set_at'          => now(),
+        ]);
+
+        return redirect()->route('guests.edit', $guest->id);
     }
 }

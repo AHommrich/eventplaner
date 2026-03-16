@@ -7,7 +7,8 @@
     "invitations": "Invitations",
     "photos": "Photos",
     "userManagement": "User Management",
-    "manageAccess": "Manage Access"
+    "manageAccess": "Manage Access",
+    "requests": "Requests"
   },
   "common": {
     "create": "Create",
@@ -50,7 +51,24 @@
     "accessAdded": "User added",
     "accessRemoved": "Access removed",
     "photoUploaded": "Photo uploaded",
-    "photoDeleted": "Photo deleted"
+    "photoDeleted": "Photo deleted",
+    "revocationApproved": "Request approved — guest can RSVP again",
+    "revocationDeclined": "Request declined",
+    "rsvpOverridden": "RSVP status updated"
+  },
+  "requests": {
+    "title": "Requests",
+    "revocationsTitle": "Revocation Requests",
+    "revocationsDesc": "Guests who want to revoke their final decline. Approving resets their status to open.",
+    "empty": "No open requests.",
+    "requestedAt": "Requested at",
+    "setBy": "Set by",
+    "approve": "Approve",
+    "decline": "Decline",
+    "confirmApproveTitle": "Approve request?",
+    "confirmApproveDesc": "The guest will be able to RSVP again.",
+    "confirmDeclineTitle": "Decline request?",
+    "confirmDeclineDesc": "The guest's decline remains in place."
   },
   "guest": {
     "firstName": "First name",
@@ -79,7 +97,20 @@
     "deleteTitle": "Delete guest",
     "deleteDescription": "This guest will be permanently deleted.",
     "invitationQR": "Invitation QR code",
-    "noToken": "No token found — please generate invitations first."
+    "noToken": "No token found — please generate invitations first.",
+    "rsvpStatus": "RSVP Status",
+    "rsvpSetBy": "Set by",
+    "rsvpSetAt": "Set at",
+    "rsvpOverride": "Override status manually",
+    "rsvpSave": "Save status",
+    "rsvpNull": "Open",
+    "rsvpAcceptedPending": "Acceptance pending",
+    "rsvpAccepted": "Accepted",
+    "rsvpDeclinedPending": "Decline pending",
+    "rsvpDeclined": "Declined",
+    "rsvpRevocationRequested": "Revocation requested",
+    "rsvpByGuest": "Guest",
+    "rsvpByUser": "Admin/Event owner"
   },
   "category": {
     "new": "New category",
