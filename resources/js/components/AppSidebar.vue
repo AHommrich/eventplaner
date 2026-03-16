@@ -6,7 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuIte
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { Users, SquarePen, QrCode, Images, ShieldCheck, GlassWater, ChevronsUpDown, Check, KeyRound, Undo2 } from 'lucide-vue-next';
+import { Users, SquarePen, QrCode, Images, ShieldCheck, GlassWater, ChevronsUpDown, Check, KeyRound, Undo2, Settings2 } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -38,11 +38,12 @@ function switchEvent(eventId: number) {
 }
 
 const mainNavItems = computed<NavItem[]>(() => [
-    { title: t('nav.forms'),       href: '/dashboard',   icon: SquarePen },
-    { title: t('nav.guests'),      href: '/table',        icon: Users },
-    { title: t('nav.drinks'),      href: '/drinks',       icon: GlassWater },
-    { title: t('nav.invitations'), href: '/invitations',  icon: QrCode },
-    { title: t('nav.photos'),      href: '/photos',       icon: Images },
+    { title: t('nav.forms'),        href: '/dashboard',      icon: SquarePen },
+    { title: t('nav.guests'),       href: '/table',          icon: Users },
+    { title: t('nav.drinks'),       href: '/drinks',         icon: GlassWater },
+    { title: t('nav.invitations'),  href: '/invitations',    icon: QrCode },
+    { title: t('nav.photos'),       href: '/photos',         icon: Images },
+    { title: t('nav.eventSettings'), href: '/event/settings', icon: Settings2 },
 ]);
 
 const adminNavItems = computed<NavItem[]>(() => [
