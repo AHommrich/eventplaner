@@ -54,6 +54,7 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::get('/event/settings', [EventSettingsController::class, 'show'])->name('event.settings');
     Route::post('/event/settings', [EventSettingsController::class, 'update'])->name('event.settings.update');
     Route::post('/event/settings/cover', [EventSettingsController::class, 'uploadCover'])->name('event.settings.cover');
+    Route::delete('/event/settings/cover', [EventSettingsController::class, 'deleteCover'])->name('event.settings.cover.delete');
 
     // Anfragen-Management (Rücknahmen + spätere Typen)
     Route::get('/requests', [RequestController::class, 'index'])->name('requests.index');

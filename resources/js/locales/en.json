@@ -38,7 +38,9 @@
     "rsvpDeadline": "RSVP deadline",
     "cover": "Cover image",
     "coverUpload": "Upload image",
+    "coverReplace": "Replace image",
     "coverUploading": "Uploading…",
+    "coverCurrent": "Current cover image",
     "coverHint": "Shown as background on the app home screen",
     "venueName": "Venue",
     "venueAddress": "Address",
@@ -77,6 +79,7 @@
     "rsvpOverridden": "RSVP status updated",
     "eventSettingsSaved": "Settings saved",
     "coverUploaded": "Cover image uploaded",
+    "coverRemoved": "Cover image removed",
     "coverError": "Upload failed"
   },
   "requests": {
