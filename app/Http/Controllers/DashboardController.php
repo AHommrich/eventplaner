@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Badge;
+use App\Models\Category;
 use App\Models\Guest;
-use App\Models\Family;
+use App\Models\Group;
 use App\Models\FoodSpecial;
 use Inertia\Inertia;
 
@@ -13,12 +13,13 @@ class DashboardController extends Controller
     public function index()
     {
         return Inertia::render('Dashboard', [
-            'badges'        => Badge::orderBy('title', 'asc')->get(['id', 'title']),
-'guests'        => Guest::with(['badge', 'family', 'drinks', 'foodSpecials'])
-                            ->latest()
-                            ->take(10)
-                            ->get(),            'families'      => Family::orderBy('name', 'asc')->get(['id', 'name']),
-            'food_specials' => FoodSpecial::orderBy('name')->get(['id', 'name']), // <- wichtig
+            'categories'    => Category::orderBy('title', 'asc')->get(['id', 'title']),
+            'guests'        => Guest::with(['category', 'group', 'drinks', 'foodSpecials'])
+                                ->latest()
+                                ->take(10)
+                                ->get(),
+            'groups'        => Group::orderBy('name', 'asc')->get(['id', 'name']),
+            'food_specials' => FoodSpecial::orderBy('name')->get(['id', 'name']),
         ]);
     }
 }

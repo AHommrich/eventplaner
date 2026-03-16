@@ -5,8 +5,8 @@ import FoodSpecialMultiSelect from './FoodSpecialMultiSelect.vue';
 type GuestFormData = {
     firstname: string;
     lastname: string;
-    badge_id: string | number;
-    family_id: string | number;
+    category_id: string | number;
+    group_id: string | number;
     likelihood: 'sure' | 'likely' | 'maybe' | 'unlikely' | 'no';
     beer: boolean;
     beer_thirst: number;
@@ -17,8 +17,8 @@ type GuestFormData = {
 };
 
 const props = defineProps<{
-    badges: { id: number; title: string }[];
-    families: { id: number; name: string }[];
+    categories: { id: number; title: string }[];
+    groups: { id: number; name: string }[];
     foodSpecials: { id: number; name: string }[];
     initialForm?: Partial<GuestFormData>;
     submitLabel?: string;
@@ -32,8 +32,8 @@ const emit = defineEmits<{
 const form = useForm<GuestFormData>({
     firstname: props.initialForm?.firstname ?? '',
     lastname: props.initialForm?.lastname ?? '',
-    badge_id: props.initialForm?.badge_id ?? '',
-    family_id: props.initialForm?.family_id ?? '',
+    category_id: props.initialForm?.category_id ?? '',
+    group_id: props.initialForm?.group_id ?? '',
     likelihood: props.initialForm?.likelihood ?? 'maybe',
     beer: props.initialForm?.beer ?? false,
     beer_thirst: props.initialForm?.beer_thirst ?? 5,
@@ -65,24 +65,24 @@ function submit() {
 
         <!-- Kategorie -->
         <div>
-            <select v-model="form.badge_id" class="w-full rounded border p-2">
+            <select v-model="form.category_id" class="w-full rounded border p-2">
                 <option disabled value="">-- Kategorie auswählen --</option>
-                <option v-for="badge in badges" :key="badge.id" :value="badge.id">
-                    {{ badge.title }}
+                <option v-for="category in categories" :key="category.id" :value="category.id">
+                    {{ category.title }}
                 </option>
             </select>
-            <p v-if="form.errors.badge_id" class="mt-1 text-sm text-red-500">{{ form.errors.badge_id }}</p>
+            <p v-if="form.errors.category_id" class="mt-1 text-sm text-red-500">{{ form.errors.category_id }}</p>
         </div>
 
-        <!-- Familie -->
+        <!-- Gruppe -->
         <div>
-            <select v-model="form.family_id" class="w-full rounded border p-2">
-                <option value="">-- Keine Familie --</option>
-                <option v-for="family in families" :key="family.id" :value="family.id">
-                    {{ family.name }}
+            <select v-model="form.group_id" class="w-full rounded border p-2">
+                <option value="">-- Keine Gruppe --</option>
+                <option v-for="group in groups" :key="group.id" :value="group.id">
+                    {{ group.name }}
                 </option>
             </select>
-            <p v-if="form.errors.family_id" class="mt-1 text-sm text-red-500">{{ form.errors.family_id }}</p>
+            <p v-if="form.errors.group_id" class="mt-1 text-sm text-red-500">{{ form.errors.group_id }}</p>
         </div>
 
         <!-- Bier -->
