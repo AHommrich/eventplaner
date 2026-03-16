@@ -151,6 +151,10 @@ class GuestController extends Controller
 
         $guest->update(['app_access' => $data['app_access']]);
 
+        if (!$data['app_access']) {
+            $guest->tokens()->delete();
+        }
+
         return redirect()->route('guests.edit', $guest->id);
     }
 }
