@@ -2,18 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Guest;
 use App\Models\Category;
-use App\Models\Group;
+use App\Models\FoodSpecial;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Models\FoodSpecial;
 
 class TableController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Guest::with(['category', 'group', 'drinks', 'foodSpecials']);
+        $event = $this->activeEvent();
+
+        $query = $event
+            ? $event->guests()->with(['category', 'group', 'drinks', 'foodSpecials'])
+            : \App\Models\Guest::with(['category', 'group', 'drinks', 'foodSpecials'])->whereNull('id');
 
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);
@@ -22,11 +24,9 @@ class TableController extends Controller
         return Inertia::render('Table', [
             'guests'        => $query->get(),
             'categories'    => Category::orderBy('title', 'asc')->get(['id', 'title']),
-            'groups'        => Group::orderBy('name', 'asc')->get(['id', 'name']),
+            'groups'        => $event ? $event->groups()->orderBy('name')->get(['id', 'name']) : collect(),
             'food_specials' => FoodSpecial::orderBy('name')->get(['id', 'name']),
-            'filters'       => [
-                'category_id' => $request->category_id,
-            ],
+            'filters'       => ['category_id' => $request->category_id],
         ]);
     }
 }
