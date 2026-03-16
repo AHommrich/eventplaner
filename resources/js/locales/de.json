@@ -1,5 +1,6 @@
 {
   "nav": {
+    "platform": "Plattform",
     "forms": "Formulare",
     "guests": "Gäste",
     "drinks": "Getränke",
@@ -149,6 +150,11 @@
     "eventName": "Event-Name",
     "placeholder": "z.B. Hochzeit Max & Anna",
     "create": "Event erstellen"
+  },
+  "appearance": {
+    "light": "Hell",
+    "dark": "Dunkel",
+    "system": "System"
   },
   "lang": {
     "de": "Deutsch",
