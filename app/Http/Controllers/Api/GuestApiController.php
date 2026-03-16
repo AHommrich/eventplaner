@@ -125,7 +125,11 @@ class GuestApiController extends Controller
         /** @var \App\Models\Guest $guest */
         $guest = $request->user();
 
-        abort_if($guest->rsvp_status !== 'declined', 422, 'Nur endgültig abgesagte Gäste können eine Rücknahme beantragen.');
+        abort_if(
+            !in_array($guest->rsvp_status, ['declined', 'declined_pending']),
+            422,
+            'Nur abgesagte Gäste können eine Rücknahme beantragen.'
+        );
 
         $guest->update([
             'rsvp_status' => 'revocation_requested',
