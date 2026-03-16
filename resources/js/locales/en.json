@@ -8,7 +8,8 @@
     "photos": "Photos",
     "userManagement": "User Management",
     "manageAccess": "Manage Access",
-    "requests": "Requests"
+    "requests": "Requests",
+    "eventSettings": "Event Settings"
   },
   "common": {
     "create": "Create",
@@ -29,7 +30,30 @@
   },
   "event": {
     "search": "Search event...",
-    "notFound": "No event found"
+    "notFound": "No event found",
+    "settings": "Event Settings",
+    "settingsDesc": "Configure name, date, design and info for your event",
+    "name": "Event name",
+    "date": "Event date & time",
+    "rsvpDeadline": "RSVP deadline",
+    "cover": "Cover image",
+    "coverUpload": "Upload image",
+    "coverReplace": "Replace image",
+    "coverUploading": "Uploading…",
+    "coverCurrent": "Current cover image",
+    "coverHint": "Shown as background on the app home screen",
+    "coverSelected": "New file selected",
+    "coverSaveHint": "Will be uploaded on save",
+    "venueName": "Venue",
+    "venueAddress": "Address",
+    "dresscode": "Dress code",
+    "schedule": "Schedule",
+    "colorPrimary": "Primary color (text & buttons)",
+    "colorSecondary": "Secondary color (background)",
+    "colorHomeText": "Home screen text color",
+    "colorHint": "Primary = text & buttons · Secondary = background · Home text = text over cover image",
+    "phonePreview": "Preview",
+    "saveSettings": "Save settings"
   },
   "confirm": {
     "defaultTitle": "Are you sure?",
@@ -54,7 +78,11 @@
     "photoDeleted": "Photo deleted",
     "revocationApproved": "Request approved — guest can RSVP again",
     "revocationDeclined": "Request declined",
-    "rsvpOverridden": "RSVP status updated"
+    "rsvpOverridden": "RSVP status updated",
+    "eventSettingsSaved": "Settings saved",
+    "coverUploaded": "Cover image uploaded",
+    "coverRemoved": "Cover image removed",
+    "coverError": "Upload failed"
   },
   "requests": {
     "title": "Requests",

@@ -8,7 +8,8 @@
     "photos": "Fotos",
     "userManagement": "User-Verwaltung",
     "manageAccess": "Zugang verwalten",
-    "requests": "Anfragen"
+    "requests": "Anfragen",
+    "eventSettings": "Event-Einstellungen"
   },
   "common": {
     "create": "Erstellen",
@@ -29,7 +30,30 @@
   },
   "event": {
     "search": "Event suchen...",
-    "notFound": "Kein Event gefunden"
+    "notFound": "Kein Event gefunden",
+    "settings": "Event-Einstellungen",
+    "settingsDesc": "Name, Datum, Design und Infos für dein Event konfigurieren",
+    "name": "Event-Name",
+    "date": "Event-Datum & Uhrzeit",
+    "rsvpDeadline": "RSVP-Stichtag",
+    "cover": "Titelbild",
+    "coverUpload": "Bild hochladen",
+    "coverReplace": "Bild ersetzen",
+    "coverUploading": "Wird hochgeladen…",
+    "coverCurrent": "Aktuelles Titelbild",
+    "coverHint": "Wird auf der Home-Seite der App als Hintergrund angezeigt",
+    "coverSelected": "Neue Datei ausgewählt",
+    "coverSaveHint": "Wird beim Speichern hochgeladen",
+    "venueName": "Veranstaltungsort",
+    "venueAddress": "Adresse",
+    "dresscode": "Dresscode",
+    "schedule": "Ablauf",
+    "colorPrimary": "Primärfarbe (Text & Buttons)",
+    "colorSecondary": "Sekundärfarbe (Hintergrund)",
+    "colorHomeText": "Textfarbe Home-Screen",
+    "colorHint": "Primär = Text & Buttons · Sekundär = Hintergrund · Home-Text = Schrift über Titelbild",
+    "phonePreview": "Vorschau",
+    "saveSettings": "Einstellungen speichern"
   },
   "confirm": {
     "defaultTitle": "Bist du sicher?",
@@ -54,7 +78,11 @@
     "photoDeleted": "Foto gelöscht",
     "revocationApproved": "Anfrage freigegeben — Gast kann erneut zusagen",
     "revocationDeclined": "Anfrage abgelehnt",
-    "rsvpOverridden": "RSVP-Status aktualisiert"
+    "rsvpOverridden": "RSVP-Status aktualisiert",
+    "eventSettingsSaved": "Einstellungen gespeichert",
+    "coverUploaded": "Titelbild hochgeladen",
+    "coverRemoved": "Titelbild entfernt",
+    "coverError": "Fehler beim Hochladen"
   },
   "requests": {
     "title": "Anfragen",
