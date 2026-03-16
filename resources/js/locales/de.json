@@ -82,7 +82,9 @@
     "eventSettingsSaved": "Einstellungen gespeichert",
     "coverUploaded": "Titelbild hochgeladen",
     "coverRemoved": "Titelbild entfernt",
-    "coverError": "Fehler beim Hochladen"
+    "coverError": "Fehler beim Hochladen",
+    "appAccessEnabled": "App-Zugang freigeschaltet",
+    "appAccessDisabled": "App-Zugang gesperrt"
   },
   "requests": {
     "title": "Anfragen",
@@ -138,7 +140,13 @@
     "rsvpDeclined": "Abgesagt",
     "rsvpRevocationRequested": "Rücknahme beantragt",
     "rsvpByGuest": "Gast",
-    "rsvpByUser": "Admin/Event-Owner"
+    "rsvpByUser": "Admin/Event-Owner",
+    "appAccess": "App-Zugang",
+    "appAccessEnabled": "App-Zugang aktiv",
+    "appAccessDisabled": "App-Zugang gesperrt",
+    "appAccessDesc": "Bestimmt ob dieser Gast die App nutzen kann.",
+    "appAccessRevoke": "Zugang sperren",
+    "appAccessGrant": "Zugang freischalten"
   },
   "category": {
     "new": "Neue Kategorie",

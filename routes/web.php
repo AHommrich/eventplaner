@@ -67,6 +67,7 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::get('/guests/{guest}/edit', [GuestController::class, 'edit'])->name('guests.edit');
     Route::put('/guests/{guest}', [GuestController::class, 'update'])->name('guests.update');
     Route::post('/guests/{guest}/rsvp', [GuestController::class, 'adminRsvp'])->name('guests.admin-rsvp');
+    Route::patch('/guests/{guest}/app-access', [GuestController::class, 'updateAppAccess'])->name('guests.app-access');
 });
 
 // Globale User-Verwaltung — nur Superadmin
