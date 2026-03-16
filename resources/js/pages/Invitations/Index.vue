@@ -1,64 +1,33 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Head, useForm } from '@inertiajs/vue3';
 import QRCode from 'qrcode';
 import { onMounted, ref } from 'vue';
 
 const generateForm = useForm({});
 function generateTokens() {
-    generateForm.post(route('invitations.generate'), {
-        onSuccess: () => window.location.reload(),
-    });
+    generateForm.post(route('invitations.generate'), { onSuccess: () => window.location.reload() });
 }
 
-interface GroupInvitation {
-    id: number;
-    name: string;
-    guests: string[];
-    token: string | null;
-    qr_url: string | null;
-}
+interface GroupInvitation  { id: number; name: string; guests: string[]; token: string | null; qr_url: string | null; }
+interface SoloInvitation   { id: number; name: string; token: string | null; qr_url: string | null; }
 
-interface SoloInvitation {
-    id: number;
-    name: string;
-    token: string | null;
-    qr_url: string | null;
-}
-
-const props = defineProps<{
-    groups: GroupInvitation[];
-    soloGuests: SoloInvitation[];
-}>();
+const props = defineProps<{ groups: GroupInvitation[]; soloGuests: SoloInvitation[]; }>();
 
 const groupQrCodes = ref<Record<number, string>>({});
-const soloQrCodes = ref<Record<number, string>>({});
-
-async function generateQr(url: string): Promise<string> {
-    return QRCode.toDataURL(url, { width: 200, margin: 1 });
-}
+const soloQrCodes  = ref<Record<number, string>>({});
 
 onMounted(async () => {
-    for (const f of props.groups) {
-        if (f.qr_url) {
-            groupQrCodes.value[f.id] = await generateQr(f.qr_url);
-        }
-    }
-    for (const g of props.soloGuests) {
-        if (g.qr_url) {
-            soloQrCodes.value[g.id] = await generateQr(g.qr_url);
-        }
-    }
+    for (const f of props.groups)     if (f.qr_url) groupQrCodes.value[f.id] = await QRCode.toDataURL(f.qr_url, { width: 200, margin: 1 });
+    for (const g of props.soloGuests) if (g.qr_url) soloQrCodes.value[g.id]  = await QRCode.toDataURL(g.qr_url, { width: 200, margin: 1 });
 });
 
 function print(url: string) {
     const win = window.open('', '_blank');
     if (!win) return;
-    win.document.write(`
-        <html><body style="display:flex;justify-content:center;align-items:center;height:100vh;margin:0">
-        <img src="${url}" style="width:300px;height:300px" onload="window.print();window.close()"/>
-        </body></html>
-    `);
+    win.document.write(`<html><body style="display:flex;justify-content:center;align-items:center;height:100vh;margin:0"><img src="${url}" style="width:300px;height:300px" onload="window.print();window.close()"/></body></html>`);
     win.document.close();
 }
 </script>
@@ -66,78 +35,53 @@ function print(url: string) {
 <template>
     <Head title="Einladungen" />
     <AppLayout>
-        <div class="p-6 space-y-8">
+        <div class="m-4 space-y-6">
+
             <div class="flex items-center justify-between">
-                <h1 class="text-2xl font-bold">Einladungen & QR-Codes</h1>
-                <button
-                    @click="generateTokens"
-                    :disabled="generateForm.processing"
-                    class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-                >
-                    {{ generateForm.processing ? 'Generiere...' : 'QR-Codes generieren' }}
-                </button>
+                <h1 class="text-xl font-semibold">Einladungen & QR-Codes</h1>
+                <Button @click="generateTokens" :disabled="generateForm.processing">
+                    {{ generateForm.processing ? 'Generiere…' : 'QR-Codes generieren' }}
+                </Button>
             </div>
 
             <!-- Gruppen -->
-            <section>
-                <h2 class="text-lg font-semibold mb-4">Gruppen</h2>
+            <section v-if="groups.length">
+                <h2 class="mb-3 text-sm font-medium text-muted-foreground uppercase tracking-wide">Gruppen</h2>
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <div
-                        v-for="group in groups"
-                        :key="group.id"
-                        class="border rounded-xl p-4 flex flex-col items-center gap-2 bg-white dark:bg-zinc-900 shadow-sm"
-                    >
-                        <p class="font-semibold text-center">{{ group.name }}</p>
-                        <p class="text-xs text-zinc-500 text-center">{{ group.guests.join(', ') }}</p>
-
-                        <img
-                            v-if="groupQrCodes[group.id]"
-                            :src="groupQrCodes[group.id]"
-                            alt="QR Code"
-                            class="w-36 h-36"
-                        />
-                        <p v-else class="text-xs text-zinc-400 italic">Noch kein QR-Code</p>
-
-                        <button
-                            v-if="groupQrCodes[group.id]"
-                            class="text-xs text-blue-600 underline"
-                            @click="print(groupQrCodes[group.id])"
-                        >
-                            Drucken
-                        </button>
-                    </div>
+                    <Card v-for="group in groups" :key="group.id" class="items-center gap-3 py-4">
+                        <CardContent class="flex flex-col items-center gap-2 px-4">
+                            <p class="font-semibold text-center text-sm">{{ group.name }}</p>
+                            <p class="text-xs text-muted-foreground text-center">{{ group.guests.join(', ') }}</p>
+                            <img v-if="groupQrCodes[group.id]" :src="groupQrCodes[group.id]" alt="QR Code" class="w-36 h-36" />
+                            <p v-else class="text-xs text-muted-foreground italic">Noch kein QR-Code</p>
+                            <Button v-if="groupQrCodes[group.id]" variant="outline" size="sm" @click="print(groupQrCodes[group.id])">
+                                Drucken
+                            </Button>
+                        </CardContent>
+                    </Card>
                 </div>
             </section>
 
             <!-- Solo-Gäste -->
             <section v-if="soloGuests.length">
-                <h2 class="text-lg font-semibold mb-4">Einzeleinladungen</h2>
+                <h2 class="mb-3 text-sm font-medium text-muted-foreground uppercase tracking-wide">Einzeleinladungen</h2>
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <div
-                        v-for="guest in soloGuests"
-                        :key="guest.id"
-                        class="border rounded-xl p-4 flex flex-col items-center gap-2 bg-white dark:bg-zinc-900 shadow-sm"
-                    >
-                        <p class="font-semibold text-center">{{ guest.name }}</p>
-
-                        <img
-                            v-if="soloQrCodes[guest.id]"
-                            :src="soloQrCodes[guest.id]"
-                            alt="QR Code"
-                            class="w-36 h-36"
-                        />
-                        <p v-else class="text-xs text-zinc-400 italic">Noch kein QR-Code</p>
-
-                        <button
-                            v-if="soloQrCodes[guest.id]"
-                            class="text-xs text-blue-600 underline"
-                            @click="print(soloQrCodes[guest.id])"
-                        >
-                            Drucken
-                        </button>
-                    </div>
+                    <Card v-for="guest in soloGuests" :key="guest.id" class="items-center gap-3 py-4">
+                        <CardContent class="flex flex-col items-center gap-2 px-4">
+                            <p class="font-semibold text-center text-sm">{{ guest.name }}</p>
+                            <img v-if="soloQrCodes[guest.id]" :src="soloQrCodes[guest.id]" alt="QR Code" class="w-36 h-36" />
+                            <p v-else class="text-xs text-muted-foreground italic">Noch kein QR-Code</p>
+                            <Button v-if="soloQrCodes[guest.id]" variant="outline" size="sm" @click="print(soloQrCodes[guest.id])">
+                                Drucken
+                            </Button>
+                        </CardContent>
+                    </Card>
                 </div>
             </section>
+
+            <p v-if="!groups.length && !soloGuests.length" class="text-sm text-muted-foreground">
+                Noch keine Gäste oder Gruppen mit Einladungstoken vorhanden.
+            </p>
         </div>
     </AppLayout>
 </template>

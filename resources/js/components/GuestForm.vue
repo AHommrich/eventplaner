@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useForm, type InertiaForm } from '@inertiajs/vue3';
 import FoodSpecialMultiSelect from './FoodSpecialMultiSelect.vue';
 
@@ -25,60 +28,54 @@ const emit = defineEmits<{
 }>();
 
 const form = useForm<GuestFormData>({
-    firstname:   props.initialForm?.firstname   ?? '',
-    lastname:    props.initialForm?.lastname    ?? '',
-    category_id: props.initialForm?.category_id ?? '',
-    group_id:    props.initialForm?.group_id    ?? '',
-    likelihood:  props.initialForm?.likelihood  ?? 'maybe',
-    invite:      props.initialForm?.invite      ?? false,
+    firstname:     props.initialForm?.firstname     ?? '',
+    lastname:      props.initialForm?.lastname      ?? '',
+    category_id:   props.initialForm?.category_id   ?? '',
+    group_id:      props.initialForm?.group_id      ?? '',
+    likelihood:    props.initialForm?.likelihood    ?? 'maybe',
+    invite:        props.initialForm?.invite        ?? false,
     food_specials: props.initialForm?.food_specials ?? [],
 });
 
-function submit() {
-    emit('submit', form);
-}
+function submit() { emit('submit', form); }
 </script>
 
 <template>
     <form @submit.prevent="submit" class="grid gap-4 sm:grid-cols-2">
-        <!-- Vorname -->
-        <div>
-            <input v-model="form.firstname" type="text" placeholder="Vorname" class="w-full rounded border p-2" />
-            <p v-if="form.errors.firstname" class="mt-1 text-sm text-red-500">{{ form.errors.firstname }}</p>
+
+        <div class="grid gap-1.5">
+            <Label>Vorname</Label>
+            <Input v-model="form.firstname" placeholder="Vorname" />
+            <p v-if="form.errors.firstname" class="text-xs text-destructive">{{ form.errors.firstname }}</p>
         </div>
 
-        <!-- Nachname -->
-        <div>
-            <input v-model="form.lastname" type="text" placeholder="Nachname" class="w-full rounded border p-2" />
-            <p v-if="form.errors.lastname" class="mt-1 text-sm text-red-500">{{ form.errors.lastname }}</p>
+        <div class="grid gap-1.5">
+            <Label>Nachname</Label>
+            <Input v-model="form.lastname" placeholder="Nachname" />
+            <p v-if="form.errors.lastname" class="text-xs text-destructive">{{ form.errors.lastname }}</p>
         </div>
 
-        <!-- Kategorie -->
-        <div>
-            <select v-model="form.category_id" class="w-full rounded border p-2">
-                <option disabled value="">-- Kategorie auswählen --</option>
-                <option v-for="category in categories" :key="category.id" :value="category.id">
-                    {{ category.title }}
-                </option>
+        <div class="grid gap-1.5">
+            <Label>Kategorie</Label>
+            <select v-model="form.category_id" class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]">
+                <option disabled value="">Kategorie auswählen</option>
+                <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.title }}</option>
             </select>
-            <p v-if="form.errors.category_id" class="mt-1 text-sm text-red-500">{{ form.errors.category_id }}</p>
+            <p v-if="form.errors.category_id" class="text-xs text-destructive">{{ form.errors.category_id }}</p>
         </div>
 
-        <!-- Gruppe -->
-        <div>
-            <select v-model="form.group_id" class="w-full rounded border p-2">
-                <option value="">-- Keine Gruppe --</option>
-                <option v-for="group in groups" :key="group.id" :value="group.id">
-                    {{ group.name }}
-                </option>
+        <div class="grid gap-1.5">
+            <Label>Gruppe</Label>
+            <select v-model="form.group_id" class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]">
+                <option value="">Keine Gruppe</option>
+                <option v-for="g in groups" :key="g.id" :value="g.id">{{ g.name }}</option>
             </select>
-            <p v-if="form.errors.group_id" class="mt-1 text-sm text-red-500">{{ form.errors.group_id }}</p>
+            <p v-if="form.errors.group_id" class="text-xs text-destructive">{{ form.errors.group_id }}</p>
         </div>
 
-        <!-- Wahrscheinlichkeit -->
-        <div>
-            <label class="mb-1 block text-sm font-medium text-gray-600 dark:text-gray-400">Wahrscheinlichkeit</label>
-            <select v-model="form.likelihood" class="w-full rounded border p-2">
+        <div class="grid gap-1.5">
+            <Label>Wahrscheinlichkeit</Label>
+            <select v-model="form.likelihood" class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]">
                 <option value="sure">Sicher</option>
                 <option value="likely">Wahrscheinlich</option>
                 <option value="maybe">Vielleicht</option>
@@ -87,24 +84,19 @@ function submit() {
             </select>
         </div>
 
-        <!-- Einladung -->
-        <div class="flex items-center">
-            <label class="flex items-center gap-2">
-                <input type="checkbox" v-model="form.invite" />
-                Einladung nötig?
-            </label>
+        <div class="flex items-center gap-2 pt-5">
+            <input id="invite" type="checkbox" v-model="form.invite" class="h-4 w-4 rounded border-input accent-primary" />
+            <Label for="invite">Einladung nötig?</Label>
         </div>
 
-        <!-- Food Specials -->
         <div class="sm:col-span-2">
             <FoodSpecialMultiSelect v-model="form.food_specials" :options="foodSpecials" label="Essensbesonderheiten" placeholder="Bitte auswählen..." />
         </div>
 
-        <!-- Submit -->
-        <div class="col-span-2 flex justify-end">
-            <button type="submit" class="w-full rounded bg-blue-600 px-4 py-2 text-white sm:w-auto" :disabled="form.processing">
+        <div class="sm:col-span-2 flex justify-end">
+            <Button type="submit" :disabled="form.processing">
                 {{ submitLabel ?? 'Speichern' }}
-            </button>
+            </Button>
         </div>
     </form>
 </template>

@@ -1,111 +1,105 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
-// Breadcrumbs
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Gäste', href: '/dashboard' }];
-
-// Zugriff auf Daten von Inertia
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Gäste', href: '/table' }];
 const page = usePage();
 const guests = computed(() => page.props.guests as any[]);
 
-// Filter
 const categoryFilter = ref('');
-
-// Gefilterte Gäste
 const filteredGuests = computed(() => {
     if (!categoryFilter.value) return guests.value;
-    return guests.value.filter((guest: any) => guest.category?.title === categoryFilter.value);
+    return guests.value.filter((g: any) => g.category?.title === categoryFilter.value);
 });
 
+const likelihoodLabel: Record<string, string> = {
+    sure: 'Sicher', likely: 'Wahrscheinlich', maybe: 'Vielleicht', unlikely: 'Unwahrscheinlich', no: 'Nein',
+};
+const likelihoodClass: Record<string, string> = {
+    sure: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    likely: 'bg-lime-100 text-lime-800 dark:bg-lime-900 dark:text-lime-200',
+    maybe: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+    unlikely: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+    no: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+};
+
 function deleteGuest(id: number) {
-    if (confirm('Möchten Sie diesen Gast wirklich löschen?')) {
-        router.delete(route('guests.destroy', id));
-    }
+    if (confirm('Gast wirklich löschen?')) router.delete(route('guests.destroy', id));
 }
 </script>
 
 <template>
     <Head title="Gäste" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="m-4 rounded-xl border bg-white p-4 dark:bg-gray-900">
-            <h2 class="mb-4 text-lg font-semibold">Aktuelle Gäste</h2>
-
-            <!-- Filter -->
-            <div class="mb-4 flex items-center space-x-4">
-                <label for="categoryFilter" class="font-medium">Nach Kategorie filtern:</label>
-                <select id="categoryFilter" v-model="categoryFilter" class="rounded border p-2">
-                    <option value="">Alle</option>
-                    <option v-for="category in [...new Set(guests.map((g) => g.category?.title).filter(Boolean))]" :key="category" :value="category">
-                        {{ category }}
-                    </option>
-                </select>
-            </div>
-
-            <!-- Gäste Liste -->
-            <div class="overflow-x-auto">
-                <table class="w-full table-auto border-collapse text-left">
-                    <thead>
-                        <tr class="border-b">
-                            <th class="p-3">Vorname</th>
-                            <th class="p-3">Nachname</th>
-                            <th class="p-3">Kategorie</th>
-                            <th class="p-3">Gruppe</th>
-                            <th class="p-3">Wahrscheinlichkeit</th>
-                            <th class="p-3 text-right">Aktionen</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr
-                            v-for="guest in filteredGuests"
-                            :key="guest.id"
-                            class="cursor-pointer border-b hover:bg-gray-50 dark:hover:bg-gray-800"
-                            @click="router.visit(route('guests.edit', guest.id))"
+        <div class="m-4">
+            <Card>
+                <CardContent class="p-0">
+                    <!-- Filter -->
+                    <div class="flex items-center gap-3 border-b px-6 py-3">
+                        <span class="text-sm text-muted-foreground">Kategorie:</span>
+                        <select
+                            v-model="categoryFilter"
+                            class="flex h-8 rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                         >
-                            <td class="p-3">{{ guest.firstname }}</td>
-                            <td class="p-3">{{ guest.lastname }}</td>
-                            <td class="p-3">{{ guest.category?.title ?? '-' }}</td>
-                            <td class="p-3">{{ guest.group?.name ?? '-' }}</td>
+                            <option value="">Alle</option>
+                            <option v-for="cat in [...new Set(guests.map((g) => g.category?.title).filter(Boolean))]" :key="cat" :value="cat">
+                                {{ cat }}
+                            </option>
+                        </select>
+                        <span class="ml-auto text-xs text-muted-foreground">{{ filteredGuests.length }} Gäste</span>
+                    </div>
 
-                            <!-- Likelihood -->
-                            <td class="p-3">
-                                <span
-                                    :class="[
-                                        'rounded px-2 py-1 text-sm font-medium text-white',
-                                        {
-                                            'bg-green-600': guest.likelihood === 'sure',
-                                            'bg-lime-500': guest.likelihood === 'likely',
-                                            'bg-yellow-400 text-black': guest.likelihood === 'maybe',
-                                            'bg-orange-500': guest.likelihood === 'unlikely',
-                                            'bg-red-600': guest.likelihood === 'no',
-                                        },
-                                    ]"
+                    <!-- Tabelle -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="border-b">
+                                <tr>
+                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">Vorname</th>
+                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">Nachname</th>
+                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">Kategorie</th>
+                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">Gruppe</th>
+                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">Wahrscheinlichkeit</th>
+                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">Essen</th>
+                                    <th class="h-10 px-6"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr
+                                    v-for="guest in filteredGuests"
+                                    :key="guest.id"
+                                    class="border-b transition-colors hover:bg-muted/50 cursor-pointer last:border-0"
+                                    @click="router.visit(route('guests.edit', guest.id))"
                                 >
-                                    {{
-                                        guest.likelihood === 'sure'
-                                            ? 'Sicher'
-                                            : guest.likelihood === 'likely'
-                                              ? 'Wahrscheinlich'
-                                              : guest.likelihood === 'maybe'
-                                                ? 'Vielleicht'
-                                                : guest.likelihood === 'unlikely'
-                                                  ? 'Unwahrscheinlich'
-                                                  : 'Nein'
-                                    }}
-                                </span>
-                            </td>
-
-                            <td class="p-3 text-right">
-                                <button @click.stop="deleteGuest(guest.id)" class="rounded bg-red-600 px-3 py-1 text-white hover:bg-red-700">
-                                    Löschen
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                                    <td class="px-6 py-3 font-medium">{{ guest.firstname }}</td>
+                                    <td class="px-6 py-3 text-muted-foreground">{{ guest.lastname }}</td>
+                                    <td class="px-6 py-3 text-muted-foreground">{{ guest.category?.title ?? '–' }}</td>
+                                    <td class="px-6 py-3 text-muted-foreground">{{ guest.group?.name ?? '–' }}</td>
+                                    <td class="px-6 py-3">
+                                        <span :class="['rounded-full px-2.5 py-0.5 text-xs font-medium', likelihoodClass[guest.likelihood] ?? '']">
+                                            {{ likelihoodLabel[guest.likelihood] ?? guest.likelihood }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-3 text-muted-foreground text-xs">
+                                        {{ guest.food_specials?.map((fs: any) => fs.name).join(', ') || '–' }}
+                                    </td>
+                                    <td class="px-6 py-3 text-right">
+                                        <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click.stop="deleteGuest(guest.id)">
+                                            Löschen
+                                        </Button>
+                                    </td>
+                                </tr>
+                                <tr v-if="filteredGuests.length === 0">
+                                    <td colspan="7" class="px-6 py-8 text-center text-sm text-muted-foreground">Keine Gäste gefunden.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     </AppLayout>
 </template>
