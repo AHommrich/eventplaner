@@ -16,8 +16,6 @@ class Guest extends Model
         'group_id',
         'firstname',
         'lastname',
-        'beer',
-        'wine',
         'likelihood',
     ];
 
@@ -34,11 +32,6 @@ class Guest extends Model
     public function group()
     {
         return $this->belongsTo(Group::class);
-    }
-
-    public function drinks()
-    {
-        return $this->hasMany(GuestDrink::class);
     }
 
     public function foodSpecials()
