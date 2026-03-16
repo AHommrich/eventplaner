@@ -6,7 +6,8 @@ import QRCode from 'qrcode';
 import { onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
-import { useForm } from '@inertiajs/vue3';
+import { router, useForm } from '@inertiajs/vue3';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 
 const props = defineProps<{
     guest: any;
@@ -34,6 +35,22 @@ const appAccessForm = useForm({ app_access: props.guest.app_access ?? true });
 function toggleAppAccess() {
     appAccessForm.patch(route('guests.app-access', props.guest.id), {
         onSuccess: () => toast.success(appAccessForm.app_access ? t('toast.appAccessEnabled') : t('toast.appAccessDisabled')),
+    });
+}
+
+// Getränke-Zugang Toggle
+const drinksAccessForm = useForm({ drinks_access: props.guest.drinks_access ?? true });
+function toggleDrinksAccess() {
+    drinksAccessForm.patch(route('guests.drinks-access', props.guest.id), {
+        onSuccess: () => toast.success(drinksAccessForm.drinks_access ? t('toast.drinksAccessEnabled') : t('toast.drinksAccessDisabled')),
+    });
+}
+
+// Drink-Logs Reset
+const resetLogsOpen = ref(false);
+function doResetLogs() {
+    router.delete(route('guests.drink-logs.reset', props.guest.id), {
+        onSuccess: () => toast.success(t('toast.drinkLogsReset')),
     });
 }
 
@@ -105,6 +122,34 @@ function setterName(guest: any): string | null {
                 </div>
             </div>
 
+            <!-- Getränke-Zugang -->
+            <div class="mt-6 border-t pt-6 space-y-3">
+                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('guest.drinksAccess') }}</h3>
+                <div class="flex items-center justify-between rounded-lg border bg-muted/30 px-4 py-3">
+                    <div class="text-sm">
+                        <p class="font-medium">{{ drinksAccessForm.drinks_access ? t('guest.drinksAccessEnabled') : t('guest.drinksAccessDisabled') }}</p>
+                        <p class="text-muted-foreground">{{ t('guest.drinksAccessDesc') }}</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            @click="resetLogsOpen = true"
+                        >
+                            {{ t('guest.drinksReset') }}
+                        </Button>
+                        <Button
+                            size="sm"
+                            :variant="drinksAccessForm.drinks_access ? 'destructive' : 'default'"
+                            :disabled="drinksAccessForm.processing"
+                            @click="drinksAccessForm.drinks_access = !drinksAccessForm.drinks_access; toggleDrinksAccess()"
+                        >
+                            {{ drinksAccessForm.drinks_access ? t('guest.drinksAccessRevoke') : t('guest.drinksAccessGrant') }}
+                        </Button>
+                    </div>
+                </div>
+            </div>
+
             <!-- RSVP-Status (separat vom Formular) -->
             <div class="mt-6 border-t pt-6 space-y-3">
                 <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('guest.rsvpStatus') }}</h3>
@@ -153,5 +198,13 @@ function setterName(guest: any): string | null {
                 <p v-else class="text-sm text-gray-400">{{ t('guest.noToken') }}</p>
             </div>
         </div>
+        <ConfirmDialog
+            v-model:open="resetLogsOpen"
+            :title="t('guest.drinksResetTitle')"
+            :description="t('guest.drinksResetDesc')"
+            :confirm-label="t('guest.drinksReset')"
+            destructive
+            @confirm="doResetLogs"
+        />
     </AppLayout>
 </template>

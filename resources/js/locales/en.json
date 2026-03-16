@@ -84,7 +84,10 @@
     "coverRemoved": "Cover image removed",
     "coverError": "Upload failed",
     "appAccessEnabled": "App access granted",
-    "appAccessDisabled": "App access revoked"
+    "appAccessDisabled": "App access revoked",
+    "drinksAccessEnabled": "Drink tracking enabled",
+    "drinksAccessDisabled": "Drink tracking blocked",
+    "drinkLogsReset": "Drink logs reset"
   },
   "requests": {
     "title": "Requests",
@@ -146,7 +149,16 @@
     "appAccessDisabled": "App access blocked",
     "appAccessDesc": "Controls whether this guest can use the app.",
     "appAccessRevoke": "Revoke access",
-    "appAccessGrant": "Grant access"
+    "appAccessGrant": "Grant access",
+    "drinksAccess": "Drink game",
+    "drinksAccessEnabled": "Drink tracking active",
+    "drinksAccessDisabled": "Drink tracking blocked",
+    "drinksAccessDesc": "Controls whether this guest can track drinks.",
+    "drinksAccessRevoke": "Block tracking",
+    "drinksAccessGrant": "Enable tracking",
+    "drinksReset": "Reset logs",
+    "drinksResetTitle": "Delete drink logs?",
+    "drinksResetDesc": "All tracked drinks for this guest will be permanently deleted."
   },
   "category": {
     "new": "New category",
@@ -168,7 +180,13 @@
     "forEvent": "Drinks for this event",
     "none": "No drinks yet.",
     "deleteTitle": "Delete drink?",
-    "deleteDescription": "The drink will be permanently removed."
+    "deleteDescription": "The drink will be permanently removed.",
+    "stats": "Statistics",
+    "statsLink": "View statistics",
+    "statsTotalGuests": "Overall leaderboard",
+    "statsTotalDrinks": "Total drinks",
+    "statsEmpty": "No drinks tracked yet.",
+    "glasses": "glasses"
   },
   "photo": {
     "title": "Photos",

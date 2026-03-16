@@ -49,6 +49,7 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::get('/drinks', [DrinkController::class, 'index'])->name('drinks.index');
     Route::post('/drinks', [DrinkController::class, 'store'])->name('drinks.store');
     Route::delete('/drinks/{drink}', [DrinkController::class, 'destroy'])->name('drinks.destroy');
+    Route::get('/drinks/stats', [DrinkController::class, 'stats'])->name('drinks.stats');
 
     // Event-Einstellungen
     Route::get('/event/settings', [EventSettingsController::class, 'show'])->name('event.settings');
@@ -68,6 +69,8 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::put('/guests/{guest}', [GuestController::class, 'update'])->name('guests.update');
     Route::post('/guests/{guest}/rsvp', [GuestController::class, 'adminRsvp'])->name('guests.admin-rsvp');
     Route::patch('/guests/{guest}/app-access', [GuestController::class, 'updateAppAccess'])->name('guests.app-access');
+    Route::patch('/guests/{guest}/drinks-access', [GuestController::class, 'updateDrinksAccess'])->name('guests.drinks-access');
+    Route::delete('/guests/{guest}/drink-logs', [GuestController::class, 'resetDrinkLogs'])->name('guests.drink-logs.reset');
 });
 
 // Globale User-Verwaltung — nur Superadmin
