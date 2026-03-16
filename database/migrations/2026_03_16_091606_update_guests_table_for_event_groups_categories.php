@@ -28,6 +28,10 @@ return new class extends Migration
             DB::statement('ALTER TABLE guests CHANGE family_id group_id BIGINT UNSIGNED NULL');
         }
 
+        // Spaltentyp sicherstellen: renameColumn verliert manchmal UNSIGNED → FK schlägt sonst fehl
+        DB::statement('ALTER TABLE guests CHANGE category_id category_id BIGINT UNSIGNED NULL');
+        DB::statement('ALTER TABLE guests CHANGE group_id group_id BIGINT UNSIGNED NULL');
+
         // FK-Constraints anlegen (nur wenn noch nicht vorhanden)
         $existingFKs = collect(DB::select("
             SELECT CONSTRAINT_NAME FROM information_schema.TABLE_CONSTRAINTS
