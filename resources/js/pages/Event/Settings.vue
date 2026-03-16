@@ -10,6 +10,7 @@ import { ref, computed } from 'vue';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
+import heic2any from 'heic2any';
 
 interface EventData {
     id: number;
@@ -44,40 +45,65 @@ const form = useForm({
     color_primary:   props.event.color_primary ?? '#7c2d3e',
     color_secondary: props.event.color_secondary ?? '#e8e3de',
     color_home_text: props.event.color_home_text ?? '#ffffff',
+    cover:           null as File | null,
 });
 
 function submit() {
     form.post(route('event.settings.update'), {
-        onSuccess: () => toast.success(t('toast.eventSettingsSaved')),
+        onSuccess: () => {
+            toast.success(t('toast.eventSettingsSaved'));
+            coverPreview.value = null;
+            form.cover = null;
+        },
     });
 }
 
-// Cover-Upload
-const coverUrl       = ref<string | null>(props.event.cover_image_url);
-const coverUploading = ref(false);
-const coverRemoving  = ref(false);
+// Cover
+const coverUrl     = ref<string | null>(props.event.cover_image_url);
+const coverPreview = ref<string | null>(null);
+const coverRemoving = ref(false);
+
+// Für Preview-Panels: neue lokale Vorschau hat Vorrang vor gespeicherter URL
+const displayCoverUrl = computed(() => coverPreview.value ?? coverUrl.value);
 
 const coverFilename = computed(() => {
+    if (form.cover) return form.cover.name;
     if (!coverUrl.value) return null;
     try { return decodeURIComponent(coverUrl.value.split('/').pop()?.split('?')[0] ?? ''); }
     catch { return null; }
 });
 
-async function onCoverChange(e: Event) {
-    const file = (e.target as HTMLInputElement).files?.[0];
+const coverConverting = ref(false);
+
+async function onFileSelect(e: Event) {
+    const input = e.target as HTMLInputElement;
+    let file = input.files?.[0];
     if (!file) return;
-    coverUploading.value = true;
-    try {
-        const fd = new FormData();
-        fd.append('cover', file);
-        const res = await axios.post(route('event.settings.cover'), fd);
-        coverUrl.value = res.data.cover_image_url;
-        toast.success(t('toast.coverUploaded'));
-    } catch {
-        toast.error(t('toast.coverError'));
-    } finally {
-        coverUploading.value = false;
+
+    if (/heic|heif/i.test(file.name) || file.type === 'image/heic' || file.type === 'image/heif') {
+        coverConverting.value = true;
+        try {
+            const blob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 }) as Blob;
+            file = new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' });
+        } catch {
+            toast.error(t('toast.coverError'));
+            coverConverting.value = false;
+            input.value = '';
+            return;
+        } finally {
+            coverConverting.value = false;
+        }
     }
+
+    form.cover = file;
+    if (coverPreview.value) URL.revokeObjectURL(coverPreview.value);
+    coverPreview.value = URL.createObjectURL(file);
+}
+
+function clearSelectedFile() {
+    form.cover = null;
+    if (coverPreview.value) URL.revokeObjectURL(coverPreview.value);
+    coverPreview.value = null;
 }
 
 async function removeCover() {
@@ -85,6 +111,7 @@ async function removeCover() {
     try {
         await axios.delete(route('event.settings.cover.delete'));
         coverUrl.value = null;
+        clearSelectedFile();
         toast.success(t('toast.coverRemoved'));
     } catch {
         toast.error(t('toast.coverError'));
@@ -133,14 +160,14 @@ const tabDefs = [
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 
                 <!-- Linke Spalte: Formular -->
-                <div class="space-y-4">
+                <form @submit.prevent="submit" class="space-y-4">
 
                     <!-- Basis -->
                     <Card>
                         <CardHeader><CardTitle>{{ t('event.settings') }}</CardTitle></CardHeader>
                         <CardContent>
                             <p class="mb-4 text-sm text-muted-foreground">{{ t('event.settingsDesc') }}</p>
-                            <form @submit.prevent="submit" class="space-y-4">
+                            <div class="space-y-4">
                                 <div class="grid gap-2">
                                     <Label>{{ t('event.name') }}</Label>
                                     <Input v-model="form.name" required :placeholder="t('event.name')" />
@@ -193,7 +220,7 @@ const tabDefs = [
                                         </div>
                                     </div>
                                 </div>
-                                <div class="grid gap-2">
+                                <div v-if="displayCoverUrl" class="grid gap-2">
                                     <Label>{{ t('event.colorHomeText') }}</Label>
                                     <div class="flex items-center gap-2">
                                         <input type="color" v-model="form.color_home_text"
@@ -203,10 +230,7 @@ const tabDefs = [
                                 </div>
                                 <p class="text-xs text-muted-foreground">{{ t('event.colorHint') }}</p>
 
-                                <Button type="submit" :disabled="form.processing" class="w-full">
-                                    {{ t('event.saveSettings') }}
-                                </Button>
-                            </form>
+                            </div>
                         </CardContent>
                     </Card>
 
@@ -216,29 +240,41 @@ const tabDefs = [
                         <CardContent class="space-y-3">
                             <p class="text-sm text-muted-foreground">{{ t('event.coverHint') }}</p>
 
-                            <!-- Aktuelles Cover -->
-                            <div v-if="coverUrl" class="flex items-center gap-3 rounded-lg border bg-muted/30 px-3 py-2">
-                                <img :src="coverUrl" class="h-12 w-20 rounded object-cover shrink-0" />
+                            <!-- Gespeichertes Cover oder neue Auswahl -->
+                            <div v-if="displayCoverUrl" class="flex items-center gap-3 rounded-lg border bg-muted/30 px-3 py-2">
+                                <img :src="displayCoverUrl" class="h-12 w-20 shrink-0 rounded object-cover" />
                                 <div class="min-w-0 flex-1">
                                     <p class="truncate text-xs font-medium">{{ coverFilename }}</p>
-                                    <p class="text-xs text-muted-foreground">{{ t('event.coverCurrent') }}</p>
+                                    <p class="text-xs text-muted-foreground">
+                                        {{ coverPreview ? t('event.coverSelected') : t('event.coverCurrent') }}
+                                    </p>
                                 </div>
-                                <Button variant="ghost" size="sm" class="shrink-0 text-destructive hover:text-destructive"
+                                <Button v-if="coverPreview" variant="ghost" size="sm" class="shrink-0"
+                                    @click="clearSelectedFile">
+                                    {{ t('common.remove') }}
+                                </Button>
+                                <Button v-else variant="ghost" size="sm" class="shrink-0 text-destructive hover:text-destructive"
                                     :disabled="coverRemoving" @click="removeCover">
                                     {{ coverRemoving ? '…' : t('common.remove') }}
                                 </Button>
                             </div>
 
-                            <!-- Upload -->
-                            <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed px-4 py-3 transition-colors hover:bg-muted/40">
-                                <input type="file" class="hidden" accept="image/jpeg,image/png,image/heic,image/heif" @change="onCoverChange" />
+                            <!-- Datei auswählen (kein sofortiger Upload) -->
+                            <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed px-4 py-3 transition-colors hover:bg-muted/40"
+                                :class="{ 'opacity-50 pointer-events-none': coverConverting }">
+                                <input type="file" class="hidden" accept="image/jpeg,image/png,image/heic,image/heif" @change="onFileSelect" :disabled="coverConverting" />
                                 <span class="text-sm font-medium">
-                                    {{ coverUploading ? t('event.coverUploading') : (coverUrl ? t('event.coverReplace') : t('event.coverUpload')) }}
+                                    {{ coverConverting ? t('event.coverUploading') : displayCoverUrl ? t('event.coverReplace') : t('event.coverUpload') }}
                                 </span>
                             </label>
+                            <p class="text-xs text-muted-foreground">{{ t('event.coverSaveHint') }}</p>
                         </CardContent>
                     </Card>
-                </div>
+
+                    <Button type="submit" :disabled="form.processing" class="w-full">
+                        {{ t('event.saveSettings') }}
+                    </Button>
+                </form>
 
                 <!-- Rechte Spalte: 2×2 Phone-Previews -->
                 <div class="flex flex-col items-center gap-3">
@@ -251,8 +287,7 @@ const tabDefs = [
                         <span class="text-[11px] font-medium text-muted-foreground">Home</span>
                         <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
                             <!-- Mit Cover: Vollbild-Bild + Gradient + home_text_color -->
-                            <div v-if="coverUrl" class="relative flex flex-col" style="height:244px;">
-                                <img :src="coverUrl" class="absolute inset-0 h-full w-full object-cover" />
+                            <div v-if="displayCoverUrl" class="relative flex flex-col" style="height:244px;background-size:cover;background-position:center;" :style="{ backgroundImage: `url('${displayCoverUrl}')` }">
                                 <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/5 to-black/75" />
                                 <div class="relative flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-white">
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
