@@ -22,11 +22,13 @@ class Guest extends Model
         'rsvp_set_by_user_id',
         'rsvp_set_at',
         'app_access',
+        'drinks_access',
     ];
 
     protected $casts = [
-        'rsvp_set_at'  => 'datetime',
-        'app_access'   => 'boolean',
+        'rsvp_set_at'    => 'datetime',
+        'app_access'     => 'boolean',
+        'drinks_access'  => 'boolean',
     ];
 
     public function event()

@@ -40,8 +40,10 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureGuestHasAppAccess:
     Route::post('/guest/rsvp', [GuestApiController::class, 'rsvp']);
     Route::post('/guest/{guestId}/rsvp', [GuestApiController::class, 'rsvpForMember']);
 
-    // Getränke-Tracking
-    Route::get('/drinks', [DrinkLogController::class, 'index']);
-    Route::post('/drinks/log', [DrinkLogController::class, 'log']);
-    Route::get('/drinks/stats', [DrinkLogController::class, 'stats']);
+    // Getränke-Tracking (drinks_access Sperre)
+    Route::middleware(\App\Http\Middleware\EnsureGuestHasDrinksAccess::class)->group(function () {
+        Route::get('/drinks', [DrinkLogController::class, 'index']);
+        Route::post('/drinks/log', [DrinkLogController::class, 'log']);
+        Route::get('/drinks/stats', [DrinkLogController::class, 'stats']);
+    });
 });
