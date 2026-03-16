@@ -7,7 +7,8 @@
     "invitations": "Einladungen",
     "photos": "Fotos",
     "userManagement": "User-Verwaltung",
-    "manageAccess": "Zugang verwalten"
+    "manageAccess": "Zugang verwalten",
+    "requests": "Anfragen"
   },
   "common": {
     "create": "Erstellen",
@@ -50,7 +51,24 @@
     "accessAdded": "User hinzugefügt",
     "accessRemoved": "Zugang entfernt",
     "photoUploaded": "Foto hochgeladen",
-    "photoDeleted": "Foto gelöscht"
+    "photoDeleted": "Foto gelöscht",
+    "revocationApproved": "Anfrage freigegeben — Gast kann erneut zusagen",
+    "revocationDeclined": "Anfrage abgelehnt",
+    "rsvpOverridden": "RSVP-Status aktualisiert"
+  },
+  "requests": {
+    "title": "Anfragen",
+    "revocationsTitle": "Rücknahme-Anfragen",
+    "revocationsDesc": "Gäste, die ihre endgültige Absage zurücknehmen möchten. Freigabe setzt den Status zurück auf offen.",
+    "empty": "Keine offenen Anfragen.",
+    "requestedAt": "Angefragt am",
+    "setBy": "Gesetzt von",
+    "approve": "Freigeben",
+    "decline": "Ablehnen",
+    "confirmApproveTitle": "Anfrage freigeben?",
+    "confirmApproveDesc": "Der Gast kann anschließend erneut zusagen oder absagen.",
+    "confirmDeclineTitle": "Anfrage ablehnen?",
+    "confirmDeclineDesc": "Die Absage des Gastes bleibt bestehen."
   },
   "guest": {
     "firstName": "Vorname",
@@ -79,7 +97,20 @@
     "deleteTitle": "Gast löschen",
     "deleteDescription": "Dieser Gast wird unwiderruflich gelöscht.",
     "invitationQR": "Einladungs-QR-Code",
-    "noToken": "Kein Token vorhanden — bitte zuerst Einladungen generieren."
+    "noToken": "Kein Token vorhanden — bitte zuerst Einladungen generieren.",
+    "rsvpStatus": "RSVP-Status",
+    "rsvpSetBy": "Gesetzt von",
+    "rsvpSetAt": "Gesetzt am",
+    "rsvpOverride": "Status manuell setzen",
+    "rsvpSave": "Status speichern",
+    "rsvpNull": "Offen",
+    "rsvpAcceptedPending": "Zusage ausstehend",
+    "rsvpAccepted": "Zugesagt",
+    "rsvpDeclinedPending": "Absage ausstehend",
+    "rsvpDeclined": "Abgesagt",
+    "rsvpRevocationRequested": "Rücknahme beantragt",
+    "rsvpByGuest": "Gast",
+    "rsvpByUser": "Admin/Event-Owner"
   },
   "category": {
     "new": "Neue Kategorie",
