@@ -35,6 +35,7 @@ class PhotoController extends Controller
         $url = Storage::disk('s3')->url($path);
 
         $photo = Photo::create([
+            'event_id' => $guest->event_id,
             'guest_id' => $guest->id,
             'url'      => $url,
         ]);
@@ -49,7 +50,10 @@ class PhotoController extends Controller
 
     public function index(Request $request)
     {
+        $guest = $request->user();
+
         $photos = Photo::with('guest')
+            ->where('event_id', $guest->event_id)
             ->latest()
             ->get()
             ->map(fn($photo) => [
