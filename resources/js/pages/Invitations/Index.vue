@@ -1,8 +1,15 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import QRCode from 'qrcode';
 import { onMounted, ref } from 'vue';
+
+const generateForm = useForm({});
+function generateTokens() {
+    generateForm.post(route('invitations.generate'), {
+        onSuccess: () => window.location.reload(),
+    });
+}
 
 interface GroupInvitation {
     id: number;
@@ -60,7 +67,16 @@ function print(url: string) {
     <Head title="Einladungen" />
     <AppLayout>
         <div class="p-6 space-y-8">
-            <h1 class="text-2xl font-bold">Einladungen & QR-Codes</h1>
+            <div class="flex items-center justify-between">
+                <h1 class="text-2xl font-bold">Einladungen & QR-Codes</h1>
+                <button
+                    @click="generateTokens"
+                    :disabled="generateForm.processing"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                >
+                    {{ generateForm.processing ? 'Generiere...' : 'QR-Codes generieren' }}
+                </button>
+            </div>
 
             <!-- Gruppen -->
             <section>
@@ -80,7 +96,7 @@ function print(url: string) {
                             alt="QR Code"
                             class="w-36 h-36"
                         />
-                        <p v-else class="text-xs text-zinc-400">Kein Token</p>
+                        <p v-else class="text-xs text-zinc-400 italic">Noch kein QR-Code</p>
 
                         <button
                             v-if="groupQrCodes[group.id]"
@@ -110,7 +126,7 @@ function print(url: string) {
                             alt="QR Code"
                             class="w-36 h-36"
                         />
-                        <p v-else class="text-xs text-zinc-400">Kein Token</p>
+                        <p v-else class="text-xs text-zinc-400 italic">Noch kein QR-Code</p>
 
                         <button
                             v-if="soloQrCodes[guest.id]"
