@@ -2,21 +2,32 @@
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { Users, SquarePen, QrCode, Images, ShieldCheck, GlassWater } from 'lucide-vue-next';
+import { Users, SquarePen, QrCode, Images, ShieldCheck, GlassWater, ChevronsUpDown, Check } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 const page = usePage();
+const { isMobile, state } = useSidebar();
 const isAdmin = computed(() => (page.props.auth as any)?.user?.role === 'admin');
 const activeEvent = computed(() => (page.props as any).active_event as { id: number; name: string } | null);
 const accessibleEvents = computed(() => (page.props as any).accessible_events as { id: number; name: string }[]);
 const showSwitcher = computed(() => accessibleEvents.value?.length > 1);
 
+const search = ref('');
+const filteredEvents = computed(() => {
+    if (!search.value) return accessibleEvents.value ?? [];
+    return (accessibleEvents.value ?? []).filter(ev =>
+        ev.name.toLowerCase().includes(search.value.toLowerCase())
+    );
+});
+
 function switchEvent(eventId: number) {
     router.post('/events/switch', { event_id: eventId });
+    search.value = '';
 }
 
 const mainNavItems: NavItem[] = [
@@ -45,24 +56,55 @@ const adminNavItems: NavItem[] = [
                 </SidebarMenuItem>
             </SidebarMenu>
 
-            <div v-if="activeEvent" class="px-2 pb-1 space-y-1">
-                <template v-if="showSwitcher">
-                    <button
-                        v-for="ev in accessibleEvents"
-                        :key="ev.id"
-                        @click="switchEvent(ev.id)"
-                        class="w-full truncate rounded-md px-2 py-1.5 text-left text-sm transition-colors"
-                        :class="ev.id === activeEvent.id
-                            ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-                            : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'"
-                    >
-                        {{ ev.name }}
-                    </button>
-                </template>
-                <p v-else class="truncate px-1 text-xs text-sidebar-foreground/60">
-                    {{ activeEvent.name }}
-                </p>
-            </div>
+            <!-- Event-Switcher als Dropdown -->
+            <SidebarMenu v-if="activeEvent">
+                <SidebarMenuItem>
+                    <DropdownMenu v-if="showSwitcher">
+                        <DropdownMenuTrigger as-child>
+                            <SidebarMenuButton class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                                <span class="truncate text-sm font-medium">{{ activeEvent.name }}</span>
+                                <ChevronsUpDown class="ml-auto size-4 shrink-0 opacity-50" />
+                            </SidebarMenuButton>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                            class="w-(--reka-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+                            :side="isMobile ? 'bottom' : state === 'collapsed' ? 'right' : 'bottom'"
+                            align="start"
+                            :side-offset="4"
+                        >
+                            <!-- Suchfeld (ab 5 Events sinnvoll, immer anzeigen schadet nicht) -->
+                            <div class="px-2 py-1.5">
+                                <input
+                                    v-model="search"
+                                    type="text"
+                                    placeholder="Event suchen..."
+                                    class="w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm outline-none placeholder:text-muted-foreground"
+                                    @keydown.stop
+                                />
+                            </div>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                                v-for="ev in filteredEvents"
+                                :key="ev.id"
+                                @click="switchEvent(ev.id)"
+                                class="cursor-pointer"
+                            >
+                                <Check v-if="ev.id === activeEvent.id" class="mr-2 size-4" />
+                                <span v-else class="mr-2 size-4" />
+                                {{ ev.name }}
+                            </DropdownMenuItem>
+                            <p v-if="filteredEvents.length === 0" class="px-2 py-3 text-center text-xs text-muted-foreground">
+                                Kein Event gefunden
+                            </p>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <!-- Kein Switcher — nur Anzeige -->
+                    <div v-else class="flex items-center gap-2 px-2 py-1.5">
+                        <span class="truncate text-sm text-sidebar-foreground/60">{{ activeEvent.name }}</span>
+                    </div>
+                </SidebarMenuItem>
+            </SidebarMenu>
         </SidebarHeader>
 
         <SidebarContent>
