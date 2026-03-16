@@ -21,10 +21,6 @@ class GuestController extends Controller
             'lastname'        => 'nullable|string|max:255',
             'category_id'     => 'required|exists:categories,id',
             'group_id'        => 'nullable|exists:groups,id',
-            'beer'            => 'boolean',
-            'beer_thirst'     => 'nullable|integer|min:0|max:10',
-            'wine'            => 'boolean',
-            'wine_thirst'     => 'nullable|integer|min:0|max:10',
             'likelihood'      => 'required|in:sure,likely,maybe,unlikely,no',
             'invite'          => 'boolean',
             'food_specials'   => 'nullable|array',
@@ -42,18 +38,9 @@ class GuestController extends Controller
             'lastname'    => $data['lastname'] ?? '',
             'category_id' => $data['category_id'],
             'group_id'    => $data['group_id'] ?? null,
-            'beer'        => $data['beer'] ?? false,
-            'wine'        => $data['wine'] ?? false,
             'likelihood'  => $data['likelihood'] ?? 'maybe',
             'invite'      => $data['invite'] ?? false,
         ]);
-
-        if (!empty($data['beer']) && !empty($data['beer_thirst']) && $data['beer_thirst'] > 0) {
-            $guest->drinks()->create(['drink_type' => 'beer', 'thirst_level' => $data['beer_thirst']]);
-        }
-        if (!empty($data['wine']) && !empty($data['wine_thirst']) && $data['wine_thirst'] > 0) {
-            $guest->drinks()->create(['drink_type' => 'wine', 'thirst_level' => $data['wine_thirst']]);
-        }
 
         $guest->foodSpecials()->sync($data['food_specials'] ?? []);
 
@@ -70,7 +57,7 @@ class GuestController extends Controller
     {
         $event = $this->activeEvent();
 
-        $guest->load('category', 'group.invitationToken', 'drinks', 'foodSpecials', 'invitationToken');
+        $guest->load('category', 'group.invitationToken', 'foodSpecials', 'invitationToken');
 
         $returnTo = $request->query('return_to', url()->previous());
         if ($returnTo && Str::startsWith($returnTo, url('/'))) {
@@ -99,10 +86,6 @@ class GuestController extends Controller
             'lastname'        => 'nullable|string|max:255',
             'category_id'     => 'nullable|exists:categories,id',
             'group_id'        => 'nullable|exists:groups,id',
-            'beer'            => 'boolean',
-            'beer_thirst'     => 'nullable|integer|min:0|max:10',
-            'wine'            => 'boolean',
-            'wine_thirst'     => 'nullable|integer|min:0|max:10',
             'likelihood'      => 'required|in:sure,likely,maybe,unlikely,no',
             'invite'          => 'boolean',
             'food_specials'   => 'nullable|array',
@@ -114,19 +97,9 @@ class GuestController extends Controller
             'lastname'    => $data['lastname'] ?? '',
             'category_id' => $data['category_id'],
             'group_id'    => $data['group_id'],
-            'beer'        => $data['beer'] ?? false,
-            'wine'        => $data['wine'] ?? false,
             'likelihood'  => $data['likelihood'],
             'invite'      => $data['invite'] ?? false,
         ]);
-
-        $guest->drinks()->whereIn('drink_type', ['beer', 'wine'])->delete();
-        if (!empty($data['beer']) && !empty($data['beer_thirst']) && $data['beer_thirst'] > 0) {
-            $guest->drinks()->create(['drink_type' => 'beer', 'thirst_level' => $data['beer_thirst']]);
-        }
-        if (!empty($data['wine']) && !empty($data['wine_thirst']) && $data['wine_thirst'] > 0) {
-            $guest->drinks()->create(['drink_type' => 'wine', 'thirst_level' => $data['wine_thirst']]);
-        }
 
         $guest->foodSpecials()->sync($data['food_specials'] ?? []);
 

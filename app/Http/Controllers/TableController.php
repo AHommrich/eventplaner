@@ -14,8 +14,8 @@ class TableController extends Controller
         $event = $this->activeEvent();
 
         $query = $event
-            ? $event->guests()->with(['category', 'group', 'drinks', 'foodSpecials'])
-            : \App\Models\Guest::with(['category', 'group', 'drinks', 'foodSpecials'])->whereNull('id');
+            ? $event->guests()->with(['category', 'group', 'foodSpecials'])
+            : \App\Models\Guest::with(['category', 'group', 'foodSpecials'])->whereNull('id');
 
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);
