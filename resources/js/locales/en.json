@@ -168,7 +168,13 @@
     "forEvent": "Drinks for this event",
     "none": "No drinks yet.",
     "deleteTitle": "Delete drink?",
-    "deleteDescription": "The drink will be permanently removed."
+    "deleteDescription": "The drink will be permanently removed.",
+    "stats": "Statistics",
+    "statsLink": "View statistics",
+    "statsTotalGuests": "Overall leaderboard",
+    "statsTotalDrinks": "Total drinks",
+    "statsEmpty": "No drinks tracked yet.",
+    "glasses": "glasses"
   },
   "photo": {
     "title": "Photos",

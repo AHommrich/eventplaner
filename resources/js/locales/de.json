@@ -168,7 +168,13 @@
     "forEvent": "Getränke für dieses Event",
     "none": "Noch keine Getränke angelegt.",
     "deleteTitle": "Getränk löschen?",
-    "deleteDescription": "Das Getränk wird dauerhaft entfernt."
+    "deleteDescription": "Das Getränk wird dauerhaft entfernt.",
+    "stats": "Statistiken",
+    "statsLink": "Statistiken anzeigen",
+    "statsTotalGuests": "Gesamt-Rangliste",
+    "statsTotalDrinks": "Getränke gesamt",
+    "statsEmpty": "Noch keine Getränke getrackt.",
+    "glasses": "Gläser"
   },
   "photo": {
     "title": "Fotos",
