@@ -37,4 +37,21 @@ class EventController extends Controller
 
         return redirect()->route('dashboard');
     }
+
+    public function switch(Request $request)
+    {
+        $data = $request->validate(['event_id' => 'required|integer']);
+
+        $user   = auth()->user();
+        $events = $user->accessibleEvents()->get();
+        $event  = $events->firstWhere('id', $data['event_id']);
+
+        if (!$event) {
+            return redirect()->back()->with('error', 'Event nicht gefunden.');
+        }
+
+        $request->session()->put('active_event_id', $event->id);
+
+        return redirect()->back()->with('success', 'Event gewechselt.');
+    }
 }
