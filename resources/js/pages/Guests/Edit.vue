@@ -3,6 +3,7 @@ import GuestForm from '@/components/GuestForm.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import QRCode from 'qrcode';
 import { onMounted, ref } from 'vue';
+import { toast } from 'vue-sonner';
 
 const props = defineProps<{
     guest: any;
@@ -21,7 +22,7 @@ onMounted(async () => {
 });
 
 function handleUpdate(form: any) {
-    form.put(route('guests.update', props.guest.id));
+    form.put(route('guests.update', props.guest.id), { onSuccess: () => toast.success('Änderungen gespeichert') });
 }
 </script>
 
