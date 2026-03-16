@@ -46,7 +46,8 @@
     "schedule": "Schedule",
     "colorPrimary": "Primary color (text & buttons)",
     "colorSecondary": "Secondary color (background)",
-    "colorHint": "Primary = text color & buttons · Secondary = app background",
+    "colorHomeText": "Home screen text color",
+    "colorHint": "Primary = text & buttons · Secondary = background · Home text = text over cover image",
     "phonePreview": "Preview",
     "saveSettings": "Save settings"
   },
