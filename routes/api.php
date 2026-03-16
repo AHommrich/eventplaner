@@ -26,7 +26,7 @@ Route::delete('/auth/logout', function (Request $request) {
 })->middleware('auth:sanctum');
 
 // Fotos: hochladen und abrufen
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureGuestHasAppAccess::class])->group(function () {
     Route::post('/photos', [PhotoController::class, 'store']);
     Route::get('/photos', [PhotoController::class, 'index']);
 
