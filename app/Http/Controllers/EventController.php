@@ -12,30 +12,38 @@ class EventController extends Controller
     {
         $user = auth()->user();
 
-        // Hat der User bereits Zugriff auf ein Event → weiterleiten
-        if ($user->isAdmin() || $user->accessibleEvents()->exists()) {
+        // Admins direkt zum Dashboard
+        if ($user->isAdmin()) {
             return redirect()->route('dashboard');
         }
 
         return Inertia::render('Onboarding', [
-            'email' => $user->email,
+            'email'    => $user->email,
+            'hasEvent' => $user->accessibleEvents()->exists(),
         ]);
     }
 
     public function store(Request $request)
     {
+        $user = auth()->user();
+
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'date' => 'nullable|date',
         ]);
 
         Event::create([
-            'user_id' => auth()->id(),
+            'user_id' => $user->id,
             'name'    => $data['name'],
             'date'    => $data['date'] ?? null,
         ]);
 
-        return redirect()->route('dashboard');
+        // Admins zum Dashboard, normale User zurück zum Onboarding (kein Admin-Zugriff)
+        if ($user->isAdmin()) {
+            return redirect()->route('dashboard');
+        }
+
+        return redirect()->route('onboarding')->with('success', 'Event erstellt!');
     }
 
     public function switch(Request $request)
