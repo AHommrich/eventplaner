@@ -8,7 +8,8 @@
     "photos": "Photos",
     "userManagement": "User Management",
     "manageAccess": "Manage Access",
-    "requests": "Requests"
+    "requests": "Requests",
+    "eventSettings": "Event Settings"
   },
   "common": {
     "create": "Create",
@@ -29,7 +30,25 @@
   },
   "event": {
     "search": "Search event...",
-    "notFound": "No event found"
+    "notFound": "No event found",
+    "settings": "Event Settings",
+    "settingsDesc": "Configure name, date, design and info for your event",
+    "name": "Event name",
+    "date": "Event date & time",
+    "rsvpDeadline": "RSVP deadline",
+    "cover": "Cover image",
+    "coverUpload": "Upload image",
+    "coverUploading": "Uploading…",
+    "coverHint": "Shown as background on the app home screen",
+    "venueName": "Venue",
+    "venueAddress": "Address",
+    "dresscode": "Dress code",
+    "schedule": "Schedule",
+    "colorPrimary": "Primary color",
+    "colorSecondary": "Secondary color",
+    "colorHint": "Used as app color scheme",
+    "phonePreview": "Preview",
+    "saveSettings": "Save settings"
   },
   "confirm": {
     "defaultTitle": "Are you sure?",
@@ -54,7 +73,10 @@
     "photoDeleted": "Photo deleted",
     "revocationApproved": "Request approved — guest can RSVP again",
     "revocationDeclined": "Request declined",
-    "rsvpOverridden": "RSVP status updated"
+    "rsvpOverridden": "RSVP status updated",
+    "eventSettingsSaved": "Settings saved",
+    "coverUploaded": "Cover image uploaded",
+    "coverError": "Upload failed"
   },
   "requests": {
     "title": "Requests",
