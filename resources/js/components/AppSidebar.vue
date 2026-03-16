@@ -9,7 +9,10 @@ import { Link, router, usePage } from '@inertiajs/vue3';
 import { Users, SquarePen, QrCode, Images, ShieldCheck, GlassWater, ChevronsUpDown, Check, KeyRound } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { setLocale } from '@/plugins/i18n';
 
+const { t, locale } = useI18n();
 const page = usePage();
 const { isMobile, state } = useSidebar();
 const isAdmin = computed(() => (page.props.auth as any)?.user?.role === 'admin');
@@ -34,21 +37,21 @@ function switchEvent(eventId: number) {
     search.value = '';
 }
 
-const mainNavItems: NavItem[] = [
-    { title: 'Formulare',   href: '/dashboard',    icon: SquarePen },
-    { title: 'Gäste',       href: '/table',         icon: Users },
-    { title: 'Getränke',    href: '/drinks',        icon: GlassWater },
-    { title: 'Einladungen', href: '/invitations',   icon: QrCode },
-    { title: 'Fotos',       href: '/photos',        icon: Images },
-];
+const mainNavItems = computed<NavItem[]>(() => [
+    { title: t('nav.forms'),       href: '/dashboard',   icon: SquarePen },
+    { title: t('nav.guests'),      href: '/table',        icon: Users },
+    { title: t('nav.drinks'),      href: '/drinks',       icon: GlassWater },
+    { title: t('nav.invitations'), href: '/invitations',  icon: QrCode },
+    { title: t('nav.photos'),      href: '/photos',       icon: Images },
+]);
 
-const adminNavItems: NavItem[] = [
-    { title: 'User-Verwaltung', href: '/admin/users', icon: ShieldCheck },
-];
+const adminNavItems = computed<NavItem[]>(() => [
+    { title: t('nav.userManagement'), href: '/admin/users', icon: ShieldCheck },
+]);
 
-const eventOwnerNavItems: NavItem[] = [
-    { title: 'Zugang verwalten', href: '/event/access', icon: KeyRound },
-];
+const eventOwnerNavItems = computed<NavItem[]>(() => [
+    { title: t('nav.manageAccess'), href: '/event/access', icon: KeyRound },
+]);
 </script>
 
 <template>
@@ -85,7 +88,7 @@ const eventOwnerNavItems: NavItem[] = [
                                 <input
                                     v-model="search"
                                     type="text"
-                                    placeholder="Event suchen..."
+                                    :placeholder="t('event.search')"
                                     class="w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm outline-none placeholder:text-muted-foreground"
                                     @keydown.stop
                                 />
@@ -102,7 +105,7 @@ const eventOwnerNavItems: NavItem[] = [
                                 {{ ev.name }}
                             </DropdownMenuItem>
                             <p v-if="filteredEvents.length === 0" class="px-2 py-3 text-center text-xs text-muted-foreground">
-                                Kein Event gefunden
+                                {{ t('event.notFound') }}
                             </p>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -122,6 +125,16 @@ const eventOwnerNavItems: NavItem[] = [
         </SidebarContent>
 
         <SidebarFooter>
+            <div class="flex justify-center gap-1 px-2 pb-1">
+                <button
+                    v-for="lang in ['de', 'en']"
+                    :key="lang"
+                    @click="setLocale(lang as 'de' | 'en')"
+                    :class="['rounded px-2 py-0.5 text-xs font-medium transition-colors', locale === lang ? 'bg-sidebar-accent text-sidebar-accent-foreground' : 'text-sidebar-foreground/60 hover:text-sidebar-foreground']"
+                >
+                    {{ lang.toUpperCase() }}
+                </button>
+            </div>
             <NavUser />
         </SidebarFooter>
     </Sidebar>

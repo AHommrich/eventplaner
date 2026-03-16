@@ -9,7 +9,9 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { toast } from 'vue-sonner';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Formulare', href: '/dashboard' }];
 const page = usePage();
 const categories   = computed(() => page.props.categories   as { id: number; title: string }[]);
@@ -21,20 +23,21 @@ const categoryForm    = useForm({ title: '' });
 const groupForm       = useForm({ name: '' });
 const foodSpecialForm = useForm({ name: '' });
 
-const submitCategory    = () => categoryForm.post(route('categories.store'),      { onSuccess: () => { categoryForm.reset(); toast.success('Kategorie erstellt'); } });
-const submitGroup       = () => groupForm.post(route('groups.store'),             { onSuccess: () => { groupForm.reset(); toast.success('Gruppe erstellt'); } });
-const submitFoodSpecial = () => foodSpecialForm.post(route('foodspecials.store'), { onSuccess: () => { foodSpecialForm.reset(); toast.success('Essensbesonderheit erstellt'); } });
+const submitCategory    = () => categoryForm.post(route('categories.store'),      { onSuccess: () => { categoryForm.reset(); toast.success(t('toast.categoryCreated')); } });
+const submitGroup       = () => groupForm.post(route('groups.store'),             { onSuccess: () => { groupForm.reset(); toast.success(t('toast.groupCreated')); } });
+const submitFoodSpecial = () => foodSpecialForm.post(route('foodspecials.store'), { onSuccess: () => { foodSpecialForm.reset(); toast.success(t('toast.foodSpecialCreated')); } });
 
-function handleCreate(form: any) { form.post(route('guests.store'), { onSuccess: () => { form.reset(); toast.success('Gast erstellt'); } }); }
+function handleCreate(form: any) { form.post(route('guests.store'), { onSuccess: () => { form.reset(); toast.success(t('toast.guestCreated')); } }); }
 
 const confirmOpen = ref(false);
 const pendingId   = ref<number | null>(null);
 function askDelete(id: number) { pendingId.value = id; confirmOpen.value = true; }
-function doDelete() { if (pendingId.value) router.delete(route('guests.destroy', pendingId.value), { onSuccess: () => toast.success('Gast gelöscht') }); }
+function doDelete() { if (pendingId.value) router.delete(route('guests.destroy', pendingId.value), { onSuccess: () => toast.success(t('toast.guestDeleted')) }); }
 
-const likelihoodLabel: Record<string, string> = {
-    sure: 'Sicher', likely: 'Wahrscheinlich', maybe: 'Vielleicht', unlikely: 'Unwahrscheinlich', no: 'Nein',
-};
+const likelihoodLabel = computed<Record<string, string>>(() => ({
+    sure: t('guest.sure'), likely: t('guest.likely'), maybe: t('guest.maybe'),
+    unlikely: t('guest.unlikely'), no: t('guest.no'),
+}));
 const likelihoodClass: Record<string, string> = {
     sure:     'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
     likely:   'bg-lime-100 text-lime-800 dark:bg-lime-900 dark:text-lime-200',
@@ -51,40 +54,40 @@ const filteredGuests = computed(() => {
 </script>
 
 <template>
-    <Head title="Formulare" />
+    <Head :title="t('nav.forms')" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="m-4 space-y-4">
 
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div class="space-y-4">
                     <Card>
-                        <CardHeader><CardTitle>Neue Kategorie</CardTitle></CardHeader>
+                        <CardHeader><CardTitle>{{ t('category.new') }}</CardTitle></CardHeader>
                         <CardContent>
                             <form @submit.prevent="submitCategory" class="flex gap-2">
-                                <Input v-model="categoryForm.title" placeholder="Kategoriename" required class="flex-1" />
-                                <Button type="submit" :disabled="categoryForm.processing">Erstellen</Button>
+                                <Input v-model="categoryForm.title" :placeholder="t('category.namePlaceholder')" required class="flex-1" />
+                                <Button type="submit" :disabled="categoryForm.processing">{{ t('common.create') }}</Button>
                             </form>
                             <p v-if="categoryForm.errors.title" class="mt-1.5 text-xs text-destructive">{{ categoryForm.errors.title }}</p>
                         </CardContent>
                     </Card>
 
                     <Card>
-                        <CardHeader><CardTitle>Neue Gruppe</CardTitle></CardHeader>
+                        <CardHeader><CardTitle>{{ t('group.new') }}</CardTitle></CardHeader>
                         <CardContent>
                             <form @submit.prevent="submitGroup" class="flex gap-2">
-                                <Input v-model="groupForm.name" placeholder="Gruppenname" required class="flex-1" />
-                                <Button type="submit" :disabled="groupForm.processing">Erstellen</Button>
+                                <Input v-model="groupForm.name" :placeholder="t('group.namePlaceholder')" required class="flex-1" />
+                                <Button type="submit" :disabled="groupForm.processing">{{ t('common.create') }}</Button>
                             </form>
                             <p v-if="groupForm.errors.name" class="mt-1.5 text-xs text-destructive">{{ groupForm.errors.name }}</p>
                         </CardContent>
                     </Card>
 
                     <Card>
-                        <CardHeader><CardTitle>Neue Essensbesonderheit</CardTitle></CardHeader>
+                        <CardHeader><CardTitle>{{ t('foodSpecial.new') }}</CardTitle></CardHeader>
                         <CardContent>
                             <form @submit.prevent="submitFoodSpecial" class="flex gap-2">
-                                <Input v-model="foodSpecialForm.name" placeholder="z.B. Vegetarisch" required class="flex-1" />
-                                <Button type="submit" :disabled="foodSpecialForm.processing">Erstellen</Button>
+                                <Input v-model="foodSpecialForm.name" :placeholder="t('foodSpecial.placeholder')" required class="flex-1" />
+                                <Button type="submit" :disabled="foodSpecialForm.processing">{{ t('common.create') }}</Button>
                             </form>
                             <p v-if="foodSpecialForm.errors.name" class="mt-1.5 text-xs text-destructive">{{ foodSpecialForm.errors.name }}</p>
                         </CardContent>
@@ -92,9 +95,9 @@ const filteredGuests = computed(() => {
                 </div>
 
                 <Card>
-                    <CardHeader><CardTitle>Neuen Gast erstellen</CardTitle></CardHeader>
+                    <CardHeader><CardTitle>{{ t('guest.createNew') }}</CardTitle></CardHeader>
                     <CardContent>
-                        <GuestForm :categories="categories" :groups="groups" :food-specials="foodSpecials" submit-label="Gast erstellen" @submit="handleCreate" />
+                        <GuestForm :categories="categories" :groups="groups" :food-specials="foodSpecials" :submit-label="t('guest.create')" @submit="handleCreate" />
                     </CardContent>
                 </Card>
             </div>
@@ -102,24 +105,24 @@ const filteredGuests = computed(() => {
             <Card>
                 <CardContent class="p-0">
                     <div class="flex items-center gap-3 border-b px-6 py-3">
-                        <span class="text-sm text-muted-foreground">Kategorie:</span>
+                        <span class="text-sm text-muted-foreground">{{ t('category.filter') }}</span>
                         <select v-model="categoryFilter" class="flex h-8 rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]">
-                            <option value="">Alle</option>
+                            <option value="">{{ t('common.all') }}</option>
                             <option v-for="cat in [...new Set(guests.map((g) => g.category?.title).filter(Boolean))]" :key="cat" :value="cat">{{ cat }}</option>
                         </select>
-                        <span class="ml-auto text-xs text-muted-foreground">{{ filteredGuests.length }} Gäste</span>
+                        <span class="ml-auto text-xs text-muted-foreground">{{ t('guest.count', { count: filteredGuests.length }) }}</span>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead class="border-b">
                                 <tr>
-                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">Vorname</th>
-                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">Nachname</th>
-                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">Kategorie</th>
-                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">Gruppe</th>
-                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">Wahrscheinlichkeit</th>
-                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">Einladung</th>
-                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">Essen</th>
+                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('guest.firstName') }}</th>
+                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('guest.lastName') }}</th>
+                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('guest.category') }}</th>
+                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('guest.group') }}</th>
+                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('guest.likelihood') }}</th>
+                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('guest.invite') }}</th>
+                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('guest.food') }}</th>
                                     <th class="h-10 px-6"></th>
                                 </tr>
                             </thead>
@@ -136,14 +139,14 @@ const filteredGuests = computed(() => {
                                             {{ likelihoodLabel[guest.likelihood] ?? guest.likelihood }}
                                         </span>
                                     </td>
-                                    <td class="px-6 py-3 text-muted-foreground">{{ guest.invite ? 'Ja' : 'Nein' }}</td>
+                                    <td class="px-6 py-3 text-muted-foreground">{{ guest.invite ? t('common.yes') : t('common.no') }}</td>
                                     <td class="px-6 py-3 text-muted-foreground text-xs">{{ guest.food_specials?.map((fs: any) => fs.name).join(', ') || '–' }}</td>
                                     <td class="px-6 py-3 text-right">
-                                        <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click.stop="askDelete(guest.id)">Löschen</Button>
+                                        <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click.stop="askDelete(guest.id)">{{ t('common.delete') }}</Button>
                                     </td>
                                 </tr>
                                 <tr v-if="filteredGuests.length === 0">
-                                    <td colspan="8" class="px-6 py-8 text-center text-sm text-muted-foreground">Noch keine Gäste angelegt.</td>
+                                    <td colspan="8" class="px-6 py-8 text-center text-sm text-muted-foreground">{{ t('guest.none') }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -155,9 +158,9 @@ const filteredGuests = computed(() => {
 
         <ConfirmDialog
             v-model:open="confirmOpen"
-            title="Gast löschen"
-            description="Dieser Gast wird unwiderruflich gelöscht."
-            confirm-label="Löschen"
+            :title="t('guest.deleteTitle')"
+            :description="t('guest.deleteDescription')"
+            :confirm-label="t('common.delete')"
             destructive
             @confirm="doDelete"
         />

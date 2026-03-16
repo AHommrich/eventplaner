@@ -7,7 +7,9 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { toast } from 'vue-sonner';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Gäste', href: '/table' }];
 const page = usePage();
 const guests = computed(() => page.props.guests as any[]);
@@ -18,9 +20,10 @@ const filteredGuests = computed(() => {
     return guests.value.filter((g: any) => g.category?.title === categoryFilter.value);
 });
 
-const likelihoodLabel: Record<string, string> = {
-    sure: 'Sicher', likely: 'Wahrscheinlich', maybe: 'Vielleicht', unlikely: 'Unwahrscheinlich', no: 'Nein',
-};
+const likelihoodLabel = computed<Record<string, string>>(() => ({
+    sure: t('guest.sure'), likely: t('guest.likely'), maybe: t('guest.maybe'),
+    unlikely: t('guest.unlikely'), no: t('guest.no'),
+}));
 const likelihoodClass: Record<string, string> = {
     sure:     'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
     likely:   'bg-lime-100 text-lime-800 dark:bg-lime-900 dark:text-lime-200',
@@ -33,33 +36,33 @@ const confirmOpen  = ref(false);
 const pendingId    = ref<number | null>(null);
 
 function askDelete(id: number) { pendingId.value = id; confirmOpen.value = true; }
-function doDelete() { if (pendingId.value) router.delete(route('guests.destroy', pendingId.value), { onSuccess: () => toast.success('Gast gelöscht') }); }
+function doDelete() { if (pendingId.value) router.delete(route('guests.destroy', pendingId.value), { onSuccess: () => toast.success(t('toast.guestDeleted')) }); }
 </script>
 
 <template>
-    <Head title="Gäste" />
+    <Head :title="t('nav.guests')" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="m-4">
             <Card>
                 <CardContent class="p-0">
                     <div class="flex items-center gap-3 border-b px-6 py-3">
-                        <span class="text-sm text-muted-foreground">Kategorie:</span>
+                        <span class="text-sm text-muted-foreground">{{ t('category.filter') }}</span>
                         <select v-model="categoryFilter" class="flex h-8 rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]">
-                            <option value="">Alle</option>
+                            <option value="">{{ t('common.all') }}</option>
                             <option v-for="cat in [...new Set(guests.map((g) => g.category?.title).filter(Boolean))]" :key="cat" :value="cat">{{ cat }}</option>
                         </select>
-                        <span class="ml-auto text-xs text-muted-foreground">{{ filteredGuests.length }} Gäste</span>
+                        <span class="ml-auto text-xs text-muted-foreground">{{ t('guest.count', { count: filteredGuests.length }) }}</span>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead class="border-b">
                                 <tr>
-                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">Vorname</th>
-                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">Nachname</th>
-                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">Kategorie</th>
-                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">Gruppe</th>
-                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">Wahrscheinlichkeit</th>
-                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">Essen</th>
+                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('guest.firstName') }}</th>
+                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('guest.lastName') }}</th>
+                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('guest.category') }}</th>
+                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('guest.group') }}</th>
+                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('guest.likelihood') }}</th>
+                                    <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('guest.food') }}</th>
                                     <th class="h-10 px-6"></th>
                                 </tr>
                             </thead>
@@ -78,11 +81,11 @@ function doDelete() { if (pendingId.value) router.delete(route('guests.destroy',
                                     </td>
                                     <td class="px-6 py-3 text-muted-foreground text-xs">{{ guest.food_specials?.map((fs: any) => fs.name).join(', ') || '–' }}</td>
                                     <td class="px-6 py-3 text-right">
-                                        <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click.stop="askDelete(guest.id)">Löschen</Button>
+                                        <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click.stop="askDelete(guest.id)">{{ t('common.delete') }}</Button>
                                     </td>
                                 </tr>
                                 <tr v-if="filteredGuests.length === 0">
-                                    <td colspan="7" class="px-6 py-8 text-center text-sm text-muted-foreground">Keine Gäste gefunden.</td>
+                                    <td colspan="7" class="px-6 py-8 text-center text-sm text-muted-foreground">{{ t('guest.none') }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -93,9 +96,9 @@ function doDelete() { if (pendingId.value) router.delete(route('guests.destroy',
 
         <ConfirmDialog
             v-model:open="confirmOpen"
-            title="Gast löschen"
-            description="Dieser Gast wird unwiderruflich gelöscht."
-            confirm-label="Löschen"
+            :title="t('guest.deleteTitle')"
+            :description="t('guest.deleteDescription')"
+            :confirm-label="t('common.delete')"
             destructive
             @confirm="doDelete"
         />
