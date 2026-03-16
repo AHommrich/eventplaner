@@ -11,7 +11,7 @@ class EnsureUserIsAdmin
     public function handle(Request $request, Closure $next): Response
     {
         if (!$request->user()?->isAdmin()) {
-            abort(403, 'Kein Zugriff.');
+            return redirect()->route('onboarding');
         }
 
         return $next($request);
