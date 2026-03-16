@@ -184,74 +184,95 @@ const previewDaysLeft = computed(() => {
                 <div class="flex flex-col items-center gap-3">
                     <p class="text-sm font-medium text-muted-foreground">{{ t('event.phonePreview') }}</p>
 
-                    <!-- Phone-Rahmen -->
-                    <div class="relative mx-auto w-[260px] overflow-hidden rounded-[36px] border-[8px] shadow-2xl"
-                        :style="{ borderColor: form.color_primary || '#7c2d3e' }">
+                    <!-- Phone-Rahmen: dunkel wie echtes Gerät -->
+                    <div class="relative mx-auto w-[260px] overflow-hidden rounded-[36px] border-[10px] border-gray-800 shadow-2xl">
 
-                        <!-- Screen -->
-                        <div class="relative flex h-[564px] w-full flex-col overflow-hidden">
+                        <!-- Screen: warmes Beige wie aktuelle App -->
+                        <div class="flex h-[540px] w-full flex-col" style="background-color: #e8e3de;">
 
-                            <!-- Cover-Bild als Vollbild-Hintergrund -->
-                            <img v-if="coverUrl" :src="coverUrl" alt="Cover"
-                                class="absolute inset-0 h-full w-full object-cover" />
-                            <!-- Fallback: Primary-Color -->
-                            <div v-else class="absolute inset-0"
-                                :style="{ backgroundColor: form.color_primary || '#7c2d3e' }" />
-
-                            <!-- Gradient: oben für Status-Bar, unten für Content -->
-                            <div class="absolute inset-0 bg-gradient-to-b from-black/45 via-black/5 to-black/82" />
-
-                            <!-- Status Bar -->
-                            <div class="relative z-10 flex items-center justify-between px-5 pt-3 text-[11px] font-medium text-white">
+                            <!-- Status Bar (dunkle Icons auf hellem BG) -->
+                            <div class="flex items-center justify-between px-4 pt-2.5 text-[11px] font-semibold text-gray-900">
                                 <span>9:41</span>
-                                <span class="opacity-80 tracking-widest text-[8px]">● ● ●</span>
+                                <div class="flex items-center gap-1 text-[10px]">
+                                    <span>▲▲▲</span>
+                                    <span>⬛</span>
+                                </div>
                             </div>
 
-                            <!-- Haupt-Content -->
-                            <div class="relative z-10 flex flex-1 flex-col justify-end px-5 pb-3 text-white">
+                            <!-- Content: zentriert wie im aktuellen Home-Screen -->
+                            <div class="flex flex-1 flex-col items-center justify-center px-5 pb-2">
 
-                                <!-- Welcome-Label in Sekundärfarbe -->
-                                <p class="text-[10px] font-semibold uppercase tracking-[0.18em]"
-                                    :style="{ color: form.color_secondary || '#c49a6c' }">
-                                    Herzlich Willkommen
-                                </p>
+                                <!-- Cover als Karte (falls vorhanden) -->
+                                <div v-if="coverUrl"
+                                    class="mb-5 w-full overflow-hidden rounded-2xl shadow"
+                                    style="height: 110px;">
+                                    <img :src="coverUrl" alt="Cover" class="h-full w-full object-cover" />
+                                </div>
 
-                                <!-- Event-Name -->
-                                <h2 class="mt-1 text-[20px] font-bold leading-tight">
+                                <!-- Event-Name in Primary-Farbe (wie "Willkommen, Sarah!") -->
+                                <h2 class="text-center text-[18px] font-bold leading-snug"
+                                    :style="{ color: form.color_primary || '#7c2d3e' }">
                                     {{ form.name || 'Event-Name' }}
                                 </h2>
 
                                 <!-- Datum -->
-                                <p v-if="previewDate" class="mt-1 text-[12px] opacity-80">
+                                <p v-if="previewDate" class="mt-2 text-center text-[12px]" style="color: #8c8880;">
                                     {{ previewDate }}
                                 </p>
 
                                 <!-- Veranstaltungsort -->
-                                <p v-if="form.venue_name" class="mt-0.5 text-[11px] opacity-60">
+                                <p v-if="form.venue_name" class="mt-1 text-center text-[11px]" style="color: #a09890;">
                                     {{ form.venue_name }}
                                 </p>
 
-                                <!-- Countdown-Badge -->
-                                <div v-if="previewDaysLeft" class="mt-3 inline-flex w-fit items-center rounded-full px-3 py-1 text-[11px] font-semibold text-white"
-                                    :style="{ backgroundColor: form.color_secondary || '#c49a6c' }">
+                                <!-- Countdown-Pill in Primary -->
+                                <div v-if="previewDaysLeft"
+                                    class="mt-4 rounded-full px-4 py-1.5 text-[11px] font-semibold text-white"
+                                    :style="{ backgroundColor: form.color_primary || '#7c2d3e' }">
                                     Noch {{ previewDaysLeft }} Tage
                                 </div>
                             </div>
 
-                            <!-- Tab Bar (wie in der echten App) -->
-                            <div class="relative z-10 flex h-[52px] w-full items-center justify-around border-t border-white/15 bg-black/40">
-                                <div v-for="tab in [
-                                    { label: 'Home', active: true },
-                                    { label: 'Zusage', active: false },
-                                    { label: 'Fotos', active: false },
-                                    { label: 'Einst.', active: false },
-                                ]" :key="tab.label" class="flex flex-col items-center gap-0.5 px-2">
-                                    <div class="h-0.5 w-4 rounded-full mb-0.5"
-                                        :style="{ backgroundColor: tab.active ? (form.color_secondary || '#c49a6c') : 'transparent' }" />
-                                    <span class="text-[9px] font-medium"
-                                        :style="{ color: tab.active ? (form.color_secondary || '#c49a6c') : 'rgba(255,255,255,0.5)' }">
-                                        {{ tab.label }}
-                                    </span>
+                            <!-- Tab Bar: gleicher Beige-BG + dünner Top-Border wie App -->
+                            <div class="flex h-[58px] w-full items-center justify-around border-t px-1"
+                                style="background-color: #e8e3de; border-color: rgba(0,0,0,0.1);">
+
+                                <!-- Home (aktiv) -->
+                                <div class="flex flex-col items-center gap-0.5">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                                        :stroke="form.color_primary || '#7c2d3e'">
+                                        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/>
+                                        <path d="M9 21V12h6v9"/>
+                                    </svg>
+                                    <span class="text-[9px] font-semibold" :style="{ color: form.color_primary || '#7c2d3e' }">Home</span>
+                                </div>
+
+                                <!-- Zusage -->
+                                <div class="flex flex-col items-center gap-0.5">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9e9490" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="9"/>
+                                        <path d="M8.5 12.5l2.5 2.5 4.5-5"/>
+                                    </svg>
+                                    <span class="text-[9px]" style="color: #9e9490;">Zusage</span>
+                                </div>
+
+                                <!-- Fotos -->
+                                <div class="flex flex-col items-center gap-0.5">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9e9490" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="5" width="18" height="14" rx="2"/>
+                                        <circle cx="8.5" cy="10.5" r="1.5"/>
+                                        <path d="M21 15l-5-5L5 19"/>
+                                    </svg>
+                                    <span class="text-[9px]" style="color: #9e9490;">Fotos</span>
+                                </div>
+
+                                <!-- Einstellungen -->
+                                <div class="flex flex-col items-center gap-0.5">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9e9490" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="3"/>
+                                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                                    </svg>
+                                    <span class="text-[9px]" style="color: #9e9490;">Einstellungen</span>
                                 </div>
                             </div>
                         </div>
