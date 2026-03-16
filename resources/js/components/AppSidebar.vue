@@ -45,19 +45,23 @@ const adminNavItems: NavItem[] = [
                 </SidebarMenuItem>
             </SidebarMenu>
 
-            <div v-if="showSwitcher" class="px-2 pb-1">
-                <select
-                    :value="activeEvent?.id"
-                    @change="switchEvent(Number(($event.target as HTMLSelectElement).value))"
-                    class="w-full rounded-md border border-sidebar-border bg-sidebar px-2 py-1.5 text-sm text-sidebar-foreground focus:outline-none focus:ring-1 focus:ring-sidebar-ring"
-                >
-                    <option v-for="ev in accessibleEvents" :key="ev.id" :value="ev.id">
+            <div v-if="activeEvent" class="px-2 pb-1 space-y-1">
+                <template v-if="showSwitcher">
+                    <button
+                        v-for="ev in accessibleEvents"
+                        :key="ev.id"
+                        @click="switchEvent(ev.id)"
+                        class="w-full truncate rounded-md px-2 py-1.5 text-left text-sm transition-colors"
+                        :class="ev.id === activeEvent.id
+                            ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+                            : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'"
+                    >
                         {{ ev.name }}
-                    </option>
-                </select>
-            </div>
-            <div v-else-if="activeEvent" class="px-3 pb-1 text-xs text-sidebar-foreground/60 truncate">
-                {{ activeEvent.name }}
+                    </button>
+                </template>
+                <p v-else class="truncate px-1 text-xs text-sidebar-foreground/60">
+                    {{ activeEvent.name }}
+                </p>
             </div>
         </SidebarHeader>
 
