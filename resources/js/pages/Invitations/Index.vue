@@ -4,7 +4,7 @@ import { Head } from '@inertiajs/vue3';
 import QRCode from 'qrcode';
 import { onMounted, ref } from 'vue';
 
-interface FamilyInvitation {
+interface GroupInvitation {
     id: number;
     name: string;
     guests: string[];
@@ -20,11 +20,11 @@ interface SoloInvitation {
 }
 
 const props = defineProps<{
-    families: FamilyInvitation[];
+    groups: GroupInvitation[];
     soloGuests: SoloInvitation[];
 }>();
 
-const familyQrCodes = ref<Record<number, string>>({});
+const groupQrCodes = ref<Record<number, string>>({});
 const soloQrCodes = ref<Record<number, string>>({});
 
 async function generateQr(url: string): Promise<string> {
@@ -32,9 +32,9 @@ async function generateQr(url: string): Promise<string> {
 }
 
 onMounted(async () => {
-    for (const f of props.families) {
+    for (const f of props.groups) {
         if (f.qr_url) {
-            familyQrCodes.value[f.id] = await generateQr(f.qr_url);
+            groupQrCodes.value[f.id] = await generateQr(f.qr_url);
         }
     }
     for (const g of props.soloGuests) {
@@ -62,30 +62,30 @@ function print(url: string) {
         <div class="p-6 space-y-8">
             <h1 class="text-2xl font-bold">Einladungen & QR-Codes</h1>
 
-            <!-- Familien -->
+            <!-- Gruppen -->
             <section>
-                <h2 class="text-lg font-semibold mb-4">Familien</h2>
+                <h2 class="text-lg font-semibold mb-4">Gruppen</h2>
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                     <div
-                        v-for="family in families"
-                        :key="family.id"
+                        v-for="group in groups"
+                        :key="group.id"
                         class="border rounded-xl p-4 flex flex-col items-center gap-2 bg-white dark:bg-zinc-900 shadow-sm"
                     >
-                        <p class="font-semibold text-center">{{ family.name }}</p>
-                        <p class="text-xs text-zinc-500 text-center">{{ family.guests.join(', ') }}</p>
+                        <p class="font-semibold text-center">{{ group.name }}</p>
+                        <p class="text-xs text-zinc-500 text-center">{{ group.guests.join(', ') }}</p>
 
                         <img
-                            v-if="familyQrCodes[family.id]"
-                            :src="familyQrCodes[family.id]"
+                            v-if="groupQrCodes[group.id]"
+                            :src="groupQrCodes[group.id]"
                             alt="QR Code"
                             class="w-36 h-36"
                         />
                         <p v-else class="text-xs text-zinc-400">Kein Token</p>
 
                         <button
-                            v-if="familyQrCodes[family.id]"
+                            v-if="groupQrCodes[group.id]"
                             class="text-xs text-blue-600 underline"
-                            @click="print(familyQrCodes[family.id])"
+                            @click="print(groupQrCodes[group.id])"
                         >
                             Drucken
                         </button>
