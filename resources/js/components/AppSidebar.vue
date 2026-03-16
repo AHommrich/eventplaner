@@ -15,8 +15,8 @@ const { isMobile, state } = useSidebar();
 const isAdmin = computed(() => (page.props.auth as any)?.user?.role === 'admin');
 const activeEvent = computed(() => (page.props as any).active_event as { id: number; name: string; user_id?: number } | null);
 const currentUserId = computed(() => (page.props.auth as any)?.user?.id);
-const isEventOwnerOrAdmin = computed(() =>
-    isAdmin.value || (activeEvent.value?.user_id !== undefined && activeEvent.value.user_id === currentUserId.value)
+const isEventOwner = computed(() =>
+    !isAdmin.value && activeEvent.value?.user_id === currentUserId.value
 );
 const accessibleEvents = computed(() => (page.props as any).accessible_events as { id: number; name: string }[]);
 const showSwitcher = computed(() => accessibleEvents.value?.length > 1);
@@ -117,7 +117,7 @@ const eventOwnerNavItems: NavItem[] = [
 
         <SidebarContent>
             <NavMain :items="mainNavItems" />
-            <NavMain v-if="isEventOwnerOrAdmin" :items="eventOwnerNavItems" />
+            <NavMain v-if="isEventOwner" :items="eventOwnerNavItems" />
             <NavMain v-if="isAdmin" :items="adminNavItems" />
         </SidebarContent>
 
