@@ -1,38 +1,24 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Head, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
 
-interface User {
-    id: number;
-    name: string;
-    email: string;
-    role: string;
-    created_at: string;
-}
+interface User  { id: number; name: string; email: string; role: string; created_at: string; }
+interface Event { id: number; name: string; }
 
-interface Event {
-    id: number;
-    name: string;
-}
+const props = defineProps<{ users: User[]; events: Event[]; }>();
 
-const props = defineProps<{
-    users: User[];
-    events: Event[];
-}>();
+const selectClass = 'flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]';
 
-// User zu Event hinzufügen
 const addForm = useForm({ email: '', event_id: '' });
-function addToEvent() {
-    addForm.post(route('admin.users.addToEvent'), { onSuccess: () => addForm.reset() });
-}
+function addToEvent() { addForm.post(route('admin.users.addToEvent'), { onSuccess: () => addForm.reset() }); }
 
-// Rolle ändern
 function updateRole(user: User, role: string) {
     useForm({ role }).put(route('admin.users.update', user.id));
 }
 
-// User löschen
 const deleteForm = useForm({});
 function deleteUser(user: User) {
     if (confirm(`${user.name} wirklich löschen?`)) {
@@ -44,86 +30,69 @@ function deleteUser(user: User) {
 <template>
     <Head title="User-Verwaltung" />
     <AppLayout>
-        <div class="p-6 space-y-8">
-            <h1 class="text-2xl font-bold">User-Verwaltung</h1>
+        <div class="m-4 space-y-4">
 
-            <!-- User zu Event hinzufügen -->
-            <section class="rounded-xl border bg-white dark:bg-gray-900 p-5 space-y-4">
-                <h2 class="text-base font-semibold">User zu Event hinzufügen</h2>
-                <form @submit.prevent="addToEvent" class="flex flex-col sm:flex-row gap-3">
-                    <input
-                        v-model="addForm.email"
-                        type="email"
-                        placeholder="Email-Adresse des Users"
-                        class="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                    />
-                    <select
-                        v-model="addForm.event_id"
-                        class="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                    >
-                        <option value="">Event auswählen</option>
-                        <option v-for="event in events" :key="event.id" :value="event.id">
-                            {{ event.name }}
-                        </option>
-                    </select>
-                    <button
-                        type="submit"
-                        :disabled="addForm.processing"
-                        class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap"
-                    >
-                        Hinzufügen
-                    </button>
-                </form>
-                <p v-if="addForm.errors.email" class="text-xs text-red-500">{{ addForm.errors.email }}</p>
-                <p v-if="addForm.errors.event_id" class="text-xs text-red-500">{{ addForm.errors.event_id }}</p>
-            </section>
+            <Card>
+                <CardHeader>
+                    <CardTitle>User zu Event hinzufügen</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <form @submit.prevent="addToEvent" class="flex flex-col sm:flex-row gap-2">
+                        <Input v-model="addForm.email" type="email" placeholder="Email-Adresse" required class="flex-1" />
+                        <select v-model="addForm.event_id" :class="selectClass" required>
+                            <option value="">Event auswählen</option>
+                            <option v-for="event in events" :key="event.id" :value="event.id">{{ event.name }}</option>
+                        </select>
+                        <Button type="submit" :disabled="addForm.processing" class="whitespace-nowrap">Hinzufügen</Button>
+                    </form>
+                    <p v-if="addForm.errors.email"    class="mt-1.5 text-xs text-destructive">{{ addForm.errors.email }}</p>
+                    <p v-if="addForm.errors.event_id" class="mt-1.5 text-xs text-destructive">{{ addForm.errors.event_id }}</p>
+                </CardContent>
+            </Card>
 
-            <!-- User-Liste -->
-            <section>
-                <h2 class="text-base font-semibold mb-3">Alle User ({{ users.length }})</h2>
-                <div class="rounded-xl border overflow-hidden">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Alle User ({{ users.length }})</CardTitle>
+                </CardHeader>
+                <CardContent class="p-0">
                     <table class="w-full text-sm">
-                        <thead class="bg-gray-50 dark:bg-gray-800 text-xs text-gray-500 uppercase">
+                        <thead class="border-b">
                             <tr>
-                                <th class="px-4 py-3 text-left">Name</th>
-                                <th class="px-4 py-3 text-left">Email</th>
-                                <th class="px-4 py-3 text-left">Rolle</th>
-                                <th class="px-4 py-3 text-left">Registriert</th>
-                                <th class="px-4 py-3"></th>
+                                <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">Name</th>
+                                <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">Email</th>
+                                <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">Rolle</th>
+                                <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">Registriert</th>
+                                <th class="h-10 px-6"></th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100 dark:divide-gray-800 bg-white dark:bg-gray-900">
-                            <tr v-for="user in users" :key="user.id">
-                                <td class="px-4 py-3 font-medium">{{ user.name }}</td>
-                                <td class="px-4 py-3 text-gray-500">{{ user.email }}</td>
-                                <td class="px-4 py-3">
+                        <tbody>
+                            <tr v-for="user in users" :key="user.id" class="border-b transition-colors hover:bg-muted/50 last:border-0">
+                                <td class="px-6 py-3 font-medium">{{ user.name }}</td>
+                                <td class="px-6 py-3 text-muted-foreground">{{ user.email }}</td>
+                                <td class="px-6 py-3">
                                     <select
                                         :value="user.role"
                                         @change="updateRole(user, ($event.target as HTMLSelectElement).value)"
-                                        class="rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-1 text-xs"
+                                        :class="selectClass"
                                     >
                                         <option value="user">User</option>
                                         <option value="admin">Admin</option>
                                     </select>
                                 </td>
-                                <td class="px-4 py-3 text-gray-400 text-xs">
+                                <td class="px-6 py-3 text-muted-foreground text-xs">
                                     {{ new Date(user.created_at).toLocaleDateString('de-DE') }}
                                 </td>
-                                <td class="px-4 py-3 text-right">
-                                    <button
-                                        @click="deleteUser(user)"
-                                        class="text-xs text-red-500 hover:text-red-700"
-                                    >
+                                <td class="px-6 py-3 text-right">
+                                    <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="deleteUser(user)">
                                         Löschen
-                                    </button>
+                                    </Button>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
-                </div>
-            </section>
+                </CardContent>
+            </Card>
+
         </div>
     </AppLayout>
 </template>
