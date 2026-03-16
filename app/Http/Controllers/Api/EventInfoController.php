@@ -31,6 +31,7 @@ class EventInfoController extends Controller
             'schedule'         => $event->schedule,
             'color_primary'    => $event->color_primary,
             'color_secondary'  => $event->color_secondary,
+            'color_home_text'  => $event->color_home_text,
         ]);
     }
 }
