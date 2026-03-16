@@ -1,5 +1,6 @@
 {
   "nav": {
+    "platform": "Platform",
     "forms": "Forms",
     "guests": "Guests",
     "drinks": "Drinks",
@@ -149,6 +150,11 @@
     "eventName": "Event name",
     "placeholder": "e.g. Wedding Max & Anna",
     "create": "Create event"
+  },
+  "appearance": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
   },
   "lang": {
     "de": "Deutsch",
