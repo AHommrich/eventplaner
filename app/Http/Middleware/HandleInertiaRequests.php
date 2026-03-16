@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Event;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -23,6 +24,31 @@ class HandleInertiaRequests extends Middleware
      *
      * @see https://inertiajs.com/asset-versioning
      */
+    private function resolveActiveEvent(Request $request): ?array
+    {
+        $user = $request->user();
+        if (!$user) return null;
+
+        $events = $user->accessibleEvents()->get();
+        if ($events->isEmpty()) return null;
+
+        $sessionId = $request->session()->get('active_event_id');
+        $event = $sessionId ? $events->firstWhere('id', $sessionId) : null;
+        $event ??= $events->first();
+
+        $request->session()->put('active_event_id', $event->id);
+
+        return ['id' => $event->id, 'name' => $event->name];
+    }
+
+    private function resolveAccessibleEvents(Request $request): array
+    {
+        $user = $request->user();
+        if (!$user) return [];
+
+        return $user->accessibleEvents()->get(['id', 'name'])->toArray();
+    }
+
     public function version(Request $request): ?string
     {
         return parent::version($request);
@@ -46,6 +72,8 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'active_event'      => $this->resolveActiveEvent($request),
+            'accessible_events' => $this->resolveAccessibleEvents($request),
             'ziggy' => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
