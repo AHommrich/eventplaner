@@ -42,6 +42,8 @@
     "coverUploading": "Uploading…",
     "coverCurrent": "Current cover image",
     "coverHint": "Shown as background on the app home screen",
+    "coverSelected": "New file selected",
+    "coverSaveHint": "Will be uploaded on save",
     "venueName": "Venue",
     "venueAddress": "Address",
     "dresscode": "Dress code",
