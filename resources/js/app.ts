@@ -8,6 +8,7 @@ import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from 'ziggy-js';
 import { initializeTheme } from './composables/useAppearance';
+import { i18n } from './plugins/i18n';
 
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
@@ -49,6 +50,7 @@ createInertiaApp({
     setup({ el, App, props, plugin }) {
         const vue = createApp({ render: () => h(App, props) })
             .use(plugin)
+            .use(i18n)
             // Falls @routes eingebunden ist, geben wir Ziggy an das Plugin durch:
             .use(ZiggyVue, typeof window !== 'undefined' ? (window as any).Ziggy : undefined);
 

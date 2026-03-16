@@ -1,0 +1,158 @@
+{
+  "nav": {
+    "forms": "Forms",
+    "guests": "Guests",
+    "drinks": "Drinks",
+    "invitations": "Invitations",
+    "photos": "Photos",
+    "userManagement": "User Management",
+    "manageAccess": "Manage Access"
+  },
+  "common": {
+    "create": "Create",
+    "add": "Add",
+    "save": "Save",
+    "delete": "Delete",
+    "remove": "Remove",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "print": "Print",
+    "open": "Open",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "all": "All",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "event": {
+    "search": "Search event...",
+    "notFound": "No event found"
+  },
+  "confirm": {
+    "defaultTitle": "Are you sure?",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
+  "toast": {
+    "categoryCreated": "Category created",
+    "groupCreated": "Group created",
+    "foodSpecialCreated": "Food special created",
+    "guestCreated": "Guest created",
+    "guestDeleted": "Guest deleted",
+    "guestSaved": "Changes saved",
+    "drinkAdded": "Drink added",
+    "drinkDeleted": "Drink deleted",
+    "userAdded": "User added to event",
+    "roleChanged": "Role changed to \"{role}\"",
+    "userDeleted": "User deleted",
+    "accessAdded": "User added",
+    "accessRemoved": "Access removed",
+    "photoUploaded": "Photo uploaded",
+    "photoDeleted": "Photo deleted"
+  },
+  "guest": {
+    "firstName": "First name",
+    "lastName": "Last name",
+    "category": "Category",
+    "group": "Group",
+    "likelihood": "Likelihood",
+    "invite": "Invitation",
+    "food": "Food",
+    "foodSpecials": "Food specials",
+    "inviteNeeded": "Invitation needed?",
+    "selectCategory": "Select category",
+    "noGroup": "No group",
+    "pleaseSelect": "Please select...",
+    "sure": "Sure",
+    "likely": "Likely",
+    "maybe": "Maybe",
+    "unlikely": "Unlikely",
+    "no": "No",
+    "createNew": "Create new guest",
+    "create": "Create guest",
+    "edit": "Edit guest",
+    "saveChanges": "Save changes",
+    "none": "No guests yet.",
+    "count": "{count} guests",
+    "deleteTitle": "Delete guest",
+    "deleteDescription": "This guest will be permanently deleted.",
+    "invitationQR": "Invitation QR code",
+    "noToken": "No token found — please generate invitations first."
+  },
+  "category": {
+    "new": "New category",
+    "namePlaceholder": "Category name",
+    "filter": "Category:"
+  },
+  "group": {
+    "new": "New group",
+    "namePlaceholder": "Group name"
+  },
+  "foodSpecial": {
+    "new": "New food special",
+    "placeholder": "e.g. Vegetarian"
+  },
+  "drink": {
+    "title": "Drinks",
+    "add": "Add drink",
+    "placeholder": "e.g. Beer, Wine, Juice, Water…",
+    "forEvent": "Drinks for this event",
+    "none": "No drinks yet.",
+    "deleteTitle": "Delete drink?",
+    "deleteDescription": "The drink will be permanently removed."
+  },
+  "photo": {
+    "title": "Photos",
+    "upload": "Upload photo",
+    "uploading": "Uploading…",
+    "none": "No photos yet.",
+    "deleteTitle": "Delete photo?",
+    "deleteDescription": "The photo will be permanently deleted and cannot be restored."
+  },
+  "invitation": {
+    "title": "Invitations",
+    "heading": "Invitations & QR Codes",
+    "generate": "Generate QR codes",
+    "generating": "Generating…",
+    "groups": "Groups",
+    "solo": "Individual invitations",
+    "noQR": "No QR code yet",
+    "none": "No guests or groups with invitation tokens yet."
+  },
+  "access": {
+    "title": "Manage Access",
+    "description": "Manage who has access to this event.",
+    "addUser": "Add user",
+    "emailPlaceholder": "User's email address",
+    "currentAccess": "Current access",
+    "owner": "Owner",
+    "none": "Nobody else has access yet.",
+    "removeTitle": "Remove {name}?",
+    "removeDescription": "The user will lose access to this event."
+  },
+  "admin": {
+    "title": "User Management",
+    "addToEvent": "Add user to event",
+    "emailPlaceholder": "Email address",
+    "selectEvent": "Select event",
+    "allUsers": "All users ({count})",
+    "registered": "Registered",
+    "user": "User",
+    "admin": "Admin",
+    "deleteTitle": "Delete {name}?",
+    "deleteDescription": "The account will be permanently deleted and cannot be restored."
+  },
+  "onboarding": {
+    "title": "Welcome!",
+    "description": "Create your first event to get started.",
+    "eventName": "Event name",
+    "placeholder": "e.g. Wedding Max & Anna",
+    "create": "Create event"
+  },
+  "lang": {
+    "de": "Deutsch",
+    "en": "English",
+    "switch": "Language"
+  }
+}
