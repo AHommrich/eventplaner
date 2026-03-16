@@ -38,7 +38,7 @@ class HandleInertiaRequests extends Middleware
 
         $request->session()->put('active_event_id', $event->id);
 
-        return ['id' => $event->id, 'name' => $event->name];
+        return ['id' => $event->id, 'name' => $event->name, 'user_id' => $event->user_id];
     }
 
     private function resolveAccessibleEvents(Request $request): array
