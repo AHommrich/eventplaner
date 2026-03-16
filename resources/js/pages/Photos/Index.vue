@@ -2,15 +2,28 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import { toast } from 'vue-sonner';
+import { useI18n } from 'vue-i18n';
 
 interface Photo { id: number; url: string; guest_name: string; created_at: string; }
 defineProps<{ photos: Photo[] }>();
 
+const { t } = useI18n();
 const fileInput = ref<HTMLInputElement | null>(null);
 const form = useForm({ photo: null as File | null });
 const selected = ref<Photo | null>(null);
+
+const confirmOpen  = ref(false);
+const pendingId    = ref<number | null>(null);
+function askDelete(id: number) { pendingId.value = id; confirmOpen.value = true; }
+function doDelete() {
+    if (pendingId.value === null) return;
+    selected.value = null;
+    router.delete(route('photos.destroy', pendingId.value), { onSuccess: () => toast.success(t('toast.photoDeleted')) });
+}
 
 function onFileChange(e: Event) {
     const file = (e.target as HTMLInputElement).files?.[0] ?? null;
@@ -24,33 +37,29 @@ function submitUpload() {
         onSuccess: () => {
             form.reset();
             if (fileInput.value) fileInput.value.value = '';
+            toast.success(t('toast.photoUploaded'));
         },
     });
 }
 
-function deletePhoto(id: number) {
-    if (!confirm('Foto löschen?')) return;
-    selected.value = null;
-    router.delete(route('photos.destroy', id));
-}
 </script>
 
 <template>
-    <Head title="Fotos" />
+    <Head :title="t('photo.title')" />
     <AppLayout>
         <div class="m-4 space-y-4">
 
             <div class="flex items-center justify-between">
-                <h1 class="text-xl font-semibold">Fotos</h1>
+                <h1 class="text-xl font-semibold">{{ t('photo.title') }}</h1>
                 <div>
                     <input ref="fileInput" type="file" accept="image/jpeg,image/png,image/heic" class="hidden" @change="onFileChange" />
                     <Button :disabled="form.processing" @click="fileInput?.click()">
-                        {{ form.processing ? 'Wird hochgeladen…' : 'Foto hochladen' }}
+                        {{ form.processing ? t('photo.uploading') : t('photo.upload') }}
                     </Button>
                 </div>
             </div>
 
-            <p v-if="photos.length === 0" class="text-sm text-muted-foreground">Noch keine Fotos vorhanden.</p>
+            <p v-if="photos.length === 0" class="text-sm text-muted-foreground">{{ t('photo.none') }}</p>
 
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                 <div
@@ -77,10 +86,19 @@ function deletePhoto(id: number) {
                 </DialogHeader>
                 <img v-if="selected" :src="selected.url" :alt="selected.guest_name" class="max-h-[65vh] w-full object-contain" />
                 <div class="flex justify-between border-t px-4 py-3">
-                    <Button variant="outline" as="a" :href="selected?.url" target="_blank">Öffnen</Button>
-                    <Button variant="destructive" @click="selected && deletePhoto(selected.id)">Löschen</Button>
+                    <Button variant="outline" as="a" :href="selected?.url" target="_blank">{{ t('common.open') }}</Button>
+                    <Button variant="destructive" @click="selected && askDelete(selected.id)">{{ t('common.delete') }}</Button>
                 </div>
             </DialogContent>
         </Dialog>
+
+        <ConfirmDialog
+            v-model:open="confirmOpen"
+            :title="t('photo.deleteTitle')"
+            :description="t('photo.deleteDescription')"
+            :confirm-label="t('common.delete')"
+            destructive
+            @confirm="doDelete"
+        />
     </AppLayout>
 </template>
