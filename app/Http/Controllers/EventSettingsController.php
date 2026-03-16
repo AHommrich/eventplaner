@@ -84,4 +84,18 @@ class EventSettingsController extends Controller
 
         return response()->json(['cover_image_url' => $url]);
     }
+
+    public function deleteCover(): \Illuminate\Http\JsonResponse
+    {
+        $event = $this->activeEvent();
+        abort_if(!$event, 404);
+
+        if ($event->cover_image_r2_key) {
+            Storage::disk('s3')->delete($event->cover_image_r2_key);
+        }
+
+        $event->update(['cover_image_url' => null, 'cover_image_r2_key' => null]);
+
+        return response()->json(['ok' => true]);
+    }
 }
