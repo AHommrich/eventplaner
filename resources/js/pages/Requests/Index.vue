@@ -1,0 +1,112 @@
+<script setup lang="ts">
+import AppLayout from '@/layouts/AppLayout.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { type BreadcrumbItem } from '@/types';
+import { Head, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import { toast } from 'vue-sonner';
+import { useI18n } from 'vue-i18n';
+
+interface SetByGuest { id: number; firstname: string; lastname: string; }
+interface SetByUser  { id: number; name: string; }
+
+interface RevocationRequest {
+    id: number;
+    type: 'revocation';
+    firstname: string;
+    lastname: string;
+    group_name: string | null;
+    rsvp_set_at: string | null;
+    set_by_guest: SetByGuest | null;
+    set_by_user: SetByUser | null;
+}
+
+const props = defineProps<{ revocations: RevocationRequest[] }>();
+
+const { t } = useI18n();
+
+const breadcrumbItems: BreadcrumbItem[] = [
+    { title: t('requests.title'), href: '/requests' },
+];
+
+const confirmOpen   = ref(false);
+const pendingAction = ref<{ item: RevocationRequest; action: 'approve' | 'decline' } | null>(null);
+
+function ask(item: RevocationRequest, action: 'approve' | 'decline') {
+    pendingAction.value = { item, action };
+    confirmOpen.value = true;
+}
+
+function doAction() {
+    if (!pendingAction.value) return;
+    const { item, action } = pendingAction.value;
+    const routeName = action === 'approve' ? 'requests.revocations.approve' : 'requests.revocations.decline';
+    useForm({}).post(route(routeName, item.id), {
+        onSuccess: () => toast.success(action === 'approve' ? t('toast.revocationApproved') : t('toast.revocationDeclined')),
+    });
+}
+
+function formatDate(iso: string | null): string {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function setterName(item: RevocationRequest): string {
+    if (item.set_by_guest) return `${item.set_by_guest.firstname} ${item.set_by_guest.lastname}`;
+    if (item.set_by_user)  return item.set_by_user.name;
+    return '—';
+}
+</script>
+
+<template>
+    <Head :title="t('requests.title')" />
+    <AppLayout :breadcrumbs="breadcrumbItems">
+        <div class="m-4 space-y-4">
+
+            <!-- Rücknahme-Anfragen -->
+            <Card>
+                <CardHeader>
+                    <CardTitle>{{ t('requests.revocationsTitle') }}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p class="mb-4 text-sm text-muted-foreground">{{ t('requests.revocationsDesc') }}</p>
+
+                    <div v-if="revocations.length === 0" class="py-8 text-center text-sm text-muted-foreground">
+                        {{ t('requests.empty') }}
+                    </div>
+
+                    <div v-else class="divide-y">
+                        <div v-for="item in revocations" :key="item.id" class="flex items-center justify-between gap-4 py-3">
+                            <div class="min-w-0">
+                                <p class="font-medium">{{ item.firstname }} {{ item.lastname }}</p>
+                                <p v-if="item.group_name" class="text-sm text-muted-foreground">{{ item.group_name }}</p>
+                                <p class="text-xs text-muted-foreground">
+                                    {{ t('requests.requestedAt') }}: {{ formatDate(item.rsvp_set_at) }}
+                                    · {{ t('requests.setBy') }}: {{ setterName(item) }}
+                                </p>
+                            </div>
+                            <div class="flex shrink-0 gap-2">
+                                <Button size="sm" @click="ask(item, 'approve')">{{ t('requests.approve') }}</Button>
+                                <Button size="sm" variant="outline" @click="ask(item, 'decline')">{{ t('requests.decline') }}</Button>
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <!-- Hier später weitere Anfrage-Sektionen ergänzen -->
+
+        </div>
+
+        <ConfirmDialog
+            v-model:open="confirmOpen"
+            :title="pendingAction?.action === 'approve' ? t('requests.confirmApproveTitle') : t('requests.confirmDeclineTitle')"
+            :description="pendingAction?.action === 'approve' ? t('requests.confirmApproveDesc') : t('requests.confirmDeclineDesc')"
+            :confirm-label="pendingAction?.action === 'approve' ? t('requests.approve') : t('requests.decline')"
+            :destructive="pendingAction?.action === 'decline'"
+            @confirm="doAction"
+        />
+    </AppLayout>
+</template>

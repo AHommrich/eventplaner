@@ -15,6 +15,7 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\DrinkController;
 use App\Http\Controllers\EventAccessController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\RequestController;
 
 Route::get('/', function () { return Inertia::render('Welcome'); })->name('home');
 
@@ -48,11 +49,17 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::post('/drinks', [DrinkController::class, 'store'])->name('drinks.store');
     Route::delete('/drinks/{drink}', [DrinkController::class, 'destroy'])->name('drinks.destroy');
 
+    // Anfragen-Management (Rücknahmen + spätere Typen)
+    Route::get('/requests', [RequestController::class, 'index'])->name('requests.index');
+    Route::post('/requests/revocations/{guest}/approve', [RequestController::class, 'approveRevocation'])->name('requests.revocations.approve');
+    Route::post('/requests/revocations/{guest}/decline', [RequestController::class, 'declineRevocation'])->name('requests.revocations.decline');
+
     // Guests
     Route::post('/guests', [GuestController::class, 'store'])->name('guests.store');
     Route::delete('/guests/{guest}', [GuestController::class, 'destroy'])->name('guests.destroy');
     Route::get('/guests/{guest}/edit', [GuestController::class, 'edit'])->name('guests.edit');
     Route::put('/guests/{guest}', [GuestController::class, 'update'])->name('guests.update');
+    Route::post('/guests/{guest}/rsvp', [GuestController::class, 'adminRsvp'])->name('guests.admin-rsvp');
 });
 
 // Globale User-Verwaltung — nur Superadmin

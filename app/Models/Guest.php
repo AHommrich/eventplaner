@@ -17,6 +17,14 @@ class Guest extends Model
         'firstname',
         'lastname',
         'likelihood',
+        'rsvp_status',
+        'rsvp_set_by_guest_id',
+        'rsvp_set_by_user_id',
+        'rsvp_set_at',
+    ];
+
+    protected $casts = [
+        'rsvp_set_at' => 'datetime',
     ];
 
     public function event()
@@ -47,6 +55,16 @@ class Guest extends Model
     public function photos()
     {
         return $this->hasMany(Photo::class);
+    }
+
+    public function rsvpSetByGuest()
+    {
+        return $this->belongsTo(Guest::class, 'rsvp_set_by_guest_id');
+    }
+
+    public function rsvpSetByUser()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'rsvp_set_by_user_id');
     }
 
     /** QR-Token: Gruppen-Token wenn in Gruppe, sonst eigener Token */

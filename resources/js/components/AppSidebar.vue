@@ -6,7 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuIte
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { Users, SquarePen, QrCode, Images, ShieldCheck, GlassWater, ChevronsUpDown, Check, KeyRound } from 'lucide-vue-next';
+import { Users, SquarePen, QrCode, Images, ShieldCheck, GlassWater, ChevronsUpDown, Check, KeyRound, Undo2 } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -47,10 +47,12 @@ const mainNavItems = computed<NavItem[]>(() => [
 
 const adminNavItems = computed<NavItem[]>(() => [
     { title: t('nav.userManagement'), href: '/admin/users', icon: ShieldCheck },
+    { title: t('nav.requests'),    href: '/requests',  icon: Undo2 },
 ]);
 
 const eventOwnerNavItems = computed<NavItem[]>(() => [
     { title: t('nav.manageAccess'), href: '/event/access', icon: KeyRound },
+    { title: t('nav.requests'),  href: '/requests',  icon: Undo2 },
 ]);
 </script>
 
