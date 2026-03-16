@@ -4,6 +4,7 @@ import AppShell from '@/components/AppShell.vue';
 import AppSidebar from '@/components/AppSidebar.vue';
 import AppSidebarHeader from '@/components/AppSidebarHeader.vue';
 import { Toaster } from 'vue-sonner';
+import 'vue-sonner/style.css';
 import type { BreadcrumbItemType } from '@/types';
 
 interface Props {
