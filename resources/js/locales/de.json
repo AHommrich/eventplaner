@@ -42,6 +42,8 @@
     "coverUploading": "Wird hochgeladen…",
     "coverCurrent": "Aktuelles Titelbild",
     "coverHint": "Wird auf der Home-Seite der App als Hintergrund angezeigt",
+    "coverSelected": "Neue Datei ausgewählt",
+    "coverSaveHint": "Wird beim Speichern hochgeladen",
     "venueName": "Veranstaltungsort",
     "venueAddress": "Adresse",
     "dresscode": "Dresscode",

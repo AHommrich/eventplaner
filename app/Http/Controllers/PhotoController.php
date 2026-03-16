@@ -6,6 +6,7 @@ use App\Models\Photo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Intervention\Image\ImageManager;
 use Inertia\Inertia;
 
 class PhotoController extends Controller
@@ -34,13 +35,23 @@ class PhotoController extends Controller
         $event = $this->activeEvent();
 
         $request->validate([
-            'photo' => ['required', 'file', 'mimes:jpeg,png', 'max:10240'],
+            'photo' => ['required', 'file', 'mimes:jpeg,jpg,png,heic,heif', 'max:10240'],
         ]);
 
-        $extension = $request->file('photo')->getClientOriginalExtension();
-        $path      = 'photos/' . Str::uuid() . '.' . $extension;
+        $file = $request->file('photo');
+        $mime = strtolower($file->getMimeType() ?? '');
 
-        Storage::disk('s3')->put($path, file_get_contents($request->file('photo')), 'public');
+        if (in_array($mime, ['image/heic', 'image/heif'])) {
+            $manager  = ImageManager::imagick();
+            $image    = $manager->read($file->getPathname());
+            $contents = (string) $image->toJpeg(90);
+        } else {
+            $contents = file_get_contents($file->getPathname());
+        }
+
+        $path = 'photos/' . Str::uuid() . '.jpg';
+
+        Storage::disk('s3')->put($path, $contents, 'public');
 
         Photo::create([
             'event_id'    => $event?->id,
