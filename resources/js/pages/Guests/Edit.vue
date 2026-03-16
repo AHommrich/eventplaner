@@ -8,7 +8,6 @@ import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 import { router, useForm } from '@inertiajs/vue3';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
-import { ref } from 'vue';
 
 const props = defineProps<{
     guest: any;
