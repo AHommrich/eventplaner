@@ -30,7 +30,7 @@ function createEvent() { eventForm.post(route('events.store')); }
             <div class="text-center pb-2">
                 <h1 class="text-2xl font-bold">{{ t('onboarding.title') }}</h1>
                 <p class="mt-1 text-sm text-muted-foreground">
-                    Du hast noch kein Event. Erstelle eines oder werde von einem Admin eingeladen.
+                    {{ t('onboarding.description') }}
                 </p>
             </div>
 
@@ -54,14 +54,14 @@ function createEvent() { eventForm.post(route('events.store')); }
             <Card>
                 <CardHeader>
                     <div class="flex items-center justify-between">
-                        <CardTitle class="text-sm">Eigenes Event erstellen</CardTitle>
-                        <Button v-if="!showCreateForm" size="sm" @click="showCreateForm = true">Event erstellen</Button>
+                        <CardTitle class="text-sm">{{ t('onboarding.create') }}</CardTitle>
+                        <Button v-if="!showCreateForm" size="sm" @click="showCreateForm = true">{{ t('onboarding.create') }}</Button>
                     </div>
                 </CardHeader>
                 <CardContent v-if="showCreateForm">
                     <form @submit.prevent="createEvent" class="space-y-3">
                         <div class="grid gap-1.5">
-                            <Input v-model="eventForm.name" placeholder="z.B. Hochzeit Max & Anna" required />
+                            <Input v-model="eventForm.name" :placeholder="t('onboarding.placeholder')" required />
                             <p v-if="eventForm.errors.name" class="text-xs text-destructive">{{ eventForm.errors.name }}</p>
                         </div>
                         <div class="grid gap-1.5">
@@ -69,9 +69,9 @@ function createEvent() { eventForm.post(route('events.store')); }
                         </div>
                         <div class="flex gap-2">
                             <Button type="submit" :disabled="eventForm.processing" class="flex-1">
-                                {{ eventForm.processing ? 'Wird erstellt…' : 'Erstellen' }}
+                                {{ eventForm.processing ? '…' : t('common.create') }}
                             </Button>
-                            <Button type="button" variant="outline" @click="showCreateForm = false">Abbrechen</Button>
+                            <Button type="button" variant="outline" @click="showCreateForm = false">{{ t('common.cancel') }}</Button>
                         </div>
                     </form>
                 </CardContent>

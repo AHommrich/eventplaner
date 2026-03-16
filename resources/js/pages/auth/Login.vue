@@ -8,92 +8,67 @@ import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
 
-defineProps<{
-    status?: string;
-    canResetPassword: boolean;
-}>();
+defineProps<{ status?: string; canResetPassword: boolean }>();
 
-const form = useForm({
-    email: '',
-    password: '',
-    remember: false,
-});
+const { t } = useI18n();
+
+const form = useForm({ email: '', password: '', remember: false });
 
 const submit = () => {
-    form.post(route('login'), {
-        onFinish: () => form.reset('password'),
-    });
+    form.post(route('login'), { onFinish: () => form.reset('password') });
 };
 </script>
 
 <template>
-    <AuthBase title="Log in to your account" description="Enter your email and password below to log in">
-        <Head title="Log in" />
+    <AuthBase :title="t('auth.loginTitle')" :description="t('auth.loginDesc')">
+        <Head :title="t('auth.login')" />
 
-        <div v-if="status" class="mb-4 text-center text-sm font-medium text-green-600">
-            {{ status }}
-        </div>
+        <div v-if="status" class="mb-4 text-center text-sm font-medium text-green-600">{{ status }}</div>
 
         <form @submit.prevent="submit" class="flex flex-col gap-6">
             <div class="grid gap-6">
                 <div class="grid gap-2">
-                    <Label for="email">Email address</Label>
-                    <Input
-                        id="email"
-                        type="email"
-                        required
-                        autofocus
-                        :tabindex="1"
-                        autocomplete="email"
-                        v-model="form.email"
-                        placeholder="email@example.com"
-                    />
+                    <Label for="email">{{ t('settings.emailAddress') }}</Label>
+                    <Input id="email" type="email" required autofocus :tabindex="1" autocomplete="email" v-model="form.email" placeholder="email@example.com" />
                     <InputError :message="form.errors.email" />
                 </div>
 
                 <div class="grid gap-2">
                     <div class="flex items-center justify-between">
-                        <Label for="password">Password</Label>
+                        <Label for="password">{{ t('auth.password') }}</Label>
                         <TextLink v-if="canResetPassword" :href="route('password.request')" class="text-sm" :tabindex="5">
-                            Forgot password?
+                            {{ t('auth.forgotPassword') }}
                         </TextLink>
                     </div>
-                    <Input
-                        id="password"
-                        type="password"
-                        required
-                        :tabindex="2"
-                        autocomplete="current-password"
-                        v-model="form.password"
-                        placeholder="Password"
-                    />
+                    <Input id="password" type="password" required :tabindex="2" autocomplete="current-password" v-model="form.password" :placeholder="t('auth.password')" />
                     <InputError :message="form.errors.password" />
                 </div>
 
                 <div class="flex items-center justify-between">
                     <Label for="remember" class="flex items-center space-x-3">
                         <Checkbox id="remember" v-model="form.remember" :tabindex="3" />
-                        <span>Remember me</span>
+                        <span>{{ t('auth.rememberMe') }}</span>
                     </Label>
                 </div>
 
                 <Button type="submit" class="mt-4 w-full" :tabindex="4" :disabled="form.processing">
                     <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
-                    Log in
+                    {{ t('auth.login') }}
                 </Button>
             </div>
 
             <div class="text-center text-sm text-muted-foreground">
-                Don't have an account?
-                <TextLink :href="route('register')" :tabindex="5">Sign up</TextLink>
+                {{ t('auth.noAccount') }}
+                <TextLink :href="route('register')" :tabindex="5">{{ t('auth.signUp') }}</TextLink>
             </div>
 
             <div class="mt-4">
-  <a :href="route('oauth.google.redirect')" class="block border rounded px-3 py-2 text-center">
-    Mit Google anmelden
-  </a>
-</div>
+                <a :href="route('oauth.google.redirect')" class="block border rounded px-3 py-2 text-center">
+                    {{ t('user.loginWithGoogle') }}
+                </a>
+            </div>
         </form>
     </AuthBase>
 </template>
