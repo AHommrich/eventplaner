@@ -2,6 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
@@ -20,16 +21,18 @@ const likelihoodLabel: Record<string, string> = {
     sure: 'Sicher', likely: 'Wahrscheinlich', maybe: 'Vielleicht', unlikely: 'Unwahrscheinlich', no: 'Nein',
 };
 const likelihoodClass: Record<string, string> = {
-    sure: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    likely: 'bg-lime-100 text-lime-800 dark:bg-lime-900 dark:text-lime-200',
-    maybe: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+    sure:     'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    likely:   'bg-lime-100 text-lime-800 dark:bg-lime-900 dark:text-lime-200',
+    maybe:    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
     unlikely: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-    no: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+    no:       'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
 };
 
-function deleteGuest(id: number) {
-    if (confirm('Gast wirklich löschen?')) router.delete(route('guests.destroy', id));
-}
+const confirmOpen  = ref(false);
+const pendingId    = ref<number | null>(null);
+
+function askDelete(id: number) { pendingId.value = id; confirmOpen.value = true; }
+function doDelete() { if (pendingId.value) router.delete(route('guests.destroy', pendingId.value)); }
 </script>
 
 <template>
@@ -38,22 +41,14 @@ function deleteGuest(id: number) {
         <div class="m-4">
             <Card>
                 <CardContent class="p-0">
-                    <!-- Filter -->
                     <div class="flex items-center gap-3 border-b px-6 py-3">
                         <span class="text-sm text-muted-foreground">Kategorie:</span>
-                        <select
-                            v-model="categoryFilter"
-                            class="flex h-8 rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-                        >
+                        <select v-model="categoryFilter" class="flex h-8 rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]">
                             <option value="">Alle</option>
-                            <option v-for="cat in [...new Set(guests.map((g) => g.category?.title).filter(Boolean))]" :key="cat" :value="cat">
-                                {{ cat }}
-                            </option>
+                            <option v-for="cat in [...new Set(guests.map((g) => g.category?.title).filter(Boolean))]" :key="cat" :value="cat">{{ cat }}</option>
                         </select>
                         <span class="ml-auto text-xs text-muted-foreground">{{ filteredGuests.length }} Gäste</span>
                     </div>
-
-                    <!-- Tabelle -->
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead class="border-b">
@@ -68,12 +63,9 @@ function deleteGuest(id: number) {
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr
-                                    v-for="guest in filteredGuests"
-                                    :key="guest.id"
+                                <tr v-for="guest in filteredGuests" :key="guest.id"
                                     class="border-b transition-colors hover:bg-muted/50 cursor-pointer last:border-0"
-                                    @click="router.visit(route('guests.edit', guest.id))"
-                                >
+                                    @click="router.visit(route('guests.edit', guest.id))">
                                     <td class="px-6 py-3 font-medium">{{ guest.firstname }}</td>
                                     <td class="px-6 py-3 text-muted-foreground">{{ guest.lastname }}</td>
                                     <td class="px-6 py-3 text-muted-foreground">{{ guest.category?.title ?? '–' }}</td>
@@ -83,13 +75,9 @@ function deleteGuest(id: number) {
                                             {{ likelihoodLabel[guest.likelihood] ?? guest.likelihood }}
                                         </span>
                                     </td>
-                                    <td class="px-6 py-3 text-muted-foreground text-xs">
-                                        {{ guest.food_specials?.map((fs: any) => fs.name).join(', ') || '–' }}
-                                    </td>
+                                    <td class="px-6 py-3 text-muted-foreground text-xs">{{ guest.food_specials?.map((fs: any) => fs.name).join(', ') || '–' }}</td>
                                     <td class="px-6 py-3 text-right">
-                                        <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click.stop="deleteGuest(guest.id)">
-                                            Löschen
-                                        </Button>
+                                        <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click.stop="askDelete(guest.id)">Löschen</Button>
                                     </td>
                                 </tr>
                                 <tr v-if="filteredGuests.length === 0">
@@ -101,5 +89,14 @@ function deleteGuest(id: number) {
                 </CardContent>
             </Card>
         </div>
+
+        <ConfirmDialog
+            v-model:open="confirmOpen"
+            title="Gast löschen"
+            description="Dieser Gast wird unwiderruflich gelöscht."
+            confirm-label="Löschen"
+            destructive
+            @confirm="doDelete"
+        />
     </AppLayout>
 </template>

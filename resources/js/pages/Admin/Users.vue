@@ -3,7 +3,9 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { Head, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 interface User  { id: number; name: string; email: string; role: string; created_at: string; }
 interface Event { id: number; name: string; }
@@ -19,11 +21,11 @@ function updateRole(user: User, role: string) {
     useForm({ role }).put(route('admin.users.update', user.id));
 }
 
-const deleteForm = useForm({});
-function deleteUser(user: User) {
-    if (confirm(`${user.name} wirklich löschen?`)) {
-        deleteForm.delete(route('admin.users.destroy', user.id));
-    }
+const confirmOpen   = ref(false);
+const pendingUser   = ref<User | null>(null);
+function askDelete(user: User) { pendingUser.value = user; confirmOpen.value = true; }
+function doDelete() {
+    if (pendingUser.value) useForm({}).delete(route('admin.users.destroy', pendingUser.value.id));
 }
 </script>
 
@@ -33,9 +35,7 @@ function deleteUser(user: User) {
         <div class="m-4 space-y-4">
 
             <Card>
-                <CardHeader>
-                    <CardTitle>User zu Event hinzufügen</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle>User zu Event hinzufügen</CardTitle></CardHeader>
                 <CardContent>
                     <form @submit.prevent="addToEvent" class="flex flex-col sm:flex-row gap-2">
                         <Input v-model="addForm.email" type="email" placeholder="Email-Adresse" required class="flex-1" />
@@ -51,9 +51,7 @@ function deleteUser(user: User) {
             </Card>
 
             <Card>
-                <CardHeader>
-                    <CardTitle>Alle User ({{ users.length }})</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle>Alle User ({{ users.length }})</CardTitle></CardHeader>
                 <CardContent class="p-0">
                     <table class="w-full text-sm">
                         <thead class="border-b">
@@ -70,22 +68,14 @@ function deleteUser(user: User) {
                                 <td class="px-6 py-3 font-medium">{{ user.name }}</td>
                                 <td class="px-6 py-3 text-muted-foreground">{{ user.email }}</td>
                                 <td class="px-6 py-3">
-                                    <select
-                                        :value="user.role"
-                                        @change="updateRole(user, ($event.target as HTMLSelectElement).value)"
-                                        :class="selectClass"
-                                    >
+                                    <select :value="user.role" @change="updateRole(user, ($event.target as HTMLSelectElement).value)" :class="selectClass">
                                         <option value="user">User</option>
                                         <option value="admin">Admin</option>
                                     </select>
                                 </td>
-                                <td class="px-6 py-3 text-muted-foreground text-xs">
-                                    {{ new Date(user.created_at).toLocaleDateString('de-DE') }}
-                                </td>
+                                <td class="px-6 py-3 text-muted-foreground text-xs">{{ new Date(user.created_at).toLocaleDateString('de-DE') }}</td>
                                 <td class="px-6 py-3 text-right">
-                                    <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="deleteUser(user)">
-                                        Löschen
-                                    </Button>
+                                    <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="askDelete(user)">Löschen</Button>
                                 </td>
                             </tr>
                         </tbody>
@@ -94,5 +84,14 @@ function deleteUser(user: User) {
             </Card>
 
         </div>
+
+        <ConfirmDialog
+            v-model:open="confirmOpen"
+            :title="`${pendingUser?.name} löschen?`"
+            description="Der Account wird dauerhaft gelöscht und kann nicht wiederhergestellt werden."
+            confirm-label="Löschen"
+            destructive
+            @confirm="doDelete"
+        />
     </AppLayout>
 </template>

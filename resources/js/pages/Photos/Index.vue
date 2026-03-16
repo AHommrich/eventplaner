@@ -2,6 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -11,6 +12,15 @@ defineProps<{ photos: Photo[] }>();
 const fileInput = ref<HTMLInputElement | null>(null);
 const form = useForm({ photo: null as File | null });
 const selected = ref<Photo | null>(null);
+
+const confirmOpen  = ref(false);
+const pendingId    = ref<number | null>(null);
+function askDelete(id: number) { pendingId.value = id; confirmOpen.value = true; }
+function doDelete() {
+    if (pendingId.value === null) return;
+    selected.value = null;
+    router.delete(route('photos.destroy', pendingId.value));
+}
 
 function onFileChange(e: Event) {
     const file = (e.target as HTMLInputElement).files?.[0] ?? null;
@@ -28,11 +38,6 @@ function submitUpload() {
     });
 }
 
-function deletePhoto(id: number) {
-    if (!confirm('Foto löschen?')) return;
-    selected.value = null;
-    router.delete(route('photos.destroy', id));
-}
 </script>
 
 <template>
@@ -78,9 +83,18 @@ function deletePhoto(id: number) {
                 <img v-if="selected" :src="selected.url" :alt="selected.guest_name" class="max-h-[65vh] w-full object-contain" />
                 <div class="flex justify-between border-t px-4 py-3">
                     <Button variant="outline" as="a" :href="selected?.url" target="_blank">Öffnen</Button>
-                    <Button variant="destructive" @click="selected && deletePhoto(selected.id)">Löschen</Button>
+                    <Button variant="destructive" @click="selected && askDelete(selected.id)">Löschen</Button>
                 </div>
             </DialogContent>
         </Dialog>
+
+        <ConfirmDialog
+            v-model:open="confirmOpen"
+            title="Foto löschen?"
+            description="Das Foto wird dauerhaft gelöscht und kann nicht wiederhergestellt werden."
+            confirm-label="Löschen"
+            destructive
+            @confirm="doDelete"
+        />
     </AppLayout>
 </template>
