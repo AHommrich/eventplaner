@@ -12,12 +12,12 @@ const page = usePage();
 const guests = computed(() => page.props.guests as any[]);
 
 // Filter
-const badgeFilter = ref('');
+const categoryFilter = ref('');
 
 // Gefilterte Gäste
 const filteredGuests = computed(() => {
-    if (!badgeFilter.value) return guests.value;
-    return guests.value.filter((guest: any) => guest.badge?.title === badgeFilter.value);
+    if (!categoryFilter.value) return guests.value;
+    return guests.value.filter((guest: any) => guest.category?.title === categoryFilter.value);
 });
 
 function deleteGuest(id: number) {
@@ -35,11 +35,11 @@ function deleteGuest(id: number) {
 
             <!-- Filter -->
             <div class="mb-4 flex items-center space-x-4">
-                <label for="badgeFilter" class="font-medium">Nach Kategorie filtern:</label>
-                <select id="badgeFilter" v-model="badgeFilter" class="rounded border p-2">
+                <label for="categoryFilter" class="font-medium">Nach Kategorie filtern:</label>
+                <select id="categoryFilter" v-model="categoryFilter" class="rounded border p-2">
                     <option value="">Alle</option>
-                    <option v-for="badge in [...new Set(guests.map((g) => g.badge?.title).filter(Boolean))]" :key="badge" :value="badge">
-                        {{ badge }}
+                    <option v-for="category in [...new Set(guests.map((g) => g.category?.title).filter(Boolean))]" :key="category" :value="category">
+                        {{ category }}
                     </option>
                 </select>
             </div>
@@ -52,7 +52,7 @@ function deleteGuest(id: number) {
                             <th class="p-3">Vorname</th>
                             <th class="p-3">Nachname</th>
                             <th class="p-3">Kategorie</th>
-                            <th class="p-3">Familie</th>
+                            <th class="p-3">Gruppe</th>
                             <th class="p-3">Wahrscheinlichkeit</th>
                             <th class="p-3">Bier (1–10)</th>
                             <th class="p-3">Wein (1–10)</th>
@@ -68,8 +68,8 @@ function deleteGuest(id: number) {
                         >
                             <td class="p-3">{{ guest.firstname }}</td>
                             <td class="p-3">{{ guest.lastname }}</td>
-                            <td class="p-3">{{ guest.badge?.title ?? '-' }}</td>
-                            <td class="p-3">{{ guest.family?.name ?? '-' }}</td>
+                            <td class="p-3">{{ guest.category?.title ?? '-' }}</td>
+                            <td class="p-3">{{ guest.group?.name ?? '-' }}</td>
 
                             <!-- Likelihood -->
                             <td class="p-3">

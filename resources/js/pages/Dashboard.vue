@@ -10,25 +10,25 @@ const breadcrumbs: BreadcrumbItem[] = [{ title: 'Formulare', href: '/dashboard' 
 
 // Zugriff auf Daten von Inertia
 const page = usePage();
-const badges = computed(() => page.props.badges as { id: number; title: string }[]);
+const categories = computed(() => page.props.categories as { id: number; title: string }[]);
 const guests = computed(() => page.props.guests as any[]);
-const families = computed(() => page.props.families as { id: number; name: string }[]);
+const groups = computed(() => page.props.groups as { id: number; name: string }[]);
 const foodSpecials = computed(() => page.props.food_specials as { id: number; name: string }[]);
 
 // Kategorie-Formular
 const categoryForm = useForm({ title: '' });
-const submitCategory = () => categoryForm.post(route('badges.store'), { onSuccess: () => categoryForm.reset() });
+const submitCategory = () => categoryForm.post(route('categories.store'), { onSuccess: () => categoryForm.reset() });
 
-// Family-Formular
-const familyForm = useForm({ name: '' });
-const submitFamily = () => familyForm.post(route('families.store'), { onSuccess: () => familyForm.reset() });
+// Group-Formular
+const groupForm = useForm({ name: '' });
+const submitGroup = () => groupForm.post(route('groups.store'), { onSuccess: () => groupForm.reset() });
 
 // Food Special-Formular
 const foodSpecialForm = useForm({ name: '' });
 const submitFoodSpecial = () => foodSpecialForm.post(route('foodspecials.store'), { onSuccess: () => foodSpecialForm.reset() });
 
 // Filter
-const badgeFilter = ref('');
+const categoryFilter = ref('');
 
 // Gast anlegen (wird von GuestForm genutzt)
 function handleCreate(form: any) {
@@ -47,7 +47,7 @@ function deleteGuest(id: number) {
     <Head title="Formulare" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="grid h-full flex-1 grid-cols-1 gap-4 p-4 md:grid-cols-2">
-            <!-- Linke Spalte: Kategorie, Familie, FoodSpecial -->
+            <!-- Linke Spalte: Kategorie, Gruppe, FoodSpecial -->
             <div class="flex flex-col gap-4">
                 <!-- Kategorie Formular -->
                 <div class="rounded-xl border bg-white p-4 dark:bg-gray-900">
@@ -61,16 +61,16 @@ function deleteGuest(id: number) {
                     <p v-if="categoryForm.errors.title" class="mt-1 text-sm text-red-500">{{ categoryForm.errors.title }}</p>
                 </div>
 
-                <!-- Family Formular -->
+                <!-- Group Formular -->
                 <div class="rounded-xl border bg-white p-4 dark:bg-gray-900">
-                    <h2 class="mb-2 text-lg font-semibold">Neue Familie</h2>
-                    <form @submit.prevent="submitFamily" class="flex flex-col gap-2 sm:flex-row">
-                        <input v-model="familyForm.name" type="text" placeholder="Familienname" class="flex-1 rounded border p-2" />
-                        <button type="submit" class="w-full rounded bg-blue-600 px-4 py-2 text-white sm:w-auto" :disabled="familyForm.processing">
+                    <h2 class="mb-2 text-lg font-semibold">Neue Gruppe</h2>
+                    <form @submit.prevent="submitGroup" class="flex flex-col gap-2 sm:flex-row">
+                        <input v-model="groupForm.name" type="text" placeholder="Gruppenname" class="flex-1 rounded border p-2" />
+                        <button type="submit" class="w-full rounded bg-blue-600 px-4 py-2 text-white sm:w-auto" :disabled="groupForm.processing">
                             Erstellen
                         </button>
                     </form>
-                    <p v-if="familyForm.errors.name" class="mt-1 text-sm text-red-500">{{ familyForm.errors.name }}</p>
+                    <p v-if="groupForm.errors.name" class="mt-1 text-sm text-red-500">{{ groupForm.errors.name }}</p>
                 </div>
 
                 <!-- Food Special Formular -->
@@ -93,17 +93,17 @@ function deleteGuest(id: number) {
             <!-- Rechte Spalte: Guest-Formular (Komponente) -->
             <div class="rounded-xl border bg-white p-4 dark:bg-gray-900">
                 <h2 class="mb-4 text-lg font-semibold">Neuen Gast erstellen</h2>
-                <GuestForm :badges="badges" :families="families" :food-specials="foodSpecials" submit-label="Gast erstellen" @submit="handleCreate" />
+                <GuestForm :categories="categories" :groups="groups" :food-specials="foodSpecials" submit-label="Gast erstellen" @submit="handleCreate" />
             </div>
         </div>
 
         <!-- Filter -->
         <div class="mb-4 flex items-center space-x-4">
-            <label for="badgeFilter" class="font-medium">Nach Kategorie filtern:</label>
-            <select id="badgeFilter" v-model="badgeFilter" class="rounded border p-2">
+            <label for="categoryFilter" class="font-medium">Nach Kategorie filtern:</label>
+            <select id="categoryFilter" v-model="categoryFilter" class="rounded border p-2">
                 <option value="">Alle</option>
-                <option v-for="badge in [...new Set(guests.map((g) => g.badge?.title).filter(Boolean))]" :key="badge" :value="badge">
-                    {{ badge }}
+                <option v-for="category in [...new Set(guests.map((g) => g.category?.title).filter(Boolean))]" :key="category" :value="category">
+                    {{ category }}
                 </option>
             </select>
         </div>
@@ -116,7 +116,7 @@ function deleteGuest(id: number) {
                         <th class="p-3">Vorname</th>
                         <th class="p-3">Nachname</th>
                         <th class="p-3">Kategorie</th>
-                        <th class="p-3">Familie</th>
+                        <th class="p-3">Gruppe</th>
                         <th class="p-3">Wahrscheinlichkeit</th>
                         <th class="p-3">Bier (1–10)</th>
                         <th class="p-3">Wein (1–10)</th>
@@ -134,8 +134,8 @@ function deleteGuest(id: number) {
                     >
                         <td class="p-3">{{ guest.firstname }}</td>
                         <td class="p-3">{{ guest.lastname }}</td>
-                        <td class="p-3">{{ guest.badge?.title ?? '-' }}</td>
-                        <td class="p-3">{{ guest.family?.name ?? '-' }}</td>
+                        <td class="p-3">{{ guest.category?.title ?? '-' }}</td>
+                        <td class="p-3">{{ guest.group?.name ?? '-' }}</td>
 
                         <td class="p-3">
                             <span
