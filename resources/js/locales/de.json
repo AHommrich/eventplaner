@@ -1,0 +1,158 @@
+{
+  "nav": {
+    "forms": "Formulare",
+    "guests": "Gäste",
+    "drinks": "Getränke",
+    "invitations": "Einladungen",
+    "photos": "Fotos",
+    "userManagement": "User-Verwaltung",
+    "manageAccess": "Zugang verwalten"
+  },
+  "common": {
+    "create": "Erstellen",
+    "add": "Hinzufügen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "remove": "Entfernen",
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen",
+    "print": "Drucken",
+    "open": "Öffnen",
+    "name": "Name",
+    "email": "Email",
+    "role": "Rolle",
+    "all": "Alle",
+    "yes": "Ja",
+    "no": "Nein"
+  },
+  "event": {
+    "search": "Event suchen...",
+    "notFound": "Kein Event gefunden"
+  },
+  "confirm": {
+    "defaultTitle": "Bist du sicher?",
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen"
+  },
+  "toast": {
+    "categoryCreated": "Kategorie erstellt",
+    "groupCreated": "Gruppe erstellt",
+    "foodSpecialCreated": "Essensbesonderheit erstellt",
+    "guestCreated": "Gast erstellt",
+    "guestDeleted": "Gast gelöscht",
+    "guestSaved": "Änderungen gespeichert",
+    "drinkAdded": "Getränk hinzugefügt",
+    "drinkDeleted": "Getränk gelöscht",
+    "userAdded": "User zum Event hinzugefügt",
+    "roleChanged": "Rolle auf \"{role}\" geändert",
+    "userDeleted": "User gelöscht",
+    "accessAdded": "User hinzugefügt",
+    "accessRemoved": "Zugang entfernt",
+    "photoUploaded": "Foto hochgeladen",
+    "photoDeleted": "Foto gelöscht"
+  },
+  "guest": {
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "category": "Kategorie",
+    "group": "Gruppe",
+    "likelihood": "Wahrscheinlichkeit",
+    "invite": "Einladung",
+    "food": "Essen",
+    "foodSpecials": "Essensbesonderheiten",
+    "inviteNeeded": "Einladung nötig?",
+    "selectCategory": "Kategorie auswählen",
+    "noGroup": "Keine Gruppe",
+    "pleaseSelect": "Bitte auswählen...",
+    "sure": "Sicher",
+    "likely": "Wahrscheinlich",
+    "maybe": "Vielleicht",
+    "unlikely": "Unwahrscheinlich",
+    "no": "Nein",
+    "createNew": "Neuen Gast erstellen",
+    "create": "Gast erstellen",
+    "edit": "Gast bearbeiten",
+    "saveChanges": "Änderungen speichern",
+    "none": "Noch keine Gäste angelegt.",
+    "count": "{count} Gäste",
+    "deleteTitle": "Gast löschen",
+    "deleteDescription": "Dieser Gast wird unwiderruflich gelöscht.",
+    "invitationQR": "Einladungs-QR-Code",
+    "noToken": "Kein Token vorhanden — bitte zuerst Einladungen generieren."
+  },
+  "category": {
+    "new": "Neue Kategorie",
+    "namePlaceholder": "Kategoriename",
+    "filter": "Kategorie:"
+  },
+  "group": {
+    "new": "Neue Gruppe",
+    "namePlaceholder": "Gruppenname"
+  },
+  "foodSpecial": {
+    "new": "Neue Essensbesonderheit",
+    "placeholder": "z.B. Vegetarisch"
+  },
+  "drink": {
+    "title": "Getränke",
+    "add": "Getränk hinzufügen",
+    "placeholder": "z.B. Bier, Wein, Limo, Wasser…",
+    "forEvent": "Getränke für dieses Event",
+    "none": "Noch keine Getränke angelegt.",
+    "deleteTitle": "Getränk löschen?",
+    "deleteDescription": "Das Getränk wird dauerhaft entfernt."
+  },
+  "photo": {
+    "title": "Fotos",
+    "upload": "Foto hochladen",
+    "uploading": "Wird hochgeladen…",
+    "none": "Noch keine Fotos vorhanden.",
+    "deleteTitle": "Foto löschen?",
+    "deleteDescription": "Das Foto wird dauerhaft gelöscht und kann nicht wiederhergestellt werden."
+  },
+  "invitation": {
+    "title": "Einladungen",
+    "heading": "Einladungen & QR-Codes",
+    "generate": "QR-Codes generieren",
+    "generating": "Generiere…",
+    "groups": "Gruppen",
+    "solo": "Einzeleinladungen",
+    "noQR": "Noch kein QR-Code",
+    "none": "Noch keine Gäste oder Gruppen mit Einladungstoken vorhanden."
+  },
+  "access": {
+    "title": "Zugang verwalten",
+    "description": "Verwalte wer Zugang zu diesem Event hat.",
+    "addUser": "User hinzufügen",
+    "emailPlaceholder": "Email-Adresse des Users",
+    "currentAccess": "Aktueller Zugang",
+    "owner": "Owner",
+    "none": "Noch niemand anderes hat Zugang.",
+    "removeTitle": "{name} entfernen?",
+    "removeDescription": "Der User verliert den Zugang zu diesem Event."
+  },
+  "admin": {
+    "title": "User-Verwaltung",
+    "addToEvent": "User zu Event hinzufügen",
+    "emailPlaceholder": "Email-Adresse",
+    "selectEvent": "Event auswählen",
+    "allUsers": "Alle User ({count})",
+    "registered": "Registriert",
+    "user": "User",
+    "admin": "Admin",
+    "deleteTitle": "{name} löschen?",
+    "deleteDescription": "Der Account wird dauerhaft gelöscht und kann nicht wiederhergestellt werden."
+  },
+  "onboarding": {
+    "title": "Willkommen!",
+    "description": "Erstelle dein erstes Event um loszulegen.",
+    "eventName": "Event-Name",
+    "placeholder": "z.B. Hochzeit Max & Anna",
+    "create": "Event erstellen"
+  },
+  "lang": {
+    "de": "Deutsch",
+    "en": "English",
+    "switch": "Sprache"
+  }
+}

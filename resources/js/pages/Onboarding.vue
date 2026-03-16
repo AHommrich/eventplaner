@@ -4,9 +4,11 @@ import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{ email: string }>();
 
+const { t } = useI18n();
 const copied = ref(false);
 function copyEmail() {
     navigator.clipboard.writeText(props.email);
@@ -20,13 +22,13 @@ function createEvent() { eventForm.post(route('events.store')); }
 </script>
 
 <template>
-    <Head title="Willkommen" />
+    <Head :title="t('onboarding.title')" />
 
     <div class="min-h-screen bg-background flex items-center justify-center p-6">
         <div class="w-full max-w-md space-y-4">
 
             <div class="text-center pb-2">
-                <h1 class="text-2xl font-bold">Willkommen!</h1>
+                <h1 class="text-2xl font-bold">{{ t('onboarding.title') }}</h1>
                 <p class="mt-1 text-sm text-muted-foreground">
                     Du hast noch kein Event. Erstelle eines oder werde von einem Admin eingeladen.
                 </p>

@@ -4,6 +4,7 @@ import {
     Dialog, DialogContent, DialogHeader, DialogTitle,
     DialogDescription, DialogFooter, DialogClose,
 } from '@/components/ui/dialog';
+import { useI18n } from 'vue-i18n';
 
 defineProps<{
     open: boolean;
@@ -17,24 +18,26 @@ const emit = defineEmits<{
     (e: 'update:open', val: boolean): void;
     (e: 'confirm'): void;
 }>();
+
+const { t } = useI18n();
 </script>
 
 <template>
     <Dialog :open="open" @update:open="emit('update:open', $event)">
         <DialogContent class="max-w-sm">
             <DialogHeader>
-                <DialogTitle>{{ title ?? 'Bist du sicher?' }}</DialogTitle>
+                <DialogTitle>{{ title ?? t('confirm.defaultTitle') }}</DialogTitle>
                 <DialogDescription v-if="description">{{ description }}</DialogDescription>
             </DialogHeader>
             <DialogFooter>
                 <DialogClose as-child>
-                    <Button variant="outline">Abbrechen</Button>
+                    <Button variant="outline">{{ t('confirm.cancel') }}</Button>
                 </DialogClose>
                 <Button
                     :variant="destructive ? 'destructive' : 'default'"
                     @click="emit('confirm'); emit('update:open', false)"
                 >
-                    {{ confirmLabel ?? 'Bestätigen' }}
+                    {{ confirmLabel ?? t('confirm.confirm') }}
                 </Button>
             </DialogFooter>
         </DialogContent>
