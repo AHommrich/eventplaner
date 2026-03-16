@@ -49,6 +49,7 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::get('/drinks', [DrinkController::class, 'index'])->name('drinks.index');
     Route::post('/drinks', [DrinkController::class, 'store'])->name('drinks.store');
     Route::delete('/drinks/{drink}', [DrinkController::class, 'destroy'])->name('drinks.destroy');
+    Route::get('/drinks/stats', [DrinkController::class, 'stats'])->name('drinks.stats');
 
     // Event-Einstellungen
     Route::get('/event/settings', [EventSettingsController::class, 'show'])->name('event.settings');

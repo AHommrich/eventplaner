@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { type BreadcrumbItem } from '@/types';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
-import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
@@ -28,6 +28,11 @@ function doDelete() { if (pendingId.value) router.delete(route('drinks.destroy',
     <Head :title="t('drink.title')" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="m-4 space-y-4">
+            <div class="flex justify-end">
+                <Link :href="route('drinks.stats')" class="text-sm text-primary underline-offset-4 hover:underline">
+                    {{ t('drink.statsLink') }}
+                </Link>
+            </div>
 
             <Card>
                 <CardHeader>
