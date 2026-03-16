@@ -163,6 +163,7 @@
   "settings": {
     "profile": "Profile settings",
     "profileInfo": "Profile information",
+    "manageDesc": "Manage your profile and account settings",
     "profileInfoDesc": "Update your name and email address",
     "fullName": "Full name",
     "emailAddress": "Email address",
