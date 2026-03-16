@@ -35,6 +35,12 @@ run npm ci --prefer-offline --no-audit --no-fund && npm run build
 run mkdir -p /var/www/storage /var/www/bootstrap/cache \
  && chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
+# PHP Upload-Limits
+run printf '%s\n' \
+  'upload_max_filesize = 20M' \
+  'post_max_size = 25M' \
+  > /usr/local/etc/php/conf.d/uploads.ini
+
 # OPcache
 run printf '%s\n' \
   'opcache.enable=1' \
