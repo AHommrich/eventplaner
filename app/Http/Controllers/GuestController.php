@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Str;
 use App\Models\Category;
+use App\Models\DrinkLog;
 use App\Models\FoodSpecial;
 use App\Models\Group;
 use App\Models\Guest;
@@ -150,6 +151,30 @@ class GuestController extends Controller
         ]);
 
         $guest->update(['app_access' => $data['app_access']]);
+
+        return redirect()->route('guests.edit', $guest->id);
+    }
+
+    public function updateDrinksAccess(Request $request, Guest $guest)
+    {
+        $event = $this->activeEvent();
+        abort_if($guest->event_id !== $event?->id, 403);
+
+        $data = $request->validate([
+            'drinks_access' => 'required|boolean',
+        ]);
+
+        $guest->update(['drinks_access' => $data['drinks_access']]);
+
+        return redirect()->route('guests.edit', $guest->id);
+    }
+
+    public function resetDrinkLogs(Guest $guest)
+    {
+        $event = $this->activeEvent();
+        abort_if($guest->event_id !== $event?->id, 403);
+
+        DrinkLog::where('guest_id', $guest->id)->delete();
 
         return redirect()->route('guests.edit', $guest->id);
     }
