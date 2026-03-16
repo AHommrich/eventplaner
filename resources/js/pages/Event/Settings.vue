@@ -78,6 +78,14 @@ const previewDate = computed(() => {
         return new Date(form.date).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' });
     } catch { return null; }
 });
+
+const previewDaysLeft = computed(() => {
+    if (!form.date) return null;
+    try {
+        const diff = Math.ceil((new Date(form.date).getTime() - Date.now()) / 86_400_000);
+        return diff > 0 ? diff : null;
+    } catch { return null; }
+});
 </script>
 
 <template>
@@ -177,43 +185,74 @@ const previewDate = computed(() => {
                     <p class="text-sm font-medium text-muted-foreground">{{ t('event.phonePreview') }}</p>
 
                     <!-- Phone-Rahmen -->
-                    <div class="relative mx-auto w-[260px] overflow-hidden rounded-[40px] border-[8px] shadow-2xl"
+                    <div class="relative mx-auto w-[260px] overflow-hidden rounded-[36px] border-[8px] shadow-2xl"
                         :style="{ borderColor: form.color_primary || '#7c2d3e' }">
 
                         <!-- Screen -->
-                        <div class="relative h-[520px] w-full overflow-hidden bg-gray-900">
+                        <div class="relative flex h-[564px] w-full flex-col overflow-hidden">
 
-                            <!-- Cover-Bild als Hintergrund -->
+                            <!-- Cover-Bild als Vollbild-Hintergrund -->
                             <img v-if="coverUrl" :src="coverUrl" alt="Cover"
-                                class="absolute inset-0 h-full w-full object-cover opacity-80" />
-                            <div v-else class="absolute inset-0 flex items-center justify-center bg-gray-800">
-                                <span class="text-xs text-gray-500">Kein Bild</span>
+                                class="absolute inset-0 h-full w-full object-cover" />
+                            <!-- Fallback: Primary-Color -->
+                            <div v-else class="absolute inset-0"
+                                :style="{ backgroundColor: form.color_primary || '#7c2d3e' }" />
+
+                            <!-- Gradient: oben für Status-Bar, unten für Content -->
+                            <div class="absolute inset-0 bg-gradient-to-b from-black/45 via-black/5 to-black/82" />
+
+                            <!-- Status Bar -->
+                            <div class="relative z-10 flex items-center justify-between px-5 pt-3 text-[11px] font-medium text-white">
+                                <span>9:41</span>
+                                <span class="opacity-80 tracking-widest text-[8px]">● ● ●</span>
                             </div>
 
-                            <!-- Gradient overlay -->
-                            <div class="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/70" />
+                            <!-- Haupt-Content -->
+                            <div class="relative z-10 flex flex-1 flex-col justify-end px-5 pb-3 text-white">
 
-                            <!-- Content overlay -->
-                            <div class="absolute inset-x-0 bottom-0 p-6 text-white">
-                                <p class="text-xs font-medium uppercase tracking-widest opacity-70"
+                                <!-- Welcome-Label in Sekundärfarbe -->
+                                <p class="text-[10px] font-semibold uppercase tracking-[0.18em]"
                                     :style="{ color: form.color_secondary || '#c49a6c' }">
                                     Herzlich Willkommen
                                 </p>
-                                <h2 class="mt-1 text-xl font-bold leading-tight">{{ form.name || 'Event-Name' }}</h2>
-                                <p v-if="previewDate" class="mt-2 text-sm opacity-80">{{ previewDate }}</p>
-                                <div v-if="form.venue_name" class="mt-1 text-xs opacity-60">{{ form.venue_name }}</div>
 
-                                <!-- Fake Button -->
-                                <div class="mt-4 rounded-full px-4 py-2 text-center text-sm font-semibold"
-                                    :style="{ backgroundColor: form.color_primary || '#7c2d3e', color: '#fff' }">
-                                    Zusagen
+                                <!-- Event-Name -->
+                                <h2 class="mt-1 text-[20px] font-bold leading-tight">
+                                    {{ form.name || 'Event-Name' }}
+                                </h2>
+
+                                <!-- Datum -->
+                                <p v-if="previewDate" class="mt-1 text-[12px] opacity-80">
+                                    {{ previewDate }}
+                                </p>
+
+                                <!-- Veranstaltungsort -->
+                                <p v-if="form.venue_name" class="mt-0.5 text-[11px] opacity-60">
+                                    {{ form.venue_name }}
+                                </p>
+
+                                <!-- Countdown-Badge -->
+                                <div v-if="previewDaysLeft" class="mt-3 inline-flex w-fit items-center rounded-full px-3 py-1 text-[11px] font-semibold text-white"
+                                    :style="{ backgroundColor: form.color_secondary || '#c49a6c' }">
+                                    Noch {{ previewDaysLeft }} Tage
                                 </div>
                             </div>
 
-                            <!-- Fake Status Bar -->
-                            <div class="absolute inset-x-0 top-0 flex items-center justify-between px-5 pt-3 text-xs text-white opacity-80">
-                                <span>9:41</span>
-                                <span>●●●</span>
+                            <!-- Tab Bar (wie in der echten App) -->
+                            <div class="relative z-10 flex h-[52px] w-full items-center justify-around border-t border-white/15 bg-black/40">
+                                <div v-for="tab in [
+                                    { label: 'Home', active: true },
+                                    { label: 'Zusage', active: false },
+                                    { label: 'Fotos', active: false },
+                                    { label: 'Einst.', active: false },
+                                ]" :key="tab.label" class="flex flex-col items-center gap-0.5 px-2">
+                                    <div class="h-0.5 w-4 rounded-full mb-0.5"
+                                        :style="{ backgroundColor: tab.active ? (form.color_secondary || '#c49a6c') : 'transparent' }" />
+                                    <span class="text-[9px] font-medium"
+                                        :style="{ color: tab.active ? (form.color_secondary || '#c49a6c') : 'rgba(255,255,255,0.5)' }">
+                                        {{ tab.label }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
