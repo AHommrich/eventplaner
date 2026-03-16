@@ -13,6 +13,7 @@ use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\InvitationTokenController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\DrinkController;
+use App\Http\Controllers\EventAccessController;
 use App\Http\Controllers\Admin\UserController;
 
 Route::get('/', function () { return Inertia::render('Welcome'); })->name('home');
@@ -36,6 +37,11 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
     Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
     Route::post('/foodspecials', [FoodSpecialController::class, 'store'])->name('foodspecials.store');
+
+    // Event-Zugang (für Owner und Superadmin)
+    Route::get('/event/access', [EventAccessController::class, 'index'])->name('event.access');
+    Route::post('/event/access/invite', [EventAccessController::class, 'invite'])->name('event.access.invite');
+    Route::delete('/event/access/{user}', [EventAccessController::class, 'remove'])->name('event.access.remove');
 
     // Drinks
     Route::get('/drinks', [DrinkController::class, 'index'])->name('drinks.index');

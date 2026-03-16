@@ -6,14 +6,18 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuIte
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { Users, SquarePen, QrCode, Images, ShieldCheck, GlassWater, ChevronsUpDown, Check } from 'lucide-vue-next';
+import { Users, SquarePen, QrCode, Images, ShieldCheck, GlassWater, ChevronsUpDown, Check, KeyRound } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed, ref } from 'vue';
 
 const page = usePage();
 const { isMobile, state } = useSidebar();
 const isAdmin = computed(() => (page.props.auth as any)?.user?.role === 'admin');
-const activeEvent = computed(() => (page.props as any).active_event as { id: number; name: string } | null);
+const activeEvent = computed(() => (page.props as any).active_event as { id: number; name: string; user_id?: number } | null);
+const currentUserId = computed(() => (page.props.auth as any)?.user?.id);
+const isEventOwnerOrAdmin = computed(() =>
+    isAdmin.value || (activeEvent.value?.user_id !== undefined && activeEvent.value.user_id === currentUserId.value)
+);
 const accessibleEvents = computed(() => (page.props as any).accessible_events as { id: number; name: string }[]);
 const showSwitcher = computed(() => accessibleEvents.value?.length > 1);
 
@@ -40,6 +44,10 @@ const mainNavItems: NavItem[] = [
 
 const adminNavItems: NavItem[] = [
     { title: 'User-Verwaltung', href: '/admin/users', icon: ShieldCheck },
+];
+
+const eventOwnerNavItems: NavItem[] = [
+    { title: 'Zugang verwalten', href: '/event/access', icon: KeyRound },
 ];
 </script>
 
@@ -109,6 +117,7 @@ const adminNavItems: NavItem[] = [
 
         <SidebarContent>
             <NavMain :items="mainNavItems" />
+            <NavMain v-if="isEventOwnerOrAdmin" :items="eventOwnerNavItems" />
             <NavMain v-if="isAdmin" :items="adminNavItems" />
         </SidebarContent>
 
