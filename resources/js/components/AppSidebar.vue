@@ -13,7 +13,7 @@ const page = usePage();
 const isAdmin = computed(() => (page.props.auth as any)?.user?.role === 'admin');
 const activeEvent = computed(() => (page.props as any).active_event as { id: number; name: string } | null);
 const accessibleEvents = computed(() => (page.props as any).accessible_events as { id: number; name: string }[]);
-const showSwitcher = computed(() => isAdmin.value && accessibleEvents.value?.length >= 1);
+const showSwitcher = computed(() => accessibleEvents.value?.length > 1);
 
 function switchEvent(eventId: number) {
     router.post('/events/switch', { event_id: eventId });
