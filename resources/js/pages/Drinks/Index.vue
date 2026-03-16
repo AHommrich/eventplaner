@@ -7,18 +7,19 @@ import { type BreadcrumbItem } from '@/types';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import { toast } from 'vue-sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Getränke', href: '/drinks' }];
 const page = usePage();
 const drinks = computed(() => page.props.drinks as { id: number; name: string }[]);
 
 const form = useForm({ name: '' });
-function submit() { form.post(route('drinks.store'), { onSuccess: () => form.reset() }); }
+function submit() { form.post(route('drinks.store'), { onSuccess: () => { form.reset(); toast.success('Getränk hinzugefügt'); } }); }
 
 const confirmOpen = ref(false);
 const pendingId   = ref<number | null>(null);
 function askDelete(id: number) { pendingId.value = id; confirmOpen.value = true; }
-function doDelete() { if (pendingId.value) router.delete(route('drinks.destroy', pendingId.value)); }
+function doDelete() { if (pendingId.value) router.delete(route('drinks.destroy', pendingId.value), { onSuccess: () => toast.success('Getränk gelöscht') }); }
 </script>
 
 <template>

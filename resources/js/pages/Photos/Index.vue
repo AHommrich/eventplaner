@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import { toast } from 'vue-sonner';
 
 interface Photo { id: number; url: string; guest_name: string; created_at: string; }
 defineProps<{ photos: Photo[] }>();
@@ -19,7 +20,7 @@ function askDelete(id: number) { pendingId.value = id; confirmOpen.value = true;
 function doDelete() {
     if (pendingId.value === null) return;
     selected.value = null;
-    router.delete(route('photos.destroy', pendingId.value));
+    router.delete(route('photos.destroy', pendingId.value), { onSuccess: () => toast.success('Foto gelöscht') });
 }
 
 function onFileChange(e: Event) {
@@ -34,6 +35,7 @@ function submitUpload() {
         onSuccess: () => {
             form.reset();
             if (fileInput.value) fileInput.value.value = '';
+            toast.success('Foto hochgeladen');
         },
     });
 }

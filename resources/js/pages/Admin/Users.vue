@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import { toast } from 'vue-sonner';
 
 interface User  { id: number; name: string; email: string; role: string; created_at: string; }
 interface Event { id: number; name: string; }
@@ -15,17 +16,17 @@ const props = defineProps<{ users: User[]; events: Event[]; }>();
 const selectClass = 'flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]';
 
 const addForm = useForm({ email: '', event_id: '' });
-function addToEvent() { addForm.post(route('admin.users.addToEvent'), { onSuccess: () => addForm.reset() }); }
+function addToEvent() { addForm.post(route('admin.users.addToEvent'), { onSuccess: () => { addForm.reset(); toast.success('User zum Event hinzugefügt'); } }); }
 
 function updateRole(user: User, role: string) {
-    useForm({ role }).put(route('admin.users.update', user.id));
+    useForm({ role }).put(route('admin.users.update', user.id), { onSuccess: () => toast.success(`Rolle auf „${role}" geändert`) });
 }
 
 const confirmOpen   = ref(false);
 const pendingUser   = ref<User | null>(null);
 function askDelete(user: User) { pendingUser.value = user; confirmOpen.value = true; }
 function doDelete() {
-    if (pendingUser.value) useForm({}).delete(route('admin.users.destroy', pendingUser.value.id));
+    if (pendingUser.value) useForm({}).delete(route('admin.users.destroy', pendingUser.value.id), { onSuccess: () => toast.success('User gelöscht') });
 }
 </script>
 
