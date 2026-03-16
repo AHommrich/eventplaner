@@ -12,6 +12,7 @@ use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\InvitationTokenController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\DrinkController;
 use App\Http\Controllers\Admin\UserController;
 
 Route::get('/', function () { return Inertia::render('Welcome'); })->name('home');
@@ -35,6 +36,11 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
     Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
     Route::post('/foodspecials', [FoodSpecialController::class, 'store'])->name('foodspecials.store');
+
+    // Drinks
+    Route::get('/drinks', [DrinkController::class, 'index'])->name('drinks.index');
+    Route::post('/drinks', [DrinkController::class, 'store'])->name('drinks.store');
+    Route::delete('/drinks/{drink}', [DrinkController::class, 'destroy'])->name('drinks.destroy');
 
     // Guests
     Route::post('/guests', [GuestController::class, 'store'])->name('guests.store');

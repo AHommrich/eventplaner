@@ -5,7 +5,7 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { Users, SquarePen, QrCode, Images, ShieldCheck } from 'lucide-vue-next';
+import { Users, SquarePen, QrCode, Images, ShieldCheck, GlassWater } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed } from 'vue';
 
@@ -22,6 +22,7 @@ function switchEvent(eventId: number) {
 const mainNavItems: NavItem[] = [
     { title: 'Formulare',   href: '/dashboard',    icon: SquarePen },
     { title: 'Gäste',       href: '/table',         icon: Users },
+    { title: 'Getränke',    href: '/drinks',        icon: GlassWater },
     { title: 'Einladungen', href: '/invitations',   icon: QrCode },
     { title: 'Fotos',       href: '/photos',        icon: Images },
 ];
