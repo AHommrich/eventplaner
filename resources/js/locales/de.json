@@ -38,7 +38,9 @@
     "rsvpDeadline": "RSVP-Stichtag",
     "cover": "Titelbild",
     "coverUpload": "Bild hochladen",
+    "coverReplace": "Bild ersetzen",
     "coverUploading": "Wird hochgeladen…",
+    "coverCurrent": "Aktuelles Titelbild",
     "coverHint": "Wird auf der Home-Seite der App als Hintergrund angezeigt",
     "venueName": "Veranstaltungsort",
     "venueAddress": "Adresse",
@@ -77,6 +79,7 @@
     "rsvpOverridden": "RSVP-Status aktualisiert",
     "eventSettingsSaved": "Einstellungen gespeichert",
     "coverUploaded": "Titelbild hochgeladen",
+    "coverRemoved": "Titelbild entfernt",
     "coverError": "Fehler beim Hochladen"
   },
   "requests": {

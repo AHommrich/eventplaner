@@ -55,6 +55,13 @@ function submit() {
 // Cover-Upload
 const coverUrl       = ref<string | null>(props.event.cover_image_url);
 const coverUploading = ref(false);
+const coverRemoving  = ref(false);
+
+const coverFilename = computed(() => {
+    if (!coverUrl.value) return null;
+    try { return decodeURIComponent(coverUrl.value.split('/').pop()?.split('?')[0] ?? ''); }
+    catch { return null; }
+});
 
 async function onCoverChange(e: Event) {
     const file = (e.target as HTMLInputElement).files?.[0];
@@ -70,6 +77,19 @@ async function onCoverChange(e: Event) {
         toast.error(t('toast.coverError'));
     } finally {
         coverUploading.value = false;
+    }
+}
+
+async function removeCover() {
+    coverRemoving.value = true;
+    try {
+        await axios.delete(route('event.settings.cover.delete'));
+        coverUrl.value = null;
+        toast.success(t('toast.coverRemoved'));
+    } catch {
+        toast.error(t('toast.coverError'));
+    } finally {
+        coverRemoving.value = false;
     }
 }
 
@@ -195,10 +215,25 @@ const tabDefs = [
                         <CardHeader><CardTitle>{{ t('event.cover') }}</CardTitle></CardHeader>
                         <CardContent class="space-y-3">
                             <p class="text-sm text-muted-foreground">{{ t('event.coverHint') }}</p>
+
+                            <!-- Aktuelles Cover -->
+                            <div v-if="coverUrl" class="flex items-center gap-3 rounded-lg border bg-muted/30 px-3 py-2">
+                                <img :src="coverUrl" class="h-12 w-20 rounded object-cover shrink-0" />
+                                <div class="min-w-0 flex-1">
+                                    <p class="truncate text-xs font-medium">{{ coverFilename }}</p>
+                                    <p class="text-xs text-muted-foreground">{{ t('event.coverCurrent') }}</p>
+                                </div>
+                                <Button variant="ghost" size="sm" class="shrink-0 text-destructive hover:text-destructive"
+                                    :disabled="coverRemoving" @click="removeCover">
+                                    {{ coverRemoving ? '…' : t('common.remove') }}
+                                </Button>
+                            </div>
+
+                            <!-- Upload -->
                             <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed px-4 py-3 transition-colors hover:bg-muted/40">
                                 <input type="file" class="hidden" accept="image/jpeg,image/png,image/heic,image/heif" @change="onCoverChange" />
                                 <span class="text-sm font-medium">
-                                    {{ coverUploading ? t('event.coverUploading') : t('event.coverUpload') }}
+                                    {{ coverUploading ? t('event.coverUploading') : (coverUrl ? t('event.coverReplace') : t('event.coverUpload')) }}
                                 </span>
                             </label>
                         </CardContent>
