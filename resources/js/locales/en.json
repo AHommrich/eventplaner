@@ -82,7 +82,9 @@
     "eventSettingsSaved": "Settings saved",
     "coverUploaded": "Cover image uploaded",
     "coverRemoved": "Cover image removed",
-    "coverError": "Upload failed"
+    "coverError": "Upload failed",
+    "appAccessEnabled": "App access granted",
+    "appAccessDisabled": "App access revoked"
   },
   "requests": {
     "title": "Requests",
@@ -138,7 +140,13 @@
     "rsvpDeclined": "Declined",
     "rsvpRevocationRequested": "Revocation requested",
     "rsvpByGuest": "Guest",
-    "rsvpByUser": "Admin/Event owner"
+    "rsvpByUser": "Admin/Event owner",
+    "appAccess": "App access",
+    "appAccessEnabled": "App access active",
+    "appAccessDisabled": "App access blocked",
+    "appAccessDesc": "Controls whether this guest can use the app.",
+    "appAccessRevoke": "Revoke access",
+    "appAccessGrant": "Grant access"
   },
   "category": {
     "new": "New category",
