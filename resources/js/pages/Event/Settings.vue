@@ -86,6 +86,13 @@ const previewDaysLeft = computed(() => {
         return diff > 0 ? diff : null;
     } catch { return null; }
 });
+
+const previewRsvpDeadline = computed(() => {
+    if (!form.rsvp_deadline) return null;
+    try {
+        return new Date(form.rsvp_deadline).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' });
+    } catch { return null; }
+});
 </script>
 
 <template>
@@ -180,106 +187,137 @@ const previewDaysLeft = computed(() => {
                     </Card>
                 </div>
 
-                <!-- Rechte Spalte: Phone-Preview -->
+                <!-- Rechte Spalte: 2×2 Phone-Previews -->
                 <div class="flex flex-col items-center gap-3">
                     <p class="text-sm font-medium text-muted-foreground">{{ t('event.phonePreview') }}</p>
 
-                    <!-- Phone-Rahmen: dunkel wie echtes Gerät -->
-                    <div class="relative mx-auto w-[260px] overflow-hidden rounded-[36px] border-[10px] border-gray-800 shadow-2xl">
+                    <div class="grid grid-cols-2 gap-4">
 
-                        <!-- Screen: warmes Beige wie aktuelle App -->
-                        <div class="flex h-[540px] w-full flex-col" style="background-color: #e8e3de;">
-
-                            <!-- Status Bar (dunkle Icons auf hellem BG) -->
-                            <div class="flex items-center justify-between px-4 pt-2.5 text-[11px] font-semibold text-gray-900">
-                                <span>9:41</span>
-                                <div class="flex items-center gap-1 text-[10px]">
-                                    <span>▲▲▲</span>
-                                    <span>⬛</span>
+                    <!-- ===== SCREEN 1: HOME ===== -->
+                    <div class="flex flex-col items-center gap-1.5">
+                        <span class="text-[11px] font-medium text-muted-foreground">Home</span>
+                        <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
+                            <div class="flex flex-col" style="height:244px;background-color:#e8e3de;">
+                                <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
+                                    <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
                                 </div>
-                            </div>
-
-                            <!-- Content: zentriert wie im aktuellen Home-Screen -->
-                            <div class="flex flex-1 flex-col items-center justify-center px-5 pb-2">
-
-                                <!-- Cover als Karte (falls vorhanden) -->
-                                <div v-if="coverUrl"
-                                    class="mb-5 w-full overflow-hidden rounded-2xl shadow"
-                                    style="height: 110px;">
-                                    <img :src="coverUrl" alt="Cover" class="h-full w-full object-cover" />
+                                <div class="flex flex-1 flex-col items-center justify-center px-2.5 pb-1">
+                                    <div v-if="coverUrl" class="mb-2 w-full overflow-hidden rounded-xl" style="height:50px;">
+                                        <img :src="coverUrl" class="h-full w-full object-cover" />
+                                    </div>
+                                    <p class="text-center text-[9px] font-bold leading-tight" :style="{ color: form.color_primary || '#7c2d3e' }">
+                                        {{ form.name || 'Event-Name' }}
+                                    </p>
+                                    <p v-if="previewDate" class="mt-0.5 text-center text-[7px]" style="color:#8c8880;">{{ previewDate }}</p>
+                                    <p v-if="form.venue_name" class="mt-0.5 text-center text-[6px]" style="color:#a09890;">{{ form.venue_name }}</p>
+                                    <div v-if="previewDaysLeft" class="mt-2 rounded-full px-2 py-0.5 text-[7px] font-semibold text-white"
+                                        :style="{ backgroundColor: form.color_primary || '#7c2d3e' }">
+                                        Noch {{ previewDaysLeft }} Tage
+                                    </div>
                                 </div>
-
-                                <!-- Event-Name in Primary-Farbe (wie "Willkommen, Sarah!") -->
-                                <h2 class="text-center text-[18px] font-bold leading-snug"
-                                    :style="{ color: form.color_primary || '#7c2d3e' }">
-                                    {{ form.name || 'Event-Name' }}
-                                </h2>
-
-                                <!-- Datum -->
-                                <p v-if="previewDate" class="mt-2 text-center text-[12px]" style="color: #8c8880;">
-                                    {{ previewDate }}
-                                </p>
-
-                                <!-- Veranstaltungsort -->
-                                <p v-if="form.venue_name" class="mt-1 text-center text-[11px]" style="color: #a09890;">
-                                    {{ form.venue_name }}
-                                </p>
-
-                                <!-- Countdown-Pill in Primary -->
-                                <div v-if="previewDaysLeft"
-                                    class="mt-4 rounded-full px-4 py-1.5 text-[11px] font-semibold text-white"
-                                    :style="{ backgroundColor: form.color_primary || '#7c2d3e' }">
-                                    Noch {{ previewDaysLeft }} Tage
-                                </div>
-                            </div>
-
-                            <!-- Tab Bar: gleicher Beige-BG + dünner Top-Border wie App -->
-                            <div class="flex h-[58px] w-full items-center justify-around border-t px-1"
-                                style="background-color: #e8e3de; border-color: rgba(0,0,0,0.1);">
-
-                                <!-- Home (aktiv) -->
-                                <div class="flex flex-col items-center gap-0.5">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
-                                        :stroke="form.color_primary || '#7c2d3e'">
-                                        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/>
-                                        <path d="M9 21V12h6v9"/>
-                                    </svg>
-                                    <span class="text-[9px] font-semibold" :style="{ color: form.color_primary || '#7c2d3e' }">Home</span>
-                                </div>
-
-                                <!-- Zusage -->
-                                <div class="flex flex-col items-center gap-0.5">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9e9490" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <circle cx="12" cy="12" r="9"/>
-                                        <path d="M8.5 12.5l2.5 2.5 4.5-5"/>
-                                    </svg>
-                                    <span class="text-[9px]" style="color: #9e9490;">Zusage</span>
-                                </div>
-
-                                <!-- Fotos -->
-                                <div class="flex flex-col items-center gap-0.5">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9e9490" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect x="3" y="5" width="18" height="14" rx="2"/>
-                                        <circle cx="8.5" cy="10.5" r="1.5"/>
-                                        <path d="M21 15l-5-5L5 19"/>
-                                    </svg>
-                                    <span class="text-[9px]" style="color: #9e9490;">Fotos</span>
-                                </div>
-
-                                <!-- Einstellungen -->
-                                <div class="flex flex-col items-center gap-0.5">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9e9490" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <circle cx="12" cy="12" r="3"/>
-                                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                                    </svg>
-                                    <span class="text-[9px]" style="color: #9e9490;">Einstellungen</span>
+                                <div class="flex h-[24px] w-full items-center justify-around border-t" style="background-color:#e8e3de;border-color:rgba(0,0,0,0.1);">
+                                    <span v-for="(tab,i) in ['Home','Zusage','Fotos','Einst.']" :key="'h'+i" class="text-[6px]"
+                                        :style="{ color: i===0 ? (form.color_primary||'#7c2d3e') : '#9e9490', fontWeight: i===0 ? '700':'400' }">{{ tab }}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- ===== SCREEN 2: ZUSAGE ===== -->
+                    <div class="flex flex-col items-center gap-1.5">
+                        <span class="text-[11px] font-medium text-muted-foreground">Zusage</span>
+                        <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
+                            <div class="flex flex-col" style="height:244px;background-color:#e8e3de;">
+                                <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
+                                    <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
+                                </div>
+                                <div class="flex flex-1 flex-col gap-2 px-2 pt-2">
+                                    <p v-if="previewRsvpDeadline" class="text-[6px]" style="color:#8c8880;">Bitte antworte bis {{ previewRsvpDeadline }}.</p>
+                                    <div class="rounded-xl bg-white p-2 shadow-sm">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-[8px] font-semibold" :style="{ color: form.color_primary || '#7c2d3e' }">Max Mustermann</span>
+                                            <span class="rounded-full px-1.5 py-0.5 text-[5px] font-semibold text-white" style="background-color:#4a7c59;">Zusagen</span>
+                                        </div>
+                                        <div class="mt-1.5 flex gap-1">
+                                            <div class="flex-1 rounded-lg py-1 text-center text-[6px] font-semibold text-white" style="background-color:#4a7c59;">Zusagen</div>
+                                            <div class="flex-1 rounded-lg border py-1 text-center text-[6px]" style="color:#666;border-color:#ccc;">Absagen</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex h-[24px] w-full items-center justify-around border-t" style="background-color:#e8e3de;border-color:rgba(0,0,0,0.1);">
+                                    <span v-for="(tab,i) in ['Home','Zusage','Fotos','Einst.']" :key="'z'+i" class="text-[6px]"
+                                        :style="{ color: i===1 ? (form.color_primary||'#7c2d3e') : '#9e9490', fontWeight: i===1 ? '700':'400' }">{{ tab }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== SCREEN 3: FOTOS ===== -->
+                    <div class="flex flex-col items-center gap-1.5">
+                        <span class="text-[11px] font-medium text-muted-foreground">Fotos</span>
+                        <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
+                            <div class="flex flex-col" style="height:244px;background-color:#e8e3de;">
+                                <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
+                                    <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
+                                </div>
+                                <div class="relative flex-1 px-0.5 pt-1">
+                                    <div class="grid grid-cols-3 gap-0.5">
+                                        <div v-for="n in 6" :key="n" class="rounded-sm" style="background-color:#d4cfc8;aspect-ratio:1;" />
+                                    </div>
+                                    <div class="absolute bottom-3 right-2 flex h-7 w-7 items-center justify-center rounded-full shadow-md"
+                                        :style="{ backgroundColor: form.color_secondary || '#c49a6c' }">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                                            <circle cx="12" cy="13" r="4"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="flex h-[24px] w-full items-center justify-around border-t" style="background-color:#e8e3de;border-color:rgba(0,0,0,0.1);">
+                                    <span v-for="(tab,i) in ['Home','Zusage','Fotos','Einst.']" :key="'f'+i" class="text-[6px]"
+                                        :style="{ color: i===2 ? (form.color_primary||'#7c2d3e') : '#9e9490', fontWeight: i===2 ? '700':'400' }">{{ tab }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== SCREEN 4: EINSTELLUNGEN ===== -->
+                    <div class="flex flex-col items-center gap-1.5">
+                        <span class="text-[11px] font-medium text-muted-foreground">Einstellungen</span>
+                        <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
+                            <div class="flex flex-col" style="height:244px;background-color:#e8e3de;">
+                                <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
+                                    <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
+                                </div>
+                                <div class="flex flex-1 flex-col items-center justify-center gap-2 px-2">
+                                    <div class="w-full rounded-xl bg-white p-2 shadow-sm">
+                                        <p class="text-[6px]" style="color:#9e9490;">Eingeloggt als</p>
+                                        <p class="text-[8px] font-semibold" :style="{ color: form.color_primary || '#7c2d3e' }">Max Mustermann</p>
+                                    </div>
+                                    <div class="w-full rounded-xl bg-white p-2 shadow-sm">
+                                        <p class="mb-1 text-[6px]" style="color:#9e9490;">Sprache</p>
+                                        <div class="flex gap-1">
+                                            <div class="flex-1 rounded-lg py-0.5 text-center text-[6px] font-semibold text-white" :style="{ backgroundColor: form.color_primary || '#7c2d3e' }">Deutsch</div>
+                                            <div class="flex-1 rounded-lg py-0.5 text-center text-[6px]" style="background-color:#e0dbd4;color:#666;">Englisch</div>
+                                        </div>
+                                    </div>
+                                    <div class="w-full rounded-xl border py-1 text-center text-[7px] font-medium"
+                                        :style="{ borderColor: form.color_primary || '#7c2d3e', color: form.color_primary || '#7c2d3e' }">
+                                        Ausloggen
+                                    </div>
+                                </div>
+                                <div class="flex h-[24px] w-full items-center justify-around border-t" style="background-color:#e8e3de;border-color:rgba(0,0,0,0.1);">
+                                    <span v-for="(tab,i) in ['Home','Zusage','Fotos','Einst.']" :key="'e'+i" class="text-[6px]"
+                                        :style="{ color: i===3 ? (form.color_primary||'#7c2d3e') : '#9e9490', fontWeight: i===3 ? '700':'400' }">{{ tab }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    </div><!-- /grid -->
+
                 </div>
 
-            </div>
+            </div><!-- /lg:grid-cols-2 -->
         </div>
     </AppLayout>
 </template>
