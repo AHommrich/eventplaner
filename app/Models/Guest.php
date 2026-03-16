@@ -11,43 +11,58 @@ class Guest extends Model
     use HasFactory, HasApiTokens;
 
     protected $fillable = [
+        'event_id',
+        'category_id',
+        'group_id',
         'firstname',
         'lastname',
-        'badge_id',
-        'family_id',
         'beer',
         'wine',
         'likelihood',
     ];
 
-    public function badge()
+    public function event()
     {
-        return $this->belongsTo(Badge::class);
+        return $this->belongsTo(Event::class);
     }
 
-    public function family()
+    public function category()
     {
-        return $this->belongsTo(Family::class);
+        return $this->belongsTo(Category::class);
+    }
+
+    public function group()
+    {
+        return $this->belongsTo(Group::class);
     }
 
     public function drinks()
-{
-    return $this->hasMany(GuestDrink::class);
-}
+    {
+        return $this->hasMany(GuestDrink::class);
+    }
 
-public function foodSpecials()
-{
-    return $this->belongsToMany(FoodSpecial::class, 'guest_food_special');
-}
+    public function foodSpecials()
+    {
+        return $this->belongsToMany(FoodSpecial::class, 'guest_food_special');
+    }
 
-public function invitationToken()
-{
-    return $this->hasOne(InvitationToken::class);
-}
+    public function invitationToken()
+    {
+        return $this->hasOne(InvitationToken::class);
+    }
 
-public function photos()
-{
-    return $this->hasMany(Photo::class);
-}
+    public function photos()
+    {
+        return $this->hasMany(Photo::class);
+    }
 
+    /** QR-Token: Gruppen-Token wenn in Gruppe, sonst eigener Token */
+    public function getQrToken(): ?InvitationToken
+    {
+        if ($this->group_id && $this->group?->invitationToken) {
+            return $this->group->invitationToken;
+        }
+
+        return $this->invitationToken;
+    }
 }

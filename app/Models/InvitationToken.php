@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class InvitationToken extends Model
 {
-    protected $fillable = ['token', 'family_id', 'guest_id'];
+    protected $fillable = ['token', 'group_id', 'guest_id'];
 
-    public function family()
+    public function group()
     {
-        return $this->belongsTo(Family::class);
+        return $this->belongsTo(Group::class);
     }
 
     public function guest()
@@ -18,11 +18,11 @@ class InvitationToken extends Model
         return $this->belongsTo(Guest::class);
     }
 
-    /** Alle Gäste die zu diesem Token gehören (Familie oder Einzelperson) */
+    /** Alle Gäste die zu diesem Token gehören (Gruppe oder Einzelperson) */
     public function guests()
     {
-        if ($this->family_id) {
-            return $this->family->guests;
+        if ($this->group_id) {
+            return $this->group->guests;
         }
 
         return collect([$this->guest])->filter();
