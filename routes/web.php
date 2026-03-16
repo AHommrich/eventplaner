@@ -15,6 +15,7 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\DrinkController;
 use App\Http\Controllers\EventAccessController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\EventSettingsController;
 use App\Http\Controllers\RequestController;
 
 Route::get('/', function () { return Inertia::render('Welcome'); })->name('home');
@@ -48,6 +49,11 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::get('/drinks', [DrinkController::class, 'index'])->name('drinks.index');
     Route::post('/drinks', [DrinkController::class, 'store'])->name('drinks.store');
     Route::delete('/drinks/{drink}', [DrinkController::class, 'destroy'])->name('drinks.destroy');
+
+    // Event-Einstellungen
+    Route::get('/event/settings', [EventSettingsController::class, 'show'])->name('event.settings');
+    Route::post('/event/settings', [EventSettingsController::class, 'update'])->name('event.settings.update');
+    Route::post('/event/settings/cover', [EventSettingsController::class, 'uploadCover'])->name('event.settings.cover');
 
     // Anfragen-Management (Rücknahmen + spätere Typen)
     Route::get('/requests', [RequestController::class, 'index'])->name('requests.index');
