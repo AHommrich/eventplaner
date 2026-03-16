@@ -6,6 +6,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import { toast } from 'vue-sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Gäste', href: '/table' }];
 const page = usePage();
@@ -32,7 +33,7 @@ const confirmOpen  = ref(false);
 const pendingId    = ref<number | null>(null);
 
 function askDelete(id: number) { pendingId.value = id; confirmOpen.value = true; }
-function doDelete() { if (pendingId.value) router.delete(route('guests.destroy', pendingId.value)); }
+function doDelete() { if (pendingId.value) router.delete(route('guests.destroy', pendingId.value), { onSuccess: () => toast.success('Gast gelöscht') }); }
 </script>
 
 <template>

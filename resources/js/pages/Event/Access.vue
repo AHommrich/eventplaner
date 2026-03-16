@@ -7,6 +7,7 @@ import { type BreadcrumbItem } from '@/types';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import { toast } from 'vue-sonner';
 
 const props = defineProps<{
     event:   { id: number; name: string };
@@ -17,13 +18,13 @@ const props = defineProps<{
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Zugang verwalten', href: '/event/access' }];
 const form = useForm({ email: '' });
 
-function invite() { form.post(route('event.access.invite'), { onSuccess: () => form.reset() }); }
+function invite() { form.post(route('event.access.invite'), { onSuccess: () => { form.reset(); toast.success('User hinzugefügt'); } }); }
 
 const confirmOpen  = ref(false);
 const pendingUserId = ref<number | null>(null);
 const pendingName   = ref('');
 function askRemove(member: { id: number; name: string }) { pendingUserId.value = member.id; pendingName.value = member.name; confirmOpen.value = true; }
-function doRemove() { if (pendingUserId.value) router.delete(route('event.access.remove', pendingUserId.value)); }
+function doRemove() { if (pendingUserId.value) router.delete(route('event.access.remove', pendingUserId.value), { onSuccess: () => toast.success('Zugang entfernt') }); }
 </script>
 
 <template>

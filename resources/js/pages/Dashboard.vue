@@ -8,6 +8,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import { toast } from 'vue-sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Formulare', href: '/dashboard' }];
 const page = usePage();
@@ -20,16 +21,16 @@ const categoryForm    = useForm({ title: '' });
 const groupForm       = useForm({ name: '' });
 const foodSpecialForm = useForm({ name: '' });
 
-const submitCategory    = () => categoryForm.post(route('categories.store'),      { onSuccess: () => categoryForm.reset() });
-const submitGroup       = () => groupForm.post(route('groups.store'),             { onSuccess: () => groupForm.reset() });
-const submitFoodSpecial = () => foodSpecialForm.post(route('foodspecials.store'), { onSuccess: () => foodSpecialForm.reset() });
+const submitCategory    = () => categoryForm.post(route('categories.store'),      { onSuccess: () => { categoryForm.reset(); toast.success('Kategorie erstellt'); } });
+const submitGroup       = () => groupForm.post(route('groups.store'),             { onSuccess: () => { groupForm.reset(); toast.success('Gruppe erstellt'); } });
+const submitFoodSpecial = () => foodSpecialForm.post(route('foodspecials.store'), { onSuccess: () => { foodSpecialForm.reset(); toast.success('Essensbesonderheit erstellt'); } });
 
-function handleCreate(form: any) { form.post(route('guests.store'), { onSuccess: () => form.reset() }); }
+function handleCreate(form: any) { form.post(route('guests.store'), { onSuccess: () => { form.reset(); toast.success('Gast erstellt'); } }); }
 
 const confirmOpen = ref(false);
 const pendingId   = ref<number | null>(null);
 function askDelete(id: number) { pendingId.value = id; confirmOpen.value = true; }
-function doDelete() { if (pendingId.value) router.delete(route('guests.destroy', pendingId.value)); }
+function doDelete() { if (pendingId.value) router.delete(route('guests.destroy', pendingId.value), { onSuccess: () => toast.success('Gast gelöscht') }); }
 
 const likelihoodLabel: Record<string, string> = {
     sure: 'Sicher', likely: 'Wahrscheinlich', maybe: 'Vielleicht', unlikely: 'Unwahrscheinlich', no: 'Nein',
