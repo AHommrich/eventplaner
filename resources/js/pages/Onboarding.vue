@@ -4,7 +4,6 @@ import { ref } from 'vue';
 
 const props = defineProps<{
     email: string;
-    hasEvent: boolean;
 }>();
 
 const copied = ref(false);
@@ -30,10 +29,7 @@ function createEvent() {
 
             <div class="text-center">
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Willkommen!</h1>
-                <p v-if="hasEvent" class="mt-2 text-sm text-green-600 dark:text-green-400">
-                    Dein Event wurde erstellt. Der Admin gibt dir bald Zugriff auf alle Funktionen.
-                </p>
-                <p v-else class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
                     Du hast noch kein Event. Erstelle eines oder werde von einem Admin eingeladen.
                 </p>
             </div>

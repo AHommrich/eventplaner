@@ -23,8 +23,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/events/switch', [EventController::class, 'switch'])->name('events.switch');
 });
 
-// Admin-only Routes
-Route::middleware(['auth', 'verified', 'admin'])->group(function () {
+// Hauptapp — zugänglich für alle User mit mind. einem Event
+Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('table', [TableController::class, 'index'])->name('table');
     Route::get('invitations', [InvitationController::class, 'index'])->name('invitations');
@@ -41,8 +41,10 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::delete('/guests/{guest}', [GuestController::class, 'destroy'])->name('guests.destroy');
     Route::get('/guests/{guest}/edit', [GuestController::class, 'edit'])->name('guests.edit');
     Route::put('/guests/{guest}', [GuestController::class, 'update'])->name('guests.update');
+});
 
-    // User-Verwaltung
+// Globale User-Verwaltung — nur Superadmin
+Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/admin/users', [UserController::class, 'index'])->name('admin.users.index');
     Route::put('/admin/users/{user}', [UserController::class, 'update'])->name('admin.users.update');
     Route::delete('/admin/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
