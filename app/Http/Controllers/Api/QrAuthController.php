@@ -11,17 +11,16 @@ class QrAuthController extends Controller
     /**
      * QR-Code Login: Tauscht einen Einladungstoken gegen einen Sanctum Bearer Token.
      *
-     * Der Token im QR-Code gehört entweder einer Familie (mehrere Gäste)
-     * oder einem Einzelgast ohne Familie. Jeder Gast der Gruppe bekommt
-     * einen eigenen Sanctum-Token zurück.
+     * Der Token gehört entweder einer Gruppe (mehrere Gäste)
+     * oder einem Einzelgast ohne Gruppe.
      */
     public function login(string $token): JsonResponse
     {
-        $invitation = InvitationToken::with(['family.guests', 'guest'])
+        $invitation = InvitationToken::with(['group.guests', 'guest'])
             ->where('token', $token)
             ->first();
 
-        if (! $invitation) {
+        if (!$invitation) {
             return response()->json(['message' => 'Ungültiger Einladungslink.'], 404);
         }
 
@@ -31,30 +30,25 @@ class QrAuthController extends Controller
             return response()->json(['message' => 'Keine Gäste für diesen Token gefunden.'], 404);
         }
 
-        $isFamily  = $invitation->family_id !== null;
-        $familyName = $isFamily ? $invitation->family->name : null;
+        $isGroup   = $invitation->group_id !== null;
+        $groupName = $isGroup ? $invitation->group->name : null;
 
-        // Für jeden Gast einen Sanctum-Token ausstellen
         $result = $guests->map(function ($guest) {
-            // Alte Tokens löschen damit kein Token-Müll entsteht
             $guest->tokens()->delete();
-
             $sanctumToken = $guest->createToken('guest-login', ['role:guest']);
 
             return [
-                'guest_id'   => $guest->id,
-                'firstname'  => $guest->firstname,
-                'lastname'   => $guest->lastname,
-                'token'      => $sanctumToken->plainTextToken,
+                'guest_id'  => $guest->id,
+                'firstname' => $guest->firstname,
+                'lastname'  => $guest->lastname,
+                'token'     => $sanctumToken->plainTextToken,
             ];
         });
 
         return response()->json([
-            // type: "family" | "solo" — für die App um den richtigen Screen zu zeigen
-            'type'        => $isFamily ? 'family' : 'solo',
-            // family_name: z.B. "Müller" — für Familienbegrüßung "Willkommen, Familie Müller!"
-            'family_name' => $familyName,
-            'guests'      => $result,
+            'type'       => $isGroup ? 'group' : 'solo',
+            'group_name' => $groupName,
+            'guests'     => $result,
         ]);
     }
 }

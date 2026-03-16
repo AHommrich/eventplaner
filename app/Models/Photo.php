@@ -6,7 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Photo extends Model
 {
-    protected $fillable = ['guest_id', 'uploaded_by', 'url'];
+    protected $fillable = ['event_id', 'guest_id', 'uploaded_by', 'url'];
+
+    public function event()
+    {
+        return $this->belongsTo(Event::class);
+    }
 
     public function guest()
     {
