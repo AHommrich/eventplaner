@@ -46,7 +46,8 @@
     "schedule": "Ablauf",
     "colorPrimary": "Primärfarbe (Text & Buttons)",
     "colorSecondary": "Sekundärfarbe (Hintergrund)",
-    "colorHint": "Primär = Textfarbe & Schaltflächen · Sekundär = App-Hintergrund",
+    "colorHomeText": "Textfarbe Home-Screen",
+    "colorHint": "Primär = Text & Buttons · Sekundär = Hintergrund · Home-Text = Schrift über Titelbild",
     "phonePreview": "Vorschau",
     "saveSettings": "Einstellungen speichern"
   },
