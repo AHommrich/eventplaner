@@ -4,30 +4,24 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-const sidebarNavItems: NavItem[] = [
-    {
-        title: 'Profile',
-        href: '/settings/profile',
-    },
-    {
-        title: 'Password',
-        href: '/settings/password',
-    },
-    {
-        title: 'Appearance',
-        href: '/settings/appearance',
-    },
-];
+const { t } = useI18n();
+
+const sidebarNavItems = computed<NavItem[]>(() => [
+    { title: t('settings.profile'),    href: '/settings/profile' },
+    { title: t('settings.password'),   href: '/settings/password' },
+    { title: t('settings.appearance'), href: '/settings/appearance' },
+]);
 
 const page = usePage();
-
 const currentPath = page.props.ziggy?.location ? new URL(page.props.ziggy.location).pathname : '';
 </script>
 
 <template>
     <div class="px-4 py-6">
-        <Heading title="Settings" description="Manage your profile and account settings" />
+        <Heading :title="t('user.settings')" :description="t('settings.manageDesc')" />
 
         <div class="flex flex-col space-y-8 md:space-y-0 lg:flex-row lg:space-y-0 lg:space-x-12">
             <aside class="w-full max-w-xl lg:w-48">
@@ -39,9 +33,7 @@ const currentPath = page.props.ziggy?.location ? new URL(page.props.ziggy.locati
                         :class="['w-full justify-start', { 'bg-muted': currentPath === item.href }]"
                         as-child
                     >
-                        <Link :href="item.href">
-                            {{ item.title }}
-                        </Link>
+                        <Link :href="item.href">{{ item.title }}</Link>
                     </Button>
                 </nav>
             </aside>
