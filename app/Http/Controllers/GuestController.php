@@ -3,11 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Str;
-use App\Models\Guest;
-use App\Models\GuestDrink;
-use App\Models\Group;
 use App\Models\Category;
 use App\Models\FoodSpecial;
+use App\Models\Group;
+use App\Models\Guest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -15,6 +14,8 @@ class GuestController extends Controller
 {
     public function store(Request $request)
     {
+        $event = $this->activeEvent();
+
         $data = $request->validate([
             'firstname'       => 'required|string|max:255',
             'lastname'        => 'nullable|string|max:255',
@@ -30,15 +31,13 @@ class GuestController extends Controller
             'food_specials.*' => 'exists:food_specials,id',
         ]);
 
-        // Nachname aus Gruppe setzen, wenn leer
         if (!empty($data['group_id']) && empty($data['lastname'])) {
             $group = Group::find($data['group_id']);
-            if ($group) {
-                $data['lastname'] = $group->name;
-            }
+            if ($group) $data['lastname'] = $group->name;
         }
 
         $guest = Guest::create([
+            'event_id'    => $event?->id,
             'firstname'   => $data['firstname'],
             'lastname'    => $data['lastname'] ?? '',
             'category_id' => $data['category_id'],
@@ -69,6 +68,8 @@ class GuestController extends Controller
 
     public function edit(Request $request, Guest $guest)
     {
+        $event = $this->activeEvent();
+
         $guest->load('category', 'group.invitationToken', 'drinks', 'foodSpecials', 'invitationToken');
 
         $returnTo = $request->query('return_to', url()->previous());
@@ -80,13 +81,13 @@ class GuestController extends Controller
         $guestData['food_specials'] = $guest->foodSpecials->pluck('id');
 
         $qrToken = $guest->getQrToken();
-        $qrUrl = $qrToken ? url('/api/auth/qr/' . $qrToken->token) : null;
+        $qrUrl   = $qrToken ? url('/api/auth/qr/' . $qrToken->token) : null;
 
         return Inertia::render('Guests/Edit', [
             'guest'         => $guestData,
             'qr_url'        => $qrUrl,
             'categories'    => Category::orderBy('title', 'asc')->get(['id', 'title']),
-            'groups'        => Group::orderBy('name', 'asc')->get(['id', 'name']),
+            'groups'        => $event ? $event->groups()->orderBy('name')->get(['id', 'name']) : collect(),
             'food_specials' => FoodSpecial::orderBy('name')->get(['id', 'name']),
         ]);
     }

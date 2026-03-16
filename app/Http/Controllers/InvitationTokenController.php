@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Group;
-use App\Models\Guest;
 use App\Models\InvitationToken;
 use Illuminate\Support\Str;
 
@@ -11,16 +9,19 @@ class InvitationTokenController extends Controller
 {
     public function generate()
     {
-        // Token pro Gruppe
-        Group::all()->each(function (Group $group) {
+        $event = $this->activeEvent();
+        if (!$event) return redirect()->back()->with('error', 'Kein aktives Event.');
+
+        // Token pro Gruppe im Event
+        $event->groups()->each(function ($group) {
             InvitationToken::updateOrCreate(
                 ['group_id' => $group->id],
                 ['token' => Str::random(32), 'guest_id' => null],
             );
         });
 
-        // Token pro Solo-Gast (ohne Gruppe)
-        Guest::whereNull('group_id')->each(function (Guest $guest) {
+        // Token pro Solo-Gast im Event
+        $event->guests()->whereNull('group_id')->each(function ($guest) {
             InvitationToken::updateOrCreate(
                 ['guest_id' => $guest->id],
                 ['token' => Str::random(32), 'group_id' => null],

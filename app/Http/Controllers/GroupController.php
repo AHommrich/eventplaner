@@ -9,8 +9,14 @@ class GroupController extends Controller
 {
     public function store(Request $request)
     {
+        $event = $this->activeEvent();
+
         $request->validate(['name' => 'required|string|max:255']);
-        Group::create($request->only('name'));
+
+        Group::create([
+            'event_id' => $event?->id,
+            'name'     => $request->name,
+        ]);
 
         return redirect()->back()->with('success', 'Gruppe erstellt!');
     }

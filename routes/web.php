@@ -16,10 +16,11 @@ use App\Http\Controllers\Admin\UserController;
 
 Route::get('/', function () { return Inertia::render('Welcome'); })->name('home');
 
-// Onboarding für eingeloggte User ohne Event
+// Onboarding + Event-Management für eingeloggte User
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/onboarding', [EventController::class, 'onboarding'])->name('onboarding');
     Route::post('/events', [EventController::class, 'store'])->name('events.store');
+    Route::post('/events/switch', [EventController::class, 'switch'])->name('events.switch');
 });
 
 // Admin-only Routes
