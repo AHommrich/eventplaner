@@ -40,9 +40,37 @@ class EventSettingsController extends Controller
             'color_primary'   => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'color_secondary' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'color_home_text' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'cover'           => 'nullable|file|mimes:jpeg,jpg,png,heic,heif|max:10240',
         ]);
 
-        $event->update($data);
+        $event->update(collect($data)->except('cover')->all());
+
+        if ($request->hasFile('cover')) {
+            $file = $request->file('cover');
+            $mime = strtolower($file->getMimeType() ?? '');
+
+            if (in_array($mime, ['image/heic', 'image/heif'])) {
+                $manager  = ImageManager::imagick();
+                $image    = $manager->read($file->getPathname());
+                $encoded  = $image->toJpeg(90);
+                $contents = (string) $encoded;
+            } else {
+                $contents = file_get_contents($file->getPathname());
+            }
+
+            if ($event->cover_image_r2_key) {
+                Storage::disk('s3')->delete($event->cover_image_r2_key);
+            }
+
+            $key = 'covers/' . Str::uuid() . '.jpg';
+            Storage::disk('s3')->put($key, $contents, 'public');
+            $url = Storage::disk('s3')->url($key);
+
+            $event->update([
+                'cover_image_url'    => $url,
+                'cover_image_r2_key' => $key,
+            ]);
+        }
 
         return redirect()->route('event.settings')->with('success', 'Einstellungen gespeichert.');
     }
