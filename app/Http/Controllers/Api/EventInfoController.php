@@ -23,7 +23,7 @@ class EventInfoController extends Controller
         return response()->json([
             'name'          => $event->name,
             'date'          => $event->date,
-            'rsvp_deadline' => $event->rsvp_deadline?->toIso8601String(),
+            'rsvp_deadline' => $event->rsvp_deadline ? \Carbon\Carbon::parse($event->rsvp_deadline)->toIso8601String() : null,
         ]);
     }
 }
