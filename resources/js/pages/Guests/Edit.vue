@@ -6,8 +6,8 @@ import { onMounted, ref } from 'vue';
 
 const props = defineProps<{
     guest: any;
-    badges: any[];
-    families: any[];
+    categories: any[];
+    groups: any[];
     food_specials: any[];
     qr_url: string | null;
 }>();
@@ -30,8 +30,8 @@ function handleUpdate(form: any) {
         <div class="m-4 rounded-xl border bg-white p-4 dark:bg-gray-900">
             <h2 class="mb-4 text-lg font-semibold">Gast bearbeiten</h2>
             <GuestForm
-                :badges="badges"
-                :families="families"
+                :categories="categories"
+                :groups="groups"
                 :food-specials="food_specials"
                 :initial-form="guest"
                 submit-label="Änderungen speichern"
