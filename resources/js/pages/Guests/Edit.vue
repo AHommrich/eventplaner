@@ -29,6 +29,14 @@ function handleUpdate(form: any) {
     form.put(route('guests.update', props.guest.id), { onSuccess: () => toast.success(t('toast.guestSaved')) });
 }
 
+// App-Zugang Toggle
+const appAccessForm = useForm({ app_access: props.guest.app_access ?? true });
+function toggleAppAccess() {
+    appAccessForm.patch(route('guests.app-access', props.guest.id), {
+        onSuccess: () => toast.success(appAccessForm.app_access ? t('toast.appAccessEnabled') : t('toast.appAccessDisabled')),
+    });
+}
+
 // RSVP Admin-Override (separat)
 const rsvpForm = useForm({ rsvp_status: props.guest.rsvp_status ?? '' });
 function submitRsvp() {
@@ -77,6 +85,25 @@ function setterName(guest: any): string | null {
                 :submit-label="t('guest.saveChanges')"
                 @submit="handleUpdate"
             />
+
+            <!-- App-Zugang -->
+            <div class="mt-6 border-t pt-6 space-y-3">
+                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('guest.appAccess') }}</h3>
+                <div class="flex items-center justify-between rounded-lg border bg-muted/30 px-4 py-3">
+                    <div class="text-sm">
+                        <p class="font-medium">{{ appAccessForm.app_access ? t('guest.appAccessEnabled') : t('guest.appAccessDisabled') }}</p>
+                        <p class="text-muted-foreground">{{ t('guest.appAccessDesc') }}</p>
+                    </div>
+                    <Button
+                        size="sm"
+                        :variant="appAccessForm.app_access ? 'destructive' : 'default'"
+                        :disabled="appAccessForm.processing"
+                        @click="appAccessForm.app_access = !appAccessForm.app_access; toggleAppAccess()"
+                    >
+                        {{ appAccessForm.app_access ? t('guest.appAccessRevoke') : t('guest.appAccessGrant') }}
+                    </Button>
+                </div>
+            </div>
 
             <!-- RSVP-Status (separat vom Formular) -->
             <div class="mt-6 border-t pt-6 space-y-3">
