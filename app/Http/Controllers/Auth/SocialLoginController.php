@@ -38,9 +38,11 @@ class SocialLoginController extends Controller
             $user = User::create([
                 'name'              => $name,
                 'email'             => $email ?? "google-".Str::uuid()."@example.local",
-                'password'          => bcrypt(Str::random(40)), // Random, weil Social Login
-                'email_verified_at' => $email ? now() : null,   // Google-Mail gilt als verifiziert
+                'password'          => bcrypt(Str::random(40)),
+                'email_verified_at' => $email ? now() : null,
             ]);
+        } elseif (!$user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
         }
 
         // (Optional) hier könntest du googleId/Avatar/Token speichern, wenn du ein SocialAccount-Modell nutzt.
