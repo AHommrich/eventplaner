@@ -197,7 +197,7 @@ const previewRsvpDeadline = computed(() => {
                     <div class="flex flex-col items-center gap-1.5">
                         <span class="text-[11px] font-medium text-muted-foreground">Home</span>
                         <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
-                            <div class="flex flex-col" style="height:244px;background-color:#e8e3de;">
+                            <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: form.color_secondary || '#e8e3de' }">
                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
                                 </div>
@@ -208,16 +208,17 @@ const previewRsvpDeadline = computed(() => {
                                     <p class="text-center text-[9px] font-bold leading-tight" :style="{ color: form.color_primary || '#7c2d3e' }">
                                         {{ form.name || 'Event-Name' }}
                                     </p>
-                                    <p v-if="previewDate" class="mt-0.5 text-center text-[7px]" style="color:#8c8880;">{{ previewDate }}</p>
-                                    <p v-if="form.venue_name" class="mt-0.5 text-center text-[6px]" style="color:#a09890;">{{ form.venue_name }}</p>
+                                    <p v-if="previewDate" class="mt-0.5 text-center text-[7px]" :style="{ color: form.color_primary ? form.color_primary+'99' : '#8c8880' }">{{ previewDate }}</p>
+                                    <p v-if="form.venue_name" class="mt-0.5 text-center text-[6px]" :style="{ color: form.color_primary ? form.color_primary+'77' : '#a09890' }">{{ form.venue_name }}</p>
                                     <div v-if="previewDaysLeft" class="mt-2 rounded-full px-2 py-0.5 text-[7px] font-semibold text-white"
                                         :style="{ backgroundColor: form.color_primary || '#7c2d3e' }">
                                         Noch {{ previewDaysLeft }} Tage
                                     </div>
                                 </div>
-                                <div class="flex h-[24px] w-full items-center justify-around border-t" style="background-color:#e8e3de;border-color:rgba(0,0,0,0.1);">
+                                <div class="flex h-[24px] w-full items-center justify-around border-t border-black/10"
+                                    :style="{ backgroundColor: form.color_secondary || '#e8e3de' }">
                                     <span v-for="(tab,i) in ['Home','Zusage','Fotos','Einst.']" :key="'h'+i" class="text-[6px]"
-                                        :style="{ color: i===0 ? (form.color_primary||'#7c2d3e') : '#9e9490', fontWeight: i===0 ? '700':'400' }">{{ tab }}</span>
+                                        :style="{ color: i===0 ? (form.color_primary||'#7c2d3e') : (form.color_primary ? form.color_primary+'66' : '#9e9490'), fontWeight: i===0 ? '700':'400' }">{{ tab }}</span>
                                 </div>
                             </div>
                         </div>
@@ -227,12 +228,12 @@ const previewRsvpDeadline = computed(() => {
                     <div class="flex flex-col items-center gap-1.5">
                         <span class="text-[11px] font-medium text-muted-foreground">Zusage</span>
                         <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
-                            <div class="flex flex-col" style="height:244px;background-color:#e8e3de;">
+                            <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: form.color_secondary || '#e8e3de' }">
                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
                                 </div>
                                 <div class="flex flex-1 flex-col gap-2 px-2 pt-2">
-                                    <p v-if="previewRsvpDeadline" class="text-[6px]" style="color:#8c8880;">Bitte antworte bis {{ previewRsvpDeadline }}.</p>
+                                    <p v-if="previewRsvpDeadline" class="text-[6px]" :style="{ color: form.color_primary ? form.color_primary+'88' : '#8c8880' }">Bitte antworte bis {{ previewRsvpDeadline }}.</p>
                                     <div class="rounded-xl bg-white p-2 shadow-sm">
                                         <div class="flex items-center justify-between">
                                             <span class="text-[8px] font-semibold" :style="{ color: form.color_primary || '#7c2d3e' }">Max Mustermann</span>
@@ -244,9 +245,10 @@ const previewRsvpDeadline = computed(() => {
                                         </div>
                                     </div>
                                 </div>
-                                <div class="flex h-[24px] w-full items-center justify-around border-t" style="background-color:#e8e3de;border-color:rgba(0,0,0,0.1);">
+                                <div class="flex h-[24px] w-full items-center justify-around border-t border-black/10"
+                                    :style="{ backgroundColor: form.color_secondary || '#e8e3de' }">
                                     <span v-for="(tab,i) in ['Home','Zusage','Fotos','Einst.']" :key="'z'+i" class="text-[6px]"
-                                        :style="{ color: i===1 ? (form.color_primary||'#7c2d3e') : '#9e9490', fontWeight: i===1 ? '700':'400' }">{{ tab }}</span>
+                                        :style="{ color: i===1 ? (form.color_primary||'#7c2d3e') : (form.color_primary ? form.color_primary+'66' : '#9e9490'), fontWeight: i===1 ? '700':'400' }">{{ tab }}</span>
                                 </div>
                             </div>
                         </div>
@@ -256,7 +258,7 @@ const previewRsvpDeadline = computed(() => {
                     <div class="flex flex-col items-center gap-1.5">
                         <span class="text-[11px] font-medium text-muted-foreground">Fotos</span>
                         <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
-                            <div class="flex flex-col" style="height:244px;background-color:#e8e3de;">
+                            <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: form.color_secondary || '#e8e3de' }">
                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
                                 </div>
@@ -264,17 +266,19 @@ const previewRsvpDeadline = computed(() => {
                                     <div class="grid grid-cols-3 gap-0.5">
                                         <div v-for="n in 6" :key="n" class="rounded-sm" style="background-color:#d4cfc8;aspect-ratio:1;" />
                                     </div>
+                                    <!-- FAB: Primary-Farbe -->
                                     <div class="absolute bottom-3 right-2 flex h-7 w-7 items-center justify-center rounded-full shadow-md"
-                                        :style="{ backgroundColor: form.color_secondary || '#c49a6c' }">
+                                        :style="{ backgroundColor: form.color_primary || '#7c2d3e' }">
                                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                                             <circle cx="12" cy="13" r="4"/>
                                         </svg>
                                     </div>
                                 </div>
-                                <div class="flex h-[24px] w-full items-center justify-around border-t" style="background-color:#e8e3de;border-color:rgba(0,0,0,0.1);">
+                                <div class="flex h-[24px] w-full items-center justify-around border-t border-black/10"
+                                    :style="{ backgroundColor: form.color_secondary || '#e8e3de' }">
                                     <span v-for="(tab,i) in ['Home','Zusage','Fotos','Einst.']" :key="'f'+i" class="text-[6px]"
-                                        :style="{ color: i===2 ? (form.color_primary||'#7c2d3e') : '#9e9490', fontWeight: i===2 ? '700':'400' }">{{ tab }}</span>
+                                        :style="{ color: i===2 ? (form.color_primary||'#7c2d3e') : (form.color_primary ? form.color_primary+'66' : '#9e9490'), fontWeight: i===2 ? '700':'400' }">{{ tab }}</span>
                                 </div>
                             </div>
                         </div>
@@ -284,17 +288,17 @@ const previewRsvpDeadline = computed(() => {
                     <div class="flex flex-col items-center gap-1.5">
                         <span class="text-[11px] font-medium text-muted-foreground">Einstellungen</span>
                         <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
-                            <div class="flex flex-col" style="height:244px;background-color:#e8e3de;">
+                            <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: form.color_secondary || '#e8e3de' }">
                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
                                 </div>
                                 <div class="flex flex-1 flex-col items-center justify-center gap-2 px-2">
                                     <div class="w-full rounded-xl bg-white p-2 shadow-sm">
-                                        <p class="text-[6px]" style="color:#9e9490;">Eingeloggt als</p>
+                                        <p class="text-[6px]" :style="{ color: form.color_primary ? form.color_primary+'88' : '#9e9490' }">Eingeloggt als</p>
                                         <p class="text-[8px] font-semibold" :style="{ color: form.color_primary || '#7c2d3e' }">Max Mustermann</p>
                                     </div>
                                     <div class="w-full rounded-xl bg-white p-2 shadow-sm">
-                                        <p class="mb-1 text-[6px]" style="color:#9e9490;">Sprache</p>
+                                        <p class="mb-1 text-[6px]" :style="{ color: form.color_primary ? form.color_primary+'88' : '#9e9490' }">Sprache</p>
                                         <div class="flex gap-1">
                                             <div class="flex-1 rounded-lg py-0.5 text-center text-[6px] font-semibold text-white" :style="{ backgroundColor: form.color_primary || '#7c2d3e' }">Deutsch</div>
                                             <div class="flex-1 rounded-lg py-0.5 text-center text-[6px]" style="background-color:#e0dbd4;color:#666;">Englisch</div>
@@ -305,9 +309,10 @@ const previewRsvpDeadline = computed(() => {
                                         Ausloggen
                                     </div>
                                 </div>
-                                <div class="flex h-[24px] w-full items-center justify-around border-t" style="background-color:#e8e3de;border-color:rgba(0,0,0,0.1);">
+                                <div class="flex h-[24px] w-full items-center justify-around border-t border-black/10"
+                                    :style="{ backgroundColor: form.color_secondary || '#e8e3de' }">
                                     <span v-for="(tab,i) in ['Home','Zusage','Fotos','Einst.']" :key="'e'+i" class="text-[6px]"
-                                        :style="{ color: i===3 ? (form.color_primary||'#7c2d3e') : '#9e9490', fontWeight: i===3 ? '700':'400' }">{{ tab }}</span>
+                                        :style="{ color: i===3 ? (form.color_primary||'#7c2d3e') : (form.color_primary ? form.color_primary+'66' : '#9e9490'), fontWeight: i===3 ? '700':'400' }">{{ tab }}</span>
                                 </div>
                             </div>
                         </div>

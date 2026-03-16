@@ -44,9 +44,9 @@
     "venueAddress": "Adresse",
     "dresscode": "Dresscode",
     "schedule": "Ablauf",
-    "colorPrimary": "Primärfarbe",
-    "colorSecondary": "Sekundärfarbe",
-    "colorHint": "Wird als App-Farbschema verwendet",
+    "colorPrimary": "Primärfarbe (Text & Buttons)",
+    "colorSecondary": "Sekundärfarbe (Hintergrund)",
+    "colorHint": "Primär = Textfarbe & Schaltflächen · Sekundär = App-Hintergrund",
     "phonePreview": "Vorschau",
     "saveSettings": "Einstellungen speichern"
   },

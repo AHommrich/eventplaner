@@ -44,9 +44,9 @@
     "venueAddress": "Address",
     "dresscode": "Dress code",
     "schedule": "Schedule",
-    "colorPrimary": "Primary color",
-    "colorSecondary": "Secondary color",
-    "colorHint": "Used as app color scheme",
+    "colorPrimary": "Primary color (text & buttons)",
+    "colorSecondary": "Secondary color (background)",
+    "colorHint": "Primary = text color & buttons · Secondary = app background",
     "phonePreview": "Preview",
     "saveSettings": "Save settings"
   },
