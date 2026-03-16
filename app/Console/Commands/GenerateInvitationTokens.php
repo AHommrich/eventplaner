@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Family;
+use App\Models\Group;
 use App\Models\Guest;
 use App\Models\InvitationToken;
 use Illuminate\Console\Command;
@@ -13,7 +13,7 @@ class GenerateInvitationTokens extends Command
     protected $signature = 'invitations:generate
                             {--force : Bestehende Tokens überschreiben}';
 
-    protected $description = 'Generiert Einladungstoken für alle Familien und Solo-Gäste';
+    protected $description = 'Generiert Einladungstoken für alle Gruppen und Solo-Gäste';
 
     public function handle(): void
     {
@@ -21,34 +21,34 @@ class GenerateInvitationTokens extends Command
         $created = 0;
         $skipped = 0;
 
-        // 1. Einen Token pro Familie
-        Family::all()->each(function (Family $family) use ($force, &$created, &$skipped) {
-            $exists = InvitationToken::where('family_id', $family->id)->exists();
+        // 1. Einen Token pro Gruppe
+        Group::all()->each(function (Group $group) use ($force, &$created, &$skipped) {
+            $exists = InvitationToken::where('group_id', $group->id)->exists();
 
-            if ($exists && ! $force) {
+            if ($exists && !$force) {
                 $skipped++;
                 return;
             }
 
             InvitationToken::updateOrCreate(
-                ['family_id' => $family->id],
+                ['group_id' => $group->id],
                 ['token' => Str::random(32), 'guest_id' => null],
             );
             $created++;
         });
 
-        // 2. Einen Token pro Gast ohne Familie
-        Guest::whereNull('family_id')->each(function (Guest $guest) use ($force, &$created, &$skipped) {
+        // 2. Einen Token pro Gast ohne Gruppe
+        Guest::whereNull('group_id')->each(function (Guest $guest) use ($force, &$created, &$skipped) {
             $exists = InvitationToken::where('guest_id', $guest->id)->exists();
 
-            if ($exists && ! $force) {
+            if ($exists && !$force) {
                 $skipped++;
                 return;
             }
 
             InvitationToken::updateOrCreate(
                 ['guest_id' => $guest->id],
-                ['token' => Str::random(32), 'family_id' => null],
+                ['token' => Str::random(32), 'group_id' => null],
             );
             $created++;
         });

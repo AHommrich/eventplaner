@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Family;
+use App\Models\Group;
 use Illuminate\Http\Request;
 
-class FamilyController extends Controller
+class GroupController extends Controller
 {
     public function store(Request $request)
     {
         $request->validate(['name' => 'required|string|max:255']);
-        Family::create($request->only('name'));
+        Group::create($request->only('name'));
 
-        return redirect()->back()->with('success', 'Familie erstellt!');
-
+        return redirect()->back()->with('success', 'Gruppe erstellt!');
     }
 }
