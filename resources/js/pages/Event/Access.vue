@@ -4,7 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { type BreadcrumbItem } from '@/types';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 const props = defineProps<{
     event:   { id: number; name: string };
@@ -16,7 +18,12 @@ const breadcrumbs: BreadcrumbItem[] = [{ title: 'Zugang verwalten', href: '/even
 const form = useForm({ email: '' });
 
 function invite() { form.post(route('event.access.invite'), { onSuccess: () => form.reset() }); }
-function remove(userId: number) { router.delete(route('event.access.remove', userId)); }
+
+const confirmOpen  = ref(false);
+const pendingUserId = ref<number | null>(null);
+const pendingName   = ref('');
+function askRemove(member: { id: number; name: string }) { pendingUserId.value = member.id; pendingName.value = member.name; confirmOpen.value = true; }
+function doRemove() { if (pendingUserId.value) router.delete(route('event.access.remove', pendingUserId.value)); }
 </script>
 
 <template>
@@ -64,7 +71,7 @@ function remove(userId: number) { router.delete(route('event.access.remove', use
                                 <p class="text-sm font-medium">{{ member.name }}</p>
                                 <p class="text-xs text-muted-foreground">{{ member.email }}</p>
                             </div>
-                            <Button variant="destructive" size="sm" @click="remove(member.id)">Entfernen</Button>
+                            <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="askRemove(member)">Entfernen</Button>
                         </li>
                         <li v-if="members.length === 0" class="py-4 text-center text-sm text-muted-foreground">
                             Noch niemand anderes hat Zugang.
@@ -74,5 +81,14 @@ function remove(userId: number) { router.delete(route('event.access.remove', use
             </Card>
 
         </div>
+
+        <ConfirmDialog
+            v-model:open="confirmOpen"
+            :title="`${pendingName} entfernen?`"
+            description="Der User verliert den Zugang zu diesem Event."
+            confirm-label="Entfernen"
+            destructive
+            @confirm="doRemove"
+        />
     </AppLayout>
 </template>
