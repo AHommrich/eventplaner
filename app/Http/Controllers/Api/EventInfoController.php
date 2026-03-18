@@ -29,9 +29,14 @@ class EventInfoController extends Controller
             'venue_address'    => $event->venue_address,
             'dresscode'        => $event->dresscode,
             'schedule'         => $event->schedule,
+            // Neue Theme-Felder (4 klar definierte Rollen)
+            'color_accent'        => $event->color_accent     ?? '#7c2d3e',
+            'color_background'    => $event->color_background ?? '#e8e3de',
+            'color_card'          => $event->color_card        ?? '#ffffff',
+            'color_home_text'     => $event->color_home_text   ?? '#ffffff',
+            // Alte Felder bleiben für Übergangszeit (App-Rückwärtskompatibilität)
             'color_primary'       => $event->color_primary,
             'color_secondary'     => $event->color_secondary,
-            'color_home_text'     => $event->color_home_text,
             'drink_game_enabled'   => (bool) $event->drink_game_enabled,
             'drink_game_end_time'  => $event->drink_game_end_time ? Carbon::parse($event->drink_game_end_time)->toIso8601String() : null,
         ]);
