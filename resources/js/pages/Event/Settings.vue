@@ -22,8 +22,9 @@ interface EventData {
     venue_address: string | null;
     dresscode: string | null;
     schedule: string | null;
-    color_primary: string | null;
-    color_secondary: string | null;
+    color_accent: string | null;
+    color_background: string | null;
+    color_card: string | null;
     color_home_text: string | null;
 }
 
@@ -42,9 +43,10 @@ const form = useForm({
     venue_address:   props.event.venue_address ?? '',
     dresscode:       props.event.dresscode ?? '',
     schedule:        props.event.schedule ?? '',
-    color_primary:   props.event.color_primary ?? '#7c2d3e',
-    color_secondary: props.event.color_secondary ?? '#e8e3de',
-    color_home_text:     props.event.color_home_text ?? '#ffffff',
+    color_accent:     props.event.color_accent     ?? '#7c2d3e',
+    color_background: props.event.color_background ?? '#e8e3de',
+    color_card:       props.event.color_card        ?? '#ffffff',
+    color_home_text:  props.event.color_home_text   ?? '#ffffff',
     cover: null as File | null,
 });
 
@@ -204,28 +206,36 @@ const tabDefs = [
                                 <!-- Farben -->
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="grid gap-2">
-                                        <Label>{{ t('event.colorPrimary') }}</Label>
+                                        <Label>{{ t('event.colorAccent') }}</Label>
                                         <div class="flex items-center gap-2">
-                                            <input type="color" v-model="form.color_primary"
+                                            <input type="color" v-model="form.color_accent"
                                                 class="h-9 w-12 cursor-pointer rounded border border-input bg-transparent p-0.5" />
-                                            <Input v-model="form.color_primary" class="font-mono uppercase" maxlength="7" placeholder="#7c2d3e" />
+                                            <Input v-model="form.color_accent" class="font-mono uppercase" maxlength="7" placeholder="#7c2d3e" />
                                         </div>
                                     </div>
                                     <div class="grid gap-2">
-                                        <Label>{{ t('event.colorSecondary') }}</Label>
+                                        <Label>{{ t('event.colorBackground') }}</Label>
                                         <div class="flex items-center gap-2">
-                                            <input type="color" v-model="form.color_secondary"
+                                            <input type="color" v-model="form.color_background"
                                                 class="h-9 w-12 cursor-pointer rounded border border-input bg-transparent p-0.5" />
-                                            <Input v-model="form.color_secondary" class="font-mono uppercase" maxlength="7" placeholder="#e8e3de" />
+                                            <Input v-model="form.color_background" class="font-mono uppercase" maxlength="7" placeholder="#e8e3de" />
                                         </div>
                                     </div>
-                                </div>
-                                <div v-if="displayCoverUrl" class="grid gap-2">
-                                    <Label>{{ t('event.colorHomeText') }}</Label>
-                                    <div class="flex items-center gap-2">
-                                        <input type="color" v-model="form.color_home_text"
-                                            class="h-9 w-12 cursor-pointer rounded border border-input bg-transparent p-0.5" />
-                                        <Input v-model="form.color_home_text" class="font-mono uppercase" maxlength="7" placeholder="#ffffff" />
+                                    <div class="grid gap-2">
+                                        <Label>{{ t('event.colorCard') }}</Label>
+                                        <div class="flex items-center gap-2">
+                                            <input type="color" v-model="form.color_card"
+                                                class="h-9 w-12 cursor-pointer rounded border border-input bg-transparent p-0.5" />
+                                            <Input v-model="form.color_card" class="font-mono uppercase" maxlength="7" placeholder="#ffffff" />
+                                        </div>
+                                    </div>
+                                    <div v-if="displayCoverUrl" class="grid gap-2">
+                                        <Label>{{ t('event.colorHomeText') }}</Label>
+                                        <div class="flex items-center gap-2">
+                                            <input type="color" v-model="form.color_home_text"
+                                                class="h-9 w-12 cursor-pointer rounded border border-input bg-transparent p-0.5" />
+                                            <Input v-model="form.color_home_text" class="font-mono uppercase" maxlength="7" placeholder="#ffffff" />
+                                        </div>
                                     </div>
                                 </div>
                                 <p class="text-xs text-muted-foreground">{{ t('event.colorHint') }}</p>
@@ -300,7 +310,7 @@ const tabDefs = [
                                     <p v-if="previewDate" class="mt-0.5 text-center text-[7px]" :style="{ color: (form.color_home_text || '#ffffff') + 'bb' }">{{ previewDate }}</p>
                                     <p v-if="form.venue_name" class="mt-0.5 text-center text-[6px]" :style="{ color: (form.color_home_text || '#ffffff') + '88' }">{{ form.venue_name }}</p>
                                     <div v-if="previewDaysLeft" class="mt-2 rounded-full px-2 py-0.5 text-[7px] font-semibold"
-                                        :style="{ backgroundColor: form.color_primary || '#7c2d3e', color: form.color_home_text || '#ffffff' }">
+                                        :style="{ backgroundColor: form.color_accent || '#7c2d3e', color: form.color_home_text || '#ffffff' }">
                                         Noch {{ previewDaysLeft }} Tage
                                     </div>
                                 </div>
@@ -315,27 +325,27 @@ const tabDefs = [
                                 </div>
                             </div>
                             <!-- Ohne Cover: Secondary BG + Primary Text -->
-                            <div v-else class="flex flex-col" style="height:244px;" :style="{ backgroundColor: form.color_secondary || '#e8e3de' }">
+                            <div v-else class="flex flex-col" style="height:244px;" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
                                 </div>
                                 <div class="flex flex-1 flex-col items-center justify-center px-2.5 pb-1">
-                                    <p class="text-center text-[9px] font-bold leading-tight" :style="{ color: form.color_primary || '#7c2d3e' }">
+                                    <p class="text-center text-[9px] font-bold leading-tight" :style="{ color: form.color_accent || '#7c2d3e' }">
                                         {{ form.name || 'Event-Name' }}
                                     </p>
-                                    <p v-if="previewDate" class="mt-0.5 text-center text-[7px]" :style="{ color: form.color_primary ? form.color_primary+'99' : '#8c8880' }">{{ previewDate }}</p>
+                                    <p v-if="previewDate" class="mt-0.5 text-center text-[7px]" :style="{ color: form.color_accent ? form.color_accent+'99' : '#8c8880' }">{{ previewDate }}</p>
                                     <div v-if="previewDaysLeft" class="mt-2 rounded-full px-2 py-0.5 text-[7px] font-semibold text-white"
-                                        :style="{ backgroundColor: form.color_primary || '#7c2d3e' }">
+                                        :style="{ backgroundColor: form.color_accent || '#7c2d3e' }">
                                         Noch {{ previewDaysLeft }} Tage
                                     </div>
                                 </div>
-                                <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t border-black/10" :style="{ backgroundColor: form.color_secondary || '#e8e3de' }">
+                                <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t border-black/10" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
                                     <div v-for="(tab, i) in tabDefs" :key="'hn'+i" class="flex flex-col items-center gap-0.5">
                                         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                            :stroke="i===0 ? (form.color_primary||'#7c2d3e') : (form.color_primary ? form.color_primary+'55' : '#9e9490')">
+                                            :stroke="i===0 ? (form.color_accent||'#7c2d3e') : (form.color_accent ? form.color_accent+'55' : '#9e9490')">
                                             <path v-for="(p,pi) in tab.paths" :key="pi" :d="p" />
                                         </svg>
-                                        <span class="text-[5px]" :style="{ color: i===0 ? (form.color_primary||'#7c2d3e') : (form.color_primary ? form.color_primary+'55' : '#9e9490'), fontWeight: i===0?'700':'400' }">{{ tab.label }}</span>
+                                        <span class="text-[5px]" :style="{ color: i===0 ? (form.color_accent||'#7c2d3e') : (form.color_accent ? form.color_accent+'55' : '#9e9490'), fontWeight: i===0?'700':'400' }">{{ tab.label }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -346,15 +356,15 @@ const tabDefs = [
                     <div class="flex flex-col items-center gap-1.5">
                         <span class="text-[11px] font-medium text-muted-foreground">Zusage</span>
                         <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
-                            <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: form.color_secondary || '#e8e3de' }">
+                            <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
                                 </div>
                                 <div class="flex flex-1 flex-col gap-2 px-2 pt-2">
-                                    <p v-if="previewRsvpDeadline" class="text-[6px]" :style="{ color: form.color_primary ? form.color_primary+'88' : '#8c8880' }">Bitte antworte bis {{ previewRsvpDeadline }}.</p>
-                                    <div class="rounded-xl bg-white p-2 shadow-sm">
+                                    <p v-if="previewRsvpDeadline" class="text-[6px]" :style="{ color: form.color_accent ? form.color_accent+'88' : '#8c8880' }">Bitte antworte bis {{ previewRsvpDeadline }}.</p>
+                                    <div class="rounded-xl p-2 shadow-sm" :style="{ backgroundColor: form.color_card || '#ffffff' }">
                                         <div class="flex items-center justify-between">
-                                            <span class="text-[8px] font-semibold" :style="{ color: form.color_primary || '#7c2d3e' }">Max Mustermann</span>
+                                            <span class="text-[8px] font-semibold" :style="{ color: form.color_accent || '#7c2d3e' }">Max Mustermann</span>
                                             <span class="rounded-full px-1.5 py-0.5 text-[5px] font-semibold text-white" style="background-color:#4a7c59;">Zusagen</span>
                                         </div>
                                         <div class="mt-1.5 flex gap-1">
@@ -363,13 +373,13 @@ const tabDefs = [
                                         </div>
                                     </div>
                                 </div>
-                                <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t border-black/10" :style="{ backgroundColor: form.color_secondary || '#e8e3de' }">
+                                <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t border-black/10" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
                                     <div v-for="(tab, i) in tabDefs" :key="'z'+i" class="flex flex-col items-center gap-0.5">
                                         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                            :stroke="i===1 ? (form.color_primary||'#7c2d3e') : (form.color_primary ? form.color_primary+'55' : '#9e9490')">
+                                            :stroke="i===1 ? (form.color_accent||'#7c2d3e') : (form.color_accent ? form.color_accent+'55' : '#9e9490')">
                                             <path v-for="(p,pi) in tab.paths" :key="pi" :d="p" />
                                         </svg>
-                                        <span class="text-[5px]" :style="{ color: i===1 ? (form.color_primary||'#7c2d3e') : (form.color_primary ? form.color_primary+'55' : '#9e9490'), fontWeight: i===1?'700':'400' }">{{ tab.label }}</span>
+                                        <span class="text-[5px]" :style="{ color: i===1 ? (form.color_accent||'#7c2d3e') : (form.color_accent ? form.color_accent+'55' : '#9e9490'), fontWeight: i===1?'700':'400' }">{{ tab.label }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -380,7 +390,7 @@ const tabDefs = [
                     <div class="flex flex-col items-center gap-1.5">
                         <span class="text-[11px] font-medium text-muted-foreground">Fotos</span>
                         <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
-                            <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: form.color_secondary || '#e8e3de' }">
+                            <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
                                 </div>
@@ -389,20 +399,20 @@ const tabDefs = [
                                         <div v-for="n in 6" :key="n" class="rounded-sm" style="background-color:#d4cfc8;aspect-ratio:1;" />
                                     </div>
                                     <div class="absolute bottom-3 right-2 flex h-7 w-7 items-center justify-center rounded-full shadow-md"
-                                        :style="{ backgroundColor: form.color_primary || '#7c2d3e' }">
+                                        :style="{ backgroundColor: form.color_accent || '#7c2d3e' }">
                                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                                             <circle cx="12" cy="13" r="4"/>
                                         </svg>
                                     </div>
                                 </div>
-                                <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t border-black/10" :style="{ backgroundColor: form.color_secondary || '#e8e3de' }">
+                                <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t border-black/10" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
                                     <div v-for="(tab, i) in tabDefs" :key="'f'+i" class="flex flex-col items-center gap-0.5">
                                         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                            :stroke="i===2 ? (form.color_primary||'#7c2d3e') : (form.color_primary ? form.color_primary+'55' : '#9e9490')">
+                                            :stroke="i===2 ? (form.color_accent||'#7c2d3e') : (form.color_accent ? form.color_accent+'55' : '#9e9490')">
                                             <path v-for="(p,pi) in tab.paths" :key="pi" :d="p" />
                                         </svg>
-                                        <span class="text-[5px]" :style="{ color: i===2 ? (form.color_primary||'#7c2d3e') : (form.color_primary ? form.color_primary+'55' : '#9e9490'), fontWeight: i===2?'700':'400' }">{{ tab.label }}</span>
+                                        <span class="text-[5px]" :style="{ color: i===2 ? (form.color_accent||'#7c2d3e') : (form.color_accent ? form.color_accent+'55' : '#9e9490'), fontWeight: i===2?'700':'400' }">{{ tab.label }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -413,34 +423,34 @@ const tabDefs = [
                     <div class="flex flex-col items-center gap-1.5">
                         <span class="text-[11px] font-medium text-muted-foreground">Einstellungen</span>
                         <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
-                            <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: form.color_secondary || '#e8e3de' }">
+                            <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
                                 </div>
                                 <div class="flex flex-1 flex-col items-center justify-center gap-2 px-2">
-                                    <div class="w-full rounded-xl bg-white p-2 shadow-sm">
-                                        <p class="text-[6px]" :style="{ color: form.color_primary ? form.color_primary+'88' : '#9e9490' }">Eingeloggt als</p>
-                                        <p class="text-[8px] font-semibold" :style="{ color: form.color_primary || '#7c2d3e' }">Max Mustermann</p>
+                                    <div class="w-full rounded-xl p-2 shadow-sm" :style="{ backgroundColor: form.color_card || '#ffffff' }">
+                                        <p class="text-[6px]" :style="{ color: form.color_accent ? form.color_accent+'88' : '#9e9490' }">Eingeloggt als</p>
+                                        <p class="text-[8px] font-semibold" :style="{ color: form.color_accent || '#7c2d3e' }">Max Mustermann</p>
                                     </div>
-                                    <div class="w-full rounded-xl bg-white p-2 shadow-sm">
-                                        <p class="mb-1 text-[6px]" :style="{ color: form.color_primary ? form.color_primary+'88' : '#9e9490' }">Sprache</p>
+                                    <div class="w-full rounded-xl p-2 shadow-sm" :style="{ backgroundColor: form.color_card || '#ffffff' }">
+                                        <p class="mb-1 text-[6px]" :style="{ color: form.color_accent ? form.color_accent+'88' : '#9e9490' }">Sprache</p>
                                         <div class="flex gap-1">
-                                            <div class="flex-1 rounded-lg py-0.5 text-center text-[6px] font-semibold text-white" :style="{ backgroundColor: form.color_primary || '#7c2d3e' }">Deutsch</div>
+                                            <div class="flex-1 rounded-lg py-0.5 text-center text-[6px] font-semibold text-white" :style="{ backgroundColor: form.color_accent || '#7c2d3e' }">Deutsch</div>
                                             <div class="flex-1 rounded-lg py-0.5 text-center text-[6px]" style="background-color:#e0dbd4;color:#666;">Englisch</div>
                                         </div>
                                     </div>
                                     <div class="w-full rounded-xl border py-1 text-center text-[7px] font-medium"
-                                        :style="{ borderColor: form.color_primary || '#7c2d3e', color: form.color_primary || '#7c2d3e' }">
+                                        :style="{ borderColor: form.color_accent || '#7c2d3e', color: form.color_accent || '#7c2d3e' }">
                                         Ausloggen
                                     </div>
                                 </div>
-                                <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t border-black/10" :style="{ backgroundColor: form.color_secondary || '#e8e3de' }">
+                                <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t border-black/10" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
                                     <div v-for="(tab, i) in tabDefs" :key="'e'+i" class="flex flex-col items-center gap-0.5">
                                         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                            :stroke="i===3 ? (form.color_primary||'#7c2d3e') : (form.color_primary ? form.color_primary+'55' : '#9e9490')">
+                                            :stroke="i===3 ? (form.color_accent||'#7c2d3e') : (form.color_accent ? form.color_accent+'55' : '#9e9490')">
                                             <path v-for="(p,pi) in tab.paths" :key="pi" :d="p" />
                                         </svg>
-                                        <span class="text-[5px]" :style="{ color: i===3 ? (form.color_primary||'#7c2d3e') : (form.color_primary ? form.color_primary+'55' : '#9e9490'), fontWeight: i===3?'700':'400' }">{{ tab.label }}</span>
+                                        <span class="text-[5px]" :style="{ color: i===3 ? (form.color_accent||'#7c2d3e') : (form.color_accent ? form.color_accent+'55' : '#9e9490'), fontWeight: i===3?'700':'400' }">{{ tab.label }}</span>
                                     </div>
                                 </div>
                             </div>
