@@ -190,6 +190,7 @@
   },
   "game": {
     "title": "Trinkspiel",
+    "availableDrinks": "Getränke & Punkte",
     "leaderboard": "Rangliste",
     "drinkTotals": "Getränke gesamt",
     "points": "Pkt.",
