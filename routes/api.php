@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Route;
 
 // QR-Code Login: kein Auth nötig, Token im URL identifiziert den Gast
 Route::get('/auth/qr/{token}', [QrAuthController::class, 'login']);
+// Familien-Picker: Gast wählt sich aus, Token wird erst jetzt ausgestellt
+Route::post('/auth/qr/{token}/select', [QrAuthController::class, 'select']);
 
 // Logout: löscht den aktuellen Bearer Token serverseitig
 // Braucht: Authorization: Bearer {token} im Header — kein Body
