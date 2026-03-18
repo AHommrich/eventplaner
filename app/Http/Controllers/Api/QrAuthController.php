@@ -6,15 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Guest;
 use App\Models\InvitationToken;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Laravel\Sanctum\PersonalAccessToken;
 
 class QrAuthController extends Controller
 {
     /**
-     * QR-Code Login: Tauscht einen Einladungstoken gegen einen Sanctum Bearer Token.
+     * Schritt 1: QR-Code scannen — gibt Gästeliste zurück, erstellt KEINE Tokens.
      *
-     * Der Token gehört entweder einer Gruppe (mehrere Gäste)
-     * oder einem Einzelgast ohne Gruppe.
+     * Für Solo-Gäste wird der Token direkt ausgestellt (kein Picker nötig).
+     * Für Familien-Gäste muss danach /auth/qr/{token}/select aufgerufen werden.
      */
     public function login(string $token): JsonResponse
     {
@@ -39,49 +40,85 @@ class QrAuthController extends Controller
         $isGroup   = $invitation->group_id !== null;
         $groupName = $isGroup ? $invitation->group->name : null;
 
-        $result = $guests->map(function ($guest) use ($isGroup) {
-            // Explizit auf tokenable_type + tokenable_id scopen statt über
-            // die MorphMany-Relation auf eager-geladenen Objekten zu gehen.
-            $hasActiveToken = PersonalAccessToken::where('tokenable_type', Guest::class)
+        // Solo-Gast: Token direkt ausstellen (kein Picker, kein Select-Schritt nötig)
+        if (!$isGroup) {
+            $guest = $guests->first();
+            $guest->tokens()->delete();
+            $sanctumToken = $guest->createToken('guest-login', ['role:guest']);
+
+            return response()->json([
+                'type'   => 'solo',
+                'guests' => [[
+                    'guest_id'  => $guest->id,
+                    'firstname' => $guest->firstname,
+                    'lastname'  => $guest->lastname,
+                    'token'     => $sanctumToken->plainTextToken,
+                    'is_active' => false,
+                ]],
+            ]);
+        }
+
+        // Familien-Gäste: nur Status zurückgeben, KEIN Token erstellen
+        $result = $guests->map(fn($guest) => [
+            'guest_id'  => $guest->id,
+            'firstname' => $guest->firstname,
+            'lastname'  => $guest->lastname,
+            'token'     => null,
+            'is_active' => PersonalAccessToken::where('tokenable_type', Guest::class)
                 ->where('tokenable_id', $guest->id)
-                ->exists();
-
-            // Solo-Gäste: Token immer erneuern (nur ein möglicher Nutzer)
-            // Familien-Gäste: nur neuen Token ausstellen wenn noch keiner aktiv ist
-            if (!$isGroup || !$hasActiveToken) {
-                PersonalAccessToken::where('tokenable_type', Guest::class)
-                    ->where('tokenable_id', $guest->id)
-                    ->delete();
-                $sanctumToken = $guest->createToken('guest-login', ['role:guest']);
-                $plainToken   = $sanctumToken->plainTextToken;
-            } else {
-                $plainToken = null;
-            }
-
-            return [
-                'guest_id'  => $guest->id,
-                'firstname' => $guest->firstname,
-                'lastname'  => $guest->lastname,
-                'token'     => $plainToken,
-                'is_active' => $hasActiveToken,
-            ];
-        });
-
-        // TEMP DEBUG — nach Diagnose entfernen
-        $debug = $guests->map(fn($g) => [
-            'guest_id'     => $g->id,
-            'guest_class'  => get_class($g),
-            'tokens_in_db' => PersonalAccessToken::where('tokenable_type', Guest::class)
-                ->where('tokenable_id', $g->id)
-                ->get(['id', 'tokenable_type', 'tokenable_id', 'created_at'])
-                ->toArray(),
+                ->exists(),
         ]);
 
         return response()->json([
-            'type'        => $isGroup ? 'family' : 'solo',
+            'type'        => 'family',
             'family_name' => $groupName,
             'guests'      => $result,
-            '_debug'      => $debug,
+        ]);
+    }
+
+    /**
+     * Schritt 2 (nur Familie): Gast wählt sich aus — Token wird jetzt erst erstellt.
+     *
+     * Body: { "guest_id": 42 }
+     * Gibt token zurück wenn Gast noch nicht aktiv, sonst Fehler 409.
+     */
+    public function select(string $token, Request $request): JsonResponse
+    {
+        $invitation = InvitationToken::with(['group.guests'])
+            ->where('token', $token)
+            ->whereNotNull('group_id')
+            ->first();
+
+        if (!$invitation) {
+            return response()->json(['message' => 'Ungültiger Einladungslink.'], 404);
+        }
+
+        $guestId = $request->input('guest_id');
+        $guest   = $invitation->group->guests->firstWhere('id', $guestId);
+
+        if (!$guest) {
+            return response()->json(['message' => 'Gast gehört nicht zu dieser Gruppe.'], 403);
+        }
+
+        if (!$guest->app_access) {
+            return response()->json(['message' => 'Der App-Zugang wurde für diesen Gast deaktiviert.'], 403);
+        }
+
+        $alreadyActive = PersonalAccessToken::where('tokenable_type', Guest::class)
+            ->where('tokenable_id', $guest->id)
+            ->exists();
+
+        if ($alreadyActive) {
+            return response()->json(['message' => 'Dieser Gast ist bereits eingeloggt.'], 409);
+        }
+
+        $sanctumToken = $guest->createToken('guest-login', ['role:guest']);
+
+        return response()->json([
+            'guest_id'  => $guest->id,
+            'firstname' => $guest->firstname,
+            'lastname'  => $guest->lastname,
+            'token'     => $sanctumToken->plainTextToken,
         ]);
     }
 }
