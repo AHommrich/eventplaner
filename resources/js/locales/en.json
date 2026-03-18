@@ -190,6 +190,7 @@
   },
   "game": {
     "title": "Drinking Game",
+    "availableDrinks": "Drinks & Points",
     "leaderboard": "Leaderboard",
     "drinkTotals": "Total drinks",
     "points": "pts.",

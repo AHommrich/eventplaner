@@ -152,7 +152,15 @@ class DrinkController extends Controller
                 ]);
         }
 
+        $eventDrinkList = $drinks->map(fn($d) => [
+            'id'           => $d->id,
+            'display_name' => $d->catalog?->display_name,
+            'is_alcoholic' => $d->catalog?->is_alcoholic,
+            'points'       => $d->catalog ? DrinkScoreService::basePoints($d->catalog) : 0,
+        ])->sortBy('display_name')->values();
+
         return Inertia::render('Drinks/Game', [
+            'event_drinks' => $eventDrinkList,
             'event_totals' => $eventTotals,
             'leaderboard'  => $leaderboard,
             'guest_totals' => $guestTotals,
