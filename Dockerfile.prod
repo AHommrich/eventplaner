@@ -123,6 +123,7 @@ cmd ["/bin/sh","-lc", "\
   (php artisan route:cache || true) && \
   (php artisan view:cache || true) && \
   (php artisan migrate --force || true) && \
+  (php artisan db:seed --class=DrinkCatalogSeeder --force || true) && \
   php-fpm -D && \
   exec nginx -g 'daemon off;' \
 "]
