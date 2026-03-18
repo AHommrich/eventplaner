@@ -37,22 +37,32 @@ class QrAuthController extends Controller
         $isGroup   = $invitation->group_id !== null;
         $groupName = $isGroup ? $invitation->group->name : null;
 
-        $result = $guests->map(function ($guest) {
-            $guest->tokens()->delete();
-            $sanctumToken = $guest->createToken('guest-login', ['role:guest']);
+        $result = $guests->map(function ($guest) use ($isGroup) {
+            $hasActiveToken = $guest->tokens()->exists();
+
+            // Solo-Gäste: Token immer erneuern (nur ein möglicher Nutzer)
+            // Familien-Gäste: nur neuen Token ausstellen wenn noch keiner aktiv ist
+            if (!$isGroup || !$hasActiveToken) {
+                $guest->tokens()->delete();
+                $sanctumToken = $guest->createToken('guest-login', ['role:guest']);
+                $plainToken   = $sanctumToken->plainTextToken;
+            } else {
+                $plainToken = null;
+            }
 
             return [
                 'guest_id'  => $guest->id,
                 'firstname' => $guest->firstname,
                 'lastname'  => $guest->lastname,
-                'token'     => $sanctumToken->plainTextToken,
+                'token'     => $plainToken,
+                'is_active' => $hasActiveToken,
             ];
         });
 
         return response()->json([
-            'type'       => $isGroup ? 'group' : 'solo',
-            'group_name' => $groupName,
-            'guests'     => $result,
+            'type'        => $isGroup ? 'family' : 'solo',
+            'family_name' => $groupName,
+            'guests'      => $result,
         ]);
     }
 }
