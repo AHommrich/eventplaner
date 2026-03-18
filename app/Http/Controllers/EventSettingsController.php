@@ -20,7 +20,6 @@ class EventSettingsController extends Controller
                 'id', 'name', 'date', 'rsvp_deadline',
                 'cover_image_url', 'venue_name', 'venue_address',
                 'dresscode', 'schedule', 'color_primary', 'color_secondary', 'color_home_text',
-                'drink_game_enabled',
             ]),
         ]);
     }
@@ -41,8 +40,7 @@ class EventSettingsController extends Controller
             'color_primary'   => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'color_secondary' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'color_home_text'    => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'drink_game_enabled' => 'boolean',
-            'cover'              => 'nullable|file|mimes:jpeg,jpg,png,heic,heif|max:10240',
+            'cover' => 'nullable|file|mimes:jpeg,jpg,png,heic,heif|max:10240',
         ]);
 
         $event->update(collect($data)->except('cover')->all());

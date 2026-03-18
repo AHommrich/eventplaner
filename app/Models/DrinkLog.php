@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class DrinkLog extends Model
 {
-    protected $fillable = ['guest_id', 'drink_id'];
+    protected $fillable = ['guest_id', 'drink_id', 'base_points', 'final_points'];
 
     public function guest()
     {

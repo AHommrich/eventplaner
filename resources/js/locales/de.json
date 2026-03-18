@@ -55,6 +55,8 @@
     "colorHint": "Primär = Text & Buttons · Sekundär = Hintergrund · Home-Text = Schrift über Titelbild",
     "drinkGameEnabled": "Trinkspiel aktivieren",
     "drinkGameEnabledDesc": "Zeigt den Trinkspiel-Tab in der App und im Web an",
+    "drinkGameEndTime": "Spielende",
+    "drinkGameEndTimeDesc": "Nach diesem Zeitpunkt können keine Getränke mehr eingetragen werden.",
     "phonePreview": "Vorschau",
     "saveSettings": "Einstellungen speichern"
   },
@@ -72,6 +74,7 @@
     "guestSaved": "Änderungen gespeichert",
     "drinkAdded": "Getränk hinzugefügt",
     "drinkDeleted": "Getränk gelöscht",
+    "drinksSaved": "Getränke gespeichert",
     "userAdded": "User zum Event hinzugefügt",
     "roleChanged": "Rolle auf \"{role}\" geändert",
     "userDeleted": "User gelöscht",
@@ -90,7 +93,8 @@
     "appAccessDisabled": "App-Zugang gesperrt",
     "drinksAccessEnabled": "Getränke-Tracking freigeschaltet",
     "drinksAccessDisabled": "Getränke-Tracking gesperrt",
-    "drinkLogsReset": "Getränke-Logs zurückgesetzt"
+    "drinkLogsReset": "Getränke-Logs zurückgesetzt",
+    "gameSettingsSaved": "Spieleinstellungen gespeichert"
   },
   "requests": {
     "title": "Anfragen",
@@ -186,9 +190,12 @@
     "deleteDescription": "Das Getränk wird dauerhaft entfernt.",
     "catalog": "Getränke-Katalog",
     "catalogSearch": "Suchen…",
-    "catalogEmpty": "Keine Getränke gefunden."
+    "catalogEmpty": "Keine Getränke gefunden.",
+    "unsavedChanges": "Ungespeicherte Änderungen",
+    "unsavedChangesPrompt": "Du hast ungespeicherte Änderungen. Möchtest du die Seite trotzdem verlassen?"
   },
   "game": {
+    "settings": "Spieleinstellungen",
     "title": "Trinkspiel",
     "availableDrinks": "Getränke & Punkte",
     "leaderboard": "Rangliste",
