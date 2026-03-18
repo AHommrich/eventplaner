@@ -16,6 +16,7 @@ class Event extends Model
         'venue_name', 'venue_address',
         'dresscode', 'schedule',
         'color_primary', 'color_secondary', 'color_home_text',
+        'color_accent', 'color_background', 'color_card',
         'drink_game_enabled',
         'drink_game_end_time',
     ];
