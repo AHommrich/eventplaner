@@ -32,7 +32,8 @@ class EventInfoController extends Controller
             'color_primary'       => $event->color_primary,
             'color_secondary'     => $event->color_secondary,
             'color_home_text'     => $event->color_home_text,
-            'drink_game_enabled'  => (bool) $event->drink_game_enabled,
+            'drink_game_enabled'   => (bool) $event->drink_game_enabled,
+            'drink_game_end_time'  => $event->drink_game_end_time ? Carbon::parse($event->drink_game_end_time)->toIso8601String() : null,
         ]);
     }
 }
