@@ -4,6 +4,7 @@
     "forms": "Formulare",
     "guests": "Gäste",
     "drinks": "Getränke",
+    "drinkGame": "Trinkspiel",
     "invitations": "Einladungen",
     "photos": "Fotos",
     "userManagement": "User-Verwaltung",
@@ -52,6 +53,8 @@
     "colorSecondary": "Sekundärfarbe (Hintergrund)",
     "colorHomeText": "Textfarbe Home-Screen",
     "colorHint": "Primär = Text & Buttons · Sekundär = Hintergrund · Home-Text = Schrift über Titelbild",
+    "drinkGameEnabled": "Trinkspiel aktivieren",
+    "drinkGameEnabledDesc": "Zeigt den Trinkspiel-Tab in der App und im Web an",
     "phonePreview": "Vorschau",
     "saveSettings": "Einstellungen speichern"
   },
@@ -181,12 +184,17 @@
     "none": "Noch keine Getränke angelegt.",
     "deleteTitle": "Getränk löschen?",
     "deleteDescription": "Das Getränk wird dauerhaft entfernt.",
-    "stats": "Statistiken",
-    "statsLink": "Statistiken anzeigen",
-    "statsTotalGuests": "Gesamt-Rangliste",
-    "statsTotalDrinks": "Getränke gesamt",
-    "statsEmpty": "Noch keine Getränke getrackt.",
-    "glasses": "Gläser"
+    "catalog": "Getränke-Katalog",
+    "catalogSearch": "Suchen…",
+    "catalogEmpty": "Keine Getränke gefunden."
+  },
+  "game": {
+    "title": "Trinkspiel",
+    "leaderboard": "Rangliste",
+    "drinkTotals": "Getränke gesamt",
+    "points": "Pkt.",
+    "glass": "Glas",
+    "empty": "Noch keine Getränke getrackt."
   },
   "photo": {
     "title": "Fotos",

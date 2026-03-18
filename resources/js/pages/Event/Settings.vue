@@ -25,6 +25,7 @@ interface EventData {
     color_primary: string | null;
     color_secondary: string | null;
     color_home_text: string | null;
+    drink_game_enabled: boolean;
 }
 
 const props = defineProps<{ event: EventData }>();
@@ -44,8 +45,9 @@ const form = useForm({
     schedule:        props.event.schedule ?? '',
     color_primary:   props.event.color_primary ?? '#7c2d3e',
     color_secondary: props.event.color_secondary ?? '#e8e3de',
-    color_home_text: props.event.color_home_text ?? '#ffffff',
-    cover:           null as File | null,
+    color_home_text:     props.event.color_home_text ?? '#ffffff',
+    drink_game_enabled:  props.event.drink_game_enabled ?? false,
+    cover:               null as File | null,
 });
 
 function submit() {
@@ -229,6 +231,23 @@ const tabDefs = [
                                     </div>
                                 </div>
                                 <p class="text-xs text-muted-foreground">{{ t('event.colorHint') }}</p>
+
+                                <!-- Trinkspiel -->
+                                <div class="flex items-center justify-between rounded-lg border p-3">
+                                    <div>
+                                        <p class="text-sm font-medium">{{ t('event.drinkGameEnabled') }}</p>
+                                        <p class="text-xs text-muted-foreground">{{ t('event.drinkGameEnabledDesc') }}</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        role="switch"
+                                        :aria-checked="form.drink_game_enabled"
+                                        @click="form.drink_game_enabled = !form.drink_game_enabled"
+                                        :class="['relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2', form.drink_game_enabled ? 'bg-primary' : 'bg-input']"
+                                    >
+                                        <span :class="['pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform', form.drink_game_enabled ? 'translate-x-5' : 'translate-x-0']" />
+                                    </button>
+                                </div>
 
                             </div>
                         </CardContent>
