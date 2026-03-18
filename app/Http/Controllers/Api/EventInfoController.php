@@ -29,9 +29,10 @@ class EventInfoController extends Controller
             'venue_address'    => $event->venue_address,
             'dresscode'        => $event->dresscode,
             'schedule'         => $event->schedule,
-            'color_primary'    => $event->color_primary,
-            'color_secondary'  => $event->color_secondary,
-            'color_home_text'  => $event->color_home_text,
+            'color_primary'       => $event->color_primary,
+            'color_secondary'     => $event->color_secondary,
+            'color_home_text'     => $event->color_home_text,
+            'drink_game_enabled'  => (bool) $event->drink_game_enabled,
         ]);
     }
 }
