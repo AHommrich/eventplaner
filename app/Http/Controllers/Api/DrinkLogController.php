@@ -16,22 +16,46 @@ class DrinkLogController extends Controller
      * GET /api/drinks
      * Verfügbare Getränke für das Event des eingeloggten Gastes.
      */
+    private const CATEGORY_ORDER = ['beer', 'wine', 'spirit', 'longdrink', 'cocktail', 'softdrink', 'water', 'coffee'];
+
+    private const CATEGORY_LABELS = [
+        'beer'      => 'Bier',
+        'wine'      => 'Wein',
+        'spirit'    => 'Shots & Spirituosen',
+        'longdrink' => 'Longdrinks',
+        'cocktail'  => 'Cocktails',
+        'softdrink' => 'Softdrinks',
+        'water'     => 'Wasser',
+        'coffee'    => 'Kaffee & Tee',
+    ];
+
+    /**
+     * GET /api/drinks
+     * Verfügbare Getränke für das Event des eingeloggten Gastes.
+     * Sortiert nach Kategorie (definierte Reihenfolge) + Displayname.
+     */
     public function index(Request $request): JsonResponse
     {
         $guest = $request->user();
+
+        $categoryOrder = array_flip(self::CATEGORY_ORDER);
 
         $drinks = Drink::where('event_id', $guest->event_id)
             ->with('catalog')
             ->get()
             ->map(fn($d) => [
-                'id'           => $d->id,
-                'display_name' => $d->catalog?->display_name,
-                'category'     => $d->catalog?->category,
-                'is_alcoholic' => $d->catalog?->is_alcoholic,
-                'amount_liter' => $d->catalog?->amount_liter,
-                'points'       => $d->catalog ? DrinkScoreService::basePoints($d->catalog) : 0,
+                'id'             => $d->id,
+                'display_name'   => $d->catalog?->display_name,
+                'category'       => $d->catalog?->category,
+                'category_label' => self::CATEGORY_LABELS[$d->catalog?->category] ?? $d->catalog?->category,
+                'is_alcoholic'   => $d->catalog?->is_alcoholic,
+                'amount_liter'   => $d->catalog?->amount_liter,
+                'points'         => $d->catalog ? DrinkScoreService::basePoints($d->catalog) : 0,
             ])
-            ->sortBy('display_name')
+            ->sortBy([
+                fn($a, $b) => ($categoryOrder[$a['category']] ?? 99) <=> ($categoryOrder[$b['category']] ?? 99),
+                fn($a, $b) => $a['display_name'] <=> $b['display_name'],
+            ])
             ->values();
 
         return response()->json(['data' => $drinks]);
