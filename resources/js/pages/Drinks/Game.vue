@@ -13,8 +13,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const page = usePage();
-const eventTotals = computed(() => page.props.event_totals as { drink_id: number; drink_name: string; points: number; total: number; points_total: number }[]);
-const leaderboard  = computed(() => page.props.leaderboard as { drink_id: number; drink_name: string; points: number; top: { guest_id: number; firstname: string; lastname: string; count: number; points_total: number }[] }[]);
+const eventDrinks  = computed(() => page.props.event_drinks as { id: number; display_name: string; is_alcoholic: boolean; points: number }[]);
+const eventTotals  = computed(() => page.props.event_totals as { drink_id: number; display_name: string; points_each: number; total: number; points_total: number }[]);
+const leaderboard  = computed(() => page.props.leaderboard as { drink_id: number; display_name: string; points_each: number; top: { guest_id: number; firstname: string; lastname: string; count: number; points_total: number }[] }[]);
 const guestTotals  = computed(() => page.props.guest_totals as { guest_id: number; firstname: string; lastname: string; total: number; points_total: number }[]);
 </script>
 
@@ -22,6 +23,24 @@ const guestTotals  = computed(() => page.props.guest_totals as { guest_id: numbe
     <Head :title="t('game.title')" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="m-4 space-y-4">
+
+            <!-- Verfügbare Getränke mit Punkten -->
+            <Card>
+                <CardHeader>
+                    <CardTitle>{{ t('game.availableDrinks') }}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p v-if="eventDrinks.length === 0" class="text-sm text-muted-foreground">{{ t('game.empty') }}</p>
+                    <ul v-else class="divide-y">
+                        <li v-for="drink in eventDrinks" :key="drink.id" class="flex items-center justify-between py-2">
+                            <span class="text-sm">{{ drink.display_name }}</span>
+                            <span :class="['text-sm font-semibold', drink.points < 0 ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400']">
+                                {{ drink.points > 0 ? '+' : '' }}{{ drink.points }} {{ t('game.points') }}
+                            </span>
+                        </li>
+                    </ul>
+                </CardContent>
+            </Card>
 
             <!-- Gesamt-Rangliste nach Punkten -->
             <Card>
@@ -55,8 +74,8 @@ const guestTotals  = computed(() => page.props.guest_totals as { guest_id: numbe
                     <ul v-else class="divide-y">
                         <li v-for="row in eventTotals" :key="row.drink_id" class="flex items-center justify-between py-2.5">
                             <div class="flex items-center gap-2">
-                                <span class="text-sm font-medium">{{ row.drink_name }}</span>
-                                <span class="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{{ row.points }} {{ t('game.points') }}/{{ t('game.glass') }}</span>
+                                <span class="text-sm font-medium">{{ row.display_name }}</span>
+                                <span class="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{{ row.points_each }} {{ t('game.points') }}/{{ t('game.glass') }}</span>
                             </div>
                             <div class="flex items-center gap-2 text-right">
                                 <span class="text-xs text-muted-foreground">{{ row.total }}×</span>
@@ -71,8 +90,8 @@ const guestTotals  = computed(() => page.props.guest_totals as { guest_id: numbe
             <Card v-for="drink in leaderboard" :key="drink.drink_id">
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        {{ drink.drink_name }}
-                        <span class="text-sm font-normal text-muted-foreground">({{ drink.points }} {{ t('game.points') }}/{{ t('game.glass') }})</span>
+                        {{ drink.display_name }}
+                        <span class="text-sm font-normal text-muted-foreground">({{ drink.points_each }} {{ t('game.points') }}/{{ t('game.glass') }})</span>
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
