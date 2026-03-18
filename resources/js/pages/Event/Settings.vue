@@ -365,11 +365,11 @@ const tabDefs = [
                                     <div class="rounded-xl p-2 shadow-sm" :style="{ backgroundColor: form.color_card || '#ffffff' }">
                                         <div class="flex items-center justify-between">
                                             <span class="text-[8px] font-semibold" :style="{ color: form.color_accent || '#7c2d3e' }">Max Mustermann</span>
-                                            <span class="rounded-full px-1.5 py-0.5 text-[5px] font-semibold text-white" style="background-color:#4a7c59;">Zusagen</span>
+                                            <span class="rounded-full px-1.5 py-0.5 text-[5px] font-semibold text-white" style="background-color:#888888;">Zugesagt</span>
                                         </div>
                                         <div class="mt-1.5 flex gap-1">
                                             <div class="flex-1 rounded-lg py-1 text-center text-[6px] font-semibold text-white" style="background-color:#4a7c59;">Zusagen</div>
-                                            <div class="flex-1 rounded-lg border py-1 text-center text-[6px]" style="color:#666;border-color:#ccc;">Absagen</div>
+                                            <div class="flex-1 rounded-lg py-1 text-center text-[6px] font-semibold text-white" style="background-color:#b45a3c;">Absagen</div>
                                         </div>
                                     </div>
                                 </div>
@@ -439,8 +439,8 @@ const tabDefs = [
                                             <div class="flex-1 rounded-lg py-0.5 text-center text-[6px]" style="background-color:#e0dbd4;color:#666;">Englisch</div>
                                         </div>
                                     </div>
-                                    <div class="w-full rounded-xl border py-1 text-center text-[7px] font-medium"
-                                        :style="{ borderColor: form.color_accent || '#7c2d3e', color: form.color_accent || '#7c2d3e' }">
+                                    <div class="w-full rounded-xl py-1 text-center text-[7px] font-semibold text-white"
+                                        style="background-color:#b45a3c;">
                                         Ausloggen
                                     </div>
                                 </div>
