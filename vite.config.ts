@@ -3,19 +3,6 @@ import laravel from 'laravel-vite-plugin'
 import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
-import os from 'os'
-
-// Lokale IP für Docker/HMR ermitteln
-function getLocalIp() {
-  const interfaces = os.networkInterfaces()
-  for (const name of Object.keys(interfaces)) {
-    for (const iface of interfaces[name] || []) {
-      if (iface.family === 'IPv4' && !iface.internal) return iface.address
-    }
-  }
-  return 'localhost'
-}
-const localIp = getLocalIp()
 
 export default defineConfig({
   server: {
@@ -23,8 +10,8 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     cors: true,
-    origin: `http://${localIp}:5173`,
-    hmr: { protocol: 'ws', host: localIp, port: 5173 },
+    origin: 'http://localhost:5173',
+    hmr: { protocol: 'ws', host: 'localhost', port: 5173 },
   },
 
   plugins: [

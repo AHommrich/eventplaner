@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
-use Illuminate\Validation\ValidationException;
 use Intervention\Image\ImageManager;
 
 class EventSettingsController extends Controller
@@ -48,22 +47,6 @@ class EventSettingsController extends Controller
             'color_card'       => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'cover' => 'nullable|file|mimes:jpeg,jpg,png,heic,heif|max:10240',
         ]);
-
-        // WCAG AA Kontrast-Check: color_accent muss auf background und card ≥ 4.5:1 sein
-        $accent     = $data['color_accent']     ?? $event->color_accent     ?? '#7c2d3e';
-        $background = $data['color_background'] ?? $event->color_background ?? '#e8e3de';
-        $card       = $data['color_card']       ?? $event->color_card       ?? '#ffffff';
-
-        if ($this->contrastRatio($accent, $background) < 4.5) {
-            throw ValidationException::withMessages([
-                'color_accent' => 'color_accent hat zu wenig Kontrast auf color_background (WCAG AA: min. 4.5:1).',
-            ]);
-        }
-        if ($this->contrastRatio($accent, $card) < 4.5) {
-            throw ValidationException::withMessages([
-                'color_accent' => 'color_accent hat zu wenig Kontrast auf color_card (WCAG AA: min. 4.5:1).',
-            ]);
-        }
 
         $event->update(collect($data)->except('cover')->all());
 
