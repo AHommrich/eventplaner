@@ -83,12 +83,27 @@ Middleware-Aliase: `admin` = EnsureUserIsAdmin, `has_event` = EnsureHasEventAcce
 
 | Endpoint | Methode | Was es macht |
 |---|---|---|
-| `/api/auth/qr/{token}` | GET | QR-Login, gibt guests-Array + Sanctum-Tokens zurück |
+| `/api/auth/qr/{token}` | GET | QR-Login Schritt 1: gibt Gästeliste + is_active zurück, erstellt KEINE Tokens |
+| `/api/auth/qr/{token}/select` | POST | QR-Login Schritt 2 (nur Familie): `{guest_id}` → erstellt Token für gewählten Gast |
 | `/api/auth/logout` | DELETE | Token serverseitig löschen (Bearer im Header) |
 | `/api/photos` | GET | Alle Fotos des Events laden |
 | `/api/photos` | POST | Foto hochladen (multipart/form-data, HEIC→JPEG Konvertierung) |
 
 Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
+
+### QR-Login Flow
+
+**Solo-Gast** (`type: "solo"`): Token kommt direkt in der GET-Response, kein zweiter Schritt.
+
+**Familien-Gast** (`type: "family"`): Zweistufig:
+1. `GET /api/auth/qr/{token}` → Liste aller Familienmitglieder, alle `token: null`
+2. User tippt Namen an → `POST /api/auth/qr/{token}/select` mit `{"guest_id": 42}`
+   - 200 → `{token: "..."}` speichern, einloggen
+   - 409 → Gast bereits eingeloggt
+
+**Wichtig:** Tokens NIEMALS beim Scan für alle erstellen — nur der ausgewählte Gast bekommt einen Token. Sonst blockieren ungenutzte Tokens andere Familienmitglieder (`is_active: true` obwohl niemand eingeloggt).
+
+**`is_active`-Prüfung:** Immer explizit via `PersonalAccessToken::where('tokenable_type', Guest::class)->where('tokenable_id', $guest->id)` — NICHT über `$guest->tokens()` auf eager-geladenen Objekten (MorphMany scoped dort nicht korrekt).
 
 ---
 
