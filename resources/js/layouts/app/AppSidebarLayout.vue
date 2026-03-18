@@ -6,6 +6,9 @@ import AppSidebarHeader from '@/components/AppSidebarHeader.vue';
 import { Toaster } from 'vue-sonner';
 import 'vue-sonner/style.css';
 import type { BreadcrumbItemType } from '@/types';
+import { useFloatingBar } from '@/composables/useFloatingBar';
+
+const { active: floatingBarActive } = useFloatingBar();
 
 interface Props {
     breadcrumbs?: BreadcrumbItemType[];
@@ -24,5 +27,5 @@ withDefaults(defineProps<Props>(), {
             <slot />
         </AppContent>
     </AppShell>
-    <Toaster position="bottom-right" richColors />
+    <Toaster position="bottom-right" richColors :duration="2000" :offset="floatingBarActive ? '88px' : '32px'" expand />
 </template>
