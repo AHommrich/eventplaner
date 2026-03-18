@@ -67,10 +67,21 @@ class QrAuthController extends Controller
             ];
         });
 
+        // TEMP DEBUG — nach Diagnose entfernen
+        $debug = $guests->map(fn($g) => [
+            'guest_id'     => $g->id,
+            'guest_class'  => get_class($g),
+            'tokens_in_db' => PersonalAccessToken::where('tokenable_type', Guest::class)
+                ->where('tokenable_id', $g->id)
+                ->get(['id', 'tokenable_type', 'tokenable_id', 'created_at'])
+                ->toArray(),
+        ]);
+
         return response()->json([
             'type'        => $isGroup ? 'family' : 'solo',
             'family_name' => $groupName,
             'guests'      => $result,
+            '_debug'      => $debug,
         ]);
     }
 }
