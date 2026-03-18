@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Illuminate\Validation\ValidationException;
 use Intervention\Image\ImageManager;
 
 class EventSettingsController extends Controller
@@ -19,7 +20,9 @@ class EventSettingsController extends Controller
             'event' => $event->only([
                 'id', 'name', 'date', 'rsvp_deadline',
                 'cover_image_url', 'venue_name', 'venue_address',
-                'dresscode', 'schedule', 'color_primary', 'color_secondary', 'color_home_text',
+                'dresscode', 'schedule',
+                'color_primary', 'color_secondary', 'color_home_text',
+                'color_accent', 'color_background', 'color_card',
             ]),
         ]);
     }
@@ -37,11 +40,30 @@ class EventSettingsController extends Controller
             'venue_address'   => 'nullable|string|max:500',
             'dresscode'       => 'nullable|string|max:1000',
             'schedule'        => 'nullable|string|max:5000',
-            'color_primary'   => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'color_secondary' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'color_home_text'    => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'color_primary'    => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'color_secondary'  => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'color_home_text'  => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'color_accent'     => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'color_background' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'color_card'       => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'cover' => 'nullable|file|mimes:jpeg,jpg,png,heic,heif|max:10240',
         ]);
+
+        // WCAG AA Kontrast-Check: color_accent muss auf background und card ≥ 4.5:1 sein
+        $accent     = $data['color_accent']     ?? $event->color_accent     ?? '#7c2d3e';
+        $background = $data['color_background'] ?? $event->color_background ?? '#e8e3de';
+        $card       = $data['color_card']       ?? $event->color_card       ?? '#ffffff';
+
+        if ($this->contrastRatio($accent, $background) < 4.5) {
+            throw ValidationException::withMessages([
+                'color_accent' => 'color_accent hat zu wenig Kontrast auf color_background (WCAG AA: min. 4.5:1).',
+            ]);
+        }
+        if ($this->contrastRatio($accent, $card) < 4.5) {
+            throw ValidationException::withMessages([
+                'color_accent' => 'color_accent hat zu wenig Kontrast auf color_card (WCAG AA: min. 4.5:1).',
+            ]);
+        }
 
         $event->update(collect($data)->except('cover')->all());
 
@@ -111,6 +133,32 @@ class EventSettingsController extends Controller
         ]);
 
         return response()->json(['cover_image_url' => $url]);
+    }
+
+    /** WCAG-Kontrastverhältnis zwischen zwei Hex-Farben (#rrggbb) */
+    private function contrastRatio(string $hex1, string $hex2): float
+    {
+        $l1 = $this->relativeLuminance($hex1);
+        $l2 = $this->relativeLuminance($hex2);
+        [$lighter, $darker] = $l1 > $l2 ? [$l1, $l2] : [$l2, $l1];
+
+        return ($lighter + 0.05) / ($darker + 0.05);
+    }
+
+    private function relativeLuminance(string $hex): float
+    {
+        $hex = ltrim($hex, '#');
+        $r   = hexdec(substr($hex, 0, 2)) / 255;
+        $g   = hexdec(substr($hex, 2, 2)) / 255;
+        $b   = hexdec(substr($hex, 4, 2)) / 255;
+
+        $linearize = fn(float $c) => $c <= 0.04045
+            ? $c / 12.92
+            : (($c + 0.055) / 1.055) ** 2.4;
+
+        return 0.2126 * $linearize($r)
+             + 0.7152 * $linearize($g)
+             + 0.0722 * $linearize($b);
     }
 
     public function deleteCover(): \Illuminate\Http\JsonResponse
