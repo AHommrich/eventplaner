@@ -4,6 +4,7 @@
     "forms": "Forms",
     "guests": "Guests",
     "drinks": "Drinks",
+    "drinkGame": "Drinking Game",
     "invitations": "Invitations",
     "photos": "Photos",
     "userManagement": "User Management",
@@ -52,6 +53,10 @@
     "colorSecondary": "Secondary color (background)",
     "colorHomeText": "Home screen text color",
     "colorHint": "Primary = text & buttons · Secondary = background · Home text = text over cover image",
+    "drinkGameEnabled": "Enable drinking game",
+    "drinkGameEnabledDesc": "Shows the drinking game tab in the app and on the web",
+    "drinkGameEndTime": "Game end time",
+    "drinkGameEndTimeDesc": "After this time, no more drinks can be logged.",
     "phonePreview": "Preview",
     "saveSettings": "Save settings"
   },
@@ -69,6 +74,7 @@
     "guestSaved": "Changes saved",
     "drinkAdded": "Drink added",
     "drinkDeleted": "Drink deleted",
+    "drinksSaved": "Drinks saved",
     "userAdded": "User added to event",
     "roleChanged": "Role changed to \"{role}\"",
     "userDeleted": "User deleted",
@@ -87,7 +93,8 @@
     "appAccessDisabled": "App access revoked",
     "drinksAccessEnabled": "Drink tracking enabled",
     "drinksAccessDisabled": "Drink tracking blocked",
-    "drinkLogsReset": "Drink logs reset"
+    "drinkLogsReset": "Drink logs reset",
+    "gameSettingsSaved": "Game settings saved"
   },
   "requests": {
     "title": "Requests",
@@ -181,12 +188,21 @@
     "none": "No drinks yet.",
     "deleteTitle": "Delete drink?",
     "deleteDescription": "The drink will be permanently removed.",
-    "stats": "Statistics",
-    "statsLink": "View statistics",
-    "statsTotalGuests": "Overall leaderboard",
-    "statsTotalDrinks": "Total drinks",
-    "statsEmpty": "No drinks tracked yet.",
-    "glasses": "glasses"
+    "catalog": "Drink Catalog",
+    "catalogSearch": "Search…",
+    "catalogEmpty": "No drinks found.",
+    "unsavedChanges": "Unsaved changes",
+    "unsavedChangesPrompt": "You have unsaved changes. Leave anyway?"
+  },
+  "game": {
+    "settings": "Game Settings",
+    "title": "Drinking Game",
+    "availableDrinks": "Drinks & Points",
+    "leaderboard": "Leaderboard",
+    "drinkTotals": "Total drinks",
+    "points": "pts.",
+    "glass": "glass",
+    "empty": "No drinks tracked yet."
   },
   "photo": {
     "title": "Photos",

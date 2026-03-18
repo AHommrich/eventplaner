@@ -4,6 +4,7 @@
     "forms": "Formulare",
     "guests": "Gäste",
     "drinks": "Getränke",
+    "drinkGame": "Trinkspiel",
     "invitations": "Einladungen",
     "photos": "Fotos",
     "userManagement": "User-Verwaltung",
@@ -52,6 +53,10 @@
     "colorSecondary": "Sekundärfarbe (Hintergrund)",
     "colorHomeText": "Textfarbe Home-Screen",
     "colorHint": "Primär = Text & Buttons · Sekundär = Hintergrund · Home-Text = Schrift über Titelbild",
+    "drinkGameEnabled": "Trinkspiel aktivieren",
+    "drinkGameEnabledDesc": "Zeigt den Trinkspiel-Tab in der App und im Web an",
+    "drinkGameEndTime": "Spielende",
+    "drinkGameEndTimeDesc": "Nach diesem Zeitpunkt können keine Getränke mehr eingetragen werden.",
     "phonePreview": "Vorschau",
     "saveSettings": "Einstellungen speichern"
   },
@@ -69,6 +74,7 @@
     "guestSaved": "Änderungen gespeichert",
     "drinkAdded": "Getränk hinzugefügt",
     "drinkDeleted": "Getränk gelöscht",
+    "drinksSaved": "Getränke gespeichert",
     "userAdded": "User zum Event hinzugefügt",
     "roleChanged": "Rolle auf \"{role}\" geändert",
     "userDeleted": "User gelöscht",
@@ -87,7 +93,8 @@
     "appAccessDisabled": "App-Zugang gesperrt",
     "drinksAccessEnabled": "Getränke-Tracking freigeschaltet",
     "drinksAccessDisabled": "Getränke-Tracking gesperrt",
-    "drinkLogsReset": "Getränke-Logs zurückgesetzt"
+    "drinkLogsReset": "Getränke-Logs zurückgesetzt",
+    "gameSettingsSaved": "Spieleinstellungen gespeichert"
   },
   "requests": {
     "title": "Anfragen",
@@ -181,12 +188,21 @@
     "none": "Noch keine Getränke angelegt.",
     "deleteTitle": "Getränk löschen?",
     "deleteDescription": "Das Getränk wird dauerhaft entfernt.",
-    "stats": "Statistiken",
-    "statsLink": "Statistiken anzeigen",
-    "statsTotalGuests": "Gesamt-Rangliste",
-    "statsTotalDrinks": "Getränke gesamt",
-    "statsEmpty": "Noch keine Getränke getrackt.",
-    "glasses": "Gläser"
+    "catalog": "Getränke-Katalog",
+    "catalogSearch": "Suchen…",
+    "catalogEmpty": "Keine Getränke gefunden.",
+    "unsavedChanges": "Ungespeicherte Änderungen",
+    "unsavedChangesPrompt": "Du hast ungespeicherte Änderungen. Möchtest du die Seite trotzdem verlassen?"
+  },
+  "game": {
+    "settings": "Spieleinstellungen",
+    "title": "Trinkspiel",
+    "availableDrinks": "Getränke & Punkte",
+    "leaderboard": "Rangliste",
+    "drinkTotals": "Getränke gesamt",
+    "points": "Pkt.",
+    "glass": "Glas",
+    "empty": "Noch keine Getränke getrackt."
   },
   "photo": {
     "title": "Fotos",

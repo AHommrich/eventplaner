@@ -16,6 +16,13 @@ class Event extends Model
         'venue_name', 'venue_address',
         'dresscode', 'schedule',
         'color_primary', 'color_secondary', 'color_home_text',
+        'drink_game_enabled',
+        'drink_game_end_time',
+    ];
+
+    protected $casts = [
+        'drink_game_enabled'   => 'boolean',
+        'drink_game_end_time'  => 'datetime',
     ];
 
     protected static function booted(): void

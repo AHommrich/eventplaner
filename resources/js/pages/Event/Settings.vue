@@ -44,8 +44,8 @@ const form = useForm({
     schedule:        props.event.schedule ?? '',
     color_primary:   props.event.color_primary ?? '#7c2d3e',
     color_secondary: props.event.color_secondary ?? '#e8e3de',
-    color_home_text: props.event.color_home_text ?? '#ffffff',
-    cover:           null as File | null,
+    color_home_text:     props.event.color_home_text ?? '#ffffff',
+    cover: null as File | null,
 });
 
 function submit() {
@@ -229,6 +229,7 @@ const tabDefs = [
                                     </div>
                                 </div>
                                 <p class="text-xs text-muted-foreground">{{ t('event.colorHint') }}</p>
+
 
                             </div>
                         </CardContent>
