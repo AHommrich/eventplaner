@@ -6,7 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuIte
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { Users, SquarePen, QrCode, Images, ShieldCheck, GlassWater, ChevronsUpDown, Check, KeyRound, Undo2, Settings2 } from 'lucide-vue-next';
+import { Users, SquarePen, QrCode, Images, ShieldCheck, GlassWater, Trophy, ChevronsUpDown, Check, KeyRound, Undo2, Settings2 } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -16,7 +16,7 @@ const { t, locale } = useI18n();
 const page = usePage();
 const { isMobile, state } = useSidebar();
 const isAdmin = computed(() => (page.props.auth as any)?.user?.role === 'admin');
-const activeEvent = computed(() => (page.props as any).active_event as { id: number; name: string; user_id?: number } | null);
+const activeEvent = computed(() => (page.props as any).active_event as { id: number; name: string; user_id?: number; drink_game_enabled?: boolean } | null);
 const currentUserId = computed(() => (page.props.auth as any)?.user?.id);
 const isEventOwner = computed(() =>
     !isAdmin.value && activeEvent.value?.user_id === currentUserId.value
@@ -41,6 +41,7 @@ const mainNavItems = computed<NavItem[]>(() => [
     { title: t('nav.forms'),        href: '/dashboard',      icon: SquarePen },
     { title: t('nav.guests'),       href: '/table',          icon: Users },
     { title: t('nav.drinks'),       href: '/drinks',         icon: GlassWater },
+    { title: t('nav.drinkGame'),    href: '/drinks/game',    icon: Trophy },
     { title: t('nav.invitations'),  href: '/invitations',    icon: QrCode },
     { title: t('nav.photos'),       href: '/photos',         icon: Images },
     { title: t('nav.eventSettings'), href: '/event/settings', icon: Settings2 },
