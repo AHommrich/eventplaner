@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Guest;
 use App\Models\InvitationToken;
 use Illuminate\Http\JsonResponse;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class QrAuthController extends Controller
 {
@@ -38,12 +40,18 @@ class QrAuthController extends Controller
         $groupName = $isGroup ? $invitation->group->name : null;
 
         $result = $guests->map(function ($guest) use ($isGroup) {
-            $hasActiveToken = $guest->tokens()->exists();
+            // Explizit auf tokenable_type + tokenable_id scopen statt über
+            // die MorphMany-Relation auf eager-geladenen Objekten zu gehen.
+            $hasActiveToken = PersonalAccessToken::where('tokenable_type', Guest::class)
+                ->where('tokenable_id', $guest->id)
+                ->exists();
 
             // Solo-Gäste: Token immer erneuern (nur ein möglicher Nutzer)
             // Familien-Gäste: nur neuen Token ausstellen wenn noch keiner aktiv ist
             if (!$isGroup || !$hasActiveToken) {
-                $guest->tokens()->delete();
+                PersonalAccessToken::where('tokenable_type', Guest::class)
+                    ->where('tokenable_id', $guest->id)
+                    ->delete();
                 $sanctumToken = $guest->createToken('guest-login', ['role:guest']);
                 $plainToken   = $sanctumToken->plainTextToken;
             } else {
