@@ -67,6 +67,7 @@
     "roleTabTint": "Navbar-Farbe",
     "roleBorder": "Rahmenfarbe",
     "roleFab": "Foto-Button (FAB)",
+    "roleFabIcon": "Icon-Farbe im Foto-Button",
     "drinkGameEnabled": "Trinkspiel aktivieren",
     "drinkGameEnabledDesc": "Zeigt den Trinkspiel-Tab in der App und im Web an",
     "drinkGameEndTime": "Spielende",

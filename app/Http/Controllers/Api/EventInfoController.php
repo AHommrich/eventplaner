@@ -50,6 +50,7 @@ class EventInfoController extends Controller
             'color_tab_tint'         => $r('role_tab_tint',         'primary'),
             'color_border'           => $r('role_border',           'primary'),
             'color_fab'              => $r('role_fab',              'primary'),
+            'color_fab_icon'         => $r('role_fab_icon',         'tertiary'),
             'color_home_text'        => $event->color_home_text,
             'font_heading'           => $event->font_heading,
             'drink_game_enabled'     => (bool) $event->drink_game_enabled,
