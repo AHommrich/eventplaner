@@ -35,6 +35,7 @@ interface EventData {
     role_tab_tint: string | null;
     role_border: string | null;
     role_fab: string | null;
+    role_fab_icon: string | null;
     font_heading: string | null;
 }
 
@@ -67,6 +68,7 @@ const form = useForm({
     role_tab_tint:         props.event.role_tab_tint         ?? 'primary',
     role_border:           props.event.role_border           ?? 'primary',
     role_fab:              props.event.role_fab              ?? 'primary',
+    role_fab_icon:         props.event.role_fab_icon         ?? 'tertiary',
     font_heading:    props.event.font_heading ?? '',
     cover: null as File | null,
 });
@@ -219,6 +221,7 @@ const cCardButtonText = computed(() => resolve(form.role_card_button_text, 'tert
 const cTabTint        = computed(() => resolve(form.role_tab_tint,         'primary'));
 const cBorder         = computed(() => resolve(form.role_border,           'primary'));
 const cFab            = computed(() => resolve(form.role_fab,              'primary'));
+const cFabIcon        = computed(() => resolve(form.role_fab_icon,         'tertiary'));
 
 // Optionen für Radio-Selektoren
 const colorOptions = computed(() => [
@@ -449,6 +452,20 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                             </div>
                                         </div>
 
+                                        <!-- Icon-Farbe im FAB -->
+                                        <div class="grid gap-1.5">
+                                            <span class="text-xs text-muted-foreground">{{ t('event.roleFabIcon') }}</span>
+                                            <div class="flex gap-2">
+                                                <button v-for="opt in colorOptions" :key="'fabi'+opt.key" type="button"
+                                                    @click="form.role_fab_icon = opt.key"
+                                                    class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
+                                                    :class="radioClass(form.role_fab_icon, opt.key, 'tertiary')">
+                                                    <div class="h-6 w-6 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
+                                                    <span>{{ opt.label }}</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
                                         <!-- Home-Screen Farbe — nur wenn Cover vorhanden -->
                                         <div v-if="displayCoverUrl" class="grid gap-1.5">
                                             <span class="text-xs text-muted-foreground">{{ t('event.colorHomeText') }}</span>
@@ -642,7 +659,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                     <!-- FAB mit cFab-Farbe -->
                                     <div class="absolute bottom-3 right-2 flex h-7 w-7 items-center justify-center rounded-full shadow-md"
                                         :style="{ backgroundColor: cFab }">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" :stroke="cCardButtonText" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" :stroke="cFabIcon" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                                             <circle cx="12" cy="13" r="4"/>
                                         </svg>
