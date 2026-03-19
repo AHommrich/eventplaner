@@ -23,14 +23,18 @@ interface EventData {
     venue_address: string | null;
     dresscode: string | null;
     schedule: string | null;
-    color_accent: string | null;
-    color_background: string | null;
-    color_card: string | null;
-    color_card_text: string | null;
-    color_card_button: string | null;
-    color_card_button_text: string | null;
-    color_tab_tint: string | null;
+    color_primary: string | null;
+    color_secondary: string | null;
+    color_tertiary: string | null;
     color_home_text: string | null;
+    role_screen_bg: string | null;
+    role_card_bg: string | null;
+    role_card_text: string | null;
+    role_card_button: string | null;
+    role_card_button_text: string | null;
+    role_tab_tint: string | null;
+    role_border: string | null;
+    role_fab: string | null;
     font_heading: string | null;
 }
 
@@ -49,15 +53,21 @@ const form = useForm({
     venue_address:   props.event.venue_address ?? '',
     dresscode:       props.event.dresscode ?? '',
     schedule:        props.event.schedule ?? '',
-    color_accent:     props.event.color_accent     ?? '#7c2d3e',
-    color_background: props.event.color_background ?? '#e8e3de',
-    color_card:       props.event.color_card        ?? '#ffffff',
-    color_card_text:   props.event.color_card_text   ?? '',
-    color_card_button:      props.event.color_card_button      ?? '',
-    color_card_button_text: props.event.color_card_button_text ?? '',
-    color_tab_tint:    props.event.color_tab_tint    ?? '',
-    color_home_text:  props.event.color_home_text   ?? '#ffffff',
-    font_heading:     props.event.font_heading      ?? '',
+    // Palette
+    color_primary:   props.event.color_primary   ?? '#7c2d3e',
+    color_secondary: props.event.color_secondary ?? '#e8e3de',
+    color_tertiary:  props.event.color_tertiary  ?? '#ffffff',
+    color_home_text: props.event.color_home_text ?? '#ffffff',
+    // Rollen
+    role_screen_bg:        props.event.role_screen_bg        ?? 'secondary',
+    role_card_bg:          props.event.role_card_bg          ?? 'tertiary',
+    role_card_text:        props.event.role_card_text        ?? 'primary',
+    role_card_button:      props.event.role_card_button      ?? 'primary',
+    role_card_button_text: props.event.role_card_button_text ?? 'tertiary',
+    role_tab_tint:         props.event.role_tab_tint         ?? 'primary',
+    role_border:           props.event.role_border           ?? 'primary',
+    role_fab:              props.event.role_fab              ?? 'primary',
+    font_heading:    props.event.font_heading ?? '',
     cover: null as File | null,
 });
 
@@ -114,11 +124,10 @@ function submit() {
 }
 
 // Cover
-const coverUrl     = ref<string | null>(props.event.cover_image_url);
-const coverPreview = ref<string | null>(null);
+const coverUrl      = ref<string | null>(props.event.cover_image_url);
+const coverPreview  = ref<string | null>(null);
 const coverRemoving = ref(false);
 
-// Für Preview-Panels: neue lokale Vorschau hat Vorrang vor gespeicherter URL
 const displayCoverUrl = computed(() => coverPreview.value ?? coverUrl.value);
 
 const coverFilename = computed(() => {
@@ -191,27 +200,34 @@ const previewDaysLeft = computed(() => {
     } catch { return null; }
 });
 
-const previewRsvpDeadline = computed(() => {
-    if (!form.rsvp_deadline) return null;
-    try {
-        return new Date(form.rsvp_deadline).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' });
-    } catch { return null; }
-});
+// Palette + Rollen-Auflösung
+const palette = computed(() => ({
+    primary:   form.color_primary   || '#7c2d3e',
+    secondary: form.color_secondary || '#e8e3de',
+    tertiary:  form.color_tertiary  || '#ffffff',
+}));
 
-// Die wählbaren Palette-Farben
+type PaletteKey = 'primary' | 'secondary' | 'tertiary';
+const resolve = (role: string | null, fallback: PaletteKey): string =>
+    palette.value[(role as PaletteKey) ?? fallback] ?? palette.value[fallback];
+
+const cScreenBg       = computed(() => resolve(form.role_screen_bg,        'secondary'));
+const cCardBg         = computed(() => resolve(form.role_card_bg,          'tertiary'));
+const cCardText       = computed(() => resolve(form.role_card_text,        'primary'));
+const cCardButton     = computed(() => resolve(form.role_card_button,      'primary'));
+const cCardButtonText = computed(() => resolve(form.role_card_button_text, 'tertiary'));
+const cTabTint        = computed(() => resolve(form.role_tab_tint,         'primary'));
+const cBorder         = computed(() => resolve(form.role_border,           'primary'));
+const cFab            = computed(() => resolve(form.role_fab,              'primary'));
+
+// Optionen für Radio-Selektoren
 const colorOptions = computed(() => [
-    { key: 'accent',     label: 'Akzent',      value: form.color_accent     || '#7c2d3e' },
-    { key: 'background', label: 'Hintergrund',  value: form.color_background || '#e8e3de' },
-    { key: 'card',       label: 'Card',         value: form.color_card       || '#ffffff' },
+    { key: 'primary',   label: t('event.colorPrimaryLabel'),   value: palette.value.primary },
+    { key: 'secondary', label: t('event.colorSecondaryLabel'), value: palette.value.secondary },
+    { key: 'tertiary',  label: t('event.colorTertiaryLabel'),  value: palette.value.tertiary },
 ]);
 
-// Effektive Farben mit Fallback-Kette
-const effectiveCardText       = computed(() => form.color_card_text       || form.color_accent || '#7c2d3e');
-const effectiveCardButton     = computed(() => form.color_card_button     || effectiveCardText.value);
-const effectiveCardButtonText = computed(() => form.color_card_button_text || form.color_card  || '#ffffff');
-const effectiveTabTint        = computed(() => form.color_tab_tint        || form.color_accent || '#7c2d3e');
-
-// Font-Optionen: Key → Label + CSS font-family
+// Font
 const fontOptions = [
     { key: 'playfair',    label: 'Playfair Display',  family: 'Playfair Display' },
     { key: 'cormorant',   label: 'Cormorant Garamond', family: 'Cormorant Garamond' },
@@ -226,14 +242,18 @@ const previewFontFamily = computed(() =>
     fontOptions.find(f => f.key === form.font_heading)?.family ?? 'inherit'
 );
 
-// SVG-Pfade für Tab-Bar Icons: [Pfad1, Pfad2?]
+// Tab-Bar Icons
 const tabDefs = [
-    { label: 'Home',     paths: ['M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z', 'M9 21V12h6v9'] },
-    { label: 'Zusage',   paths: ['M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z', 'M8 12l3 3 5-5'] },
-    { label: 'Fotos',    paths: ['M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z', 'M12 13m-4 0a4 4 0 1 0 8 0 4 4 0 1 0-8 0'] },
-    { label: 'Spiel',    paths: ['M6 2h12l-2 18a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1L6 2z', 'M18 7h2.5a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H18'] },
-    { label: 'Einst.',   paths: ['M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z', 'M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'] },
+    { label: 'Home',    paths: ['M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z', 'M9 21V12h6v9'] },
+    { label: 'Zusage',  paths: ['M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z', 'M8 12l3 3 5-5'] },
+    { label: 'Fotos',   paths: ['M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z', 'M12 13m-4 0a4 4 0 1 0 8 0 4 4 0 1 0-8 0'] },
+    { label: 'Spiel',   paths: ['M6 2h12l-2 18a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1L6 2z', 'M18 7h2.5a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H18'] },
+    { label: 'Einst.',  paths: ['M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z', 'M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'] },
 ];
+
+// Hilfsfunktion für Radio-Selektor-Klasse
+const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKey) =>
+    (formRole ?? fallback) === optKey ? 'border-ring bg-muted/20' : 'border-input hover:border-muted-foreground';
 </script>
 
 <template>
@@ -291,108 +311,152 @@ const tabDefs = [
                                     <div class="grid grid-cols-3 gap-2">
                                         <button type="button" @click="form.font_heading = ''"
                                             class="rounded-lg border-2 px-2 py-2 text-xs transition-colors text-center"
-                                            :class="!form.font_heading ? 'border-ring bg-muted/30' : 'border-input hover:border-muted-foreground'">
+                                            :class="!form.font_heading ? 'border-ring bg-muted/20' : 'border-input hover:border-muted-foreground'">
                                             {{ t('event.fontSystemDefault') }}
                                         </button>
                                         <button v-for="font in fontOptions" :key="font.key" type="button"
                                             @click="form.font_heading = font.key"
                                             class="rounded-lg border-2 px-2 py-2.5 text-sm transition-colors text-center leading-tight"
-                                            :class="form.font_heading === font.key ? 'border-ring bg-muted/30' : 'border-input hover:border-muted-foreground'"
+                                            :class="form.font_heading === font.key ? 'border-ring bg-muted/20' : 'border-input hover:border-muted-foreground'"
                                             :style="{ fontFamily: font.family }">
                                             {{ font.label }}
                                         </button>
                                     </div>
                                 </div>
 
-                                <!-- Farben -->
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div class="grid gap-2">
-                                        <Label>{{ t('event.colorAccent') }}</Label>
-                                        <div class="flex items-center gap-2">
-                                            <input type="color" v-model="form.color_accent"
-                                                class="h-9 w-12 cursor-pointer rounded border border-input bg-transparent p-0.5" />
-                                            <Input v-model="form.color_accent" class="font-mono uppercase" maxlength="7" placeholder="#7c2d3e" />
+                                <!-- Farb-Palette -->
+                                <div class="grid gap-3">
+                                    <Label>{{ t('event.colorHint') }}</Label>
+                                    <!-- 3 Basis-Picker -->
+                                    <div class="grid grid-cols-3 gap-3">
+                                        <div v-for="(key, idx) in (['color_primary', 'color_secondary', 'color_tertiary'] as const)" :key="key" class="grid gap-1.5">
+                                            <span class="text-xs text-muted-foreground">{{ [t('event.colorPrimary'), t('event.colorSecondary'), t('event.colorTertiary')][idx] }}</span>
+                                            <div class="flex items-center gap-1.5">
+                                                <input type="color" v-model="form[key]"
+                                                    class="h-9 w-10 cursor-pointer rounded border border-input bg-transparent p-0.5 shrink-0" />
+                                                <Input v-model="form[key]" class="font-mono uppercase text-xs px-2" maxlength="7" />
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="grid gap-2">
-                                        <Label>{{ t('event.colorBackground') }}</Label>
-                                        <div class="flex items-center gap-2">
-                                            <input type="color" v-model="form.color_background"
-                                                class="h-9 w-12 cursor-pointer rounded border border-input bg-transparent p-0.5" />
-                                            <Input v-model="form.color_background" class="font-mono uppercase" maxlength="7" placeholder="#e8e3de" />
+
+                                    <!-- 8 Radio-Selektoren -->
+                                    <div class="space-y-3 pt-1">
+                                        <!-- Screen-Hintergrund -->
+                                        <div class="grid gap-1.5">
+                                            <span class="text-xs text-muted-foreground">{{ t('event.roleScreenBg') }}</span>
+                                            <div class="flex gap-2">
+                                                <button v-for="opt in colorOptions" :key="'sb'+opt.key" type="button"
+                                                    @click="form.role_screen_bg = opt.key"
+                                                    class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
+                                                    :class="radioClass(form.role_screen_bg, opt.key, 'secondary')">
+                                                    <div class="h-6 w-6 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
+                                                    <span>{{ opt.label }}</span>
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="grid gap-2">
-                                        <Label>{{ t('event.colorCard') }}</Label>
-                                        <div class="flex items-center gap-2">
-                                            <input type="color" v-model="form.color_card"
-                                                class="h-9 w-12 cursor-pointer rounded border border-input bg-transparent p-0.5" />
-                                            <Input v-model="form.color_card" class="font-mono uppercase" maxlength="7" placeholder="#ffffff" />
+                                        <!-- Card-Hintergrund -->
+                                        <div class="grid gap-1.5">
+                                            <span class="text-xs text-muted-foreground">{{ t('event.roleCardBg') }}</span>
+                                            <div class="flex gap-2">
+                                                <button v-for="opt in colorOptions" :key="'cb'+opt.key" type="button"
+                                                    @click="form.role_card_bg = opt.key"
+                                                    class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
+                                                    :class="radioClass(form.role_card_bg, opt.key, 'tertiary')">
+                                                    <div class="h-6 w-6 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
+                                                    <span>{{ opt.label }}</span>
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <!-- Card Text: Radio-Auswahl aus den 3 Palette-Farben -->
-                                    <div class="col-span-2 grid gap-2">
-                                        <Label>{{ t('event.colorCardText') }}</Label>
-                                        <div class="flex gap-3">
-                                            <button v-for="opt in colorOptions" :key="'ct'+opt.key" type="button"
-                                                @click="form.color_card_text = opt.value"
-                                                class="flex flex-col items-center gap-1.5 rounded-lg border-2 px-3 py-2 text-xs transition-colors"
-                                                :class="effectiveCardText === opt.value ? 'border-ring' : 'border-input hover:border-muted-foreground'">
-                                                <div class="h-7 w-7 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
-                                                <span>{{ opt.label }}</span>
-                                            </button>
+                                        <!-- Text auf Cards -->
+                                        <div class="grid gap-1.5">
+                                            <span class="text-xs text-muted-foreground">{{ t('event.roleCardText') }}</span>
+                                            <div class="flex gap-2">
+                                                <button v-for="opt in colorOptions" :key="'ct'+opt.key" type="button"
+                                                    @click="form.role_card_text = opt.key"
+                                                    class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
+                                                    :class="radioClass(form.role_card_text, opt.key, 'primary')">
+                                                    <div class="h-6 w-6 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
+                                                    <span>{{ opt.label }}</span>
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <!-- Card Button BG: Radio-Auswahl aus 3 Palette-Farben -->
-                                    <div class="col-span-2 grid gap-2">
-                                        <Label>{{ t('event.colorCardButton') }}</Label>
-                                        <div class="flex gap-3">
-                                            <button v-for="opt in colorOptions" :key="'cb'+opt.key" type="button"
-                                                @click="form.color_card_button = opt.value"
-                                                class="flex flex-col items-center gap-1.5 rounded-lg border-2 px-3 py-2 text-xs transition-colors"
-                                                :class="effectiveCardButton === opt.value ? 'border-ring' : 'border-input hover:border-muted-foreground'">
-                                                <div class="h-7 w-7 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
-                                                <span>{{ opt.label }}</span>
-                                            </button>
+                                        <!-- Button auf Cards -->
+                                        <div class="grid gap-1.5">
+                                            <span class="text-xs text-muted-foreground">{{ t('event.roleCardButton') }}</span>
+                                            <div class="flex gap-2">
+                                                <button v-for="opt in colorOptions" :key="'cbt'+opt.key" type="button"
+                                                    @click="form.role_card_button = opt.key"
+                                                    class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
+                                                    :class="radioClass(form.role_card_button, opt.key, 'primary')">
+                                                    <div class="h-6 w-6 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
+                                                    <span>{{ opt.label }}</span>
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <!-- Card Button Text: Radio-Auswahl aus 3 Palette-Farben -->
-                                    <div class="col-span-2 grid gap-2">
-                                        <Label>{{ t('event.colorCardButtonText') }}</Label>
-                                        <div class="flex gap-3">
-                                            <button v-for="opt in colorOptions" :key="'cbt'+opt.key" type="button"
-                                                @click="form.color_card_button_text = opt.value"
-                                                class="flex flex-col items-center gap-1.5 rounded-lg border-2 px-3 py-2 text-xs transition-colors"
-                                                :class="effectiveCardButtonText === opt.value ? 'border-ring' : 'border-input hover:border-muted-foreground'">
-                                                <div class="h-7 w-7 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
-                                                <span>{{ opt.label }}</span>
-                                            </button>
+                                        <!-- Text auf Card-Buttons -->
+                                        <div class="grid gap-1.5">
+                                            <span class="text-xs text-muted-foreground">{{ t('event.roleCardButtonText') }}</span>
+                                            <div class="flex gap-2">
+                                                <button v-for="opt in colorOptions" :key="'cbtx'+opt.key" type="button"
+                                                    @click="form.role_card_button_text = opt.key"
+                                                    class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
+                                                    :class="radioClass(form.role_card_button_text, opt.key, 'tertiary')">
+                                                    <div class="h-6 w-6 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
+                                                    <span>{{ opt.label }}</span>
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <!-- Navbar Tint: Radio-Auswahl aus den 3 Palette-Farben -->
-                                    <div class="col-span-2 grid gap-2">
-                                        <Label>{{ t('event.colorTabTint') }}</Label>
-                                        <div class="flex gap-3">
-                                            <button v-for="opt in colorOptions" :key="'tt'+opt.key" type="button"
-                                                @click="form.color_tab_tint = opt.value"
-                                                class="flex flex-col items-center gap-1.5 rounded-lg border-2 px-3 py-2 text-xs transition-colors"
-                                                :class="effectiveTabTint === opt.value ? 'border-ring' : 'border-input hover:border-muted-foreground'">
-                                                <div class="h-7 w-7 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
-                                                <span>{{ opt.label }}</span>
-                                            </button>
+                                        <!-- Navbar-Farbe -->
+                                        <div class="grid gap-1.5">
+                                            <span class="text-xs text-muted-foreground">{{ t('event.roleTabTint') }}</span>
+                                            <div class="flex gap-2">
+                                                <button v-for="opt in colorOptions" :key="'tt'+opt.key" type="button"
+                                                    @click="form.role_tab_tint = opt.key"
+                                                    class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
+                                                    :class="radioClass(form.role_tab_tint, opt.key, 'primary')">
+                                                    <div class="h-6 w-6 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
+                                                    <span>{{ opt.label }}</span>
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div v-if="displayCoverUrl" class="grid gap-2">
-                                        <Label>{{ t('event.colorHomeText') }}</Label>
-                                        <div class="flex items-center gap-2">
-                                            <input type="color" v-model="form.color_home_text"
-                                                class="h-9 w-12 cursor-pointer rounded border border-input bg-transparent p-0.5" />
-                                            <Input v-model="form.color_home_text" class="font-mono uppercase" maxlength="7" placeholder="#ffffff" />
+                                        <!-- Rahmenfarbe -->
+                                        <div class="grid gap-1.5">
+                                            <span class="text-xs text-muted-foreground">{{ t('event.roleBorder') }}</span>
+                                            <div class="flex gap-2">
+                                                <button v-for="opt in colorOptions" :key="'br'+opt.key" type="button"
+                                                    @click="form.role_border = opt.key"
+                                                    class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
+                                                    :class="radioClass(form.role_border, opt.key, 'primary')">
+                                                    <div class="h-6 w-6 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
+                                                    <span>{{ opt.label }}</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <!-- FAB-Button -->
+                                        <div class="grid gap-1.5">
+                                            <span class="text-xs text-muted-foreground">{{ t('event.roleFab') }}</span>
+                                            <div class="flex gap-2">
+                                                <button v-for="opt in colorOptions" :key="'fab'+opt.key" type="button"
+                                                    @click="form.role_fab = opt.key"
+                                                    class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
+                                                    :class="radioClass(form.role_fab, opt.key, 'primary')">
+                                                    <div class="h-6 w-6 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
+                                                    <span>{{ opt.label }}</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Home-Screen Farbe — nur wenn Cover vorhanden -->
+                                        <div v-if="displayCoverUrl" class="grid gap-1.5">
+                                            <span class="text-xs text-muted-foreground">{{ t('event.colorHomeText') }}</span>
+                                            <div class="flex items-center gap-2">
+                                                <input type="color" v-model="form.color_home_text"
+                                                    class="h-9 w-10 cursor-pointer rounded border border-input bg-transparent p-0.5 shrink-0" />
+                                                <Input v-model="form.color_home_text" class="font-mono uppercase text-xs px-2" maxlength="7" placeholder="#ffffff" />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <p class="text-xs text-muted-foreground">{{ t('event.colorHint') }}</p>
-
 
                             </div>
                         </CardContent>
@@ -404,7 +468,6 @@ const tabDefs = [
                         <CardContent class="space-y-3">
                             <p class="text-sm text-muted-foreground">{{ t('event.coverHint') }}</p>
 
-                            <!-- Gespeichertes Cover oder neue Auswahl -->
                             <div v-if="displayCoverUrl" class="flex items-center gap-3 rounded-lg border bg-muted/30 px-3 py-2">
                                 <img :src="displayCoverUrl" class="h-12 w-20 shrink-0 rounded object-cover" />
                                 <div class="min-w-0 flex-1">
@@ -423,7 +486,6 @@ const tabDefs = [
                                 </Button>
                             </div>
 
-                            <!-- Datei auswählen (kein sofortiger Upload) -->
                             <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed px-4 py-3 transition-colors hover:bg-muted/40"
                                 :class="{ 'opacity-50 pointer-events-none': coverConverting }">
                                 <input type="file" class="hidden" accept="image/jpeg,image/png,image/heic,image/heif" @change="onFileSelect" :disabled="coverConverting" />
@@ -437,7 +499,7 @@ const tabDefs = [
 
                 </form>
 
-                <!-- Rechte Spalte: 2×2 Phone-Previews — sticky + intern scrollbar -->
+                <!-- Rechte Spalte: Phone-Previews -->
                 <div class="flex flex-col items-center gap-3 lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto lg:pb-4">
                     <p class="text-sm font-medium text-muted-foreground">{{ t('event.phonePreview') }}</p>
 
@@ -447,7 +509,7 @@ const tabDefs = [
                     <div class="flex flex-col items-center gap-1.5">
                         <span class="text-[11px] font-medium text-muted-foreground">Home</span>
                         <div style="width:168px;height:342px;overflow:hidden;flex-shrink:0;"><div style="transform:scale(1.4);transform-origin:top left;"><div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
-                            <!-- Mit Cover: Vollbild-Bild + Gradient + home_text_color -->
+                            <!-- Mit Cover -->
                             <div v-if="displayCoverUrl" class="relative flex flex-col" style="height:244px;background-size:cover;background-position:center;" :style="{ backgroundImage: `url('${displayCoverUrl}')` }">
                                 <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/5 to-black/75" />
                                 <div class="relative flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-white">
@@ -475,30 +537,30 @@ const tabDefs = [
                                     </div>
                                 </div>
                             </div>
-                            <!-- Ohne Cover: Secondary BG + Primary Text -->
-                            <div v-else class="flex flex-col" style="height:244px;" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
+                            <!-- Ohne Cover: normale App-Farben -->
+                            <div v-else class="flex flex-col" style="height:244px;" :style="{ backgroundColor: cScreenBg }">
                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
                                 </div>
                                 <div class="flex flex-1 flex-col items-center justify-center px-2.5 pb-1">
-                                    <p class="text-center text-[6px]" :style="{ color: form.color_accent || '#7c2d3e' }">Willkommen, Gast!</p>
-                                    <p class="mt-0.5 text-center text-[9px] font-bold leading-tight" :style="{ color: form.color_accent || '#7c2d3e', fontFamily: previewFontFamily }">
+                                    <p class="text-center text-[6px]" :style="{ color: cCardText }">Willkommen, Gast!</p>
+                                    <p class="mt-0.5 text-center text-[9px] font-bold leading-tight" :style="{ color: cCardText, fontFamily: previewFontFamily }">
                                         {{ form.name || 'Event-Name' }}
                                     </p>
-                                    <p class="mt-0.5 text-center text-[7px]" :style="{ color: form.color_accent || '#7c2d3e' }">{{ previewDate || 'Sa., 1. Januar 2026' }}</p>
-                                    <p class="mt-0.5 text-center text-[6px]" :style="{ color: form.color_accent || '#7c2d3e' }">{{ form.venue_name || 'Musterort' }}</p>
-                                    <p class="text-center text-[6px]" :style="{ color: form.color_accent || '#7c2d3e' }">{{ form.venue_address || 'Musterstraße 1' }}</p>
-                                    <p class="mt-1.5 text-center text-[6px] font-bold" :style="{ color: form.color_accent || '#7c2d3e' }">
+                                    <p class="mt-0.5 text-center text-[7px]" :style="{ color: cCardText }">{{ previewDate || 'Sa., 1. Januar 2026' }}</p>
+                                    <p class="mt-0.5 text-center text-[6px]" :style="{ color: cCardText }">{{ form.venue_name || 'Musterort' }}</p>
+                                    <p class="text-center text-[6px]" :style="{ color: cCardText }">{{ form.venue_address || 'Musterstraße 1' }}</p>
+                                    <p class="mt-1.5 text-center text-[6px] font-bold" :style="{ color: cCardText }">
                                         Noch {{ previewDaysLeft ? previewDaysLeft + 'T' : '6T 11Std 22Min' }}
                                     </p>
                                 </div>
-                                <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t border-black/10" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
+                                <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t" :style="{ backgroundColor: cScreenBg, borderColor: cBorder+'33' }">
                                     <div v-for="(tab, i) in tabDefs" :key="'hn'+i" class="flex flex-col items-center gap-0.5">
                                         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                            :stroke="i===0 ? effectiveTabTint : effectiveTabTint+'55'">
+                                            :stroke="i===0 ? cTabTint : cTabTint+'55'">
                                             <path v-for="(p,pi) in tab.paths" :key="pi" :d="p" />
                                         </svg>
-                                        <span class="text-[5px]" :style="{ color: i===0 ? effectiveTabTint : effectiveTabTint+'55', fontWeight: i===0?'700':'400' }">{{ tab.label }}</span>
+                                        <span class="text-[5px]" :style="{ color: i===0 ? cTabTint : cTabTint+'55', fontWeight: i===0?'700':'400' }">{{ tab.label }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -509,16 +571,16 @@ const tabDefs = [
                     <div class="flex flex-col items-center gap-1.5">
                         <span class="text-[11px] font-medium text-muted-foreground">Zusage</span>
                         <div style="width:168px;height:342px;overflow:hidden;flex-shrink:0;"><div style="transform:scale(1.4);transform-origin:top left;"><div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
-                            <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
+                            <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: cScreenBg }">
                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
                                 </div>
                                 <div class="flex flex-1 flex-col gap-1.5 overflow-hidden px-1.5 pt-1">
-                                    <!-- Card 1: eigener Gast -->
-                                    <div class="rounded-lg p-1.5 shadow-sm" :style="{ backgroundColor: form.color_card || '#ffffff' }">
-                                        <p class="mb-0.5 text-[5px]" :style="{ color: effectiveCardText+'77' }">Bitte antworte bis 25. März.</p>
+                                    <!-- Card 1 -->
+                                    <div class="rounded-lg p-1.5 shadow-sm" :style="{ backgroundColor: cCardBg, borderWidth: '1px', borderStyle: 'solid', borderColor: cBorder+'33' }">
+                                        <p class="mb-0.5 text-[5px]" :style="{ color: cCardText+'77' }">Bitte antworte bis 25. März.</p>
                                         <div class="flex items-center justify-between">
-                                            <span class="text-[7px] font-semibold" :style="{ color: effectiveCardText }">Max Mustermann</span>
+                                            <span class="text-[7px] font-semibold" :style="{ color: cCardText }">Max Mustermann</span>
                                             <span class="rounded-full px-1 py-0.5 text-[4px] font-semibold text-white" style="background-color:#888888;">Zugesagt</span>
                                         </div>
                                         <div class="mt-1 flex gap-0.5">
@@ -526,30 +588,30 @@ const tabDefs = [
                                             <div class="flex-1 rounded py-0.5 text-center text-[5px] font-semibold text-white" style="background-color:#b45a3c;">Absagen</div>
                                         </div>
                                     </div>
-                                    <!-- Card 2: Gruppe -->
-                                    <div class="rounded-lg p-1.5 shadow-sm" :style="{ backgroundColor: form.color_card || '#ffffff' }">
-                                        <p class="text-[7px] font-semibold" :style="{ color: effectiveCardText }">Deine Gruppe</p>
-                                        <p class="mb-1 text-[5px]" :style="{ color: effectiveCardText+'77' }">Du kannst für deine Gruppe antworten.</p>
+                                    <!-- Card 2 -->
+                                    <div class="rounded-lg p-1.5 shadow-sm" :style="{ backgroundColor: cCardBg, borderWidth: '1px', borderStyle: 'solid', borderColor: cBorder+'33' }">
+                                        <p class="text-[7px] font-semibold" :style="{ color: cCardText }">Deine Gruppe</p>
+                                        <p class="mb-1 text-[5px]" :style="{ color: cCardText+'77' }">Du kannst für deine Gruppe antworten.</p>
                                         <div v-for="(member, mi) in [{name:'Anna M.',status:'Zugesagt'},{name:'Klaus M.',status:'Zugesagt'},{name:'Lisa M.',status:'Abgesagt',red:true}]" :key="mi"
-                                            class="border-t py-0.5 first:border-t-0" style="border-color:rgba(0,0,0,0.08)">
+                                            class="border-t py-0.5 first:border-t-0" :style="{ borderColor: cBorder+'22' }">
                                             <div class="flex items-center justify-between">
-                                                <span class="text-[6px] font-semibold" :style="{ color: effectiveCardText }">{{ member.name }}</span>
+                                                <span class="text-[6px] font-semibold" :style="{ color: cCardText }">{{ member.name }}</span>
                                                 <div class="flex items-center gap-0.5">
                                                     <span class="rounded-full px-1 py-0.5 text-[4px] font-semibold text-white" :style="{ backgroundColor: member.red ? '#b45a3c' : '#888888' }">{{ member.status }}</span>
-                                                    <span class="text-[6px]" :style="{ color: effectiveCardText+'88' }">▼</span>
+                                                    <span class="text-[6px]" :style="{ color: cCardText+'88' }">▼</span>
                                                 </div>
                                             </div>
-                                            <p class="text-[4px]" :style="{ color: effectiveCardText+'66' }">Von dir gesetzt</p>
+                                            <p class="text-[4px]" :style="{ color: cCardText+'66' }">Von dir gesetzt</p>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t border-black/10" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
+                                <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t" :style="{ backgroundColor: cScreenBg, borderColor: cBorder+'33' }">
                                     <div v-for="(tab, i) in tabDefs" :key="'z'+i" class="flex flex-col items-center gap-0.5">
                                         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                            :stroke="i===1 ? effectiveTabTint : effectiveTabTint+'55'">
+                                            :stroke="i===1 ? cTabTint : cTabTint+'55'">
                                             <path v-for="(p,pi) in tab.paths" :key="pi" :d="p" />
                                         </svg>
-                                        <span class="text-[5px]" :style="{ color: i===1 ? effectiveTabTint : effectiveTabTint+'55', fontWeight: i===1?'700':'400' }">{{ tab.label }}</span>
+                                        <span class="text-[5px]" :style="{ color: i===1 ? cTabTint : cTabTint+'55', fontWeight: i===1?'700':'400' }">{{ tab.label }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -560,7 +622,7 @@ const tabDefs = [
                     <div class="flex flex-col items-center gap-1.5">
                         <span class="text-[11px] font-medium text-muted-foreground">Fotos</span>
                         <div style="width:168px;height:342px;overflow:hidden;flex-shrink:0;"><div style="transform:scale(1.4);transform-origin:top left;"><div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
-                            <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
+                            <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: cScreenBg }">
                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
                                 </div>
@@ -568,21 +630,22 @@ const tabDefs = [
                                     <div class="grid grid-cols-3 gap-0.5">
                                         <div v-for="n in 6" :key="n" class="rounded-sm" style="background-color:#d4cfc8;aspect-ratio:1;" />
                                     </div>
+                                    <!-- FAB mit cFab-Farbe -->
                                     <div class="absolute bottom-3 right-2 flex h-7 w-7 items-center justify-center rounded-full shadow-md"
-                                        :style="{ backgroundColor: form.color_card || '#ffffff' }">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" :stroke="effectiveCardText" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        :style="{ backgroundColor: cFab }">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" :stroke="cCardButtonText" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                                             <circle cx="12" cy="13" r="4"/>
                                         </svg>
                                     </div>
                                 </div>
-                                <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t border-black/10" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
+                                <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t" :style="{ backgroundColor: cScreenBg, borderColor: cBorder+'33' }">
                                     <div v-for="(tab, i) in tabDefs" :key="'f'+i" class="flex flex-col items-center gap-0.5">
                                         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                            :stroke="i===2 ? effectiveTabTint : effectiveTabTint+'55'">
+                                            :stroke="i===2 ? cTabTint : cTabTint+'55'">
                                             <path v-for="(p,pi) in tab.paths" :key="pi" :d="p" />
                                         </svg>
-                                        <span class="text-[5px]" :style="{ color: i===2 ? effectiveTabTint : effectiveTabTint+'55', fontWeight: i===2?'700':'400' }">{{ tab.label }}</span>
+                                        <span class="text-[5px]" :style="{ color: i===2 ? cTabTint : cTabTint+'55', fontWeight: i===2?'700':'400' }">{{ tab.label }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -593,44 +656,38 @@ const tabDefs = [
                     <div class="flex flex-col items-center gap-1.5">
                         <span class="text-[11px] font-medium text-muted-foreground">Einstellungen</span>
                         <div style="width:168px;height:342px;overflow:hidden;flex-shrink:0;"><div style="transform:scale(1.4);transform-origin:top left;"><div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
-                            <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
+                            <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: cScreenBg }">
                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
                                 </div>
                                 <div class="flex flex-1 flex-col items-center justify-center px-2">
-                                    <!-- Eine Card mit allem drin -->
-                                    <div class="w-full rounded-xl shadow-sm" :style="{ backgroundColor: form.color_card || '#ffffff' }">
-                                        <!-- User-Info -->
+                                    <div class="w-full rounded-xl shadow-sm" :style="{ backgroundColor: cCardBg, borderWidth: '1px', borderStyle: 'solid', borderColor: cBorder+'33' }">
                                         <div class="px-2 pt-2 pb-1.5">
-                                            <p class="text-[5px]" :style="{ color: effectiveCardText+'88' }">Eingeloggt als</p>
-                                            <p class="text-[7px] font-semibold" :style="{ color: effectiveCardText }">Max Mustermann</p>
-                                            <p class="text-[5px]" :style="{ color: effectiveCardText+'88' }">Familie Mustermann</p>
+                                            <p class="text-[5px]" :style="{ color: cCardText+'88' }">Eingeloggt als</p>
+                                            <p class="text-[7px] font-semibold" :style="{ color: cCardText }">Max Mustermann</p>
+                                            <p class="text-[5px]" :style="{ color: cCardText+'88' }">Familie Mustermann</p>
                                         </div>
-                                        <!-- Divider -->
-                                        <div class="border-t mx-2" style="border-color:rgba(0,0,0,0.08);"></div>
-                                        <!-- Sprache -->
+                                        <div class="border-t mx-2" :style="{ borderColor: cBorder+'33' }"></div>
                                         <div class="px-2 py-1.5">
-                                            <p class="mb-1 text-[5px]" :style="{ color: effectiveCardText+'88' }">Sprache</p>
+                                            <p class="mb-1 text-[5px]" :style="{ color: cCardText+'88' }">Sprache</p>
                                             <div class="flex gap-1">
-                                                <div class="flex-1 rounded-lg py-0.5 text-center text-[5px] font-semibold" :style="{ backgroundColor: effectiveCardButton, color: effectiveCardButtonText }">Deutsch</div>
-                                                <div class="flex-1 rounded-lg border py-0.5 text-center text-[5px]" style="border-color:rgba(0,0,0,0.15);color:#888;">Englisch</div>
+                                                <div class="flex-1 rounded-lg py-0.5 text-center text-[5px] font-semibold" :style="{ backgroundColor: cCardButton, color: cCardButtonText }">Deutsch</div>
+                                                <div class="flex-1 rounded-lg border py-0.5 text-center text-[5px]" :style="{ borderColor: cBorder+'33', color: cCardText+'77' }">Englisch</div>
                                             </div>
                                         </div>
-                                        <!-- Divider -->
-                                        <div class="border-t mx-2" style="border-color:rgba(0,0,0,0.08);"></div>
-                                        <!-- Ausloggen innerhalb der Card -->
+                                        <div class="border-t mx-2" :style="{ borderColor: cBorder+'33' }"></div>
                                         <div class="mx-2 my-1.5 rounded-lg py-1 text-center text-[6px] font-semibold text-white" style="background-color:#b45a3c;">
                                             Ausloggen
                                         </div>
                                     </div>
                                 </div>
-                                <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t border-black/10" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
+                                <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t" :style="{ backgroundColor: cScreenBg, borderColor: cBorder+'33' }">
                                     <div v-for="(tab, i) in tabDefs" :key="'e'+i" class="flex flex-col items-center gap-0.5">
                                         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                            :stroke="i===4 ? effectiveTabTint : effectiveTabTint+'55'">
+                                            :stroke="i===4 ? cTabTint : cTabTint+'55'">
                                             <path v-for="(p,pi) in tab.paths" :key="pi" :d="p" />
                                         </svg>
-                                        <span class="text-[5px]" :style="{ color: i===4 ? effectiveTabTint : effectiveTabTint+'55', fontWeight: i===4?'700':'400' }">{{ tab.label }}</span>
+                                        <span class="text-[5px]" :style="{ color: i===4 ? cTabTint : cTabTint+'55', fontWeight: i===4?'700':'400' }">{{ tab.label }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -638,11 +695,11 @@ const tabDefs = [
                     </div>
 
                     </div><!-- /grid -->
-
                 </div>
 
             </div><!-- /lg:grid-cols-2 -->
         </div>
+
         <!-- Floating Save Bar -->
         <Transition
             enter-active-class="transition ease-out duration-200"
