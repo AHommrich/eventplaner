@@ -18,6 +18,7 @@ class Event extends Model
         'color_primary', 'color_secondary', 'color_home_text',
         'color_accent', 'color_background', 'color_card',
         'color_card_text', 'color_card_button', 'color_card_button_text', 'color_tab_tint',
+        'font_heading',
         'drink_game_enabled',
         'drink_game_end_time',
     ];

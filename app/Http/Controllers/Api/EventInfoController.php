@@ -41,6 +41,7 @@ class EventInfoController extends Controller
             // Alte Felder bleiben für Übergangszeit (App-Rückwärtskompatibilität)
             'color_primary'       => $event->color_primary,
             'color_secondary'     => $event->color_secondary,
+            'font_heading'         => $event->font_heading,
             'drink_game_enabled'   => (bool) $event->drink_game_enabled,
             'drink_game_end_time'  => $event->drink_game_end_time ? Carbon::parse($event->drink_game_end_time)->toIso8601String() : null,
         ]);
