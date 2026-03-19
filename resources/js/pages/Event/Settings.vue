@@ -27,6 +27,7 @@ interface EventData {
     color_card: string | null;
     color_card_text: string | null;
     color_card_button: string | null;
+    color_card_button_text: string | null;
     color_tab_tint: string | null;
     color_home_text: string | null;
 }
@@ -50,7 +51,8 @@ const form = useForm({
     color_background: props.event.color_background ?? '#e8e3de',
     color_card:       props.event.color_card        ?? '#ffffff',
     color_card_text:   props.event.color_card_text   ?? '',
-    color_card_button: props.event.color_card_button ?? '',
+    color_card_button:      props.event.color_card_button      ?? '',
+    color_card_button_text: props.event.color_card_button_text ?? '',
     color_tab_tint:    props.event.color_tab_tint    ?? '',
     color_home_text:  props.event.color_home_text   ?? '#ffffff',
     cover: null as File | null,
@@ -158,16 +160,11 @@ const colorOptions = computed(() => [
     { key: 'card',       label: 'Card',         value: form.color_card       || '#ffffff' },
 ]);
 
-// 4 Optionen für card_button (zusätzlich card_text)
-const colorOptionsWithCardText = computed(() => [
-    ...colorOptions.value,
-    { key: 'card_text', label: 'Card-Text', value: effectiveCardText.value },
-]);
-
 // Effektive Farben mit Fallback-Kette
-const effectiveCardText   = computed(() => form.color_card_text   || form.color_accent || '#7c2d3e');
-const effectiveCardButton = computed(() => form.color_card_button || effectiveCardText.value);
-const effectiveTabTint    = computed(() => form.color_tab_tint    || form.color_accent || '#7c2d3e');
+const effectiveCardText       = computed(() => form.color_card_text       || form.color_accent || '#7c2d3e');
+const effectiveCardButton     = computed(() => form.color_card_button     || effectiveCardText.value);
+const effectiveCardButtonText = computed(() => form.color_card_button_text || form.color_card  || '#ffffff');
+const effectiveTabTint        = computed(() => form.color_tab_tint        || form.color_accent || '#7c2d3e');
 
 // SVG-Pfade für Tab-Bar Icons: [Pfad1, Pfad2?]
 const tabDefs = [
@@ -267,14 +264,27 @@ const tabDefs = [
                                             </button>
                                         </div>
                                     </div>
-                                    <!-- Card Button: Radio-Auswahl aus 4 Palette-Farben -->
+                                    <!-- Card Button BG: Radio-Auswahl aus 3 Palette-Farben -->
                                     <div class="col-span-2 grid gap-2">
                                         <Label>{{ t('event.colorCardButton') }}</Label>
                                         <div class="flex gap-3">
-                                            <button v-for="opt in colorOptionsWithCardText" :key="'cb'+opt.key" type="button"
+                                            <button v-for="opt in colorOptions" :key="'cb'+opt.key" type="button"
                                                 @click="form.color_card_button = opt.value"
                                                 class="flex flex-col items-center gap-1.5 rounded-lg border-2 px-3 py-2 text-xs transition-colors"
                                                 :class="effectiveCardButton === opt.value ? 'border-ring' : 'border-input hover:border-muted-foreground'">
+                                                <div class="h-7 w-7 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
+                                                <span>{{ opt.label }}</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!-- Card Button Text: Radio-Auswahl aus 3 Palette-Farben -->
+                                    <div class="col-span-2 grid gap-2">
+                                        <Label>{{ t('event.colorCardButtonText') }}</Label>
+                                        <div class="flex gap-3">
+                                            <button v-for="opt in colorOptions" :key="'cbt'+opt.key" type="button"
+                                                @click="form.color_card_button_text = opt.value"
+                                                class="flex flex-col items-center gap-1.5 rounded-lg border-2 px-3 py-2 text-xs transition-colors"
+                                                :class="effectiveCardButtonText === opt.value ? 'border-ring' : 'border-input hover:border-muted-foreground'">
                                                 <div class="h-7 w-7 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
                                                 <span>{{ opt.label }}</span>
                                             </button>
