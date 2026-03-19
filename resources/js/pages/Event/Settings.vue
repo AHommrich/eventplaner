@@ -259,9 +259,12 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
 <template>
     <Head :title="t('event.settings')" />
     <AppLayout :breadcrumbs="breadcrumbItems">
-        <div class="m-4 space-y-6">
+        <!-- Split-Screen: beide Spalten scrollen unabhängig -->
+        <div class="flex h-[calc(100vh-4rem)] gap-6 overflow-hidden px-4 pt-4">
 
-            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <!-- Linke Spalte: Formular, unabhängig scrollbar -->
+            <div class="flex-1 overflow-y-auto pb-24">
+            <div class="space-y-4">
 
                 <!-- Linke Spalte: Formular -->
                 <form @submit.prevent="submit" class="space-y-4">
@@ -499,7 +502,11 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
 
                 </form>
 
-                <!-- Rechte Spalte: Phone-Previews -->
+            </div>
+            </div>
+
+            <!-- Rechte Spalte: Preview, unabhängig scrollbar -->
+            <div class="w-auto overflow-y-auto pb-4">
                 <div class="flex flex-col items-center gap-3">
                     <p class="text-sm font-medium text-muted-foreground">{{ t('event.phonePreview') }}</p>
 
@@ -696,9 +703,9 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
 
                     </div><!-- /grid -->
                 </div>
+            </div>
 
-            </div><!-- /lg:grid-cols-2 -->
-        </div>
+        </div><!-- /split-screen -->
 
         <!-- Floating Save Bar -->
         <Transition
