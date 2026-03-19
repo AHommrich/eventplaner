@@ -435,13 +435,10 @@ const tabDefs = [
                         </CardContent>
                     </Card>
 
-                    <Button type="submit" :disabled="form.processing" class="w-full">
-                        {{ t('event.saveSettings') }}
-                    </Button>
                 </form>
 
-                <!-- Rechte Spalte: 2×2 Phone-Previews -->
-                <div class="flex flex-col items-center gap-3">
+                <!-- Rechte Spalte: 2×2 Phone-Previews — sticky + intern scrollbar -->
+                <div class="flex flex-col items-center gap-3 lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto lg:pb-4">
                     <p class="text-sm font-medium text-muted-foreground">{{ t('event.phonePreview') }}</p>
 
                     <div class="grid grid-cols-2 gap-4">
