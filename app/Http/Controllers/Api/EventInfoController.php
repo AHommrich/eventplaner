@@ -34,6 +34,8 @@ class EventInfoController extends Controller
             'color_background'    => $event->color_background ?? '#e8e3de',
             'color_card'          => $event->color_card        ?? '#ffffff',
             'color_home_text'     => $event->color_home_text   ?? '#ffffff',
+            'color_card_text'     => $event->color_card_text   ?? $event->color_accent ?? '#7c2d3e',
+            'color_tab_tint'      => $event->color_tab_tint    ?? $event->color_accent ?? '#7c2d3e',
             // Alte Felder bleiben für Übergangszeit (App-Rückwärtskompatibilität)
             'color_primary'       => $event->color_primary,
             'color_secondary'     => $event->color_secondary,
