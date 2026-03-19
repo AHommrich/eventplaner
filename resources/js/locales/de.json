@@ -52,6 +52,8 @@
     "colorAccent": "Akzentfarbe (Text & Buttons)",
     "colorBackground": "Hintergrundfarbe",
     "colorCard": "Card-Farbe",
+    "colorCardText": "Textfarbe auf Cards",
+    "colorTabTint": "Textfarbe in der Navbar",
     "colorHomeText": "Textfarbe Home-Screen",
     "colorHint": "Akzent = Text & Buttons · Hintergrund = Screen-BG · Card = Cards & Listen · Home-Text = Schrift über Titelbild",
     "drinkGameEnabled": "Trinkspiel aktivieren",
