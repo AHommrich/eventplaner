@@ -53,6 +53,7 @@
     "colorBackground": "Hintergrundfarbe",
     "colorCard": "Card-Farbe",
     "colorCardText": "Textfarbe auf Cards",
+    "colorCardButton": "Buttonfarbe in Cards",
     "colorTabTint": "Textfarbe in der Navbar",
     "colorHomeText": "Textfarbe Home-Screen",
     "colorHint": "Akzent = Text & Buttons · Hintergrund = Screen-BG · Card = Cards & Listen · Home-Text = Schrift über Titelbild",
