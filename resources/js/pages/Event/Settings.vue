@@ -259,11 +259,11 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
 <template>
     <Head :title="t('event.settings')" />
     <AppLayout :breadcrumbs="breadcrumbItems">
-        <!-- Split-Screen: beide Spalten scrollen unabhängig -->
-        <div class="flex h-[calc(100vh-4rem)] gap-6 overflow-hidden px-4 pt-4">
+        <!-- Split-Screen: Mobile = oben Preview / unten Form; Desktop = links Form / rechts Preview -->
+        <div class="flex h-[calc(100vh-4rem)] flex-col overflow-hidden lg:flex-row lg:gap-6 lg:px-4 lg:pt-4">
 
-            <!-- Linke Spalte: Formular, unabhängig scrollbar -->
-            <div class="flex-1 overflow-y-auto pb-24">
+            <!-- Form — unten auf Mobile (order-last), links auf Desktop (order-first) -->
+            <div class="order-last flex-1 overflow-y-auto px-4 pb-24 pt-2 lg:order-first lg:px-0 lg:pt-0">
             <div class="space-y-4">
 
                 <!-- Linke Spalte: Formular -->
@@ -505,12 +505,14 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
             </div>
             </div>
 
-            <!-- Rechte Spalte: Preview, unabhängig scrollbar -->
-            <div class="w-auto overflow-y-auto pb-4">
-                <div class="flex flex-col items-center gap-3">
+            <!-- Preview — oben auf Mobile (order-first), rechts auf Desktop (order-last) -->
+            <div class="order-first h-[50vh] overflow-hidden lg:order-last lg:h-full lg:w-auto lg:overflow-y-auto lg:pb-4">
+                <div class="flex flex-col items-center gap-2 pt-3 lg:pt-0">
                     <p class="text-sm font-medium text-muted-foreground">{{ t('event.phonePreview') }}</p>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <!-- Mobile: horizontal scroll, 2 sichtbar; Desktop: 2×2 Grid -->
+                    <div class="overflow-x-auto w-full lg:overflow-x-visible">
+                    <div class="flex gap-4 px-4 pb-4 lg:grid lg:grid-cols-2 lg:px-0">
 
                     <!-- ===== SCREEN 1: HOME ===== -->
                     <div class="flex flex-col items-center gap-1.5">
@@ -701,7 +703,8 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                         </div></div></div>
                     </div>
 
-                    </div><!-- /grid -->
+                    </div><!-- /flex oder grid -->
+                    </div><!-- /overflow-x-auto -->
                 </div>
             </div>
 
