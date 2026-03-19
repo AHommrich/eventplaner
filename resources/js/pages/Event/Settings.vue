@@ -25,6 +25,8 @@ interface EventData {
     color_accent: string | null;
     color_background: string | null;
     color_card: string | null;
+    color_card_text: string | null;
+    color_tab_tint: string | null;
     color_home_text: string | null;
 }
 
@@ -46,6 +48,8 @@ const form = useForm({
     color_accent:     props.event.color_accent     ?? '#7c2d3e',
     color_background: props.event.color_background ?? '#e8e3de',
     color_card:       props.event.color_card        ?? '#ffffff',
+    color_card_text:  props.event.color_card_text   ?? '',
+    color_tab_tint:   props.event.color_tab_tint    ?? '',
     color_home_text:  props.event.color_home_text   ?? '#ffffff',
     cover: null as File | null,
 });
@@ -145,6 +149,17 @@ const previewRsvpDeadline = computed(() => {
     } catch { return null; }
 });
 
+// Die 3 wählbaren Palette-Farben für Text-Rollen
+const colorOptions = computed(() => [
+    { key: 'accent',     label: 'Akzent',      value: form.color_accent     || '#7c2d3e' },
+    { key: 'background', label: 'Hintergrund',  value: form.color_background || '#e8e3de' },
+    { key: 'card',       label: 'Card',         value: form.color_card       || '#ffffff' },
+]);
+
+// Effektive Farben mit Fallback auf color_accent
+const effectiveCardText = computed(() => form.color_card_text || form.color_accent || '#7c2d3e');
+const effectiveTabTint  = computed(() => form.color_tab_tint  || form.color_accent || '#7c2d3e');
+
 // SVG-Pfade für Tab-Bar Icons: [Pfad1, Pfad2?]
 const tabDefs = [
     { label: 'Home',     paths: ['M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z', 'M9 21V12h6v9'] },
@@ -228,6 +243,32 @@ const tabDefs = [
                                             <input type="color" v-model="form.color_card"
                                                 class="h-9 w-12 cursor-pointer rounded border border-input bg-transparent p-0.5" />
                                             <Input v-model="form.color_card" class="font-mono uppercase" maxlength="7" placeholder="#ffffff" />
+                                        </div>
+                                    </div>
+                                    <!-- Card Text: Radio-Auswahl aus den 3 Palette-Farben -->
+                                    <div class="col-span-2 grid gap-2">
+                                        <Label>{{ t('event.colorCardText') }}</Label>
+                                        <div class="flex gap-3">
+                                            <button v-for="opt in colorOptions" :key="'ct'+opt.key" type="button"
+                                                @click="form.color_card_text = opt.value"
+                                                class="flex flex-col items-center gap-1.5 rounded-lg border-2 px-3 py-2 text-xs transition-colors"
+                                                :class="effectiveCardText === opt.value ? 'border-ring' : 'border-input hover:border-muted-foreground'">
+                                                <div class="h-7 w-7 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
+                                                <span>{{ opt.label }}</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!-- Navbar Tint: Radio-Auswahl aus den 3 Palette-Farben -->
+                                    <div class="col-span-2 grid gap-2">
+                                        <Label>{{ t('event.colorTabTint') }}</Label>
+                                        <div class="flex gap-3">
+                                            <button v-for="opt in colorOptions" :key="'tt'+opt.key" type="button"
+                                                @click="form.color_tab_tint = opt.value"
+                                                class="flex flex-col items-center gap-1.5 rounded-lg border-2 px-3 py-2 text-xs transition-colors"
+                                                :class="effectiveTabTint === opt.value ? 'border-ring' : 'border-input hover:border-muted-foreground'">
+                                                <div class="h-7 w-7 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
+                                                <span>{{ opt.label }}</span>
+                                            </button>
                                         </div>
                                     </div>
                                     <div v-if="displayCoverUrl" class="grid gap-2">
@@ -346,10 +387,10 @@ const tabDefs = [
                                 <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t border-black/10" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
                                     <div v-for="(tab, i) in tabDefs" :key="'hn'+i" class="flex flex-col items-center gap-0.5">
                                         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                            :stroke="i===0 ? (form.color_accent||'#7c2d3e') : (form.color_accent ? form.color_accent+'55' : '#9e9490')">
+                                            :stroke="i===0 ? effectiveTabTint : effectiveTabTint+'55'">
                                             <path v-for="(p,pi) in tab.paths" :key="pi" :d="p" />
                                         </svg>
-                                        <span class="text-[5px]" :style="{ color: i===0 ? (form.color_accent||'#7c2d3e') : (form.color_accent ? form.color_accent+'55' : '#9e9490'), fontWeight: i===0?'700':'400' }">{{ tab.label }}</span>
+                                        <span class="text-[5px]" :style="{ color: i===0 ? effectiveTabTint : effectiveTabTint+'55', fontWeight: i===0?'700':'400' }">{{ tab.label }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -367,9 +408,9 @@ const tabDefs = [
                                 <div class="flex flex-1 flex-col gap-1.5 overflow-hidden px-1.5 pt-1">
                                     <!-- Card 1: eigener Gast -->
                                     <div class="rounded-lg p-1.5 shadow-sm" :style="{ backgroundColor: form.color_card || '#ffffff' }">
-                                        <p class="mb-0.5 text-[5px]" :style="{ color: form.color_accent ? form.color_accent+'77' : '#8c8880' }">Bitte antworte bis 25. März.</p>
+                                        <p class="mb-0.5 text-[5px]" :style="{ color: effectiveCardText+'77' }">Bitte antworte bis 25. März.</p>
                                         <div class="flex items-center justify-between">
-                                            <span class="text-[7px] font-semibold" :style="{ color: form.color_accent || '#7c2d3e' }">Max Mustermann</span>
+                                            <span class="text-[7px] font-semibold" :style="{ color: effectiveCardText }">Max Mustermann</span>
                                             <span class="rounded-full px-1 py-0.5 text-[4px] font-semibold text-white" style="background-color:#888888;">Zugesagt</span>
                                         </div>
                                         <div class="mt-1 flex gap-0.5">
@@ -379,28 +420,28 @@ const tabDefs = [
                                     </div>
                                     <!-- Card 2: Gruppe -->
                                     <div class="rounded-lg p-1.5 shadow-sm" :style="{ backgroundColor: form.color_card || '#ffffff' }">
-                                        <p class="text-[7px] font-semibold" :style="{ color: form.color_accent || '#7c2d3e' }">Deine Gruppe</p>
-                                        <p class="mb-1 text-[5px]" :style="{ color: form.color_accent ? form.color_accent+'77' : '#8c8880' }">Du kannst für deine Gruppe antworten.</p>
+                                        <p class="text-[7px] font-semibold" :style="{ color: effectiveCardText }">Deine Gruppe</p>
+                                        <p class="mb-1 text-[5px]" :style="{ color: effectiveCardText+'77' }">Du kannst für deine Gruppe antworten.</p>
                                         <div v-for="(member, mi) in [{name:'Anna M.',status:'Zugesagt'},{name:'Klaus M.',status:'Zugesagt'},{name:'Lisa M.',status:'Abgesagt',red:true}]" :key="mi"
                                             class="border-t py-0.5 first:border-t-0" style="border-color:rgba(0,0,0,0.08)">
                                             <div class="flex items-center justify-between">
-                                                <span class="text-[6px] font-semibold" :style="{ color: form.color_accent || '#7c2d3e' }">{{ member.name }}</span>
+                                                <span class="text-[6px] font-semibold" :style="{ color: effectiveCardText }">{{ member.name }}</span>
                                                 <div class="flex items-center gap-0.5">
                                                     <span class="rounded-full px-1 py-0.5 text-[4px] font-semibold text-white" :style="{ backgroundColor: member.red ? '#b45a3c' : '#888888' }">{{ member.status }}</span>
-                                                    <span class="text-[6px]" :style="{ color: form.color_accent ? form.color_accent+'88' : '#aaa' }">▼</span>
+                                                    <span class="text-[6px]" :style="{ color: effectiveCardText+'88' }">▼</span>
                                                 </div>
                                             </div>
-                                            <p class="text-[4px]" :style="{ color: form.color_accent ? form.color_accent+'66' : '#aaa' }">Von dir gesetzt</p>
+                                            <p class="text-[4px]" :style="{ color: effectiveCardText+'66' }">Von dir gesetzt</p>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t border-black/10" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
                                     <div v-for="(tab, i) in tabDefs" :key="'z'+i" class="flex flex-col items-center gap-0.5">
                                         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                            :stroke="i===1 ? (form.color_accent||'#7c2d3e') : (form.color_accent ? form.color_accent+'55' : '#9e9490')">
+                                            :stroke="i===1 ? effectiveTabTint : effectiveTabTint+'55'">
                                             <path v-for="(p,pi) in tab.paths" :key="pi" :d="p" />
                                         </svg>
-                                        <span class="text-[5px]" :style="{ color: i===1 ? (form.color_accent||'#7c2d3e') : (form.color_accent ? form.color_accent+'55' : '#9e9490'), fontWeight: i===1?'700':'400' }">{{ tab.label }}</span>
+                                        <span class="text-[5px]" :style="{ color: i===1 ? effectiveTabTint : effectiveTabTint+'55', fontWeight: i===1?'700':'400' }">{{ tab.label }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -421,7 +462,7 @@ const tabDefs = [
                                     </div>
                                     <div class="absolute bottom-3 right-2 flex h-7 w-7 items-center justify-center rounded-full shadow-md"
                                         :style="{ backgroundColor: form.color_card || '#ffffff' }">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" :stroke="form.color_accent || '#7c2d3e'" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" :stroke="effectiveCardText" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                                             <circle cx="12" cy="13" r="4"/>
                                         </svg>
@@ -430,10 +471,10 @@ const tabDefs = [
                                 <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t border-black/10" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
                                     <div v-for="(tab, i) in tabDefs" :key="'f'+i" class="flex flex-col items-center gap-0.5">
                                         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                            :stroke="i===2 ? (form.color_accent||'#7c2d3e') : (form.color_accent ? form.color_accent+'55' : '#9e9490')">
+                                            :stroke="i===2 ? effectiveTabTint : effectiveTabTint+'55'">
                                             <path v-for="(p,pi) in tab.paths" :key="pi" :d="p" />
                                         </svg>
-                                        <span class="text-[5px]" :style="{ color: i===2 ? (form.color_accent||'#7c2d3e') : (form.color_accent ? form.color_accent+'55' : '#9e9490'), fontWeight: i===2?'700':'400' }">{{ tab.label }}</span>
+                                        <span class="text-[5px]" :style="{ color: i===2 ? effectiveTabTint : effectiveTabTint+'55', fontWeight: i===2?'700':'400' }">{{ tab.label }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -453,15 +494,15 @@ const tabDefs = [
                                     <div class="w-full rounded-xl shadow-sm" :style="{ backgroundColor: form.color_card || '#ffffff' }">
                                         <!-- User-Info -->
                                         <div class="px-2 pt-2 pb-1.5">
-                                            <p class="text-[5px]" :style="{ color: form.color_accent ? form.color_accent+'88' : '#9e9490' }">Eingeloggt als</p>
-                                            <p class="text-[7px] font-semibold" :style="{ color: form.color_accent || '#7c2d3e' }">Max Mustermann</p>
-                                            <p class="text-[5px]" :style="{ color: form.color_accent ? form.color_accent+'88' : '#9e9490' }">Familie Mustermann</p>
+                                            <p class="text-[5px]" :style="{ color: effectiveCardText+'88' }">Eingeloggt als</p>
+                                            <p class="text-[7px] font-semibold" :style="{ color: effectiveCardText }">Max Mustermann</p>
+                                            <p class="text-[5px]" :style="{ color: effectiveCardText+'88' }">Familie Mustermann</p>
                                         </div>
                                         <!-- Divider -->
                                         <div class="border-t mx-2" style="border-color:rgba(0,0,0,0.08);"></div>
                                         <!-- Sprache -->
                                         <div class="px-2 py-1.5">
-                                            <p class="mb-1 text-[5px]" :style="{ color: form.color_accent ? form.color_accent+'88' : '#9e9490' }">Sprache</p>
+                                            <p class="mb-1 text-[5px]" :style="{ color: effectiveCardText+'88' }">Sprache</p>
                                             <div class="flex gap-1">
                                                 <div class="flex-1 rounded-lg py-0.5 text-center text-[5px] font-semibold text-white" :style="{ backgroundColor: form.color_accent || '#7c2d3e' }">Deutsch</div>
                                                 <div class="flex-1 rounded-lg border py-0.5 text-center text-[5px]" style="border-color:rgba(0,0,0,0.15);color:#888;">Englisch</div>
@@ -478,10 +519,10 @@ const tabDefs = [
                                 <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t border-black/10" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
                                     <div v-for="(tab, i) in tabDefs" :key="'e'+i" class="flex flex-col items-center gap-0.5">
                                         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                            :stroke="i===4 ? (form.color_accent||'#7c2d3e') : (form.color_accent ? form.color_accent+'55' : '#9e9490')">
+                                            :stroke="i===4 ? effectiveTabTint : effectiveTabTint+'55'">
                                             <path v-for="(p,pi) in tab.paths" :key="pi" :d="p" />
                                         </svg>
-                                        <span class="text-[5px]" :style="{ color: i===4 ? (form.color_accent||'#7c2d3e') : (form.color_accent ? form.color_accent+'55' : '#9e9490'), fontWeight: i===4?'700':'400' }">{{ tab.label }}</span>
+                                        <span class="text-[5px]" :style="{ color: i===4 ? effectiveTabTint : effectiveTabTint+'55', fontWeight: i===4?'700':'400' }">{{ tab.label }}</span>
                                     </div>
                                 </div>
                             </div>
