@@ -360,16 +360,33 @@ const tabDefs = [
                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
                                 </div>
-                                <div class="flex flex-1 flex-col gap-2 px-2 pt-2">
-                                    <p v-if="previewRsvpDeadline" class="text-[6px]" :style="{ color: form.color_accent ? form.color_accent+'88' : '#8c8880' }">Bitte antworte bis {{ previewRsvpDeadline }}.</p>
-                                    <div class="rounded-xl p-2 shadow-sm" :style="{ backgroundColor: form.color_card || '#ffffff' }">
+                                <div class="flex flex-1 flex-col gap-1.5 overflow-hidden px-1.5 pt-1">
+                                    <!-- Card 1: eigener Gast -->
+                                    <div class="rounded-lg p-1.5 shadow-sm" :style="{ backgroundColor: form.color_card || '#ffffff' }">
+                                        <p class="mb-0.5 text-[5px]" :style="{ color: form.color_accent ? form.color_accent+'77' : '#8c8880' }">Bitte antworte bis 25. März.</p>
                                         <div class="flex items-center justify-between">
-                                            <span class="text-[8px] font-semibold" :style="{ color: form.color_accent || '#7c2d3e' }">Max Mustermann</span>
-                                            <span class="rounded-full px-1.5 py-0.5 text-[5px] font-semibold text-white" style="background-color:#888888;">Zugesagt</span>
+                                            <span class="text-[7px] font-semibold" :style="{ color: form.color_accent || '#7c2d3e' }">Max Mustermann</span>
+                                            <span class="rounded-full px-1 py-0.5 text-[4px] font-semibold text-white" style="background-color:#888888;">Zugesagt</span>
                                         </div>
-                                        <div class="mt-1.5 flex gap-1">
-                                            <div class="flex-1 rounded-lg py-1 text-center text-[6px] font-semibold text-white" style="background-color:#4a7c59;">Zusagen</div>
-                                            <div class="flex-1 rounded-lg py-1 text-center text-[6px] font-semibold text-white" style="background-color:#b45a3c;">Absagen</div>
+                                        <div class="mt-1 flex gap-0.5">
+                                            <div class="flex-1 rounded py-0.5 text-center text-[5px] font-semibold text-white" style="background-color:#4a7c59;">Zusagen</div>
+                                            <div class="flex-1 rounded py-0.5 text-center text-[5px] font-semibold text-white" style="background-color:#b45a3c;">Absagen</div>
+                                        </div>
+                                    </div>
+                                    <!-- Card 2: Gruppe -->
+                                    <div class="rounded-lg p-1.5 shadow-sm" :style="{ backgroundColor: form.color_card || '#ffffff' }">
+                                        <p class="text-[7px] font-semibold" :style="{ color: form.color_accent || '#7c2d3e' }">Deine Gruppe</p>
+                                        <p class="mb-1 text-[5px]" :style="{ color: form.color_accent ? form.color_accent+'77' : '#8c8880' }">Du kannst für deine Gruppe antworten.</p>
+                                        <div v-for="(member, mi) in [{name:'Anna M.',status:'Zugesagt'},{name:'Klaus M.',status:'Zugesagt'},{name:'Lisa M.',status:'Abgesagt',red:true}]" :key="mi"
+                                            class="border-t py-0.5 first:border-t-0" style="border-color:rgba(0,0,0,0.08)">
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-[6px] font-semibold" :style="{ color: form.color_accent || '#7c2d3e' }">{{ member.name }}</span>
+                                                <div class="flex items-center gap-0.5">
+                                                    <span class="rounded-full px-1 py-0.5 text-[4px] font-semibold text-white" :style="{ backgroundColor: member.red ? '#b45a3c' : '#888888' }">{{ member.status }}</span>
+                                                    <span class="text-[6px]" :style="{ color: form.color_accent ? form.color_accent+'88' : '#aaa' }">▼</span>
+                                                </div>
+                                            </div>
+                                            <p class="text-[4px]" :style="{ color: form.color_accent ? form.color_accent+'66' : '#aaa' }">Von dir gesetzt</p>
                                         </div>
                                     </div>
                                 </div>
@@ -427,21 +444,31 @@ const tabDefs = [
                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
                                 </div>
-                                <div class="flex flex-1 flex-col items-center justify-center gap-2 px-2">
-                                    <div class="w-full rounded-xl p-2 shadow-sm" :style="{ backgroundColor: form.color_card || '#ffffff' }">
-                                        <p class="text-[6px]" :style="{ color: form.color_accent ? form.color_accent+'88' : '#9e9490' }">Eingeloggt als</p>
-                                        <p class="text-[8px] font-semibold" :style="{ color: form.color_accent || '#7c2d3e' }">Max Mustermann</p>
-                                    </div>
-                                    <div class="w-full rounded-xl p-2 shadow-sm" :style="{ backgroundColor: form.color_card || '#ffffff' }">
-                                        <p class="mb-1 text-[6px]" :style="{ color: form.color_accent ? form.color_accent+'88' : '#9e9490' }">Sprache</p>
-                                        <div class="flex gap-1">
-                                            <div class="flex-1 rounded-lg py-0.5 text-center text-[6px] font-semibold text-white" :style="{ backgroundColor: form.color_accent || '#7c2d3e' }">Deutsch</div>
-                                            <div class="flex-1 rounded-lg py-0.5 text-center text-[6px]" style="background-color:#e0dbd4;color:#666;">Englisch</div>
+                                <div class="flex flex-1 flex-col items-center justify-center px-2">
+                                    <!-- Eine Card mit allem drin -->
+                                    <div class="w-full rounded-xl shadow-sm" :style="{ backgroundColor: form.color_card || '#ffffff' }">
+                                        <!-- User-Info -->
+                                        <div class="px-2 pt-2 pb-1.5">
+                                            <p class="text-[5px]" :style="{ color: form.color_accent ? form.color_accent+'88' : '#9e9490' }">Eingeloggt als</p>
+                                            <p class="text-[7px] font-semibold" :style="{ color: form.color_accent || '#7c2d3e' }">Max Mustermann</p>
+                                            <p class="text-[5px]" :style="{ color: form.color_accent ? form.color_accent+'88' : '#9e9490' }">Familie Mustermann</p>
                                         </div>
-                                    </div>
-                                    <div class="w-full rounded-xl py-1 text-center text-[7px] font-semibold text-white"
-                                        style="background-color:#b45a3c;">
-                                        Ausloggen
+                                        <!-- Divider -->
+                                        <div class="border-t mx-2" style="border-color:rgba(0,0,0,0.08);"></div>
+                                        <!-- Sprache -->
+                                        <div class="px-2 py-1.5">
+                                            <p class="mb-1 text-[5px]" :style="{ color: form.color_accent ? form.color_accent+'88' : '#9e9490' }">Sprache</p>
+                                            <div class="flex gap-1">
+                                                <div class="flex-1 rounded-lg py-0.5 text-center text-[5px] font-semibold text-white" :style="{ backgroundColor: form.color_accent || '#7c2d3e' }">Deutsch</div>
+                                                <div class="flex-1 rounded-lg border py-0.5 text-center text-[5px]" style="border-color:rgba(0,0,0,0.15);color:#888;">Englisch</div>
+                                            </div>
+                                        </div>
+                                        <!-- Divider -->
+                                        <div class="border-t mx-2" style="border-color:rgba(0,0,0,0.08);"></div>
+                                        <!-- Ausloggen innerhalb der Card -->
+                                        <div class="mx-2 my-1.5 rounded-lg py-1 text-center text-[6px] font-semibold text-white" style="background-color:#b45a3c;">
+                                            Ausloggen
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t border-black/10" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
