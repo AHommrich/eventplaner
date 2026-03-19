@@ -168,19 +168,19 @@ const effectiveCardButton     = computed(() => form.color_card_button     || eff
 const effectiveCardButtonText = computed(() => form.color_card_button_text || form.color_card  || '#ffffff');
 const effectiveTabTint        = computed(() => form.color_tab_tint        || form.color_accent || '#7c2d3e');
 
-// Font-Mapping: Key → CSS font-family
-const fontFamilyMap: Record<string, string> = {
-    playfair:    'Playfair Display',
-    cormorant:   'Cormorant Garamond',
-    cinzel:      'Cinzel',
-    dancing:     'Dancing Script',
-    great_vibes: 'Great Vibes',
-    raleway:     'Raleway',
-    lora:        'Lora',
-    josefin:     'Josefin Sans',
-};
+// Font-Optionen: Key → Label + CSS font-family
+const fontOptions = [
+    { key: 'playfair',    label: 'Playfair Display',  family: 'Playfair Display' },
+    { key: 'cormorant',   label: 'Cormorant Garamond', family: 'Cormorant Garamond' },
+    { key: 'cinzel',      label: 'Cinzel',             family: 'Cinzel' },
+    { key: 'dancing',     label: 'Dancing Script',     family: 'Dancing Script' },
+    { key: 'great_vibes', label: 'Great Vibes',        family: 'Great Vibes' },
+    { key: 'raleway',     label: 'Raleway',            family: 'Raleway' },
+    { key: 'lora',        label: 'Lora',               family: 'Lora' },
+    { key: 'josefin',     label: 'Josefin Sans',       family: 'Josefin Sans' },
+];
 const previewFontFamily = computed(() =>
-    form.font_heading ? (fontFamilyMap[form.font_heading] ?? 'inherit') : 'inherit'
+    fontOptions.find(f => f.key === form.font_heading)?.family ?? 'inherit'
 );
 
 // SVG-Pfade für Tab-Bar Icons: [Pfad1, Pfad2?]
@@ -245,18 +245,20 @@ const tabDefs = [
                                 <!-- Schrift -->
                                 <div class="grid gap-2">
                                     <Label>{{ t('event.fontHeading') }}</Label>
-                                    <select v-model="form.font_heading"
-                                        class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]">
-                                        <option value="">{{ t('event.fontSystemDefault') }}</option>
-                                        <option value="playfair">Playfair Display</option>
-                                        <option value="cormorant">Cormorant Garamond</option>
-                                        <option value="cinzel">Cinzel</option>
-                                        <option value="dancing">Dancing Script</option>
-                                        <option value="great_vibes">Great Vibes</option>
-                                        <option value="raleway">Raleway</option>
-                                        <option value="lora">Lora</option>
-                                        <option value="josefin">Josefin Sans</option>
-                                    </select>
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <button type="button" @click="form.font_heading = ''"
+                                            class="rounded-lg border-2 px-2 py-2 text-xs transition-colors text-center"
+                                            :class="!form.font_heading ? 'border-ring bg-muted/30' : 'border-input hover:border-muted-foreground'">
+                                            {{ t('event.fontSystemDefault') }}
+                                        </button>
+                                        <button v-for="font in fontOptions" :key="font.key" type="button"
+                                            @click="form.font_heading = font.key"
+                                            class="rounded-lg border-2 px-2 py-2.5 text-sm transition-colors text-center leading-tight"
+                                            :class="form.font_heading === font.key ? 'border-ring bg-muted/30' : 'border-input hover:border-muted-foreground'"
+                                            :style="{ fontFamily: font.family }">
+                                            {{ font.label }}
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <!-- Farben -->
@@ -404,7 +406,7 @@ const tabDefs = [
                     <!-- ===== SCREEN 1: HOME ===== -->
                     <div class="flex flex-col items-center gap-1.5">
                         <span class="text-[11px] font-medium text-muted-foreground">Home</span>
-                        <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
+                        <div style="width:168px;height:342px;overflow:hidden;flex-shrink:0;"><div style="transform:scale(1.4);transform-origin:top left;"><div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
                             <!-- Mit Cover: Vollbild-Bild + Gradient + home_text_color -->
                             <div v-if="displayCoverUrl" class="relative flex flex-col" style="height:244px;background-size:cover;background-position:center;" :style="{ backgroundImage: `url('${displayCoverUrl}')` }">
                                 <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/5 to-black/75" />
@@ -460,13 +462,13 @@ const tabDefs = [
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div></div></div>
                     </div>
 
                     <!-- ===== SCREEN 2: ZUSAGE ===== -->
                     <div class="flex flex-col items-center gap-1.5">
                         <span class="text-[11px] font-medium text-muted-foreground">Zusage</span>
-                        <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
+                        <div style="width:168px;height:342px;overflow:hidden;flex-shrink:0;"><div style="transform:scale(1.4);transform-origin:top left;"><div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
                             <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
@@ -511,13 +513,13 @@ const tabDefs = [
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div></div></div>
                     </div>
 
                     <!-- ===== SCREEN 3: FOTOS ===== -->
                     <div class="flex flex-col items-center gap-1.5">
                         <span class="text-[11px] font-medium text-muted-foreground">Fotos</span>
-                        <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
+                        <div style="width:168px;height:342px;overflow:hidden;flex-shrink:0;"><div style="transform:scale(1.4);transform-origin:top left;"><div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
                             <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
@@ -544,13 +546,13 @@ const tabDefs = [
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div></div></div>
                     </div>
 
                     <!-- ===== SCREEN 4: EINSTELLUNGEN ===== -->
                     <div class="flex flex-col items-center gap-1.5">
                         <span class="text-[11px] font-medium text-muted-foreground">Einstellungen</span>
-                        <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
+                        <div style="width:168px;height:342px;overflow:hidden;flex-shrink:0;"><div style="transform:scale(1.4);transform-origin:top left;"><div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
                             <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
@@ -592,7 +594,7 @@ const tabDefs = [
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div></div></div>
                     </div>
 
                     </div><!-- /grid -->
