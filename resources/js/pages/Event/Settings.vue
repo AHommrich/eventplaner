@@ -150,6 +150,7 @@ const tabDefs = [
     { label: 'Home',     paths: ['M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z', 'M9 21V12h6v9'] },
     { label: 'Zusage',   paths: ['M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z', 'M8 12l3 3 5-5'] },
     { label: 'Fotos',    paths: ['M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z', 'M12 13m-4 0a4 4 0 1 0 8 0 4 4 0 1 0-8 0'] },
+    { label: 'Spiel',    paths: ['M6 2h12l-2 18a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1L6 2z', 'M18 7h2.5a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H18'] },
     { label: 'Einst.',   paths: ['M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z', 'M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'] },
 ];
 </script>
@@ -304,23 +305,24 @@ const tabDefs = [
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
                                 </div>
                                 <div class="relative flex flex-1 flex-col items-center justify-center px-2.5 pb-1">
-                                    <p class="text-center text-[9px] font-bold leading-tight" :style="{ color: form.color_home_text || '#ffffff' }">
+                                    <p class="text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">Willkommen, Gast!</p>
+                                    <p class="mt-0.5 text-center text-[9px] font-bold leading-tight" :style="{ color: form.color_home_text || '#ffffff' }">
                                         {{ form.name || 'Event-Name' }}
                                     </p>
-                                    <p v-if="previewDate" class="mt-0.5 text-center text-[7px]" :style="{ color: (form.color_home_text || '#ffffff') + 'bb' }">{{ previewDate }}</p>
-                                    <p v-if="form.venue_name" class="mt-0.5 text-center text-[6px]" :style="{ color: (form.color_home_text || '#ffffff') + '88' }">{{ form.venue_name }}</p>
-                                    <div v-if="previewDaysLeft" class="mt-2 rounded-full px-2 py-0.5 text-[7px] font-semibold"
-                                        :style="{ backgroundColor: form.color_accent || '#7c2d3e', color: form.color_home_text || '#ffffff' }">
-                                        Noch {{ previewDaysLeft }} Tage
-                                    </div>
+                                    <p class="mt-0.5 text-center text-[7px]" :style="{ color: form.color_home_text || '#ffffff' }">{{ previewDate || 'Sa., 1. Januar 2026' }}</p>
+                                    <p class="mt-0.5 text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">{{ form.venue_name || 'Musterort' }}</p>
+                                    <p class="text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">{{ form.venue_address || 'Musterstraße 1' }}</p>
+                                    <p class="mt-1.5 text-center text-[6px] font-bold" :style="{ color: form.color_home_text || '#ffffff' }">
+                                        Noch {{ previewDaysLeft ? previewDaysLeft + 'T' : '6T 11Std 22Min' }}
+                                    </p>
                                 </div>
                                 <div class="relative flex h-[26px] w-full items-end justify-around pb-1.5 border-t border-white/15 bg-black/30">
                                     <div v-for="(tab, i) in tabDefs" :key="'h'+i" class="flex flex-col items-center gap-0.5">
                                         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                            :stroke="i===0 ? (form.color_home_text||'#ffffff') : 'rgba(255,255,255,0.45)'">
+                                            :stroke="i===0 ? (form.color_home_text||'#ffffff') : (form.color_home_text ? form.color_home_text+'77' : 'rgba(255,255,255,0.45)')">
                                             <path v-for="(p,pi) in tab.paths" :key="pi" :d="p" />
                                         </svg>
-                                        <span class="text-[5px]" :style="{ color: i===0 ? (form.color_home_text||'#ffffff') : 'rgba(255,255,255,0.45)', fontWeight: i===0?'700':'400' }">{{ tab.label }}</span>
+                                        <span class="text-[5px]" :style="{ color: i===0 ? (form.color_home_text||'#ffffff') : (form.color_home_text ? form.color_home_text+'77' : 'rgba(255,255,255,0.45)'), fontWeight: i===0?'700':'400' }">{{ tab.label }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -330,14 +332,16 @@ const tabDefs = [
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
                                 </div>
                                 <div class="flex flex-1 flex-col items-center justify-center px-2.5 pb-1">
-                                    <p class="text-center text-[9px] font-bold leading-tight" :style="{ color: form.color_accent || '#7c2d3e' }">
+                                    <p class="text-center text-[6px]" :style="{ color: form.color_accent || '#7c2d3e' }">Willkommen, Gast!</p>
+                                    <p class="mt-0.5 text-center text-[9px] font-bold leading-tight" :style="{ color: form.color_accent || '#7c2d3e' }">
                                         {{ form.name || 'Event-Name' }}
                                     </p>
-                                    <p v-if="previewDate" class="mt-0.5 text-center text-[7px]" :style="{ color: form.color_accent ? form.color_accent+'99' : '#8c8880' }">{{ previewDate }}</p>
-                                    <div v-if="previewDaysLeft" class="mt-2 rounded-full px-2 py-0.5 text-[7px] font-semibold text-white"
-                                        :style="{ backgroundColor: form.color_accent || '#7c2d3e' }">
-                                        Noch {{ previewDaysLeft }} Tage
-                                    </div>
+                                    <p class="mt-0.5 text-center text-[7px]" :style="{ color: form.color_accent || '#7c2d3e' }">{{ previewDate || 'Sa., 1. Januar 2026' }}</p>
+                                    <p class="mt-0.5 text-center text-[6px]" :style="{ color: form.color_accent || '#7c2d3e' }">{{ form.venue_name || 'Musterort' }}</p>
+                                    <p class="text-center text-[6px]" :style="{ color: form.color_accent || '#7c2d3e' }">{{ form.venue_address || 'Musterstraße 1' }}</p>
+                                    <p class="mt-1.5 text-center text-[6px] font-bold" :style="{ color: form.color_accent || '#7c2d3e' }">
+                                        Noch {{ previewDaysLeft ? previewDaysLeft + 'T' : '6T 11Std 22Min' }}
+                                    </p>
                                 </div>
                                 <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t border-black/10" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
                                     <div v-for="(tab, i) in tabDefs" :key="'hn'+i" class="flex flex-col items-center gap-0.5">
@@ -416,8 +420,8 @@ const tabDefs = [
                                         <div v-for="n in 6" :key="n" class="rounded-sm" style="background-color:#d4cfc8;aspect-ratio:1;" />
                                     </div>
                                     <div class="absolute bottom-3 right-2 flex h-7 w-7 items-center justify-center rounded-full shadow-md"
-                                        :style="{ backgroundColor: form.color_accent || '#7c2d3e' }">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        :style="{ backgroundColor: form.color_card || '#ffffff' }">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" :stroke="form.color_accent || '#7c2d3e'" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                                             <circle cx="12" cy="13" r="4"/>
                                         </svg>
@@ -474,10 +478,10 @@ const tabDefs = [
                                 <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t border-black/10" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
                                     <div v-for="(tab, i) in tabDefs" :key="'e'+i" class="flex flex-col items-center gap-0.5">
                                         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                            :stroke="i===3 ? (form.color_accent||'#7c2d3e') : (form.color_accent ? form.color_accent+'55' : '#9e9490')">
+                                            :stroke="i===4 ? (form.color_accent||'#7c2d3e') : (form.color_accent ? form.color_accent+'55' : '#9e9490')">
                                             <path v-for="(p,pi) in tab.paths" :key="pi" :d="p" />
                                         </svg>
-                                        <span class="text-[5px]" :style="{ color: i===3 ? (form.color_accent||'#7c2d3e') : (form.color_accent ? form.color_accent+'55' : '#9e9490'), fontWeight: i===3?'700':'400' }">{{ tab.label }}</span>
+                                        <span class="text-[5px]" :style="{ color: i===4 ? (form.color_accent||'#7c2d3e') : (form.color_accent ? form.color_accent+'55' : '#9e9490'), fontWeight: i===4?'700':'400' }">{{ tab.label }}</span>
                                     </div>
                                 </div>
                             </div>
