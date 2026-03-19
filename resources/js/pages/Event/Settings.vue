@@ -309,20 +309,20 @@ const tabDefs = [
                                     <p class="mt-0.5 text-center text-[9px] font-bold leading-tight" :style="{ color: form.color_home_text || '#ffffff' }">
                                         {{ form.name || 'Event-Name' }}
                                     </p>
-                                    <p v-if="previewDate" class="mt-0.5 text-center text-[7px]" :style="{ color: form.color_home_text || '#ffffff' }">{{ previewDate }}</p>
-                                    <p v-if="form.venue_name" class="mt-0.5 text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">{{ form.venue_name }}</p>
-                                    <p v-if="form.venue_address" class="text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">{{ form.venue_address }}</p>
-                                    <p v-if="previewDaysLeft" class="mt-1.5 text-center text-[6px] font-bold" :style="{ color: form.color_home_text || '#ffffff' }">
-                                        Noch {{ previewDaysLeft }}T
+                                    <p class="mt-0.5 text-center text-[7px]" :style="{ color: form.color_home_text || '#ffffff' }">{{ previewDate || 'Sa., 1. Januar 2026' }}</p>
+                                    <p class="mt-0.5 text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">{{ form.venue_name || 'Musterort' }}</p>
+                                    <p class="text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">{{ form.venue_address || 'Musterstraße 1' }}</p>
+                                    <p class="mt-1.5 text-center text-[6px] font-bold" :style="{ color: form.color_home_text || '#ffffff' }">
+                                        Noch {{ previewDaysLeft ? previewDaysLeft + 'T' : '6T 11Std 22Min' }}
                                     </p>
                                 </div>
                                 <div class="relative flex h-[26px] w-full items-end justify-around pb-1.5 border-t border-white/15 bg-black/30">
                                     <div v-for="(tab, i) in tabDefs" :key="'h'+i" class="flex flex-col items-center gap-0.5">
                                         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                            :stroke="i===0 ? (form.color_home_text||'#ffffff') : 'rgba(255,255,255,0.45)'">
+                                            :stroke="i===0 ? (form.color_home_text||'#ffffff') : (form.color_home_text ? form.color_home_text+'77' : 'rgba(255,255,255,0.45)')">
                                             <path v-for="(p,pi) in tab.paths" :key="pi" :d="p" />
                                         </svg>
-                                        <span class="text-[5px]" :style="{ color: i===0 ? (form.color_home_text||'#ffffff') : 'rgba(255,255,255,0.45)', fontWeight: i===0?'700':'400' }">{{ tab.label }}</span>
+                                        <span class="text-[5px]" :style="{ color: i===0 ? (form.color_home_text||'#ffffff') : (form.color_home_text ? form.color_home_text+'77' : 'rgba(255,255,255,0.45)'), fontWeight: i===0?'700':'400' }">{{ tab.label }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -336,11 +336,11 @@ const tabDefs = [
                                     <p class="mt-0.5 text-center text-[9px] font-bold leading-tight" :style="{ color: form.color_accent || '#7c2d3e' }">
                                         {{ form.name || 'Event-Name' }}
                                     </p>
-                                    <p v-if="previewDate" class="mt-0.5 text-center text-[7px]" :style="{ color: form.color_accent || '#7c2d3e' }">{{ previewDate }}</p>
-                                    <p v-if="form.venue_name" class="mt-0.5 text-center text-[6px]" :style="{ color: form.color_accent || '#7c2d3e' }">{{ form.venue_name }}</p>
-                                    <p v-if="form.venue_address" class="text-center text-[6px]" :style="{ color: form.color_accent || '#7c2d3e' }">{{ form.venue_address }}</p>
-                                    <p v-if="previewDaysLeft" class="mt-1.5 text-center text-[6px] font-bold" :style="{ color: form.color_accent || '#7c2d3e' }">
-                                        Noch {{ previewDaysLeft }}T
+                                    <p class="mt-0.5 text-center text-[7px]" :style="{ color: form.color_accent || '#7c2d3e' }">{{ previewDate || 'Sa., 1. Januar 2026' }}</p>
+                                    <p class="mt-0.5 text-center text-[6px]" :style="{ color: form.color_accent || '#7c2d3e' }">{{ form.venue_name || 'Musterort' }}</p>
+                                    <p class="text-center text-[6px]" :style="{ color: form.color_accent || '#7c2d3e' }">{{ form.venue_address || 'Musterstraße 1' }}</p>
+                                    <p class="mt-1.5 text-center text-[6px] font-bold" :style="{ color: form.color_accent || '#7c2d3e' }">
+                                        Noch {{ previewDaysLeft ? previewDaysLeft + 'T' : '6T 11Std 22Min' }}
                                     </p>
                                 </div>
                                 <div class="flex h-[26px] w-full items-end justify-around pb-1.5 border-t border-black/10" :style="{ backgroundColor: form.color_background || '#e8e3de' }">
@@ -421,7 +421,7 @@ const tabDefs = [
                                     </div>
                                     <div class="absolute bottom-3 right-2 flex h-7 w-7 items-center justify-center rounded-full shadow-md"
                                         :style="{ backgroundColor: form.color_card || '#ffffff' }">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" :stroke="form.color_accent || '#7c2d3e'" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                                             <circle cx="12" cy="13" r="4"/>
                                         </svg>
