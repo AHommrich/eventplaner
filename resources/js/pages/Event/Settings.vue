@@ -168,6 +168,21 @@ const effectiveCardButton     = computed(() => form.color_card_button     || eff
 const effectiveCardButtonText = computed(() => form.color_card_button_text || form.color_card  || '#ffffff');
 const effectiveTabTint        = computed(() => form.color_tab_tint        || form.color_accent || '#7c2d3e');
 
+// Font-Mapping: Key → CSS font-family
+const fontFamilyMap: Record<string, string> = {
+    playfair:    'Playfair Display',
+    cormorant:   'Cormorant Garamond',
+    cinzel:      'Cinzel',
+    dancing:     'Dancing Script',
+    great_vibes: 'Great Vibes',
+    raleway:     'Raleway',
+    lora:        'Lora',
+    josefin:     'Josefin Sans',
+};
+const previewFontFamily = computed(() =>
+    form.font_heading ? (fontFamilyMap[form.font_heading] ?? 'inherit') : 'inherit'
+);
+
 // SVG-Pfade für Tab-Bar Icons: [Pfad1, Pfad2?]
 const tabDefs = [
     { label: 'Home',     paths: ['M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z', 'M9 21V12h6v9'] },
@@ -398,7 +413,7 @@ const tabDefs = [
                                 </div>
                                 <div class="relative flex flex-1 flex-col items-center justify-center px-2.5 pb-1">
                                     <p class="text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">Willkommen, Gast!</p>
-                                    <p class="mt-0.5 text-center text-[9px] font-bold leading-tight" :style="{ color: form.color_home_text || '#ffffff' }">
+                                    <p class="mt-0.5 text-center text-[9px] font-bold leading-tight" :style="{ color: form.color_home_text || '#ffffff', fontFamily: previewFontFamily }">
                                         {{ form.name || 'Event-Name' }}
                                     </p>
                                     <p class="mt-0.5 text-center text-[7px]" :style="{ color: form.color_home_text || '#ffffff' }">{{ previewDate || 'Sa., 1. Januar 2026' }}</p>
@@ -425,7 +440,7 @@ const tabDefs = [
                                 </div>
                                 <div class="flex flex-1 flex-col items-center justify-center px-2.5 pb-1">
                                     <p class="text-center text-[6px]" :style="{ color: form.color_accent || '#7c2d3e' }">Willkommen, Gast!</p>
-                                    <p class="mt-0.5 text-center text-[9px] font-bold leading-tight" :style="{ color: form.color_accent || '#7c2d3e' }">
+                                    <p class="mt-0.5 text-center text-[9px] font-bold leading-tight" :style="{ color: form.color_accent || '#7c2d3e', fontFamily: previewFontFamily }">
                                         {{ form.name || 'Event-Name' }}
                                     </p>
                                     <p class="mt-0.5 text-center text-[7px]" :style="{ color: form.color_accent || '#7c2d3e' }">{{ previewDate || 'Sa., 1. Januar 2026' }}</p>
@@ -588,3 +603,7 @@ const tabDefs = [
         </div>
     </AppLayout>
 </template>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cormorant+Garamond:wght@400;700&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Josefin+Sans:wght@400;700&family=Lora:wght@400;700&family=Playfair+Display:wght@400;700&family=Raleway:wght@400;700&display=swap');
+</style>
