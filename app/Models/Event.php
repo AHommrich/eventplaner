@@ -18,7 +18,7 @@ class Event extends Model
         'color_primary', 'color_secondary', 'color_tertiary', 'color_home_text',
         'role_screen_bg', 'role_card_bg', 'role_card_text',
         'role_card_button', 'role_card_button_text',
-        'role_tab_tint', 'role_border', 'role_fab',
+        'role_tab_tint', 'role_border', 'role_fab', 'role_fab_icon',
         'font_heading',
         'drink_game_enabled',
         'drink_game_end_time',
