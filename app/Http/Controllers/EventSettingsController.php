@@ -22,7 +22,7 @@ class EventSettingsController extends Controller
                 'dresscode', 'schedule',
                 'color_primary', 'color_secondary', 'color_home_text',
                 'color_accent', 'color_background', 'color_card',
-                'color_card_text', 'color_tab_tint',
+                'color_card_text', 'color_card_button', 'color_tab_tint',
             ]),
         ]);
     }
@@ -46,8 +46,9 @@ class EventSettingsController extends Controller
             'color_accent'     => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'color_background' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'color_card'       => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'color_card_text'  => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'color_tab_tint'   => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'color_card_text'   => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'color_card_button' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'color_tab_tint'    => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'cover' => 'nullable|file|mimes:jpeg,jpg,png,heic,heif|max:10240',
         ]);
 
