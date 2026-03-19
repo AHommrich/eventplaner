@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { type BreadcrumbItem } from '@/types';
-import { Head, useForm } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { Head, useForm, router } from '@inertiajs/vue3';
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { useFloatingBar } from '@/composables/useFloatingBar';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
@@ -60,13 +61,55 @@ const form = useForm({
     cover: null as File | null,
 });
 
+const skipGuard = ref(false);
+const isDirty   = computed(() => form.isDirty);
+
+const { active: floatingBarActive } = useFloatingBar();
+watch(isDirty, val => { floatingBarActive.value = val; }, { immediate: true });
+
+function handleBeforeUnload(e: BeforeUnloadEvent) {
+    if (isDirty.value && !skipGuard.value) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+}
+
+let removeInertiaGuard: (() => void) | null = null;
+
+onMounted(() => {
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    removeInertiaGuard = router.on('before', (event) => {
+        if (isDirty.value && !skipGuard.value) {
+            const confirmed = window.confirm(t('drink.unsavedChangesPrompt'));
+            if (!confirmed) {
+                event.preventDefault();
+                return false;
+            }
+        }
+    });
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+    removeInertiaGuard?.();
+    floatingBarActive.value = false;
+});
+
+function discard() {
+    form.reset();
+    if (coverPreview.value) URL.revokeObjectURL(coverPreview.value);
+    coverPreview.value = null;
+}
+
 function submit() {
+    skipGuard.value = true;
     form.post(route('event.settings.update'), {
         onSuccess: () => {
             toast.success(t('toast.eventSettingsSaved'));
             coverPreview.value = null;
             form.cover = null;
         },
+        onFinish: () => { skipGuard.value = false; },
     });
 }
 
@@ -603,6 +646,25 @@ const tabDefs = [
 
             </div><!-- /lg:grid-cols-2 -->
         </div>
+        <!-- Floating Save Bar -->
+        <Transition
+            enter-active-class="transition ease-out duration-200"
+            enter-from-class="opacity-0 translate-y-4"
+            enter-to-class="opacity-100 translate-y-0"
+            leave-active-class="transition ease-in duration-150"
+            leave-from-class="opacity-100 translate-y-0"
+            leave-to-class="opacity-0 translate-y-4"
+        >
+            <div v-if="isDirty" class="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl border bg-background px-4 py-3 shadow-lg">
+                <span class="mr-1 text-xs text-muted-foreground">{{ t('drink.unsavedChanges') }}</span>
+                <Button variant="ghost" size="sm" :disabled="form.processing" @click="discard">
+                    {{ t('common.cancel') }}
+                </Button>
+                <Button size="sm" :disabled="form.processing" @click="submit">
+                    {{ form.processing ? '…' : t('common.save') }}
+                </Button>
+            </div>
+        </Transition>
     </AppLayout>
 </template>
 
