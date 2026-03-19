@@ -311,6 +311,60 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                         :placeholder="t('event.schedule')" />
                                 </div>
 
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Cover-Upload -->
+                    <Card>
+                        <CardHeader><CardTitle>{{ t('event.cover') }}</CardTitle></CardHeader>
+                        <CardContent class="space-y-3">
+                            <p class="text-sm text-muted-foreground">{{ t('event.coverHint') }}</p>
+
+                            <div v-if="displayCoverUrl" class="flex items-center gap-3 rounded-lg border bg-muted/30 px-3 py-2">
+                                <img :src="displayCoverUrl" class="h-12 w-20 shrink-0 rounded object-cover" />
+                                <div class="min-w-0 flex-1">
+                                    <p class="truncate text-xs font-medium">{{ coverFilename }}</p>
+                                    <p class="text-xs text-muted-foreground">
+                                        {{ coverPreview ? t('event.coverSelected') : t('event.coverCurrent') }}
+                                    </p>
+                                </div>
+                                <Button v-if="coverPreview" variant="ghost" size="sm" class="shrink-0"
+                                    @click="clearSelectedFile">
+                                    {{ t('common.remove') }}
+                                </Button>
+                                <Button v-else variant="ghost" size="sm" class="shrink-0 text-destructive hover:text-destructive"
+                                    :disabled="coverRemoving" @click="removeCover">
+                                    {{ coverRemoving ? '…' : t('common.remove') }}
+                                </Button>
+                            </div>
+
+                            <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed px-4 py-3 transition-colors hover:bg-muted/40"
+                                :class="{ 'opacity-50 pointer-events-none': coverConverting }">
+                                <input type="file" class="hidden" accept="image/jpeg,image/png,image/heic,image/heif" @change="onFileSelect" :disabled="coverConverting" />
+                                <span class="text-sm font-medium">
+                                    {{ coverConverting ? t('event.coverUploading') : displayCoverUrl ? t('event.coverReplace') : t('event.coverUpload') }}
+                                </span>
+                            </label>
+                            <p class="text-xs text-muted-foreground">{{ t('event.coverSaveHint') }}</p>
+
+                            <!-- Home-Screen Farbe — nur wenn Cover vorhanden -->
+                            <div v-if="displayCoverUrl" class="grid gap-1.5 pt-1">
+                                <span class="text-xs text-muted-foreground">{{ t('event.colorHomeText') }}</span>
+                                <div class="flex items-center gap-2">
+                                    <input type="color" v-model="form.color_home_text"
+                                        class="h-9 w-10 cursor-pointer rounded border border-input bg-transparent p-0.5 shrink-0" />
+                                    <Input v-model="form.color_home_text" class="font-mono uppercase text-xs px-2" maxlength="7" placeholder="#ffffff" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Design: Schrift + Farben -->
+                    <Card>
+                        <CardContent>
+                            <div class="space-y-4 pt-4">
+
                                 <!-- Schrift -->
                                 <div class="grid gap-2">
                                     <Label>{{ t('event.fontHeading') }}</Label>
@@ -345,7 +399,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                         </div>
                                     </div>
 
-                                    <!-- 8 Radio-Selektoren -->
+                                    <!-- Radio-Selektoren -->
                                     <div class="space-y-3 pt-1">
                                         <!-- Screen-Hintergrund -->
                                         <div class="grid gap-1.5">
@@ -451,7 +505,6 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                 </button>
                                             </div>
                                         </div>
-
                                         <!-- Icon-Farbe im FAB -->
                                         <div class="grid gap-1.5">
                                             <span class="text-xs text-muted-foreground">{{ t('event.roleFabIcon') }}</span>
@@ -465,55 +518,10 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                 </button>
                                             </div>
                                         </div>
-
-                                        <!-- Home-Screen Farbe — nur wenn Cover vorhanden -->
-                                        <div v-if="displayCoverUrl" class="grid gap-1.5">
-                                            <span class="text-xs text-muted-foreground">{{ t('event.colorHomeText') }}</span>
-                                            <div class="flex items-center gap-2">
-                                                <input type="color" v-model="form.color_home_text"
-                                                    class="h-9 w-10 cursor-pointer rounded border border-input bg-transparent p-0.5 shrink-0" />
-                                                <Input v-model="form.color_home_text" class="font-mono uppercase text-xs px-2" maxlength="7" placeholder="#ffffff" />
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
 
                             </div>
-                        </CardContent>
-                    </Card>
-
-                    <!-- Cover-Upload -->
-                    <Card>
-                        <CardHeader><CardTitle>{{ t('event.cover') }}</CardTitle></CardHeader>
-                        <CardContent class="space-y-3">
-                            <p class="text-sm text-muted-foreground">{{ t('event.coverHint') }}</p>
-
-                            <div v-if="displayCoverUrl" class="flex items-center gap-3 rounded-lg border bg-muted/30 px-3 py-2">
-                                <img :src="displayCoverUrl" class="h-12 w-20 shrink-0 rounded object-cover" />
-                                <div class="min-w-0 flex-1">
-                                    <p class="truncate text-xs font-medium">{{ coverFilename }}</p>
-                                    <p class="text-xs text-muted-foreground">
-                                        {{ coverPreview ? t('event.coverSelected') : t('event.coverCurrent') }}
-                                    </p>
-                                </div>
-                                <Button v-if="coverPreview" variant="ghost" size="sm" class="shrink-0"
-                                    @click="clearSelectedFile">
-                                    {{ t('common.remove') }}
-                                </Button>
-                                <Button v-else variant="ghost" size="sm" class="shrink-0 text-destructive hover:text-destructive"
-                                    :disabled="coverRemoving" @click="removeCover">
-                                    {{ coverRemoving ? '…' : t('common.remove') }}
-                                </Button>
-                            </div>
-
-                            <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed px-4 py-3 transition-colors hover:bg-muted/40"
-                                :class="{ 'opacity-50 pointer-events-none': coverConverting }">
-                                <input type="file" class="hidden" accept="image/jpeg,image/png,image/heic,image/heif" @change="onFileSelect" :disabled="coverConverting" />
-                                <span class="text-sm font-medium">
-                                    {{ coverConverting ? t('event.coverUploading') : displayCoverUrl ? t('event.coverReplace') : t('event.coverUpload') }}
-                                </span>
-                            </label>
-                            <p class="text-xs text-muted-foreground">{{ t('event.coverSaveHint') }}</p>
                         </CardContent>
                     </Card>
 
@@ -696,13 +704,13 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                         <div class="border-t mx-2" :style="{ borderColor: cBorder+'33' }"></div>
                                         <div class="px-2 py-1.5">
                                             <p class="mb-1 text-[5px]" :style="{ color: cCardText+'88' }">Sprache</p>
-                                            <div class="flex gap-1">
-                                                <div class="flex-1 rounded-lg py-0.5 text-center text-[5px] font-semibold" :style="{ backgroundColor: cCardButton, color: cCardButtonText }">Deutsch</div>
-                                                <div class="flex-1 rounded-lg border py-0.5 text-center text-[5px]" :style="{ borderColor: cBorder+'33', color: cCardText+'77' }">Englisch</div>
+                                            <div class="flex rounded-lg p-0.5" :style="{ backgroundColor: cScreenBg+'44' }">
+                                                <div class="flex-1 rounded-md py-0.5 text-center text-[5px] font-semibold" :style="{ backgroundColor: cCardBg, color: cCardText }">Deutsch</div>
+                                                <div class="flex-1 py-0.5 text-center text-[5px]" :style="{ color: cCardText+'66' }">Englisch</div>
                                             </div>
                                         </div>
                                         <div class="border-t mx-2" :style="{ borderColor: cBorder+'33' }"></div>
-                                        <div class="mx-2 my-1.5 rounded-lg py-1 text-center text-[6px] font-semibold text-white" style="background-color:#b45a3c;">
+                                        <div class="mx-2 my-1.5 rounded-lg py-1 text-center text-[6px] font-semibold" :style="{ backgroundColor: cCardButton, color: cCardButtonText }">
                                             Ausloggen
                                         </div>
                                     </div>
