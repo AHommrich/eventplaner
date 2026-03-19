@@ -536,7 +536,7 @@ const tabDefs = [
                                         <div class="px-2 py-1.5">
                                             <p class="mb-1 text-[5px]" :style="{ color: effectiveCardText+'88' }">Sprache</p>
                                             <div class="flex gap-1">
-                                                <div class="flex-1 rounded-lg py-0.5 text-center text-[5px] font-semibold text-white" :style="{ backgroundColor: form.color_accent || '#7c2d3e' }">Deutsch</div>
+                                                <div class="flex-1 rounded-lg py-0.5 text-center text-[5px] font-semibold" :style="{ backgroundColor: effectiveCardButton, color: effectiveCardButtonText }">Deutsch</div>
                                                 <div class="flex-1 rounded-lg border py-0.5 text-center text-[5px]" style="border-color:rgba(0,0,0,0.15);color:#888;">Englisch</div>
                                             </div>
                                         </div>
