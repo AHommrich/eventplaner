@@ -23,6 +23,7 @@ class EventSettingsController extends Controller
                 'color_primary', 'color_secondary', 'color_home_text',
                 'color_accent', 'color_background', 'color_card',
                 'color_card_text', 'color_card_button', 'color_card_button_text', 'color_tab_tint',
+                'font_heading',
             ]),
         ]);
     }
@@ -50,6 +51,10 @@ class EventSettingsController extends Controller
             'color_card_button'      => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'color_card_button_text' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'color_tab_tint'    => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'font_heading'      => ['nullable', \Illuminate\Validation\Rule::in([
+                'playfair', 'cormorant', 'cinzel', 'dancing',
+                'great_vibes', 'raleway', 'lora', 'josefin',
+            ])],
             'cover' => 'nullable|file|mimes:jpeg,jpg,png,heic,heif|max:10240',
         ]);
 

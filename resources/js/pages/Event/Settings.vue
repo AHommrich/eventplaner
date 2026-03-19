@@ -30,6 +30,7 @@ interface EventData {
     color_card_button_text: string | null;
     color_tab_tint: string | null;
     color_home_text: string | null;
+    font_heading: string | null;
 }
 
 const props = defineProps<{ event: EventData }>();
@@ -55,6 +56,7 @@ const form = useForm({
     color_card_button_text: props.event.color_card_button_text ?? '',
     color_tab_tint:    props.event.color_tab_tint    ?? '',
     color_home_text:  props.event.color_home_text   ?? '#ffffff',
+    font_heading:     props.event.font_heading      ?? '',
     cover: null as File | null,
 });
 
@@ -223,6 +225,23 @@ const tabDefs = [
                                     <textarea v-model="form.schedule" rows="4"
                                         class="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] placeholder:text-muted-foreground"
                                         :placeholder="t('event.schedule')" />
+                                </div>
+
+                                <!-- Schrift -->
+                                <div class="grid gap-2">
+                                    <Label>{{ t('event.fontHeading') }}</Label>
+                                    <select v-model="form.font_heading"
+                                        class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]">
+                                        <option value="">{{ t('event.fontSystemDefault') }}</option>
+                                        <option value="playfair">Playfair Display</option>
+                                        <option value="cormorant">Cormorant Garamond</option>
+                                        <option value="cinzel">Cinzel</option>
+                                        <option value="dancing">Dancing Script</option>
+                                        <option value="great_vibes">Great Vibes</option>
+                                        <option value="raleway">Raleway</option>
+                                        <option value="lora">Lora</option>
+                                        <option value="josefin">Josefin Sans</option>
+                                    </select>
                                 </div>
 
                                 <!-- Farben -->

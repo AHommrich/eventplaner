@@ -49,6 +49,8 @@
     "venueAddress": "Address",
     "dresscode": "Dress code",
     "schedule": "Schedule",
+    "fontHeading": "Heading font",
+    "fontSystemDefault": "System default",
     "colorAccent": "Accent color (text & buttons)",
     "colorBackground": "Background color",
     "colorCard": "Card color",
