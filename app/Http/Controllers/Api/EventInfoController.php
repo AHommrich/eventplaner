@@ -20,30 +20,40 @@ class EventInfoController extends Controller
 
         abort_if(!$event, 404, 'Kein Event gefunden.');
 
+        $palette = [
+            'primary'   => $event->color_primary   ?? '#7c2d3e',
+            'secondary' => $event->color_secondary ?? '#e8e3de',
+            'tertiary'  => $event->color_tertiary  ?? '#ffffff',
+        ];
+        $r = fn(string $field, string $fallback): string =>
+            $palette[$event->$field ?? $fallback] ?? $palette[$fallback];
+
         return response()->json([
-            'name'             => $event->name,
-            'date'             => $event->date ? Carbon::parse($event->date)->toIso8601String() : null,
-            'rsvp_deadline'    => $event->rsvp_deadline ? Carbon::parse($event->rsvp_deadline)->toIso8601String() : null,
-            'cover_image_url'  => $event->cover_image_url,
-            'venue_name'       => $event->venue_name,
-            'venue_address'    => $event->venue_address,
-            'dresscode'        => $event->dresscode,
-            'schedule'         => $event->schedule,
-            // Neue Theme-Felder (4 klar definierte Rollen)
-            'color_accent'        => $event->color_accent     ?? '#7c2d3e',
-            'color_background'    => $event->color_background ?? '#e8e3de',
-            'color_card'          => $event->color_card        ?? '#ffffff',
-            'color_home_text'     => $event->color_home_text   ?? '#ffffff',
-            'color_card_text'     => $event->color_card_text   ?? $event->color_accent ?? '#7c2d3e',
-            'color_card_button'      => $event->color_card_button      ?? $event->color_card_text ?? $event->color_accent ?? '#7c2d3e',
-            'color_card_button_text' => $event->color_card_button_text ?? $event->color_card       ?? '#ffffff',
-            'color_tab_tint'      => $event->color_tab_tint    ?? $event->color_accent ?? '#7c2d3e',
-            // Alte Felder bleiben für Übergangszeit (App-Rückwärtskompatibilität)
-            'color_primary'       => $event->color_primary,
-            'color_secondary'     => $event->color_secondary,
-            'font_heading'         => $event->font_heading,
-            'drink_game_enabled'   => (bool) $event->drink_game_enabled,
-            'drink_game_end_time'  => $event->drink_game_end_time ? Carbon::parse($event->drink_game_end_time)->toIso8601String() : null,
+            'name'            => $event->name,
+            'date'            => $event->date ? Carbon::parse($event->date)->toIso8601String() : null,
+            'rsvp_deadline'   => $event->rsvp_deadline ? Carbon::parse($event->rsvp_deadline)->toIso8601String() : null,
+            'cover_image_url' => $event->cover_image_url,
+            'venue_name'      => $event->venue_name,
+            'venue_address'   => $event->venue_address,
+            'dresscode'       => $event->dresscode,
+            'schedule'        => $event->schedule,
+            // Palette
+            'color_primary'   => $palette['primary'],
+            'color_secondary' => $palette['secondary'],
+            'color_tertiary'  => $palette['tertiary'],
+            // Aufgelöste Rollen
+            'color_screen_bg'        => $r('role_screen_bg',        'secondary'),
+            'color_card'             => $r('role_card_bg',          'tertiary'),
+            'color_card_text'        => $r('role_card_text',        'primary'),
+            'color_card_button'      => $r('role_card_button',      'primary'),
+            'color_card_button_text' => $r('role_card_button_text', 'tertiary'),
+            'color_tab_tint'         => $r('role_tab_tint',         'primary'),
+            'color_border'           => $r('role_border',           'primary'),
+            'color_fab'              => $r('role_fab',              'primary'),
+            'color_home_text'        => $event->color_home_text,
+            'font_heading'           => $event->font_heading,
+            'drink_game_enabled'     => (bool) $event->drink_game_enabled,
+            'drink_game_end_time'    => $event->drink_game_end_time ? Carbon::parse($event->drink_game_end_time)->toIso8601String() : null,
         ]);
     }
 }
