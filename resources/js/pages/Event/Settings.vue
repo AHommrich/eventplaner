@@ -500,7 +500,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                 </form>
 
                 <!-- Rechte Spalte: Phone-Previews -->
-                <div class="flex flex-col items-center gap-3 lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto lg:pb-4">
+                <div class="flex flex-col items-center gap-3">
                     <p class="text-sm font-medium text-muted-foreground">{{ t('event.phonePreview') }}</p>
 
                     <div class="grid grid-cols-2 gap-4">
