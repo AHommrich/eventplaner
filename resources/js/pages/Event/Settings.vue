@@ -573,6 +573,34 @@ function selectMapResult(result: NominatimResult) {
     mapSearchOpen.value    = false;
 }
 
+// --- Geocode aus Adressfeldern ---
+const geocodingFromFields = ref(false);
+
+async function geocodeFromFields() {
+    const parts: string[] = [];
+    const street = [form.venue_street, form.venue_house_number].filter(Boolean).join(' ');
+    if (street)                 parts.push(street);
+    if (form.venue_postal_code) parts.push(form.venue_postal_code);
+    if (form.venue_city)        parts.push(form.venue_city);
+    if (form.venue_country && form.venue_country !== 'Deutschland') parts.push(form.venue_country);
+    if (!parts.length) return;
+
+    geocodingFromFields.value = true;
+    try {
+        const res = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&limit=1&dedupe=0&q=${encodeURIComponent(parts.join(', '))}&addressdetails=1`,
+            { headers: { 'Accept-Language': 'de' } },
+        );
+        const results: NominatimResult[] = await res.json();
+        if (results.length) selectMapResult(results[0]);
+    } catch { /* ignore */ }
+    finally { geocodingFromFields.value = false; }
+}
+
+const hasAddressInput = computed(() =>
+    !!(form.venue_street || form.venue_city || form.venue_postal_code),
+);
+
 // Palette + Rollen-Auflösung
 const palette = computed(() => ({
     primary: form.color_primary || '#7c2d3e',
@@ -868,19 +896,38 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                     <div class="grid gap-2">
                                         <div class="flex items-center justify-between">
                                             <Label>{{ t('event.venueMap') }}</Label>
-                                            <span v-if="reverseGeocoding" class="text-xs text-muted-foreground animate-pulse">{{ t('event.venueGeocoding') }}</span>
+                                            <span v-if="reverseGeocoding || geocodingFromFields" class="text-xs text-muted-foreground animate-pulse">{{ t('event.venueGeocoding') }}</span>
                                             <button v-else-if="form.venue_lat && form.venue_lng"
                                                 type="button" class="text-xs text-muted-foreground hover:text-destructive"
                                                 @click="clearMapCoords">
-                                                {{ t('event.venueMapClear') }}
+                                                {{ t('event.venueMapReset') }}
                                             </button>
                                         </div>
-                                        <p class="text-xs text-muted-foreground -mt-1">{{ t('event.venueMapHint') }}</p>
+                                        <!-- Geocode aus Adressfeldern -->
+                                        <button
+                                            v-if="hasAddressInput && !geocodingFromFields"
+                                            type="button"
+                                            class="flex items-center gap-1.5 rounded-md border border-dashed border-primary/50 px-3 py-1.5 text-sm text-primary hover:bg-primary/5 disabled:opacity-40"
+                                            :disabled="geocodingFromFields"
+                                            @click="geocodeFromFields"
+                                        >
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                                            {{ t('event.venueSearchFromFields') }}
+                                        </button>
+                                        <!-- Hinweis: Standort per Karte bestätigen -->
+                                        <div v-if="hasAddressInput && !form.venue_lat && !form.venue_lng"
+                                            class="flex items-start gap-2 rounded-md border border-amber-400/50 bg-amber-50/50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-950/30 dark:text-amber-400"
+                                        >
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 shrink-0"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                            <span>{{ t('event.venueMapConfirmHint') }}</span>
+                                        </div>
+                                        <p v-else class="text-xs text-muted-foreground -mt-1">{{ t('event.venueMapHint') }}</p>
                                         <!-- Map search -->
                                         <div ref="mapSearchInputRef" class="relative">
                                             <Input
                                                 v-model="mapSearchQuery"
                                                 :placeholder="t('event.venueMapSearch')"
+                                                class="placeholder:text-foreground/50"
                                                 autocomplete="off"
                                                 @focus="mapSearchResults.length && (mapSearchOpen = true)"
                                                 @blur="setTimeout(() => { mapSearchOpen = false }, 150)"
@@ -907,7 +954,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                         </div>
                                         <div ref="mapContainer" class="h-56 w-full overflow-hidden rounded-lg border border-input" style="z-index:0;" />
                                         <p v-if="form.venue_lat && form.venue_lng" class="text-xs text-muted-foreground">
-                                            {{ form.venue_lat.toFixed(6) }}, {{ form.venue_lng.toFixed(6) }}
+                                            ✓ {{ form.venue_lat.toFixed(6) }}, {{ form.venue_lng.toFixed(6) }}
                                         </p>
                                     </div>
 
