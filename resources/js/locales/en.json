@@ -45,6 +45,8 @@
     "coverHint": "Shown as background on the app home screen",
     "coverSelected": "New file selected",
     "coverSaveHint": "Will be uploaded on save",
+    "coverDragging": "Drop file here",
+    "coverDragHint": "or drag and drop here",
     "venueName": "Venue",
     "venueAddress": "Address",
     "venueSearch": "Search location",
