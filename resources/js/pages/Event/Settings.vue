@@ -1321,8 +1321,15 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                     <p v-if="form.venue_display_mode !== 'address'" class="mt-0.5 text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">
                                                         {{ previewVenueName }}
                                                     </p>
-                                                    <p v-if="form.venue_display_mode !== 'name'" class="text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">
+                                                    <span v-if="form.venue_display_mode !== 'name'" class="flex items-center justify-center gap-0.5 text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">
                                                         {{ previewVenueAddress }}
+                                                        <svg width="5" height="5" viewBox="0 0 512 512" fill="none" :stroke="form.color_home_text || '#ffffff'" stroke-width="40" stroke-linecap="round" stroke-linejoin="round">
+                                                            <path d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"/>
+                                                            <circle cx="256" cy="192" r="48"/>
+                                                        </svg>
+                                                    </span>
+                                                    <p v-if="form.dresscode" class="mt-0.5 text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff', opacity: 0.7 }">
+                                                        {{ form.dresscode }}
                                                     </p>
                                                     <p
                                                         class="mt-1.5 text-center text-[6px] font-bold"
@@ -1394,8 +1401,15 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                     <p v-if="form.venue_display_mode !== 'address'" class="mt-0.5 text-center text-[6px]" :style="{ color: cCardText }">
                                                         {{ previewVenueName }}
                                                     </p>
-                                                    <p v-if="form.venue_display_mode !== 'name'" class="text-center text-[6px]" :style="{ color: cCardText }">
+                                                    <span v-if="form.venue_display_mode !== 'name'" class="flex items-center justify-center gap-0.5 text-center text-[6px]" :style="{ color: cCardText }">
                                                         {{ previewVenueAddress }}
+                                                        <svg width="5" height="5" viewBox="0 0 512 512" fill="none" :stroke="cCardText" stroke-width="40" stroke-linecap="round" stroke-linejoin="round">
+                                                            <path d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"/>
+                                                            <circle cx="256" cy="192" r="48"/>
+                                                        </svg>
+                                                    </span>
+                                                    <p v-if="form.dresscode" class="mt-0.5 text-center text-[6px]" :style="{ color: cCardText, opacity: 0.7 }">
+                                                        {{ form.dresscode }}
                                                     </p>
                                                     <p class="mt-1.5 text-center text-[6px] font-bold" :style="{ color: cCardText }">
                                                         Noch {{ previewDaysLeft ? previewDaysLeft + 'T' : '6T 11Std 22Min' }}
