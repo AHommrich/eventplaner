@@ -11,7 +11,7 @@ import axios from 'axios';
 import heic2any from 'heic2any';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 
 // Leaflet default icon fix für Vite
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
@@ -97,7 +97,7 @@ const skipGuard = ref(false);
 const isDirty = computed(() => form.isDirty);
 
 // Field-level dirty detection for address section
-const savedAddress: Record<string, string> = {
+const savedAddress = reactive<Record<string, string>>({
     venue_name:         props.event.venue_name         ?? '',
     venue_street:       props.event.venue_street       ?? '',
     venue_house_number: props.event.venue_house_number ?? '',
@@ -105,7 +105,7 @@ const savedAddress: Record<string, string> = {
     venue_city:         props.event.venue_city         ?? '',
     venue_state:        props.event.venue_state        ?? '',
     venue_country:      props.event.venue_country      ?? 'Deutschland',
-};
+});
 type AddressField = keyof typeof savedAddress;
 const formAny = form as unknown as Record<string, string | null>;
 function isFieldDirty(field: AddressField): boolean {
