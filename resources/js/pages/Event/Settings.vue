@@ -77,43 +77,58 @@ const form = useForm({
     cover: null as File | null,
 });
 
-// --- Geocoding ---
-const geocoding = ref(false);
-const geocodeStatus = ref<'idle' | 'found' | 'notfound'>('idle');
-
-async function geocode() {
-    const query = [form.venue_name, form.venue_address].filter(Boolean).join(', ');
-    if (!query) return;
-    geocoding.value = true;
-    geocodeStatus.value = 'idle';
-    try {
-        const res = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`,
-            { headers: { 'Accept-Language': 'de', 'User-Agent': 'EventPlaner/1.0' } }
-        );
-        const data = await res.json();
-        if (data.length > 0) {
-            form.venue_lat = parseFloat(data[0].lat);
-            form.venue_lng = parseFloat(data[0].lon);
-            // Venue-Name aus Nominatim übernehmen wenn leer
-            if (!form.venue_name && data[0].name) {
-                form.venue_name = data[0].name;
-            }
-            geocodeStatus.value = 'found';
-        } else {
-            geocodeStatus.value = 'notfound';
-        }
-    } catch {
-        geocodeStatus.value = 'notfound';
-    } finally {
-        geocoding.value = false;
-    }
+// --- Standort-Suche (Nominatim Autocomplete) ---
+interface NominatimResult {
+    place_id: number;
+    lat: string;
+    lon: string;
+    display_name: string;
+    name: string;
+    address: Record<string, string>;
 }
 
-// Status zurücksetzen wenn Adresse geändert wird
-watch([() => form.venue_name, () => form.venue_address], () => {
-    geocodeStatus.value = 'idle';
+const locationQuery   = ref('');
+const locationResults = ref<NominatimResult[]>([]);
+const locationSearching = ref(false);
+const locationOpen    = ref(false);
+let locationDebounce: ReturnType<typeof setTimeout> | null = null;
+
+watch(locationQuery, (val) => {
+    if (locationDebounce) clearTimeout(locationDebounce);
+    if (!val || val.length < 2) { locationResults.value = []; locationOpen.value = false; return; }
+    locationDebounce = setTimeout(async () => {
+        locationSearching.value = true;
+        try {
+            const res = await fetch(
+                `https://nominatim.openstreetmap.org/search?format=json&limit=6&q=${encodeURIComponent(val)}&addressdetails=1`,
+                { headers: { 'Accept-Language': 'de' } }
+            );
+            locationResults.value = await res.json();
+            locationOpen.value = locationResults.value.length > 0;
+        } catch {
+            locationResults.value = [];
+        } finally {
+            locationSearching.value = false;
+        }
+    }, 350);
 });
+
+function selectLocation(result: NominatimResult) {
+    form.venue_lat = parseFloat(result.lat);
+    form.venue_lng = parseFloat(result.lon);
+    // Adresse: erste Zeile des display_name (vor dem ersten Komma nach dem Ort)
+    const parts = result.display_name.split(', ');
+    form.venue_address = parts.slice(0, 3).join(', ');
+    // Name: benannter Ort wenn vorhanden, sonst leer lassen damit User selbst einträgt
+    if (result.name && result.name !== parts[0]) {
+        form.venue_name = result.name;
+    } else if (!form.venue_name) {
+        form.venue_name = result.name || '';
+    }
+    locationQuery.value = '';
+    locationResults.value = [];
+    locationOpen.value = false;
+}
 
 const skipGuard = ref(false);
 const isDirty   = computed(() => form.isDirty);
@@ -332,6 +347,41 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                     <Label>{{ t('event.rsvpDeadline') }}</Label>
                                     <Input v-model="form.rsvp_deadline" type="datetime-local" />
                                 </div>
+                                <!-- Standort-Suche -->
+                                <div class="grid gap-2">
+                                    <Label>{{ t('event.venueSearch') }}</Label>
+                                    <div class="relative">
+                                        <Input v-model="locationQuery"
+                                            :placeholder="t('event.venueSearchPlaceholder')"
+                                            autocomplete="off"
+                                            @blur="setTimeout(() => { locationOpen = false }, 150)" />
+                                        <div v-if="locationSearching" class="absolute right-2.5 top-1/2 -translate-y-1/2">
+                                            <svg class="h-4 w-4 animate-spin text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                                        </div>
+                                        <div v-if="locationOpen && locationResults.length"
+                                            class="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-md border bg-popover shadow-lg">
+                                            <button v-for="r in locationResults" :key="r.place_id"
+                                                type="button"
+                                                class="flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-accent focus:bg-accent"
+                                                @mousedown.prevent="selectLocation(r)">
+                                                <span class="font-medium truncate">{{ r.name || r.display_name.split(', ')[0] }}</span>
+                                                <span class="text-xs text-muted-foreground truncate">{{ r.display_name }}</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!-- Gespeicherter Standort -->
+                                    <div v-if="form.venue_lat && form.venue_lng" class="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                        <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                        {{ form.venue_lat.toFixed(5) }}, {{ form.venue_lng.toFixed(5) }}
+                                        <a :href="`https://www.openstreetmap.org/?mlat=${form.venue_lat}&mlon=${form.venue_lng}#map=15/${form.venue_lat}/${form.venue_lng}`"
+                                            target="_blank" rel="noopener" class="underline underline-offset-2 hover:text-foreground">
+                                            {{ t('event.venueGeocodeVerify') }}
+                                        </a>
+                                        <button type="button" class="ml-auto hover:text-destructive" @click="form.venue_lat = null; form.venue_lng = null">
+                                            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                        </button>
+                                    </div>
+                                </div>
                                 <div class="grid gap-2">
                                     <Label>{{ t('event.venueName') }}</Label>
                                     <Input v-model="form.venue_name" :placeholder="t('event.venueName')" />
@@ -339,25 +389,6 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                 <div class="grid gap-2">
                                     <Label>{{ t('event.venueAddress') }}</Label>
                                     <Input v-model="form.venue_address" :placeholder="t('event.venueAddress')" />
-                                    <div class="flex items-center gap-2">
-                                        <Button type="button" variant="outline" size="sm" :disabled="geocoding || (!form.venue_name && !form.venue_address)" @click="geocode">
-                                            <span v-if="geocoding">{{ t('event.venueGeocoding') }}</span>
-                                            <span v-else>{{ t('event.venueGeocode') }}</span>
-                                        </Button>
-                                        <span v-if="geocodeStatus === 'found'" class="flex items-center gap-1 text-xs text-muted-foreground">
-                                            <svg class="h-3.5 w-3.5 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                                            {{ t('event.venueGeocodeFound') }}
-                                            <a v-if="form.venue_lat && form.venue_lng"
-                                                :href="`https://www.openstreetmap.org/?mlat=${form.venue_lat}&mlon=${form.venue_lng}#map=15/${form.venue_lat}/${form.venue_lng}`"
-                                                target="_blank" rel="noopener"
-                                                class="underline underline-offset-2 hover:text-foreground">
-                                                {{ t('event.venueGeocodeVerify') }}
-                                            </a>
-                                        </span>
-                                        <span v-if="geocodeStatus === 'notfound'" class="text-xs text-destructive">
-                                            {{ t('event.venueGeocodeNotFound') }}
-                                        </span>
-                                    </div>
                                 </div>
                                 <div class="grid gap-2">
                                     <Label>{{ t('event.dresscode') }}</Label>
