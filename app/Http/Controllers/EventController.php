@@ -55,6 +55,8 @@ class EventController extends Controller
 
         $request->session()->put('active_event_id', $event->id);
 
-        return redirect()->back()->with('success', 'Event gewechselt.');
+        // Inertia::location() erzwingt einen Hard-Redirect statt SPA-Update,
+        // damit alle Vue-Komponenten neu gemountet werden (useForm etc. re-initialisiert).
+        return Inertia::location(back()->getTargetUrl());
     }
 }
