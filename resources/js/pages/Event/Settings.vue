@@ -422,6 +422,90 @@ function clearMapCoords() {
     if (mapMarker && leafletMap) { leafletMap.removeLayer(mapMarker); mapMarker = null; }
 }
 
+// --- Karten-Suche (forward geocode zum Zentrieren) ---
+interface NominatimResult {
+    place_id: number;
+    lat: string;
+    lon: string;
+    display_name: string;
+    name: string;
+    address: Record<string, string>;
+}
+
+const mapSearchQuery   = ref('');
+const mapSearchResults = ref<NominatimResult[]>([]);
+const mapSearching     = ref(false);
+const mapSearchOpen    = ref(false);
+const mapSearchInputRef = ref<HTMLElement | null>(null);
+const mapSearchDropdownStyle = ref({ top: '0px', left: '0px', width: '0px' });
+let mapSearchDebounce: ReturnType<typeof setTimeout> | null = null;
+
+function updateMapSearchDropdownStyle() {
+    if (!mapSearchInputRef.value) return;
+    const rect = mapSearchInputRef.value.getBoundingClientRect();
+    mapSearchDropdownStyle.value = { top: `${rect.bottom + 4}px`, left: `${rect.left}px`, width: `${rect.width}px` };
+}
+
+watch(mapSearchQuery, (val) => {
+    if (mapSearchDebounce) clearTimeout(mapSearchDebounce);
+    if (!val || val.length < 2) { mapSearchResults.value = []; mapSearchOpen.value = false; return; }
+    mapSearchDebounce = setTimeout(async () => {
+        mapSearching.value = true;
+        try {
+            const res = await fetch(
+                `https://nominatim.openstreetmap.org/search?format=json&limit=6&dedupe=0&q=${encodeURIComponent(val)}&addressdetails=1`,
+                { headers: { 'Accept-Language': 'de' } },
+            );
+            mapSearchResults.value = await res.json();
+            if (mapSearchResults.value.length > 0) {
+                updateMapSearchDropdownStyle();
+                mapSearchOpen.value = true;
+            } else {
+                mapSearchOpen.value = false;
+            }
+        } catch { mapSearchResults.value = []; }
+        finally { mapSearching.value = false; }
+    }, 350);
+});
+
+function selectMapResult(result: NominatimResult) {
+    const lat = parseFloat(result.lat);
+    const lng = parseFloat(result.lon);
+
+    // Karte zentrieren + Zoom
+    if (leafletMap) {
+        leafletMap.setView([lat, lng], 17);
+    }
+
+    // Pin setzen
+    form.venue_lat = lat;
+    form.venue_lng = lng;
+    if (mapMarker) {
+        mapMarker.setLatLng([lat, lng]);
+    } else if (leafletMap) {
+        mapMarker = L.marker([lat, lng], { draggable: true }).addTo(leafletMap);
+        mapMarker.on('dragend', (e) => {
+            const ll = (e.target as L.Marker).getLatLng();
+            setCoords(ll.lat, ll.lng);
+        });
+    }
+
+    // Adressfelder aus Nominatim-Ergebnis befüllen
+    const addr = result.address;
+    form.venue_street       = addr.road ?? addr.pedestrian ?? addr.path ?? '';
+    form.venue_house_number = addr.house_number ?? '';
+    form.venue_postal_code  = addr.postcode ?? '';
+    form.venue_city         = addr.city ?? addr.town ?? addr.village ?? addr.municipality ?? addr.county ?? '';
+    form.venue_state        = addr.state ?? '';
+    const country           = addr.country ?? 'Deutschland';
+    form.venue_country      = country;
+    countryQuery.value      = country;
+
+    mapSearchQuery.value   = '';
+    mapSearchResults.value = [];
+    mapSearchOpen.value    = false;
+}
+
 // Palette + Rollen-Auflösung
 const palette = computed(() => ({
     primary: form.color_primary || '#7c2d3e',
@@ -631,6 +715,35 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                             </button>
                                         </div>
                                         <p class="text-xs text-muted-foreground -mt-1">{{ t('event.venueMapHint') }}</p>
+                                        <!-- Map search -->
+                                        <div ref="mapSearchInputRef" class="relative">
+                                            <Input
+                                                v-model="mapSearchQuery"
+                                                :placeholder="t('event.venueMapSearch')"
+                                                autocomplete="off"
+                                                @focus="mapSearchResults.length && (mapSearchOpen = true)"
+                                                @blur="setTimeout(() => { mapSearchOpen = false }, 150)"
+                                            />
+                                            <div v-if="mapSearching" class="absolute right-2.5 top-1/2 -translate-y-1/2">
+                                                <svg class="h-4 w-4 animate-spin text-muted-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                                                </svg>
+                                            </div>
+                                            <Teleport to="body">
+                                                <div v-if="mapSearchOpen && mapSearchResults.length"
+                                                    class="fixed z-[9999] max-h-60 overflow-y-auto rounded-md border bg-popover shadow-lg"
+                                                    :style="mapSearchDropdownStyle">
+                                                    <button v-for="r in mapSearchResults" :key="r.place_id"
+                                                        type="button"
+                                                        class="flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-accent"
+                                                        @mousedown.prevent="selectMapResult(r)">
+                                                        <span class="font-medium truncate">{{ r.name || r.display_name.split(', ')[0] }}</span>
+                                                        <span class="text-xs text-muted-foreground truncate">{{ r.display_name }}</span>
+                                                    </button>
+                                                </div>
+                                            </Teleport>
+                                        </div>
                                         <div ref="mapContainer" class="h-56 w-full overflow-hidden rounded-lg border border-input" style="z-index:0;" />
                                         <p v-if="form.venue_lat && form.venue_lng" class="text-xs text-muted-foreground">
                                             {{ form.venue_lat.toFixed(6) }}, {{ form.venue_lng.toFixed(6) }}

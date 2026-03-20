@@ -62,6 +62,7 @@
     "venueAddressLine1Placeholder": "z.B. 123 Main Street",
     "venueMap": "Standort auf Karte",
     "venueMapHint": "Auf die Karte klicken um den exakten Standort zu markieren — Adressfelder werden automatisch ausgefüllt",
+    "venueMapSearch": "Adresse auf Karte suchen…",
     "venueMapClear": "Koordinaten entfernen",
     "venueGeocoding": "Adresse wird ermittelt…",
     "dresscode": "Dresscode",
