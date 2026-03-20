@@ -13,7 +13,7 @@ class Event extends Model
     protected $fillable = [
         'user_id', 'name', 'date', 'slug', 'rsvp_deadline',
         'cover_image_url', 'cover_image_r2_key',
-        'venue_name', 'venue_address',
+        'venue_name', 'venue_address', 'venue_lat', 'venue_lng',
         'dresscode', 'schedule',
         'color_primary', 'color_secondary', 'color_tertiary', 'color_home_text',
         'role_screen_bg', 'role_card_bg', 'role_card_text',
@@ -27,6 +27,8 @@ class Event extends Model
     protected $casts = [
         'drink_game_enabled'   => 'boolean',
         'drink_game_end_time'  => 'datetime',
+        'venue_lat'            => 'float',
+        'venue_lng'            => 'float',
     ];
 
     protected static function booted(): void
