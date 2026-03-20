@@ -81,6 +81,7 @@ class EventInfoController extends Controller
             'color_fab_icon'         => $r('role_fab_icon',         'tertiary'),
             'color_home_text'        => $event->color_home_text,
             'font_heading'           => $event->font_heading,
+            'venue_display_mode'     => $event->venue_display_mode ?? 'both',
             'drink_game_enabled'     => (bool) $event->drink_game_enabled,
             'drink_game_end_time'    => $event->drink_game_end_time ? Carbon::parse($event->drink_game_end_time)->toIso8601String() : null,
         ]);
