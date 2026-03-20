@@ -48,14 +48,16 @@ Coolify deployt automatisch nach Push. Migrations laufen automatisch.
 
 ## Datenmodelle
 
-- **Event** — hat user_id (Owner), name, slug, date. Viele Events möglich.
+- **Event** — user_id (Owner), name, slug, date, rsvp_deadline, cover_image_url, cover_image_r2_key, venue_name, venue_address, dresscode, schedule, font_heading, drink_game_enabled, drink_game_end_time
+- **Event Farbsystem** — 3 Palette-Felder (`color_primary`, `color_secondary`, `color_tertiary`) + 9 Rollen-Felder die Keys `'primary'|'secondary'|'tertiary'` speichern: `role_screen_bg`, `role_card_bg`, `role_card_text`, `role_card_button`, `role_card_button_text`, `role_tab_tint`, `role_border`, `role_fab`, `role_fab_icon`. Dazu `color_home_text` (freier Hex-Picker, nur relevant wenn Cover gesetzt).
 - **User** — role: `admin` (Superadmin = André) oder null (Event-Owner)
-- **Guest** — event_id, category_id, group_id, beer/wine, likelihood, invite
+- **Guest** — event_id, category_id, group_id, beer/wine, likelihood, invite, app_access (bool), drinks_access (bool)
 - **Group** — event_id (früher Family)
 - **Category** — (früher Badge)
 - **InvitationToken** — group_id oder guest_id, token (32-char random)
 - **Photo** — event_id, r2_key, url
 - **FoodSpecial**, **GuestDrink** — Pivot-Tabellen
+- **Drink** — event_id, name (Getränke-Katalog pro Event)
 
 ---
 
@@ -88,8 +90,17 @@ Middleware-Aliase: `admin` = EnsureUserIsAdmin, `has_event` = EnsureHasEventAcce
 | `/api/auth/logout` | DELETE | Token serverseitig löschen (Bearer im Header) |
 | `/api/photos` | GET | Alle Fotos des Events laden |
 | `/api/photos` | POST | Foto hochladen (multipart/form-data, HEIC→JPEG Konvertierung) |
+| `/api/event/info` | GET | Event-Infos inkl. aufgelöste Hex-Farben (Palette + Rollen) |
 
 Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
+
+### `/api/event/info` — Farb-Response
+
+Der Endpunkt löst Rollen-Keys zu Hex auf. Die App bekommt fertige Hex-Werte:
+- `color_primary`, `color_secondary`, `color_tertiary` — Palette
+- `color_screen_bg`, `color_card`, `color_card_text`, `color_card_button`, `color_card_button_text`, `color_tab_tint`, `color_border`, `color_fab`, `color_fab_icon` — aufgelöste Rollen
+- `color_home_text` — kann `null` sein wenn kein Cover gesetzt
+- `font_heading`, `drink_game_enabled`, `drink_game_end_time`
 
 ### QR-Login Flow
 
@@ -116,13 +127,14 @@ Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
 - `app/(tabs)/home.tsx` — Begrüßungsscreen
 - `app/(tabs)/photos.tsx` — Fotogalerie mit Upload + Auto-Refresh (30s)
 - `app/(tabs)/settings.tsx` — Logout + Benutzerinfo
+- Dynamisches Theming via `/api/event/info` (Palette + aufgelöste Rollen)
 
-**Noch nicht gebaut (Backend + Frontend):**
+**Noch nicht gebaut:**
 - `GET /api/guest/me` — eigene Gastdaten
 - `POST /api/guest/rsvp` — Zu-/Absage
-- `GET /api/event/info` — Hochzeitsinfos (Ort, Zeit)
 - `GET /api/event/menu` — Menüoptionen
 - `POST /api/guest/menu` — Menüwahl speichern
+- Getränke-Tracking / Trinkspiel in App
 
 ---
 
@@ -133,6 +145,12 @@ Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
 - **i18n (vue-i18n v11)** — Plugin in `resources/js/plugins/i18n.ts`. Locale-Dateien: `resources/js/locales/de.json` + `en.json`. Sprache wird in `localStorage` gespeichert. Standard: Deutsch.
   - Nav-Arrays und Tab-Arrays MÜSSEN als `computed()` definiert sein, damit sie auf Sprachwechsel reagieren.
   - Language-Switcher (DE/EN) in `AppSidebar.vue` oben links.
+- **Event-Einstellungen** (`pages/Event/Settings.vue`) — Split-Screen (Preview rechts / Formular links). Formular-Reihenfolge: Textfelder → Cover-Upload (+ Home-Textfarbe darin) → Design-Card (Schrift + Farbsystem).
+  - **Farbsystem**: 3 Palette-Picker (Primär/Sekundär/Tertiär) + 9 Radio-Selektoren die Keys speichern. `palette` + `resolve()` computed, `cScreenBg` … `cFabIcon` als Convenience-Computeds für Preview.
+  - **Phone-Preview**: 4 simulierte App-Screens (Home, Zusage, Fotos, Einstellungen) — reagieren live auf alle Farb-/Font-Änderungen.
+- **Getränke-Tracking** — Gäste können Getränke loggen; Trinkspiel mit Rangliste + Punkte. Aktivierbar pro Event (`drink_game_enabled`), optionales Spielende-Datum.
+- **RSVP-Verwaltung** — Zu-/Absage durch Gast oder Admin, Rücknahme-Anfragen mit Approve/Decline.
+- **App-Zugang pro Gast** — `app_access` + `drinks_access` togglebar pro Gast.
 
 ---
 
@@ -142,3 +160,6 @@ Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
 - **Email-Verifizierung**: Google OAuth markiert Email automatisch als verifiziert (SocialLoginController)
 - **Superadmin setzen**: Migration `2026_03_16_120000_seed_admin_user` setzt `andrehommrich@googlemail.com` auf role=admin
 - **Standard-Event**: Migration `2026_03_16_130000` legt "Hochzeit André & Tabea" an und befüllt alle alten Datensätze ohne event_id
+- **Farbsystem-Palette-Mapping**: `color_primary` = Bordeaux (#7c2d3e, ex-`color_accent`), `color_secondary` = Beige (#e8e3de, ex-`color_background`), `color_tertiary` = Weiß (#ffffff, ex-`color_card`). Migration: `2026_03_19_000010_refactor_color_system_to_palette_and_roles`.
+- **HEIC-Upload**: Wird clientseitig via `heic2any` zu JPEG konvertiert (Settings.vue Cover-Upload) und serverseitig via Imagick (API Photo-Upload).
+- **`npm run build` lokal schlägt fehl** (esbuild macOS vs. Linux Docker) — ist ein bekanntes Pre-existing Issue, kein Fehler in unserem Code. TypeScript-Check mit `npx tsc --noEmit` als Ersatz.
