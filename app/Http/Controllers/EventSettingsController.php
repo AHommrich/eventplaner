@@ -18,7 +18,7 @@ class EventSettingsController extends Controller
         return Inertia::render('Event/Settings', [
             'event' => $event->only([
                 'id', 'name', 'date', 'rsvp_deadline',
-                'cover_image_url', 'venue_name', 'venue_address', 'venue_lat', 'venue_lng',
+                'cover_image_url', 'venue_name', 'venue_address',
                 'dresscode', 'schedule',
                 'color_primary', 'color_secondary', 'color_tertiary', 'color_home_text',
                 'role_screen_bg', 'role_card_bg', 'role_card_text',
