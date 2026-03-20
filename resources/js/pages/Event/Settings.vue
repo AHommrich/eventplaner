@@ -143,6 +143,10 @@ function hintBorderClass(hint: string): string {
     return activeHint.value === hint ? 'preview-hint-border' : '';
 }
 
+function hintFilterClass(hint: string): string {
+    return activeHint.value === hint ? 'preview-hint-filter' : '';
+}
+
 const { active: floatingBarActive } = useFloatingBar();
 watch(
     isDirty,
@@ -1344,10 +1348,9 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                         <svg width="5" height="5" viewBox="0 0 512 512" fill="none" :stroke="form.color_home_text || '#ffffff'" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"><path d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"/><circle cx="256" cy="192" r="48"/></svg>
                                                     </span>
                                                     <!-- Venue: nur adresse -->
-                                                    <span v-else class="mt-0.5 flex items-center justify-center gap-0.5 text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">
-                                                        {{ previewVenueAddress }}
-                                                        <svg width="5" height="5" viewBox="0 0 512 512" fill="none" :stroke="form.color_home_text || '#ffffff'" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"><path d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"/><circle cx="256" cy="192" r="48"/></svg>
-                                                    </span>
+                                                    <p v-else class="mt-0.5 text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">
+                                                        {{ previewVenueAddress }}<svg style="display:inline;vertical-align:middle;margin-left:1px" width="5" height="5" viewBox="0 0 512 512" fill="none" :stroke="form.color_home_text || '#ffffff'" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"><path d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"/><circle cx="256" cy="192" r="48"/></svg>
+                                                    </p>
                                                     <template v-if="form.dresscode">
                                                         <p class="mt-0.5 text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff', opacity: 0.7 }">Dresscode:</p>
                                                         <p class="text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff', opacity: 0.7 }">{{ form.dresscode }}</p>
@@ -1433,10 +1436,9 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                         <svg width="5" height="5" viewBox="0 0 512 512" fill="none" :stroke="cCardText" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"><path d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"/><circle cx="256" cy="192" r="48"/></svg>
                                                     </span>
                                                     <!-- Venue: nur adresse -->
-                                                    <span v-else class="mt-0.5 flex items-center justify-center gap-0.5 text-center text-[6px]" :style="{ color: cCardText }">
-                                                        {{ previewVenueAddress }}
-                                                        <svg width="5" height="5" viewBox="0 0 512 512" fill="none" :stroke="cCardText" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"><path d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"/><circle cx="256" cy="192" r="48"/></svg>
-                                                    </span>
+                                                    <p v-else class="mt-0.5 text-center text-[6px]" :style="{ color: cCardText }">
+                                                        {{ previewVenueAddress }}<svg style="display:inline;vertical-align:middle;margin-left:1px" width="5" height="5" viewBox="0 0 512 512" fill="none" :stroke="cCardText" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"><path d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"/><circle cx="256" cy="192" r="48"/></svg>
+                                                    </p>
                                                     <template v-if="form.dresscode">
                                                         <p class="mt-0.5 text-center text-[6px]" :style="{ color: cCardText, opacity: 0.7 }">Dresscode:</p>
                                                         <p class="text-center text-[6px]" :style="{ color: cCardText, opacity: 0.7 }">{{ form.dresscode }}</p>
@@ -1449,7 +1451,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                     class="flex h-[26px] w-full items-end justify-around border-t pb-1.5"
                                                     :style="{ backgroundColor: cScreenBg, borderColor: cBorder + '33' }"
                                                 >
-                                                    <div v-for="(tab, i) in tabDefs" :key="'hn' + i" class="flex flex-col items-center gap-0.5" :class="hintBgClass('tabTint')">
+                                                    <div v-for="(tab, i) in tabDefs" :key="'hn' + i" class="flex flex-col items-center gap-0.5" :class="hintFilterClass('tabTint')">
                                                         <svg
                                                             width="9"
                                                             height="9"
@@ -1505,11 +1507,11 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                         }"
                                                         :class="[hintBgClass('cardBg'), hintBorderClass('border')]"
                                                     >
-                                                        <p class="mb-0.5 text-[5px]" :style="{ color: cCardText + '77' }" :class="hintBgClass('cardText')">
+                                                        <p class="mb-0.5 text-[5px]" :style="{ color: cCardText + '77' }" :class="hintFilterClass('cardText')">
                                                             Bitte antworte bis 25. März.
                                                         </p>
                                                         <div class="flex items-center justify-between">
-                                                            <span class="text-[7px] font-semibold" :style="{ color: cCardText }" :class="hintBgClass('cardText')">Max Mustermann</span>
+                                                            <span class="text-[7px] font-semibold" :style="{ color: cCardText }" :class="hintFilterClass('cardText')">Max Mustermann</span>
                                                             <span
                                                                 class="rounded-full px-1 py-0.5 text-[4px] font-semibold text-white"
                                                                 style="background-color: #4a7c59"
@@ -1542,8 +1544,8 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                         }"
                                                         :class="[hintBgClass('cardBg'), hintBorderClass('border')]"
                                                     >
-                                                        <p class="text-[7px] font-semibold" :style="{ color: cCardText }" :class="hintBgClass('cardText')">Deine Gruppe</p>
-                                                        <p class="mb-1 text-[5px]" :style="{ color: cCardText + '77' }" :class="hintBgClass('cardText')">
+                                                        <p class="text-[7px] font-semibold" :style="{ color: cCardText }" :class="hintFilterClass('cardText')">Deine Gruppe</p>
+                                                        <p class="mb-1 text-[5px]" :style="{ color: cCardText + '77' }" :class="hintFilterClass('cardText')">
                                                             Du kannst für deine Gruppe antworten.
                                                         </p>
                                                         <div
@@ -1558,7 +1560,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                             :class="hintBorderClass('border')"
                                                         >
                                                             <div class="flex items-center justify-between">
-                                                                <span class="text-[6px] font-semibold" :style="{ color: cCardText }" :class="hintBgClass('cardText')">{{
+                                                                <span class="text-[6px] font-semibold" :style="{ color: cCardText }" :class="hintFilterClass('cardText')">{{
                                                                     member.name
                                                                 }}</span>
                                                                 <div class="flex items-center gap-0.5">
@@ -1567,10 +1569,10 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                                         :style="{ backgroundColor: member.red ? '#b45a3c' : '#4a7c59', color: '#ffffff' }"
                                                                         >{{ member.status }}</span
                                                                     >
-                                                                    <svg width="6" height="6" viewBox="0 0 24 24" fill="none" :stroke="cCardText + '88'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" :class="hintBgClass('cardText')"><path d="M6 9l6 6 6-6"/></svg>
+                                                                    <svg width="6" height="6" viewBox="0 0 24 24" fill="none" :stroke="cCardText + '88'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" :class="hintFilterClass('cardText')"><path d="M6 9l6 6 6-6"/></svg>
                                                                 </div>
                                                             </div>
-                                                            <p class="text-[4px]" :style="{ color: cCardText + '66' }" :class="hintBgClass('cardText')">Von dir gesetzt</p>
+                                                            <p class="text-[4px]" :style="{ color: cCardText + '66' }" :class="hintFilterClass('cardText')">Von dir gesetzt</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1578,7 +1580,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                     class="flex h-[26px] w-full items-end justify-around border-t pb-1.5"
                                                     :style="{ backgroundColor: cScreenBg, borderColor: cBorder + '33' }"
                                                 >
-                                                    <div v-for="(tab, i) in tabDefs" :key="'z' + i" class="flex flex-col items-center gap-0.5" :class="hintBgClass('tabTint')">
+                                                    <div v-for="(tab, i) in tabDefs" :key="'z' + i" class="flex flex-col items-center gap-0.5" :class="hintFilterClass('tabTint')">
                                                         <svg
                                                             width="9"
                                                             height="9"
@@ -1646,7 +1648,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                             stroke-width="2.2"
                                                             stroke-linecap="round"
                                                             stroke-linejoin="round"
-                                                            :class="hintBgClass('fabIcon')"
+                                                            :class="hintFilterClass('fabIcon')"
                                                         >
                                                             <path
                                                                 d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
@@ -1659,7 +1661,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                     class="flex h-[26px] w-full items-end justify-around border-t pb-1.5"
                                                     :style="{ backgroundColor: cScreenBg, borderColor: cBorder + '33' }"
                                                 >
-                                                    <div v-for="(tab, i) in tabDefs" :key="'f' + i" class="flex flex-col items-center gap-0.5" :class="hintBgClass('tabTint')">
+                                                    <div v-for="(tab, i) in tabDefs" :key="'f' + i" class="flex flex-col items-center gap-0.5" :class="hintFilterClass('tabTint')">
                                                         <svg
                                                             width="9"
                                                             height="9"
@@ -1715,17 +1717,17 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                         :class="[hintBgClass('cardBg'), hintBorderClass('border')]"
                                                     >
                                                         <div class="px-2 pt-2 pb-1.5">
-                                                            <p class="text-[5px]" :style="{ color: cCardText + '88', fontFamily: previewFontFamily }" :class="hintBgClass('cardText')">
+                                                            <p class="text-[5px]" :style="{ color: cCardText + '88', fontFamily: previewFontFamily }" :class="hintFilterClass('cardText')">
                                                                 Eingeloggt als
                                                             </p>
                                                             <p
                                                                 class="text-[7px] font-semibold"
                                                                 :style="{ color: cCardText, fontFamily: previewFontFamily }"
-                                                                :class="hintBgClass('cardText')"
+                                                                :class="hintFilterClass('cardText')"
                                                             >
                                                                 Max Mustermann
                                                             </p>
-                                                            <p class="text-[5px]" :style="{ color: cCardText + '88', fontFamily: previewFontFamily }" :class="hintBgClass('cardText')">
+                                                            <p class="text-[5px]" :style="{ color: cCardText + '88', fontFamily: previewFontFamily }" :class="hintFilterClass('cardText')">
                                                                 Familie Mustermann
                                                             </p>
                                                         </div>
@@ -1734,7 +1736,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                             <p
                                                                 class="mb-1 text-[5px]"
                                                                 :style="{ color: cCardText + '88', fontFamily: previewFontFamily }"
-                                                                :class="hintBgClass('cardText')"
+                                                                :class="hintFilterClass('cardText')"
                                                             >
                                                                 Sprache
                                                             </p>
@@ -1747,7 +1749,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                                         fontFamily: previewFontFamily,
                                                                     }"
                                                                     :class="hintBgClass('cardButton')"
-                                                                ><span :class="hintBgClass('cardButtonText')">Deutsch</span></div>
+                                                                ><span :class="hintFilterClass('cardButtonText')">Deutsch</span></div>
                                                                 <div
                                                                     class="flex-1 py-0.5 text-center text-[5px]"
                                                                     :style="{
@@ -1769,14 +1771,14 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                                 fontFamily: previewFontFamily,
                                                             }"
                                                             :class="hintBgClass('cardButton')"
-                                                        ><span :class="hintBgClass('cardButtonText')">Ausloggen</span></div>
+                                                        ><span :class="hintFilterClass('cardButtonText')">Ausloggen</span></div>
                                                     </div>
                                                 </div>
                                                 <div
                                                     class="flex h-[26px] w-full items-end justify-around border-t pb-1.5"
                                                     :style="{ backgroundColor: cScreenBg, borderColor: cBorder + '33' }"
                                                 >
-                                                    <div v-for="(tab, i) in tabDefs" :key="'e' + i" class="flex flex-col items-center gap-0.5" :class="hintBgClass('tabTint')">
+                                                    <div v-for="(tab, i) in tabDefs" :key="'e' + i" class="flex flex-col items-center gap-0.5" :class="hintFilterClass('tabTint')">
                                                         <svg
                                                             width="9"
                                                             height="9"
@@ -1861,12 +1863,20 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
 .preview-hint-bg {
     animation: preview-hint-bg 0.4s ease-in-out 5;
 }
-/* Rahmen/Border: etwas helleres Amber */
+/* Rahmen: äußerer Amber-Ring */
 @keyframes preview-hint-border {
-    0%, 100% { box-shadow: inset 0 0 0 1000px rgba(251, 191, 36, 0); }
-    50% { box-shadow: inset 0 0 0 1000px rgba(251, 191, 36, 0.5); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
+    50% { box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.9); }
 }
 .preview-hint-border {
     animation: preview-hint-border 0.4s ease-in-out 5;
+}
+/* Text/Icons/SVGs: amber via Filter */
+@keyframes preview-hint-filter {
+    0%, 100% { filter: none; }
+    50% { filter: sepia(1) saturate(15) hue-rotate(-5deg); }
+}
+.preview-hint-filter {
+    animation: preview-hint-filter 0.4s ease-in-out 5;
 }
 </style>
