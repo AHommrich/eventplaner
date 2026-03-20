@@ -45,6 +45,8 @@
     "coverHint": "Wird auf der Home-Seite der App als Hintergrund angezeigt",
     "coverSelected": "Neue Datei ausgewählt",
     "coverSaveHint": "Wird beim Speichern hochgeladen",
+    "coverDragging": "Datei hier ablegen",
+    "coverDragHint": "oder hierher ziehen",
     "venueName": "Veranstaltungsort",
     "venueAddress": "Adresse",
     "venueSearch": "Standort suchen",
