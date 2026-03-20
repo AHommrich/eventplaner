@@ -18,7 +18,7 @@ class EventSettingsController extends Controller
         return Inertia::render('Event/Settings', [
             'event' => $event->only([
                 'id', 'name', 'date', 'rsvp_deadline',
-                'cover_image_url', 'venue_name', 'venue_address',
+                'cover_image_url', 'venue_name', 'venue_address', 'venue_lat', 'venue_lng',
                 'dresscode', 'schedule',
                 'color_primary', 'color_secondary', 'color_tertiary', 'color_home_text',
                 'role_screen_bg', 'role_card_bg', 'role_card_text',
@@ -40,6 +40,8 @@ class EventSettingsController extends Controller
             'rsvp_deadline'   => 'nullable|date',
             'venue_name'      => 'nullable|string|max:255',
             'venue_address'   => 'nullable|string|max:500',
+            'venue_lat'       => 'nullable|numeric|between:-90,90',
+            'venue_lng'       => 'nullable|numeric|between:-180,180',
             'dresscode'       => 'nullable|string|max:1000',
             'schedule'        => 'nullable|string|max:5000',
             'color_primary'   => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],

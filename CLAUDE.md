@@ -48,7 +48,7 @@ Coolify deployt automatisch nach Push. Migrations laufen automatisch.
 
 ## Datenmodelle
 
-- **Event** — user_id (Owner), name, slug, date, rsvp_deadline, cover_image_url, cover_image_r2_key, venue_name, venue_address, dresscode, schedule, font_heading, drink_game_enabled, drink_game_end_time
+- **Event** — user_id (Owner), name, slug, date, rsvp_deadline, cover_image_url, cover_image_r2_key, venue_name, venue_address, venue_lat, venue_lng, dresscode, schedule, font_heading, drink_game_enabled, drink_game_end_time
 - **Event Farbsystem** — 3 Palette-Felder (`color_primary`, `color_secondary`, `color_tertiary`) + 9 Rollen-Felder die Keys `'primary'|'secondary'|'tertiary'` speichern: `role_screen_bg`, `role_card_bg`, `role_card_text`, `role_card_button`, `role_card_button_text`, `role_tab_tint`, `role_border`, `role_fab`, `role_fab_icon`. Dazu `color_home_text` (freier Hex-Picker, nur relevant wenn Cover gesetzt).
 - **User** — role: `admin` (Superadmin = André) oder null (Event-Owner)
 - **Guest** — event_id, category_id, group_id, beer/wine, likelihood, invite, app_access (bool), drinks_access (bool)
@@ -100,6 +100,7 @@ Der Endpunkt löst Rollen-Keys zu Hex auf. Die App bekommt fertige Hex-Werte:
 - `color_primary`, `color_secondary`, `color_tertiary` — Palette
 - `color_screen_bg`, `color_card`, `color_card_text`, `color_card_button`, `color_card_button_text`, `color_tab_tint`, `color_border`, `color_fab`, `color_fab_icon` — aufgelöste Rollen
 - `color_home_text` — kann `null` sein wenn kein Cover gesetzt
+- `venue_lat`, `venue_lng` — können `null` sein wenn noch kein Standort ermittelt wurde
 - `font_heading`, `drink_game_enabled`, `drink_game_end_time`
 
 ### QR-Login Flow
