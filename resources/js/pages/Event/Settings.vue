@@ -130,6 +130,12 @@ function hintClass(hint: string): string {
 function hintTextClass(hint: string): string {
     return activeHint.value === hint ? 'preview-hint-text' : '';
 }
+function hintBgClass(hint: string): string {
+    return activeHint.value === hint ? 'preview-hint-bg' : '';
+}
+function hintSepClass(hint: string): string {
+    return activeHint.value === hint ? 'preview-hint-sep' : '';
+}
 
 const { active: floatingBarActive } = useFloatingBar();
 watch(
@@ -1288,7 +1294,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                 class="flex flex-col"
                                                 style="height: 244px"
                                                 :style="{ backgroundColor: cScreenBg, fontFamily: previewFontFamily }"
-                                                :class="hintTextClass('screenBg')"
+                                                :class="hintBgClass('screenBg')"
                                             >
                                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                                     <span>9:41</span><span style="font-size: 6px">▲▲ ▐</span>
@@ -1357,7 +1363,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                 class="flex flex-col"
                                                 style="height: 244px"
                                                 :style="{ backgroundColor: cScreenBg, fontFamily: previewFontFamily }"
-                                                :class="hintTextClass('screenBg')"
+                                                :class="hintBgClass('screenBg')"
                                             >
                                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                                     <span>9:41</span><span style="font-size: 6px">▲▲ ▐</span>
@@ -1372,7 +1378,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                             borderStyle: 'solid',
                                                             borderColor: cBorder + '33',
                                                         }"
-                                                        :class="[hintTextClass('cardBg'), hintTextClass('border')]"
+                                                        :class="[hintBgClass('cardBg'), hintClass('border')]"
                                                     >
                                                         <p class="mb-0.5 text-[5px]" :style="{ color: cCardText + '77' }" :class="hintTextClass('cardText')">
                                                             Bitte antworte bis 25. März.
@@ -1409,10 +1415,10 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                             borderStyle: 'solid',
                                                             borderColor: cBorder + '33',
                                                         }"
-                                                        :class="[hintTextClass('cardBg'), hintTextClass('border')]"
+                                                        :class="[hintBgClass('cardBg'), hintClass('border')]"
                                                     >
                                                         <p class="text-[7px] font-semibold" :style="{ color: cCardText }" :class="hintTextClass('cardText')">Deine Gruppe</p>
-                                                        <p class="mb-1 text-[5px]" :style="{ color: cCardText + '77' }">
+                                                        <p class="mb-1 text-[5px]" :style="{ color: cCardText + '77' }" :class="hintTextClass('cardText')">
                                                             Du kannst für deine Gruppe antworten.
                                                         </p>
                                                         <div
@@ -1424,7 +1430,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                             :key="mi"
                                                             class="border-t py-0.5 first:border-t-0"
                                                             :style="{ borderColor: cBorder + '22' }"
-                                                            :class="hintTextClass('border')"
+                                                            :class="hintSepClass('border')"
                                                         >
                                                             <div class="flex items-center justify-between">
                                                                 <span class="text-[6px] font-semibold" :style="{ color: cCardText }" :class="hintTextClass('cardText')">{{
@@ -1436,10 +1442,10 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                                         :style="{ backgroundColor: member.red ? '#b45a3c' : '#4a7c59', color: '#ffffff' }"
                                                                         >{{ member.status }}</span
                                                                     >
-                                                                    <span class="text-[6px]" :style="{ color: cCardText + '88' }">▼</span>
+                                                                    <span class="text-[6px]" :style="{ color: cCardText + '88' }" :class="hintTextClass('cardText')">▼</span>
                                                                 </div>
                                                             </div>
-                                                            <p class="text-[4px]" :style="{ color: cCardText + '66' }">Von dir gesetzt</p>
+                                                            <p class="text-[4px]" :style="{ color: cCardText + '66' }" :class="hintTextClass('cardText')">Von dir gesetzt</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1486,7 +1492,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                 class="flex flex-col"
                                                 style="height: 244px"
                                                 :style="{ backgroundColor: cScreenBg, fontFamily: previewFontFamily }"
-                                                :class="hintTextClass('screenBg')"
+                                                :class="hintBgClass('screenBg')"
                                             >
                                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                                     <span>9:41</span><span style="font-size: 6px">▲▲ ▐</span>
@@ -1567,7 +1573,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                 class="flex flex-col"
                                                 style="height: 244px"
                                                 :style="{ backgroundColor: cScreenBg, fontFamily: previewFontFamily }"
-                                                :class="hintTextClass('screenBg')"
+                                                :class="hintBgClass('screenBg')"
                                             >
                                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                                     <span>9:41</span><span style="font-size: 6px">▲▲ ▐</span>
@@ -1581,7 +1587,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                             borderStyle: 'solid',
                                                             borderColor: cBorder + '33',
                                                         }"
-                                                        :class="[hintTextClass('cardBg'), hintTextClass('border')]"
+                                                        :class="[hintBgClass('cardBg'), hintClass('border')]"
                                                     >
                                                         <div class="px-2 pt-2 pb-1.5">
                                                             <p class="text-[5px]" :style="{ color: cCardText + '88', fontFamily: previewFontFamily }" :class="hintTextClass('cardText')">
@@ -1607,7 +1613,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                             >
                                                                 Sprache
                                                             </p>
-                                                            <div class="flex rounded-lg border" :style="{ borderColor: cBorder + '55' }" :class="hintTextClass('border')">
+                                                            <div class="flex rounded-lg border" :style="{ borderColor: cBorder + '55' }" :class="hintClass('border')">
                                                                 <div
                                                                     class="flex-1 rounded-l-lg py-0.5 text-center text-[5px] font-semibold"
                                                                     :style="{
@@ -1615,10 +1621,8 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                                         color: cCardButtonText,
                                                                         fontFamily: previewFontFamily,
                                                                     }"
-                                                                    :class="[hintTextClass('cardButton'), hintTextClass('cardButtonText')]"
-                                                                >
-                                                                    Deutsch
-                                                                </div>
+                                                                    :class="hintBgClass('cardButton')"
+                                                                ><span :class="hintTextClass('cardButtonText')">Deutsch</span></div>
                                                                 <div
                                                                     class="flex-1 py-0.5 text-center text-[5px]"
                                                                     :style="{
@@ -1639,10 +1643,8 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                                 color: cCardButtonText,
                                                                 fontFamily: previewFontFamily,
                                                             }"
-                                                            :class="[hintTextClass('cardButton'), hintTextClass('cardButtonText')]"
-                                                        >
-                                                            Ausloggen
-                                                        </div>
+                                                            :class="hintBgClass('cardButton')"
+                                                        ><span :class="hintTextClass('cardButtonText')">Ausloggen</span></div>
                                                     </div>
                                                 </div>
                                                 <div
@@ -1740,5 +1742,19 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
 }
 .preview-hint-text {
     animation: preview-hint-text 0.4s ease-in-out 5;
+}
+@keyframes preview-hint-bg {
+    0%, 100% { box-shadow: inset 0 0 0 1000px rgba(251, 191, 36, 0); }
+    50% { box-shadow: inset 0 0 0 1000px rgba(251, 191, 36, 0.3); }
+}
+.preview-hint-bg {
+    animation: preview-hint-bg 0.4s ease-in-out 5;
+}
+@keyframes preview-hint-sep {
+    0%, 100% { box-shadow: inset 0 1px 0 0 rgba(251, 191, 36, 0); }
+    50% { box-shadow: inset 0 1px 0 0 rgba(251, 191, 36, 0.9); }
+}
+.preview-hint-sep {
+    animation: preview-hint-sep 0.4s ease-in-out 5;
 }
 </style>
