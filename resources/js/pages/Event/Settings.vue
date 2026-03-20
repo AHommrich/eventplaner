@@ -117,8 +117,13 @@ watch(locationQuery, (val) => {
                 { headers: { 'Accept-Language': 'de' } }
             );
             locationResults.value = await res.json();
-            locationOpen.value = locationResults.value.length > 0;
-            if (locationOpen.value) nextTick(updateLocationDropdownStyle);
+            if (locationResults.value.length > 0) {
+                // Position BEFORE making visible — kein flash at 0,0
+                updateLocationDropdownStyle();
+                locationOpen.value = true;
+            } else {
+                locationOpen.value = false;
+            }
         } catch {
             locationResults.value = [];
         } finally {
@@ -161,6 +166,8 @@ let removeInertiaGuard: (() => void) | null = null;
 
 onMounted(() => {
     window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('scroll', updateLocationDropdownStyle, true);
+    window.addEventListener('resize', updateLocationDropdownStyle);
     removeInertiaGuard = router.on('before', (event) => {
         if (isDirty.value && !skipGuard.value) {
             const confirmed = window.confirm(t('drink.unsavedChangesPrompt'));
@@ -174,6 +181,8 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     window.removeEventListener('beforeunload', handleBeforeUnload);
+    window.removeEventListener('scroll', updateLocationDropdownStyle, true);
+    window.removeEventListener('resize', updateLocationDropdownStyle);
     removeInertiaGuard?.();
     floatingBarActive.value = false;
 });
