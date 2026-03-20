@@ -96,6 +96,26 @@ const form = useForm({
 const skipGuard = ref(false);
 const isDirty = computed(() => form.isDirty);
 
+// Field-level dirty detection for address section
+const savedAddress = {
+    venue_name:         props.event.venue_name         ?? '',
+    venue_street:       props.event.venue_street       ?? '',
+    venue_house_number: props.event.venue_house_number ?? '',
+    venue_postal_code:  props.event.venue_postal_code  ?? '',
+    venue_city:         props.event.venue_city         ?? '',
+    venue_state:        props.event.venue_state        ?? '',
+    venue_country:      props.event.venue_country      ?? 'Deutschland',
+} as const;
+type AddressField = keyof typeof savedAddress;
+const formAny = form as unknown as Record<string, string | null>;
+function isFieldDirty(field: AddressField): boolean {
+    return (formAny[field] ?? '') !== savedAddress[field];
+}
+function resetField(field: AddressField) {
+    formAny[field] = savedAddress[field];
+    if (field === 'venue_country') countryQuery.value = savedAddress.venue_country;
+}
+
 const { active: floatingBarActive } = useFloatingBar();
 watch(
     isDirty,
@@ -605,7 +625,10 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                             >{{ t('event.venueName') }}
                                             <span class="text-xs font-normal text-muted-foreground">({{ t('event.venueNameOptional') }})</span></Label
                                         >
-                                        <Input v-model="form.venue_name" :placeholder="t('event.venueNamePlaceholder')" />
+                                        <div class="relative">
+                                            <Input v-model="form.venue_name" :placeholder="t('event.venueNamePlaceholder')" :class="isFieldDirty('venue_name') ? 'border-amber-400 ring-2 ring-amber-400/30 pr-8' : ''" />
+                                            <button v-if="isFieldDirty('venue_name')" type="button" @click="resetField('venue_name')" class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700" title="Zurücksetzen">↺</button>
+                                        </div>
                                         <p class="-mt-1 text-xs text-muted-foreground">{{ t('event.venueNameHint') }}</p>
                                     </div>
 
@@ -616,21 +639,33 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                             <div class="grid grid-cols-[1fr_80px] gap-2">
                                                 <div class="grid gap-1.5">
                                                     <Label class="text-xs">{{ t('event.venueStreet') }}</Label>
-                                                    <Input v-model="form.venue_street" :placeholder="t('event.venueStreet')" />
+                                                    <div class="relative">
+                                                        <Input v-model="form.venue_street" :placeholder="t('event.venueStreet')" :class="isFieldDirty('venue_street') ? 'border-amber-400 ring-2 ring-amber-400/30 pr-8' : ''" />
+                                                        <button v-if="isFieldDirty('venue_street')" type="button" @click="resetField('venue_street')" class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700" title="Zurücksetzen">↺</button>
+                                                    </div>
                                                 </div>
                                                 <div class="grid gap-1.5">
                                                     <Label class="text-xs">{{ t('event.venueHouseNumber') }}</Label>
-                                                    <Input v-model="form.venue_house_number" placeholder="26" />
+                                                    <div class="relative">
+                                                        <Input v-model="form.venue_house_number" placeholder="26" :class="isFieldDirty('venue_house_number') ? 'border-amber-400 ring-2 ring-amber-400/30 pr-8' : ''" />
+                                                        <button v-if="isFieldDirty('venue_house_number')" type="button" @click="resetField('venue_house_number')" class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700" title="Zurücksetzen">↺</button>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div class="grid grid-cols-[100px_1fr] gap-2">
                                                 <div class="grid gap-1.5">
                                                     <Label class="text-xs">{{ t('event.venuePostalCode') }}</Label>
-                                                    <Input v-model="form.venue_postal_code" placeholder="56218" />
+                                                    <div class="relative">
+                                                        <Input v-model="form.venue_postal_code" placeholder="56218" :class="isFieldDirty('venue_postal_code') ? 'border-amber-400 ring-2 ring-amber-400/30 pr-8' : ''" />
+                                                        <button v-if="isFieldDirty('venue_postal_code')" type="button" @click="resetField('venue_postal_code')" class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700" title="Zurücksetzen">↺</button>
+                                                    </div>
                                                 </div>
                                                 <div class="grid gap-1.5">
                                                     <Label class="text-xs">{{ t('event.venueCity') }}</Label>
-                                                    <Input v-model="form.venue_city" :placeholder="t('event.venueCity')" />
+                                                    <div class="relative">
+                                                        <Input v-model="form.venue_city" :placeholder="t('event.venueCity')" :class="isFieldDirty('venue_city') ? 'border-amber-400 ring-2 ring-amber-400/30 pr-8' : ''" />
+                                                        <button v-if="isFieldDirty('venue_city')" type="button" @click="resetField('venue_city')" class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700" title="Zurücksetzen">↺</button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </template>
@@ -639,16 +674,25 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                         <template v-else>
                                             <div class="grid gap-1.5">
                                                 <Label class="text-xs">{{ t('event.venueAddressLine1') }}</Label>
-                                                <Input v-model="form.venue_street" :placeholder="t('event.venueAddressLine1Placeholder')" />
+                                                <div class="relative">
+                                                    <Input v-model="form.venue_street" :placeholder="t('event.venueAddressLine1Placeholder')" :class="isFieldDirty('venue_street') ? 'border-amber-400 ring-2 ring-amber-400/30 pr-8' : ''" />
+                                                    <button v-if="isFieldDirty('venue_street')" type="button" @click="resetField('venue_street')" class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700" title="Zurücksetzen">↺</button>
+                                                </div>
                                             </div>
                                             <div class="grid grid-cols-[1fr_120px] gap-2">
                                                 <div class="grid gap-1.5">
                                                     <Label class="text-xs">{{ t('event.venueCity') }}</Label>
-                                                    <Input v-model="form.venue_city" :placeholder="t('event.venueCity')" />
+                                                    <div class="relative">
+                                                        <Input v-model="form.venue_city" :placeholder="t('event.venueCity')" :class="isFieldDirty('venue_city') ? 'border-amber-400 ring-2 ring-amber-400/30 pr-8' : ''" />
+                                                        <button v-if="isFieldDirty('venue_city')" type="button" @click="resetField('venue_city')" class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700" title="Zurücksetzen">↺</button>
+                                                    </div>
                                                 </div>
                                                 <div class="grid gap-1.5">
                                                     <Label class="text-xs">{{ t('event.venuePostalCode') }}</Label>
-                                                    <Input v-model="form.venue_postal_code" placeholder="10001" />
+                                                    <div class="relative">
+                                                        <Input v-model="form.venue_postal_code" placeholder="10001" :class="isFieldDirty('venue_postal_code') ? 'border-amber-400 ring-2 ring-amber-400/30 pr-8' : ''" />
+                                                        <button v-if="isFieldDirty('venue_postal_code')" type="button" @click="resetField('venue_postal_code')" class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700" title="Zurücksetzen">↺</button>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div class="grid gap-1.5">
@@ -656,7 +700,10 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                     >{{ t('event.venueState') }}
                                                     <span class="font-normal text-muted-foreground">({{ t('event.venueOptional') }})</span></Label
                                                 >
-                                                <Input v-model="form.venue_state" :placeholder="t('event.venueState')" />
+                                                <div class="relative">
+                                                    <Input v-model="form.venue_state" :placeholder="t('event.venueState')" :class="isFieldDirty('venue_state') ? 'border-amber-400 ring-2 ring-amber-400/30 pr-8' : ''" />
+                                                    <button v-if="isFieldDirty('venue_state')" type="button" @click="resetField('venue_state')" class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700" title="Zurücksetzen">↺</button>
+                                                </div>
                                             </div>
                                         </template>
 
@@ -668,6 +715,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                     v-model="countryQuery"
                                                     :placeholder="t('event.venueCountry')"
                                                     autocomplete="off"
+                                                    :class="isFieldDirty('venue_country') ? 'border-amber-400 ring-2 ring-amber-400/30 pr-8' : ''"
                                                     @focus="
                                                         countryOpen = true;
                                                         updateCountryDropdownStyle();
@@ -682,6 +730,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                         }, 150)
                                                     "
                                                 />
+                                                <button v-if="isFieldDirty('venue_country')" type="button" @click="resetField('venue_country')" class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700" title="Zurücksetzen">↺</button>
                                                 <Teleport to="body">
                                                     <div
                                                         v-if="countryOpen && filteredCountries.length"
