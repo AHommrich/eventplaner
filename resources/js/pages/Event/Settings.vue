@@ -21,6 +21,8 @@ interface EventData {
     cover_image_url: string | null;
     venue_name: string | null;
     venue_address: string | null;
+    venue_lat: number | null;
+    venue_lng: number | null;
     dresscode: string | null;
     schedule: string | null;
     color_primary: string | null;
@@ -52,6 +54,8 @@ const form = useForm({
     rsvp_deadline:   props.event.rsvp_deadline ? props.event.rsvp_deadline.slice(0, 16) : '',
     venue_name:      props.event.venue_name ?? '',
     venue_address:   props.event.venue_address ?? '',
+    venue_lat:       props.event.venue_lat ?? null as number | null,
+    venue_lng:       props.event.venue_lng ?? null as number | null,
     dresscode:       props.event.dresscode ?? '',
     schedule:        props.event.schedule ?? '',
     // Palette
@@ -71,6 +75,44 @@ const form = useForm({
     role_fab_icon:         props.event.role_fab_icon         ?? 'tertiary',
     font_heading:    props.event.font_heading ?? '',
     cover: null as File | null,
+});
+
+// --- Geocoding ---
+const geocoding = ref(false);
+const geocodeStatus = ref<'idle' | 'found' | 'notfound'>('idle');
+
+async function geocode() {
+    const query = [form.venue_name, form.venue_address].filter(Boolean).join(', ');
+    if (!query) return;
+    geocoding.value = true;
+    geocodeStatus.value = 'idle';
+    try {
+        const res = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`,
+            { headers: { 'Accept-Language': 'de', 'User-Agent': 'EventPlaner/1.0' } }
+        );
+        const data = await res.json();
+        if (data.length > 0) {
+            form.venue_lat = parseFloat(data[0].lat);
+            form.venue_lng = parseFloat(data[0].lon);
+            // Venue-Name aus Nominatim übernehmen wenn leer
+            if (!form.venue_name && data[0].name) {
+                form.venue_name = data[0].name;
+            }
+            geocodeStatus.value = 'found';
+        } else {
+            geocodeStatus.value = 'notfound';
+        }
+    } catch {
+        geocodeStatus.value = 'notfound';
+    } finally {
+        geocoding.value = false;
+    }
+}
+
+// Status zurücksetzen wenn Adresse geändert wird
+watch([() => form.venue_name, () => form.venue_address], () => {
+    geocodeStatus.value = 'idle';
 });
 
 const skipGuard = ref(false);
@@ -297,6 +339,25 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                 <div class="grid gap-2">
                                     <Label>{{ t('event.venueAddress') }}</Label>
                                     <Input v-model="form.venue_address" :placeholder="t('event.venueAddress')" />
+                                    <div class="flex items-center gap-2">
+                                        <Button type="button" variant="outline" size="sm" :disabled="geocoding || (!form.venue_name && !form.venue_address)" @click="geocode">
+                                            <span v-if="geocoding">{{ t('event.venueGeocoding') }}</span>
+                                            <span v-else>{{ t('event.venueGeocode') }}</span>
+                                        </Button>
+                                        <span v-if="geocodeStatus === 'found'" class="flex items-center gap-1 text-xs text-muted-foreground">
+                                            <svg class="h-3.5 w-3.5 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                            {{ t('event.venueGeocodeFound') }}
+                                            <a v-if="form.venue_lat && form.venue_lng"
+                                                :href="`https://www.openstreetmap.org/?mlat=${form.venue_lat}&mlon=${form.venue_lng}#map=15/${form.venue_lat}/${form.venue_lng}`"
+                                                target="_blank" rel="noopener"
+                                                class="underline underline-offset-2 hover:text-foreground">
+                                                {{ t('event.venueGeocodeVerify') }}
+                                            </a>
+                                        </span>
+                                        <span v-if="geocodeStatus === 'notfound'" class="text-xs text-destructive">
+                                            {{ t('event.venueGeocodeNotFound') }}
+                                        </span>
+                                    </div>
                                 </div>
                                 <div class="grid gap-2">
                                     <Label>{{ t('event.dresscode') }}</Label>
