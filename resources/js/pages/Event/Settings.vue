@@ -36,6 +36,7 @@ interface EventData {
     venue_city: string | null;
     venue_state: string | null;
     venue_country: string | null;
+    venue_display_mode: string | null;
     dresscode: string | null;
     schedule: string | null;
     color_primary: string | null;
@@ -72,6 +73,7 @@ const form = useForm({
     venue_city: props.event.venue_city ?? '',
     venue_state: props.event.venue_state ?? '',
     venue_country: props.event.venue_country ?? 'Deutschland',
+    venue_display_mode: props.event.venue_display_mode ?? 'both',
     dresscode: props.event.dresscode ?? '',
     schedule: props.event.schedule ?? '',
     // Palette
@@ -593,13 +595,34 @@ const previewFontFamily = computed(() => fontOptions.find((f) => f.key === form.
 
 // Tab-Bar Icons
 const tabDefs = [
-    { label: 'Home', paths: ['M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z', 'M9 21V12h6v9'] },
-    { label: 'Zusage', paths: ['M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z', 'M8 12l3 3 5-5'] },
+    {
+        label: 'Home',
+        paths: [
+            'M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z',
+        ],
+    },
+    {
+        label: 'Zusage',
+        paths: [
+            'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z',
+            'M8 12l3 3 5-5',
+        ],
+    },
     {
         label: 'Fotos',
-        paths: ['M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z', 'M12 13m-4 0a4 4 0 1 0 8 0 4 4 0 1 0-8 0'],
+        paths: [
+            'M18 3H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z',
+            'M2 7v11a2 2 0 0 0 2 2h13',
+        ],
     },
-    { label: 'Spiel', paths: ['M6 2h12l-2 18a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1L6 2z', 'M18 7h2.5a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H18'] },
+    {
+        label: 'Spiel',
+        paths: [
+            'M5 3h9l2 18a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1L5 3z',
+            'M16 8h2.5a1.5 1.5 0 0 1 0 3H16',
+            'M5 8h11',
+        ],
+    },
     {
         label: 'Einst.',
         paths: [
@@ -824,22 +847,34 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                         </p>
                                     </div>
 
+                                    <!-- Venue-Anzeige auf dem Home-Screen -->
                                     <div class="grid gap-2">
-                                        <Label>{{ t('event.dresscode') }}</Label>
+                                        <Label>{{ t('event.venueDisplayMode') }}</Label>
+                                        <div class="flex gap-2">
+                                            <button
+                                                v-for="opt in [
+                                                    { key: 'address', label: t('event.venueDisplayModeAddress') },
+                                                    { key: 'name', label: t('event.venueDisplayModeName') },
+                                                    { key: 'both', label: t('event.venueDisplayModeBoth') },
+                                                ]"
+                                                :key="opt.key"
+                                                type="button"
+                                                @click="form.venue_display_mode = opt.key"
+                                                class="flex-1 rounded-lg border-2 px-2 py-1.5 text-center text-xs transition-colors"
+                                                :class="(form.venue_display_mode ?? 'both') === opt.key ? 'border-ring bg-muted/20' : 'border-input hover:border-muted-foreground'"
+                                            >
+                                                {{ opt.label }}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid gap-2">
+                                        <Label>{{ t('event.dresscode') }} <span class="text-xs font-normal text-muted-foreground">({{ t('event.venueOptional') }})</span></Label>
                                         <textarea
                                             v-model="form.dresscode"
                                             rows="2"
                                             class="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                                             :placeholder="t('event.dresscode')"
-                                        />
-                                    </div>
-                                    <div class="grid gap-2">
-                                        <Label>{{ t('event.schedule') }}</Label>
-                                        <textarea
-                                            v-model="form.schedule"
-                                            rows="4"
-                                            class="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-                                            :placeholder="t('event.schedule')"
                                         />
                                     </div>
                                 </div>
@@ -1237,10 +1272,10 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                     <p class="mt-0.5 text-center text-[7px]" :style="{ color: form.color_home_text || '#ffffff' }">
                                                         {{ previewDate || 'Sa., 1. Januar 2026' }}
                                                     </p>
-                                                    <p class="mt-0.5 text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">
+                                                    <p v-if="form.venue_display_mode !== 'address'" class="mt-0.5 text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">
                                                         {{ previewVenueName }}
                                                     </p>
-                                                    <p class="text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">
+                                                    <p v-if="form.venue_display_mode !== 'name'" class="text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">
                                                         {{ previewVenueAddress }}
                                                     </p>
                                                     <p
@@ -1310,10 +1345,10 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                     <p class="mt-0.5 text-center text-[7px]" :style="{ color: cCardText }">
                                                         {{ previewDate || 'Sa., 1. Januar 2026' }}
                                                     </p>
-                                                    <p class="mt-0.5 text-center text-[6px]" :style="{ color: cCardText }">
+                                                    <p v-if="form.venue_display_mode !== 'address'" class="mt-0.5 text-center text-[6px]" :style="{ color: cCardText }">
                                                         {{ previewVenueName }}
                                                     </p>
-                                                    <p class="text-center text-[6px]" :style="{ color: cCardText }">
+                                                    <p v-if="form.venue_display_mode !== 'name'" class="text-center text-[6px]" :style="{ color: cCardText }">
                                                         {{ previewVenueAddress }}
                                                     </p>
                                                     <p class="mt-1.5 text-center text-[6px] font-bold" :style="{ color: cCardText }">
@@ -1442,7 +1477,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                                         :style="{ backgroundColor: member.red ? '#b45a3c' : '#4a7c59', color: '#ffffff' }"
                                                                         >{{ member.status }}</span
                                                                     >
-                                                                    <span class="text-[6px]" :style="{ color: cCardText + '88' }" :class="hintTextClass('cardText')">▼</span>
+                                                                    <span class="text-[6px]" :style="{ color: cCardText + '88' }">▼</span>
                                                                 </div>
                                                             </div>
                                                             <p class="text-[4px]" :style="{ color: cCardText + '66' }" :class="hintTextClass('cardText')">Von dir gesetzt</p>
@@ -1734,7 +1769,6 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
 }
 .preview-hint {
     animation: preview-hint 0.4s ease-in-out 5;
-    border-radius: 3px;
 }
 @keyframes preview-hint-text {
     0%, 100% { opacity: 1; }
