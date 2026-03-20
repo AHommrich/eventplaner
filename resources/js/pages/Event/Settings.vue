@@ -20,7 +20,12 @@ interface EventData {
     rsvp_deadline: string | null;
     cover_image_url: string | null;
     venue_name: string | null;
-    venue_address: string | null;
+    venue_street: string | null;
+    venue_house_number: string | null;
+    venue_postal_code: string | null;
+    venue_city: string | null;
+    venue_state: string | null;
+    venue_country: string | null;
     dresscode: string | null;
     schedule: string | null;
     color_primary: string | null;
@@ -48,8 +53,13 @@ const form = useForm({
     name: props.event.name ?? '',
     date: props.event.date ? props.event.date.slice(0, 16) : '',
     rsvp_deadline: props.event.rsvp_deadline ? props.event.rsvp_deadline.slice(0, 16) : '',
-    venue_name: props.event.venue_name ?? '',
-    venue_address: props.event.venue_address ?? '',
+    venue_name:         props.event.venue_name         ?? '',
+    venue_street:       props.event.venue_street       ?? '',
+    venue_house_number: props.event.venue_house_number ?? '',
+    venue_postal_code:  props.event.venue_postal_code  ?? '',
+    venue_city:         props.event.venue_city         ?? '',
+    venue_state:        props.event.venue_state        ?? '',
+    venue_country:      props.event.venue_country      ?? 'Deutschland',
     dresscode: props.event.dresscode ?? '',
     schedule: props.event.schedule ?? '',
     // Palette
@@ -114,6 +124,7 @@ onBeforeUnmount(() => {
 
 function discard() {
     form.reset();
+    countryQuery.value = props.event.venue_country ?? 'Deutschland';
     if (coverPreview.value) URL.revokeObjectURL(coverPreview.value);
     coverPreview.value = null;
 }
@@ -223,6 +234,63 @@ const previewDaysLeft = computed(() => {
     }
 });
 
+// --- Adressform ---
+const COUNTRIES = [
+    'Deutschland', 'Österreich', 'Schweiz',
+    'Frankreich', 'Italien', 'Spanien', 'Portugal', 'Niederlande', 'Belgien', 'Luxemburg',
+    'Polen', 'Tschechien', 'Slowakei', 'Ungarn', 'Rumänien', 'Bulgarien', 'Griechenland',
+    'Kroatien', 'Slowenien', 'Serbien', 'Albanien', 'Montenegro', 'Nordmazedonien', 'Kosovo',
+    'Dänemark', 'Schweden', 'Norwegen', 'Finnland', 'Island',
+    'Vereinigtes Königreich', 'Irland',
+    'Vereinigte Staaten', 'Kanada', 'Mexiko',
+    'Brasilien', 'Argentinien', 'Chile', 'Kolumbien', 'Peru',
+    'Türkei', 'Russland', 'Ukraine', 'Litauen', 'Lettland', 'Estland',
+    'Japan', 'China', 'Südkorea', 'Indien', 'Thailand', 'Vietnam', 'Singapur', 'Indonesien', 'Malaysia', 'Philippinen',
+    'Australien', 'Neuseeland',
+    'Südafrika', 'Ägypten', 'Marokko',
+    'Israel', 'Vereinigte Arabische Emirate', 'Saudi-Arabien',
+];
+
+const countryQuery   = ref(props.event.venue_country ?? 'Deutschland');
+const countryOpen    = ref(false);
+const countryInputRef = ref<HTMLElement | null>(null);
+const countryDropdownStyle = ref({ top: '0px', left: '0px', width: '0px' });
+
+const filteredCountries = computed(() => {
+    const q = countryQuery.value.toLowerCase().trim();
+    return q ? COUNTRIES.filter(c => c.toLowerCase().includes(q)) : COUNTRIES;
+});
+
+function updateCountryDropdownStyle() {
+    if (!countryInputRef.value) return;
+    const rect = countryInputRef.value.getBoundingClientRect();
+    countryDropdownStyle.value = { top: `${rect.bottom + 4}px`, left: `${rect.left}px`, width: `${rect.width}px` };
+}
+
+function selectCountry(country: string) {
+    form.venue_country = country;
+    countryQuery.value  = country;
+    countryOpen.value   = false;
+}
+
+const isGermanyForm = computed(() => {
+    const c = (form.venue_country || 'Deutschland').toLowerCase().trim();
+    return c === 'deutschland' || c === 'germany' || c === 'de';
+});
+
+const previewVenueName = computed(() =>
+    form.venue_name || form.venue_city || 'Musterort'
+);
+const previewVenueAddress = computed(() => {
+    if (!form.venue_street && !form.venue_city) return 'Musterstraße 1';
+    if (isGermanyForm.value) {
+        const street = [form.venue_street, form.venue_house_number].filter(Boolean).join(' ');
+        const city   = [form.venue_postal_code, form.venue_city].filter(Boolean).join(' ');
+        return [street, city].filter(Boolean).join(', ');
+    }
+    return [form.venue_street, form.venue_city].filter(Boolean).join(', ');
+});
+
 // Palette + Rollen-Auflösung
 const palette = computed(() => ({
     primary: form.color_primary || '#7c2d3e',
@@ -316,13 +384,92 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                         <Label>{{ t('event.rsvpDeadline') }}</Label>
                                         <Input v-model="form.rsvp_deadline" type="datetime-local" />
                                     </div>
+                                    <!-- Veranstaltungsort-Name (optional) -->
                                     <div class="grid gap-2">
-                                        <Label>{{ t('event.venueName') }}</Label>
-                                        <Input v-model="form.venue_name" :placeholder="t('event.venueName')" />
+                                        <Label>{{ t('event.venueName') }} <span class="text-xs text-muted-foreground font-normal">({{ t('event.venueNameOptional') }})</span></Label>
+                                        <Input v-model="form.venue_name" :placeholder="t('event.venueNamePlaceholder')" />
+                                        <p class="text-xs text-muted-foreground -mt-1">{{ t('event.venueNameHint') }}</p>
                                     </div>
-                                    <div class="grid gap-2">
-                                        <Label>{{ t('event.venueAddress') }}</Label>
-                                        <Input v-model="form.venue_address" :placeholder="t('event.venueAddress')" />
+
+                                    <!-- Strukturierte Adresse -->
+                                    <div class="grid gap-3 rounded-lg border border-input p-3">
+
+                                        <!-- DE-Form -->
+                                        <template v-if="isGermanyForm">
+                                            <div class="grid grid-cols-[1fr_80px] gap-2">
+                                                <div class="grid gap-1.5">
+                                                    <Label class="text-xs">{{ t('event.venueStreet') }}</Label>
+                                                    <Input v-model="form.venue_street" :placeholder="t('event.venueStreet')" />
+                                                </div>
+                                                <div class="grid gap-1.5">
+                                                    <Label class="text-xs">{{ t('event.venueHouseNumber') }}</Label>
+                                                    <Input v-model="form.venue_house_number" placeholder="26" />
+                                                </div>
+                                            </div>
+                                            <div class="grid grid-cols-[100px_1fr] gap-2">
+                                                <div class="grid gap-1.5">
+                                                    <Label class="text-xs">{{ t('event.venuePostalCode') }}</Label>
+                                                    <Input v-model="form.venue_postal_code" placeholder="56218" />
+                                                </div>
+                                                <div class="grid gap-1.5">
+                                                    <Label class="text-xs">{{ t('event.venueCity') }}</Label>
+                                                    <Input v-model="form.venue_city" :placeholder="t('event.venueCity')" />
+                                                </div>
+                                            </div>
+                                        </template>
+
+                                        <!-- International Form -->
+                                        <template v-else>
+                                            <div class="grid gap-1.5">
+                                                <Label class="text-xs">{{ t('event.venueAddressLine1') }}</Label>
+                                                <Input v-model="form.venue_street" :placeholder="t('event.venueAddressLine1Placeholder')" />
+                                            </div>
+                                            <div class="grid grid-cols-[1fr_120px] gap-2">
+                                                <div class="grid gap-1.5">
+                                                    <Label class="text-xs">{{ t('event.venueCity') }}</Label>
+                                                    <Input v-model="form.venue_city" :placeholder="t('event.venueCity')" />
+                                                </div>
+                                                <div class="grid gap-1.5">
+                                                    <Label class="text-xs">{{ t('event.venuePostalCode') }}</Label>
+                                                    <Input v-model="form.venue_postal_code" placeholder="10001" />
+                                                </div>
+                                            </div>
+                                            <div class="grid gap-1.5">
+                                                <Label class="text-xs">{{ t('event.venueState') }} <span class="text-muted-foreground font-normal">({{ t('event.venueOptional') }})</span></Label>
+                                                <Input v-model="form.venue_state" :placeholder="t('event.venueState')" />
+                                            </div>
+                                        </template>
+
+                                        <!-- Land (immer sichtbar) -->
+                                        <div ref="countryInputRef" class="grid gap-1.5">
+                                            <Label class="text-xs">{{ t('event.venueCountry') }}</Label>
+                                            <div class="relative">
+                                                <Input
+                                                    v-model="countryQuery"
+                                                    :placeholder="t('event.venueCountry')"
+                                                    autocomplete="off"
+                                                    @focus="countryOpen = true; updateCountryDropdownStyle()"
+                                                    @input="countryOpen = true; updateCountryDropdownStyle()"
+                                                    @blur="setTimeout(() => { countryOpen = false }, 150)"
+                                                />
+                                                <Teleport to="body">
+                                                    <div
+                                                        v-if="countryOpen && filteredCountries.length"
+                                                        class="fixed z-[9999] max-h-52 overflow-y-auto rounded-md border bg-popover shadow-lg"
+                                                        :style="countryDropdownStyle"
+                                                    >
+                                                        <button
+                                                            v-for="country in filteredCountries"
+                                                            :key="country"
+                                                            type="button"
+                                                            class="flex w-full items-center px-3 py-2 text-sm hover:bg-accent"
+                                                            :class="form.venue_country === country ? 'bg-muted font-medium' : ''"
+                                                            @mousedown.prevent="selectCountry(country)"
+                                                        >{{ country }}</button>
+                                                    </div>
+                                                </Teleport>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="grid gap-2">
                                         <Label>{{ t('event.dresscode') }}</Label>
@@ -729,10 +876,10 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                         {{ previewDate || 'Sa., 1. Januar 2026' }}
                                                     </p>
                                                     <p class="mt-0.5 text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">
-                                                        {{ form.venue_name || 'Musterort' }}
+                                                        {{ previewVenueName }}
                                                     </p>
                                                     <p class="text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">
-                                                        {{ form.venue_address || 'Musterstraße 1' }}
+                                                        {{ previewVenueAddress }}
                                                     </p>
                                                     <p
                                                         class="mt-1.5 text-center text-[6px] font-bold"
@@ -801,10 +948,10 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                         {{ previewDate || 'Sa., 1. Januar 2026' }}
                                                     </p>
                                                     <p class="mt-0.5 text-center text-[6px]" :style="{ color: cCardText }">
-                                                        {{ form.venue_name || 'Musterort' }}
+                                                        {{ previewVenueName }}
                                                     </p>
                                                     <p class="text-center text-[6px]" :style="{ color: cCardText }">
-                                                        {{ form.venue_address || 'Musterstraße 1' }}
+                                                        {{ previewVenueAddress }}
                                                     </p>
                                                     <p class="mt-1.5 text-center text-[6px] font-bold" :style="{ color: cCardText }">
                                                         Noch {{ previewDaysLeft ? previewDaysLeft + 'T' : '6T 11Std 22Min' }}
