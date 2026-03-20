@@ -181,6 +181,7 @@ onBeforeUnmount(() => {
     if (leafletMap) { leafletMap.remove(); leafletMap = null; }
     removeInertiaGuard?.();
     floatingBarActive.value = false;
+    if (previewCountdownInterval) clearInterval(previewCountdownInterval);
 });
 
 function discard() {
@@ -283,21 +284,32 @@ async function removeCover() {
 const previewDate = computed(() => {
     if (!form.date) return null;
     try {
-        return new Date(form.date).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' });
+        return new Date(form.date).toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     } catch {
         return null;
     }
 });
 
-const previewDaysLeft = computed(() => {
-    if (!form.date) return null;
-    try {
-        const diff = Math.ceil((new Date(form.date).getTime() - Date.now()) / 86_400_000);
-        return diff > 0 ? diff : null;
-    } catch {
-        return null;
-    }
-});
+const previewCountdown = ref<string | null>(null);
+let previewCountdownInterval: ReturnType<typeof setInterval> | null = null;
+
+function updatePreviewCountdown() {
+    if (!form.date) { previewCountdown.value = null; return; }
+    const diff = new Date(form.date).getTime() - Date.now();
+    if (diff <= 0) { previewCountdown.value = null; return; }
+    const totalSec = Math.floor(diff / 1000);
+    const d = Math.floor(totalSec / 86400);
+    const h = Math.floor((totalSec % 86400) / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    previewCountdown.value = `Noch ${d}T ${h}Std ${m}Min ${s}Sek`;
+}
+
+watch(() => form.date, () => {
+    updatePreviewCountdown();
+    if (previewCountdownInterval) clearInterval(previewCountdownInterval);
+    if (form.date) previewCountdownInterval = setInterval(updatePreviewCountdown, 1000);
+}, { immediate: true });
 
 // --- Adressform ---
 const COUNTRIES = [
@@ -1315,27 +1327,36 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                     >
                                                         {{ form.name || 'Event-Name' }}
                                                     </p>
-                                                    <p class="mt-0.5 text-center text-[7px]" :style="{ color: form.color_home_text || '#ffffff' }">
-                                                        {{ previewDate || 'Sa., 1. Januar 2026' }}
+                                                    <p class="mt-0.5 text-center text-[5.5px]" :style="{ color: form.color_home_text || '#ffffff' }">
+                                                        {{ previewDate || 'Samstag, 1. Januar 2026' }}
                                                     </p>
-                                                    <p v-if="form.venue_display_mode !== 'address'" class="mt-0.5 text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">
+                                                    <!-- Venue: both → name+icon, dann address ohne Icon -->
+                                                    <template v-if="form.venue_display_mode === 'both'">
+                                                        <span class="mt-0.5 flex items-center justify-center gap-0.5 text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">
+                                                            {{ previewVenueName }}
+                                                            <svg width="5" height="5" viewBox="0 0 512 512" fill="none" :stroke="form.color_home_text || '#ffffff'" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"><path d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"/><circle cx="256" cy="192" r="48"/></svg>
+                                                        </span>
+                                                        <p class="text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">{{ previewVenueAddress }}</p>
+                                                    </template>
+                                                    <!-- Venue: nur name -->
+                                                    <span v-else-if="form.venue_display_mode === 'name'" class="mt-0.5 flex items-center justify-center gap-0.5 text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">
                                                         {{ previewVenueName }}
-                                                    </p>
-                                                    <span v-if="form.venue_display_mode !== 'name'" class="flex items-center justify-center gap-0.5 text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">
-                                                        {{ previewVenueAddress }}
-                                                        <svg width="5" height="5" viewBox="0 0 512 512" fill="none" :stroke="form.color_home_text || '#ffffff'" stroke-width="40" stroke-linecap="round" stroke-linejoin="round">
-                                                            <path d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"/>
-                                                            <circle cx="256" cy="192" r="48"/>
-                                                        </svg>
+                                                        <svg width="5" height="5" viewBox="0 0 512 512" fill="none" :stroke="form.color_home_text || '#ffffff'" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"><path d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"/><circle cx="256" cy="192" r="48"/></svg>
                                                     </span>
-                                                    <p v-if="form.dresscode" class="mt-0.5 text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff', opacity: 0.7 }">
-                                                        {{ form.dresscode }}
-                                                    </p>
+                                                    <!-- Venue: nur adresse -->
+                                                    <span v-else class="mt-0.5 flex items-center justify-center gap-0.5 text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">
+                                                        {{ previewVenueAddress }}
+                                                        <svg width="5" height="5" viewBox="0 0 512 512" fill="none" :stroke="form.color_home_text || '#ffffff'" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"><path d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"/><circle cx="256" cy="192" r="48"/></svg>
+                                                    </span>
+                                                    <template v-if="form.dresscode">
+                                                        <p class="mt-0.5 text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff', opacity: 0.7 }">Dresscode:</p>
+                                                        <p class="text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff', opacity: 0.7 }">{{ form.dresscode }}</p>
+                                                    </template>
                                                     <p
                                                         class="mt-1.5 text-center text-[6px] font-bold"
                                                         :style="{ color: form.color_home_text || '#ffffff' }"
                                                     >
-                                                        Noch {{ previewDaysLeft ? previewDaysLeft + 'T' : '6T 11Std 22Min' }}
+                                                        {{ previewCountdown || 'Noch 6T 11Std 22Min 30Sek' }}
                                                     </p>
                                                 </div>
                                                 <div
@@ -1395,24 +1416,33 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                     >
                                                         {{ form.name || 'Event-Name' }}
                                                     </p>
-                                                    <p class="mt-0.5 text-center text-[7px]" :style="{ color: cCardText }">
-                                                        {{ previewDate || 'Sa., 1. Januar 2026' }}
+                                                    <p class="mt-0.5 text-center text-[5.5px]" :style="{ color: cCardText }">
+                                                        {{ previewDate || 'Samstag, 1. Januar 2026' }}
                                                     </p>
-                                                    <p v-if="form.venue_display_mode !== 'address'" class="mt-0.5 text-center text-[6px]" :style="{ color: cCardText }">
+                                                    <!-- Venue: both → name+icon, dann address ohne Icon -->
+                                                    <template v-if="form.venue_display_mode === 'both'">
+                                                        <span class="mt-0.5 flex items-center justify-center gap-0.5 text-center text-[6px]" :style="{ color: cCardText }">
+                                                            {{ previewVenueName }}
+                                                            <svg width="5" height="5" viewBox="0 0 512 512" fill="none" :stroke="cCardText" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"><path d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"/><circle cx="256" cy="192" r="48"/></svg>
+                                                        </span>
+                                                        <p class="text-center text-[6px]" :style="{ color: cCardText }">{{ previewVenueAddress }}</p>
+                                                    </template>
+                                                    <!-- Venue: nur name -->
+                                                    <span v-else-if="form.venue_display_mode === 'name'" class="mt-0.5 flex items-center justify-center gap-0.5 text-center text-[6px]" :style="{ color: cCardText }">
                                                         {{ previewVenueName }}
-                                                    </p>
-                                                    <span v-if="form.venue_display_mode !== 'name'" class="flex items-center justify-center gap-0.5 text-center text-[6px]" :style="{ color: cCardText }">
-                                                        {{ previewVenueAddress }}
-                                                        <svg width="5" height="5" viewBox="0 0 512 512" fill="none" :stroke="cCardText" stroke-width="40" stroke-linecap="round" stroke-linejoin="round">
-                                                            <path d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"/>
-                                                            <circle cx="256" cy="192" r="48"/>
-                                                        </svg>
+                                                        <svg width="5" height="5" viewBox="0 0 512 512" fill="none" :stroke="cCardText" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"><path d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"/><circle cx="256" cy="192" r="48"/></svg>
                                                     </span>
-                                                    <p v-if="form.dresscode" class="mt-0.5 text-center text-[6px]" :style="{ color: cCardText, opacity: 0.7 }">
-                                                        {{ form.dresscode }}
-                                                    </p>
+                                                    <!-- Venue: nur adresse -->
+                                                    <span v-else class="mt-0.5 flex items-center justify-center gap-0.5 text-center text-[6px]" :style="{ color: cCardText }">
+                                                        {{ previewVenueAddress }}
+                                                        <svg width="5" height="5" viewBox="0 0 512 512" fill="none" :stroke="cCardText" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"><path d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"/><circle cx="256" cy="192" r="48"/></svg>
+                                                    </span>
+                                                    <template v-if="form.dresscode">
+                                                        <p class="mt-0.5 text-center text-[6px]" :style="{ color: cCardText, opacity: 0.7 }">Dresscode:</p>
+                                                        <p class="text-center text-[6px]" :style="{ color: cCardText, opacity: 0.7 }">{{ form.dresscode }}</p>
+                                                    </template>
                                                     <p class="mt-1.5 text-center text-[6px] font-bold" :style="{ color: cCardText }">
-                                                        Noch {{ previewDaysLeft ? previewDaysLeft + 'T' : '6T 11Std 22Min' }}
+                                                        {{ previewCountdown || 'Noch 6T 11Std 22Min 30Sek' }}
                                                     </p>
                                                 </div>
                                                 <div
