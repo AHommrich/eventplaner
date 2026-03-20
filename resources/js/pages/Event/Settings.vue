@@ -544,7 +544,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                         <span class="text-[11px] font-medium text-muted-foreground">Home</span>
                         <div style="width:168px;height:342px;overflow:hidden;flex-shrink:0;"><div style="transform:scale(1.4);transform-origin:top left;"><div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
                             <!-- Mit Cover -->
-                            <div v-if="displayCoverUrl" class="relative flex flex-col" style="height:244px;background-size:cover;background-position:center;" :style="{ backgroundImage: `url('${displayCoverUrl}')` }">
+                            <div v-if="displayCoverUrl" class="relative flex flex-col" style="height:244px;background-size:cover;background-position:center;" :style="{ backgroundImage: `url('${displayCoverUrl}')`, fontFamily: previewFontFamily }">
                                 <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/5 to-black/75" />
                                 <div class="relative flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-white">
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
@@ -572,7 +572,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                 </div>
                             </div>
                             <!-- Ohne Cover: normale App-Farben -->
-                            <div v-else class="flex flex-col" style="height:244px;" :style="{ backgroundColor: cScreenBg }">
+                            <div v-else class="flex flex-col" style="height:244px;" :style="{ backgroundColor: cScreenBg, fontFamily: previewFontFamily }">
                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
                                 </div>
@@ -605,7 +605,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                     <div class="flex flex-col items-center gap-1.5">
                         <span class="text-[11px] font-medium text-muted-foreground">Zusage</span>
                         <div style="width:168px;height:342px;overflow:hidden;flex-shrink:0;"><div style="transform:scale(1.4);transform-origin:top left;"><div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
-                            <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: cScreenBg }">
+                            <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: cScreenBg, fontFamily: previewFontFamily }">
                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
                                 </div>
@@ -656,7 +656,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                     <div class="flex flex-col items-center gap-1.5">
                         <span class="text-[11px] font-medium text-muted-foreground">Fotos</span>
                         <div style="width:168px;height:342px;overflow:hidden;flex-shrink:0;"><div style="transform:scale(1.4);transform-origin:top left;"><div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
-                            <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: cScreenBg }">
+                            <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: cScreenBg, fontFamily: previewFontFamily }">
                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
                                 </div>
@@ -690,27 +690,27 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                     <div class="flex flex-col items-center gap-1.5">
                         <span class="text-[11px] font-medium text-muted-foreground">Einstellungen</span>
                         <div style="width:168px;height:342px;overflow:hidden;flex-shrink:0;"><div style="transform:scale(1.4);transform-origin:top left;"><div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width:120px;">
-                            <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: cScreenBg }">
+                            <div class="flex flex-col" style="height:244px;" :style="{ backgroundColor: cScreenBg, fontFamily: previewFontFamily }">
                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                     <span>9:41</span><span style="font-size:6px;">▲▲ ▐</span>
                                 </div>
-                                <div class="flex flex-1 flex-col items-center justify-center px-2">
+                                <div class="flex flex-1 flex-col items-start px-2 pt-3">
                                     <div class="w-full rounded-xl shadow-sm" :style="{ backgroundColor: cCardBg, borderWidth: '1px', borderStyle: 'solid', borderColor: cBorder+'33' }">
                                         <div class="px-2 pt-2 pb-1.5">
-                                            <p class="text-[5px]" :style="{ color: cCardText+'88' }">Eingeloggt als</p>
-                                            <p class="text-[7px] font-semibold" :style="{ color: cCardText }">Max Mustermann</p>
-                                            <p class="text-[5px]" :style="{ color: cCardText+'88' }">Familie Mustermann</p>
+                                            <p class="text-[5px]" :style="{ color: cCardText+'88', fontFamily: previewFontFamily }">Eingeloggt als</p>
+                                            <p class="text-[7px] font-semibold" :style="{ color: cCardText, fontFamily: previewFontFamily }">Karolina Simon</p>
+                                            <p class="text-[5px]" :style="{ color: cCardText+'88', fontFamily: previewFontFamily }">Familie Simon</p>
                                         </div>
                                         <div class="border-t mx-2" :style="{ borderColor: cBorder+'33' }"></div>
                                         <div class="px-2 py-1.5">
-                                            <p class="mb-1 text-[5px]" :style="{ color: cCardText+'88' }">Sprache</p>
-                                            <div class="flex rounded-lg p-0.5" :style="{ backgroundColor: cScreenBg+'44' }">
-                                                <div class="flex-1 rounded-md py-0.5 text-center text-[5px] font-semibold" :style="{ backgroundColor: cCardBg, color: cCardText }">Deutsch</div>
-                                                <div class="flex-1 py-0.5 text-center text-[5px]" :style="{ color: cCardText+'66' }">Englisch</div>
+                                            <p class="mb-1 text-[5px]" :style="{ color: cCardText+'88', fontFamily: previewFontFamily }">Sprache</p>
+                                            <div class="flex rounded-lg border" :style="{ borderColor: cBorder+'55' }">
+                                                <div class="flex-1 rounded-l-lg py-0.5 text-center text-[5px] font-semibold" :style="{ backgroundColor: cCardButton, color: cCardButtonText, fontFamily: previewFontFamily }">Deutsch</div>
+                                                <div class="flex-1 py-0.5 text-center text-[5px]" :style="{ backgroundColor: cCardBg, color: cCardText+'66', fontFamily: previewFontFamily }">Englisch</div>
                                             </div>
                                         </div>
                                         <div class="border-t mx-2" :style="{ borderColor: cBorder+'33' }"></div>
-                                        <div class="mx-2 my-1.5 rounded-lg py-1 text-center text-[6px] font-semibold" :style="{ backgroundColor: cCardButton, color: cCardButtonText }">
+                                        <div class="mx-2 my-1.5 rounded-lg py-1 text-center text-[6px] font-semibold" :style="{ backgroundColor: cCardButton, color: cCardButtonText, fontFamily: previewFontFamily }">
                                             Ausloggen
                                         </div>
                                     </div>
