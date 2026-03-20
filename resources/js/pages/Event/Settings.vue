@@ -123,8 +123,12 @@ const activeHint = ref<string | null>(null);
 let hintTimer: ReturnType<typeof setTimeout> | null = null;
 function showHint(section: string) {
     if (hintTimer) clearTimeout(hintTimer);
-    activeHint.value = section;
-    hintTimer = setTimeout(() => { activeHint.value = null; }, 2500);
+    // Kurz auf null setzen, damit die CSS-Animation bei erneutem Klick neu startet
+    activeHint.value = null;
+    requestAnimationFrame(() => {
+        activeHint.value = section;
+        hintTimer = setTimeout(() => { activeHint.value = null; }, 2500);
+    });
 }
 function hintClass(hint: string): string {
     return activeHint.value === hint ? 'preview-hint' : '';
@@ -594,40 +598,47 @@ const fontOptions = [
 const previewFontFamily = computed(() => fontOptions.find((f) => f.key === form.font_heading)?.family ?? 'inherit');
 
 // Tab-Bar Icons
+// Ionicons outline — exakte Pfade (viewBox 0 0 24 24, stroke-based)
 const tabDefs = [
     {
+        // home-outline
         label: 'Home',
         paths: [
-            'M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z',
+            'M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z',
+            'M9 21V12h6v9',
         ],
     },
     {
+        // checkmark-circle-outline
         label: 'Zusage',
         paths: [
             'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z',
-            'M8 12l3 3 5-5',
+            'M7.5 12l3 3 6-6',
         ],
     },
     {
+        // images-outline (zwei überlappende Fotorahmen)
         label: 'Fotos',
         paths: [
-            'M18 3H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z',
-            'M2 7v11a2 2 0 0 0 2 2h13',
+            'M20 5H9a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z',
+            'M4 8H3a1 1 0 0 0-1 1v10a2 2 0 0 0 2 2h10a1 1 0 0 0 1-1v-1',
         ],
     },
     {
+        // beer-outline (Krug mit Henkel)
         label: 'Spiel',
         paths: [
-            'M5 3h9l2 18a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1L5 3z',
-            'M16 8h2.5a1.5 1.5 0 0 1 0 3H16',
-            'M5 8h11',
+            'M6 2h10l-1.5 17a1.5 1.5 0 0 1-1.5 1.4H9a1.5 1.5 0 0 1-1.5-1.4L6 2z',
+            'M17 7.5h2a1.5 1.5 0 0 1 0 3h-2',
+            'M6 7h10',
         ],
     },
     {
+        // settings-outline (Zahnrad)
         label: 'Einst.',
         paths: [
-            'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',
-            'M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z',
+            'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z',
+            'M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41',
         ],
     },
 ];
@@ -667,6 +678,15 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                         <Label>{{ t('event.rsvpDeadline') }}</Label>
                                         <Input v-model="form.rsvp_deadline" type="datetime-local" />
                                     </div>
+                                    <div class="grid gap-2">
+                                        <Label>{{ t('event.dresscode') }} <span class="text-xs font-normal text-muted-foreground">({{ t('event.venueOptional') }})</span></Label>
+                                        <textarea
+                                            v-model="form.dresscode"
+                                            rows="2"
+                                            class="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                                            :placeholder="t('event.dresscode')"
+                                        />
+                                    </div>
                                     <!-- Veranstaltungsort-Name (optional) -->
                                     <div class="grid gap-2">
                                         <Label
@@ -678,6 +698,26 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                             <button v-if="isFieldDirty('venue_name')" type="button" @click="resetField('venue_name')" class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700" title="Zurücksetzen">↺</button>
                                         </div>
                                         <p class="-mt-1 text-xs text-muted-foreground">{{ t('event.venueNameHint') }}</p>
+                                    </div>
+                                    <!-- Venue-Anzeige auf dem Home-Screen -->
+                                    <div class="grid gap-2">
+                                        <Label>{{ t('event.venueDisplayMode') }}</Label>
+                                        <div class="flex gap-2">
+                                            <button
+                                                v-for="opt in [
+                                                    { key: 'address', label: t('event.venueDisplayModeAddress') },
+                                                    { key: 'name', label: t('event.venueDisplayModeName') },
+                                                    { key: 'both', label: t('event.venueDisplayModeBoth') },
+                                                ]"
+                                                :key="opt.key"
+                                                type="button"
+                                                @click="form.venue_display_mode = opt.key"
+                                                class="flex-1 rounded-lg border-2 px-2 py-1.5 text-center text-xs transition-colors"
+                                                :class="(form.venue_display_mode ?? 'both') === opt.key ? 'border-ring bg-muted/20' : 'border-input hover:border-muted-foreground'"
+                                            >
+                                                {{ opt.label }}
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <!-- Strukturierte Adresse -->
@@ -847,36 +887,6 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                         </p>
                                     </div>
 
-                                    <!-- Venue-Anzeige auf dem Home-Screen -->
-                                    <div class="grid gap-2">
-                                        <Label>{{ t('event.venueDisplayMode') }}</Label>
-                                        <div class="flex gap-2">
-                                            <button
-                                                v-for="opt in [
-                                                    { key: 'address', label: t('event.venueDisplayModeAddress') },
-                                                    { key: 'name', label: t('event.venueDisplayModeName') },
-                                                    { key: 'both', label: t('event.venueDisplayModeBoth') },
-                                                ]"
-                                                :key="opt.key"
-                                                type="button"
-                                                @click="form.venue_display_mode = opt.key"
-                                                class="flex-1 rounded-lg border-2 px-2 py-1.5 text-center text-xs transition-colors"
-                                                :class="(form.venue_display_mode ?? 'both') === opt.key ? 'border-ring bg-muted/20' : 'border-input hover:border-muted-foreground'"
-                                            >
-                                                {{ opt.label }}
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div class="grid gap-2">
-                                        <Label>{{ t('event.dresscode') }} <span class="text-xs font-normal text-muted-foreground">({{ t('event.venueOptional') }})</span></Label>
-                                        <textarea
-                                            v-model="form.dresscode"
-                                            rows="2"
-                                            class="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-                                            :placeholder="t('event.dresscode')"
-                                        />
-                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
@@ -1477,7 +1487,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                                         :style="{ backgroundColor: member.red ? '#b45a3c' : '#4a7c59', color: '#ffffff' }"
                                                                         >{{ member.status }}</span
                                                                     >
-                                                                    <span class="text-[6px]" :style="{ color: cCardText + '88' }">▼</span>
+                                                                    <svg width="6" height="6" viewBox="0 0 24 24" fill="none" :stroke="cCardText + '88'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
                                                                 </div>
                                                             </div>
                                                             <p class="text-[4px]" :style="{ color: cCardText + '66' }" :class="hintTextClass('cardText')">Von dir gesetzt</p>
