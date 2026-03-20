@@ -1001,7 +1001,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                         <div class="space-y-3 pt-1">
                                             <!-- Screen-Hintergrund -->
                                             <div class="grid gap-1.5">
-                                                <div class="flex items-center gap-1.5"><span class="text-xs text-muted-foreground">{{ t('event.roleScreenBg') }}</span><button type="button" @click="showHint('screenBg')" class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-input text-[10px] text-muted-foreground hover:bg-muted">?</button></div>
+                                                <div class="flex items-center gap-1.5"><span class="text-xs text-muted-foreground">{{ t('event.roleScreenBg') }}</span><button type="button" @click="showHint('screenBg')" class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-muted-foreground/40 text-[11px] font-bold text-muted-foreground hover:border-foreground hover:text-foreground">?</button></div>
                                                 <div class="flex gap-2">
                                                     <button
                                                         v-for="opt in colorOptions"
@@ -1021,7 +1021,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                             </div>
                                             <!-- Card-Hintergrund -->
                                             <div class="grid gap-1.5">
-                                                <div class="flex items-center gap-1.5"><span class="text-xs text-muted-foreground">{{ t('event.roleCardBg') }}</span><button type="button" @click="showHint('cardBg')" class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-input text-[10px] text-muted-foreground hover:bg-muted">?</button></div>
+                                                <div class="flex items-center gap-1.5"><span class="text-xs text-muted-foreground">{{ t('event.roleCardBg') }}</span><button type="button" @click="showHint('cardBg')" class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-muted-foreground/40 text-[11px] font-bold text-muted-foreground hover:border-foreground hover:text-foreground">?</button></div>
                                                 <div class="flex gap-2">
                                                     <button
                                                         v-for="opt in colorOptions"
@@ -1041,7 +1041,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                             </div>
                                             <!-- Text auf Cards -->
                                             <div class="grid gap-1.5">
-                                                <div class="flex items-center gap-1.5"><span class="text-xs text-muted-foreground">{{ t('event.roleCardText') }}</span><button type="button" @click="showHint('cardText')" class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-input text-[10px] text-muted-foreground hover:bg-muted">?</button></div>
+                                                <div class="flex items-center gap-1.5"><span class="text-xs text-muted-foreground">{{ t('event.roleCardText') }}</span><button type="button" @click="showHint('cardText')" class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-muted-foreground/40 text-[11px] font-bold text-muted-foreground hover:border-foreground hover:text-foreground">?</button></div>
                                                 <div class="flex gap-2">
                                                     <button
                                                         v-for="opt in colorOptions"
@@ -1061,7 +1061,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                             </div>
                                             <!-- Button auf Cards -->
                                             <div class="grid gap-1.5">
-                                                <div class="flex items-center gap-1.5"><span class="text-xs text-muted-foreground">{{ t('event.roleCardButton') }}</span><button type="button" @click="showHint('cardButton')" class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-input text-[10px] text-muted-foreground hover:bg-muted">?</button></div>
+                                                <div class="flex items-center gap-1.5"><span class="text-xs text-muted-foreground">{{ t('event.roleCardButton') }}</span><button type="button" @click="showHint('cardButton')" class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-muted-foreground/40 text-[11px] font-bold text-muted-foreground hover:border-foreground hover:text-foreground">?</button></div>
                                                 <div class="flex gap-2">
                                                     <button
                                                         v-for="opt in colorOptions"
@@ -1081,7 +1081,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                             </div>
                                             <!-- Text auf Card-Buttons -->
                                             <div class="grid gap-1.5">
-                                                <div class="flex items-center gap-1.5"><span class="text-xs text-muted-foreground">{{ t('event.roleCardButtonText') }}</span><button type="button" @click="showHint('cardButtonText')" class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-input text-[10px] text-muted-foreground hover:bg-muted">?</button></div>
+                                                <div class="flex items-center gap-1.5"><span class="text-xs text-muted-foreground">{{ t('event.roleCardButtonText') }}</span><button type="button" @click="showHint('cardButtonText')" class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-muted-foreground/40 text-[11px] font-bold text-muted-foreground hover:border-foreground hover:text-foreground">?</button></div>
                                                 <div class="flex gap-2">
                                                     <button
                                                         v-for="opt in colorOptions"
@@ -1101,7 +1101,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                             </div>
                                             <!-- Navbar-Farbe -->
                                             <div class="grid gap-1.5">
-                                                <div class="flex items-center gap-1.5"><span class="text-xs text-muted-foreground">{{ t('event.roleTabTint') }}</span><button type="button" @click="showHint('tabTint')" class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-input text-[10px] text-muted-foreground hover:bg-muted">?</button></div>
+                                                <div class="flex items-center gap-1.5"><span class="text-xs text-muted-foreground">{{ t('event.roleTabTint') }}</span><button type="button" @click="showHint('tabTint')" class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-muted-foreground/40 text-[11px] font-bold text-muted-foreground hover:border-foreground hover:text-foreground">?</button></div>
                                                 <div class="flex gap-2">
                                                     <button
                                                         v-for="opt in colorOptions"
@@ -1121,7 +1121,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                             </div>
                                             <!-- Rahmenfarbe -->
                                             <div class="grid gap-1.5">
-                                                <div class="flex items-center gap-1.5"><span class="text-xs text-muted-foreground">{{ t('event.roleBorder') }}</span><button type="button" @click="showHint('border')" class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-input text-[10px] text-muted-foreground hover:bg-muted">?</button></div>
+                                                <div class="flex items-center gap-1.5"><span class="text-xs text-muted-foreground">{{ t('event.roleBorder') }}</span><button type="button" @click="showHint('border')" class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-muted-foreground/40 text-[11px] font-bold text-muted-foreground hover:border-foreground hover:text-foreground">?</button></div>
                                                 <div class="flex gap-2">
                                                     <button
                                                         v-for="opt in colorOptions"
@@ -1141,7 +1141,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                             </div>
                                             <!-- FAB-Button -->
                                             <div class="grid gap-1.5">
-                                                <div class="flex items-center gap-1.5"><span class="text-xs text-muted-foreground">{{ t('event.roleFab') }}</span><button type="button" @click="showHint('fab')" class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-input text-[10px] text-muted-foreground hover:bg-muted">?</button></div>
+                                                <div class="flex items-center gap-1.5"><span class="text-xs text-muted-foreground">{{ t('event.roleFab') }}</span><button type="button" @click="showHint('fab')" class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-muted-foreground/40 text-[11px] font-bold text-muted-foreground hover:border-foreground hover:text-foreground">?</button></div>
                                                 <div class="flex gap-2">
                                                     <button
                                                         v-for="opt in colorOptions"
@@ -1161,7 +1161,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                             </div>
                                             <!-- Icon-Farbe im FAB -->
                                             <div class="grid gap-1.5">
-                                                <div class="flex items-center gap-1.5"><span class="text-xs text-muted-foreground">{{ t('event.roleFabIcon') }}</span><button type="button" @click="showHint('fabIcon')" class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-input text-[10px] text-muted-foreground hover:bg-muted">?</button></div>
+                                                <div class="flex items-center gap-1.5"><span class="text-xs text-muted-foreground">{{ t('event.roleFabIcon') }}</span><button type="button" @click="showHint('fabIcon')" class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-muted-foreground/40 text-[11px] font-bold text-muted-foreground hover:border-foreground hover:text-foreground">?</button></div>
                                                 <div class="flex gap-2">
                                                     <button
                                                         v-for="opt in colorOptions"
