@@ -126,6 +126,7 @@ function resetField(field: AddressField) {
 const activeHint = ref<string | null>(null);
 const mobilePreviewTab = ref(0);
 const mobilePreviewNames = ['Home', 'Zusage', 'Fotos', 'Einst.'];
+const previewCollapsed = ref(false);
 let hintTimer: ReturnType<typeof setTimeout> | null = null;
 function showHint(section: string) {
     if (hintTimer) clearTimeout(hintTimer);
@@ -706,9 +707,9 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
     <Head :title="t('event.settings')" />
     <AppLayout :breadcrumbs="breadcrumbItems">
         <!-- Split-Screen: Mobile = oben Preview / unten Form; Desktop = links Form / rechts Preview -->
-        <div class="flex h-[calc(100vh-4rem)] flex-col overflow-hidden lg:grid lg:grid-cols-2 lg:gap-6 lg:px-4 lg:pt-4">
-            <!-- Form — unten auf Mobile (order-last), links auf Desktop (order-first) -->
-            <div class="order-last overflow-y-auto px-4 pt-2 pb-24 lg:order-first lg:px-0 lg:pt-0">
+        <div class="flex flex-col lg:grid lg:h-[calc(100vh-4rem)] lg:grid-cols-2 lg:overflow-hidden lg:gap-6 lg:px-4 lg:pt-4">
+            <!-- Form — nach Preview auf Mobile (order-last), links auf Desktop (order-first) -->
+            <div class="order-last px-4 pt-2 pb-24 lg:order-first lg:overflow-y-auto lg:px-0 lg:pt-0">
                 <div class="space-y-4">
                     <!-- Linke Spalte: Formular -->
                     <form @submit.prevent="submit" class="space-y-4">
@@ -1344,9 +1345,26 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
             </div>
 
             <!-- Preview — oben auf Mobile (order-first), rechts auf Desktop (order-last) -->
-            <div class="order-first flex h-[48vh] min-h-[320px] flex-col overflow-y-auto lg:order-last lg:h-full lg:overflow-y-auto lg:pb-4">
-                <div class="flex flex-col items-center gap-2 pt-2 lg:pt-0">
-                    <p class="text-sm font-medium text-muted-foreground">{{ t('event.phonePreview') }}</p>
+            <div class="order-first lg:order-last lg:h-full lg:overflow-y-auto lg:pb-4">
+                <!-- Mobile: einklappbarer Header -->
+                <button
+                    type="button"
+                    class="flex w-full items-center justify-between border-b px-4 py-3 lg:hidden"
+                    @click="previewCollapsed = !previewCollapsed"
+                >
+                    <span class="text-sm font-semibold">{{ t('event.phonePreview') }}</span>
+                    <svg
+                        width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round"
+                        class="text-muted-foreground transition-transform"
+                        :class="{ 'rotate-180': !previewCollapsed }"
+                    ><path d="M18 15l-6-6-6 6"/></svg>
+                </button>
+
+                <div v-show="!previewCollapsed" class="flex flex-col items-center gap-2 pt-2 lg:pt-0">
+                    <!-- Desktop title -->
+                    <p class="hidden text-sm font-medium text-muted-foreground lg:block">{{ t('event.phonePreview') }}</p>
 
                     <!-- Mobile: Tab-Wechsler -->
                     <div class="flex w-full gap-1 rounded-lg border bg-muted/50 p-1 px-4 lg:hidden">
