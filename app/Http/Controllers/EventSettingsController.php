@@ -19,7 +19,8 @@ class EventSettingsController extends Controller
             'event' => $event->only([
                 'id', 'name', 'date', 'rsvp_deadline',
                 'cover_image_url',
-                'venue_name', 'venue_street', 'venue_house_number',
+                'venue_name', 'venue_lat', 'venue_lng',
+                'venue_street', 'venue_house_number',
                 'venue_postal_code', 'venue_city', 'venue_state', 'venue_country',
                 'dresscode', 'schedule',
                 'color_primary', 'color_secondary', 'color_tertiary', 'color_home_text',
@@ -41,6 +42,8 @@ class EventSettingsController extends Controller
             'date'            => 'nullable|date',
             'rsvp_deadline'   => 'nullable|date',
             'venue_name'         => 'nullable|string|max:255',
+            'venue_lat'          => 'nullable|numeric|between:-90,90',
+            'venue_lng'          => 'nullable|numeric|between:-180,180',
             'venue_street'       => 'nullable|string|max:255',
             'venue_house_number' => 'nullable|string|max:20',
             'venue_postal_code'  => 'nullable|string|max:20',
