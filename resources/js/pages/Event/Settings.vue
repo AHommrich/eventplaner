@@ -127,6 +127,9 @@ function showHint(section: string) {
 function hintClass(hint: string): string {
     return activeHint.value === hint ? 'preview-hint' : '';
 }
+function hintTextClass(hint: string): string {
+    return activeHint.value === hint ? 'preview-hint-text' : '';
+}
 
 const { active: floatingBarActive } = useFloatingBar();
 watch(
@@ -1315,9 +1318,8 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                 <div
                                                     class="flex h-[26px] w-full items-end justify-around border-t pb-1.5"
                                                     :style="{ backgroundColor: cScreenBg, borderColor: cBorder + '33' }"
-                                                    :class="hintClass('tabTint')"
                                                 >
-                                                    <div v-for="(tab, i) in tabDefs" :key="'hn' + i" class="flex flex-col items-center gap-0.5">
+                                                    <div v-for="(tab, i) in tabDefs" :key="'hn' + i" class="flex flex-col items-center gap-0.5" :class="hintClass('tabTint')">
                                                         <svg
                                                             width="9"
                                                             height="9"
@@ -1361,7 +1363,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                 <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                                                     <span>9:41</span><span style="font-size: 6px">▲▲ ▐</span>
                                                 </div>
-                                                <div class="flex flex-1 flex-col gap-1.5 overflow-hidden px-1.5 pt-1" :class="hintClass('cardText')">
+                                                <div class="flex flex-1 flex-col gap-1.5 overflow-hidden px-1.5 pt-1">
                                                     <!-- Card 1 -->
                                                     <div
                                                         class="rounded-lg p-1.5 shadow-sm"
@@ -1377,7 +1379,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                             Bitte antworte bis 25. März.
                                                         </p>
                                                         <div class="flex items-center justify-between">
-                                                            <span class="text-[7px] font-semibold" :style="{ color: cCardText }">Max Mustermann</span>
+                                                            <span class="text-[7px] font-semibold" :style="{ color: cCardText }" :class="hintTextClass('cardText')">Max Mustermann</span>
                                                             <span
                                                                 class="rounded-full px-1 py-0.5 text-[4px] font-semibold text-white"
                                                                 style="background-color: #4a7c59"
@@ -1390,7 +1392,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                                 style="background-color: #4a7c59"
                                                                 :class="hintClass('cardButton')"
                                                             >
-                                                                Zusagen
+                                                                <span :class="hintTextClass('cardButtonText')">Zusagen</span>
                                                             </div>
                                                             <div
                                                                 class="flex-1 rounded py-0.5 text-center text-[5px] font-semibold text-white"
@@ -1411,7 +1413,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                         }"
                                                         :class="[hintClass('cardBg'), hintClass('border')]"
                                                     >
-                                                        <p class="text-[7px] font-semibold" :style="{ color: cCardText }">Deine Gruppe</p>
+                                                        <p class="text-[7px] font-semibold" :style="{ color: cCardText }" :class="hintTextClass('cardText')">Deine Gruppe</p>
                                                         <p class="mb-1 text-[5px]" :style="{ color: cCardText + '77' }">
                                                             Du kannst für deine Gruppe antworten.
                                                         </p>
@@ -1426,7 +1428,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                             :style="{ borderColor: cBorder + '22' }"
                                                         >
                                                             <div class="flex items-center justify-between">
-                                                                <span class="text-[6px] font-semibold" :style="{ color: cCardText }">{{
+                                                                <span class="text-[6px] font-semibold" :style="{ color: cCardText }" :class="hintTextClass('cardText')">{{
                                                                     member.name
                                                                 }}</span>
                                                                 <div class="flex items-center gap-0.5">
@@ -1445,9 +1447,8 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                 <div
                                                     class="flex h-[26px] w-full items-end justify-around border-t pb-1.5"
                                                     :style="{ backgroundColor: cScreenBg, borderColor: cBorder + '33' }"
-                                                    :class="hintClass('tabTint')"
                                                 >
-                                                    <div v-for="(tab, i) in tabDefs" :key="'z' + i" class="flex flex-col items-center gap-0.5">
+                                                    <div v-for="(tab, i) in tabDefs" :key="'z' + i" class="flex flex-col items-center gap-0.5" :class="hintClass('tabTint')">
                                                         <svg
                                                             width="9"
                                                             height="9"
@@ -1527,9 +1528,8 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                 <div
                                                     class="flex h-[26px] w-full items-end justify-around border-t pb-1.5"
                                                     :style="{ backgroundColor: cScreenBg, borderColor: cBorder + '33' }"
-                                                    :class="hintClass('tabTint')"
                                                 >
-                                                    <div v-for="(tab, i) in tabDefs" :key="'f' + i" class="flex flex-col items-center gap-0.5">
+                                                    <div v-for="(tab, i) in tabDefs" :key="'f' + i" class="flex flex-col items-center gap-0.5" :class="hintClass('tabTint')">
                                                         <svg
                                                             width="9"
                                                             height="9"
@@ -1647,9 +1647,8 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                 <div
                                                     class="flex h-[26px] w-full items-end justify-around border-t pb-1.5"
                                                     :style="{ backgroundColor: cScreenBg, borderColor: cBorder + '33' }"
-                                                    :class="hintClass('tabTint')"
                                                 >
-                                                    <div v-for="(tab, i) in tabDefs" :key="'e' + i" class="flex flex-col items-center gap-0.5">
+                                                    <div v-for="(tab, i) in tabDefs" :key="'e' + i" class="flex flex-col items-center gap-0.5" :class="hintClass('tabTint')">
                                                         <svg
                                                             width="9"
                                                             height="9"
@@ -1727,11 +1726,18 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
 @import '@fontsource/josefin-sans/700.css';
 
 @keyframes preview-hint {
-    0%, 100% { outline: 2px solid transparent; outline-offset: 1px; }
-    50% { outline: 2px solid #f59e0b; outline-offset: 1px; box-shadow: 0 0 0 3px #f59e0b30; }
+    0%, 100% { box-shadow: inset 0 0 0 0px #f59e0b; }
+    50% { box-shadow: inset 0 0 0 2px #f59e0b; }
 }
 .preview-hint {
-    animation: preview-hint 0.45s ease-in-out 5;
-    border-radius: 4px;
+    animation: preview-hint 0.4s ease-in-out 5;
+    border-radius: 3px;
+}
+@keyframes preview-hint-text {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.15; }
+}
+.preview-hint-text {
+    animation: preview-hint-text 0.4s ease-in-out 5;
 }
 </style>
