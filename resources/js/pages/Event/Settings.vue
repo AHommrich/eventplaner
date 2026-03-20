@@ -21,8 +21,6 @@ interface EventData {
     cover_image_url: string | null;
     venue_name: string | null;
     venue_address: string | null;
-    venue_lat: number | null;
-    venue_lng: number | null;
     dresscode: string | null;
     schedule: string | null;
     color_primary: string | null;
@@ -52,8 +50,6 @@ const form = useForm({
     rsvp_deadline: props.event.rsvp_deadline ? props.event.rsvp_deadline.slice(0, 16) : '',
     venue_name: props.event.venue_name ?? '',
     venue_address: props.event.venue_address ?? '',
-    venue_lat: props.event.venue_lat ?? (null as number | null),
-    venue_lng: props.event.venue_lng ?? (null as number | null),
     dresscode: props.event.dresscode ?? '',
     schedule: props.event.schedule ?? '',
     // Palette
@@ -75,81 +71,6 @@ const form = useForm({
     cover: null as File | null,
 });
 
-// --- Standort-Suche (Nominatim Autocomplete) ---
-interface NominatimResult {
-    place_id: number;
-    lat: string;
-    lon: string;
-    display_name: string;
-    name: string;
-    address: Record<string, string>;
-}
-
-const locationQuery = ref('');
-const locationResults = ref<NominatimResult[]>([]);
-const locationSearching = ref(false);
-const locationOpen = ref(false);
-let locationDebounce: ReturnType<typeof setTimeout> | null = null;
-
-const locationInputWrapper = ref<HTMLElement | null>(null);
-const locationDropdownStyle = ref({ top: '0px', left: '0px', width: '0px' });
-
-function updateLocationDropdownStyle() {
-    if (!locationInputWrapper.value) return;
-    const rect = locationInputWrapper.value.getBoundingClientRect();
-    locationDropdownStyle.value = {
-        top: `${rect.bottom + 4}px`,
-        left: `${rect.left}px`,
-        width: `${rect.width}px`,
-    };
-}
-
-watch(locationQuery, (val) => {
-    if (locationDebounce) clearTimeout(locationDebounce);
-    if (!val || val.length < 2) {
-        locationResults.value = [];
-        locationOpen.value = false;
-        return;
-    }
-    locationDebounce = setTimeout(async () => {
-        locationSearching.value = true;
-        try {
-            const res = await fetch(
-                `https://nominatim.openstreetmap.org/search?format=json&limit=6&dedupe=0&q=${encodeURIComponent(val)}&addressdetails=1`,
-                { headers: { 'Accept-Language': 'de' } },
-            );
-            locationResults.value = await res.json();
-            if (locationResults.value.length > 0) {
-                // Position BEFORE making visible — kein flash at 0,0
-                updateLocationDropdownStyle();
-                locationOpen.value = true;
-            } else {
-                locationOpen.value = false;
-            }
-        } catch {
-            locationResults.value = [];
-        } finally {
-            locationSearching.value = false;
-        }
-    }, 350);
-});
-
-function selectLocation(result: NominatimResult) {
-    form.venue_lat = parseFloat(result.lat);
-    form.venue_lng = parseFloat(result.lon);
-    // Adresse: erste Zeile des display_name (vor dem ersten Komma nach dem Ort)
-    const parts = result.display_name.split(', ');
-    form.venue_address = parts.slice(0, 3).join(', ');
-    // Name: benannter Ort wenn vorhanden, sonst leer lassen damit User selbst einträgt
-    if (result.name && result.name !== parts[0]) {
-        form.venue_name = result.name;
-    } else if (!form.venue_name) {
-        form.venue_name = result.name || '';
-    }
-    locationQuery.value = '';
-    locationResults.value = [];
-    locationOpen.value = false;
-}
 
 const skipGuard = ref(false);
 const isDirty = computed(() => form.isDirty);
@@ -174,8 +95,6 @@ let removeInertiaGuard: (() => void) | null = null;
 
 onMounted(() => {
     window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('scroll', updateLocationDropdownStyle, true);
-    window.addEventListener('resize', updateLocationDropdownStyle);
     removeInertiaGuard = router.on('before', (event) => {
         if (isDirty.value && !skipGuard.value) {
             const confirmed = window.confirm(t('drink.unsavedChangesPrompt'));
@@ -189,8 +108,6 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     window.removeEventListener('beforeunload', handleBeforeUnload);
-    window.removeEventListener('scroll', updateLocationDropdownStyle, true);
-    window.removeEventListener('resize', updateLocationDropdownStyle);
     removeInertiaGuard?.();
     floatingBarActive.value = false;
 });
@@ -398,80 +315,6 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                     <div class="grid gap-2">
                                         <Label>{{ t('event.rsvpDeadline') }}</Label>
                                         <Input v-model="form.rsvp_deadline" type="datetime-local" />
-                                    </div>
-                                    <!-- Standort-Suche -->
-                                    <div class="grid gap-2">
-                                        <Label>{{ t('event.venueSearch') }}</Label>
-                                        <div ref="locationInputWrapper" class="relative">
-                                            <Input
-                                                v-model="locationQuery"
-                                                :placeholder="t('event.venueSearchPlaceholder')"
-                                                autocomplete="off"
-                                                @blur="
-                                                    setTimeout(() => {
-                                                        locationOpen = false;
-                                                    }, 150)
-                                                "
-                                            />
-                                            <div v-if="locationSearching" class="absolute top-1/2 right-2.5 -translate-y-1/2">
-                                                <svg
-                                                    class="h-4 w-4 animate-spin text-muted-foreground"
-                                                    viewBox="0 0 24 24"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    stroke-width="2"
-                                                >
-                                                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                                                </svg>
-                                            </div>
-                                            <Teleport to="body">
-                                                <div
-                                                    v-if="locationOpen && locationResults.length"
-                                                    class="fixed z-[9999] max-h-60 overflow-y-auto rounded-md border bg-popover shadow-lg"
-                                                    :style="locationDropdownStyle"
-                                                >
-                                                    <button
-                                                        v-for="r in locationResults"
-                                                        :key="r.place_id"
-                                                        type="button"
-                                                        class="flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-accent focus:bg-accent"
-                                                        @mousedown.prevent="selectLocation(r)"
-                                                    >
-                                                        <span class="truncate font-medium">{{ r.name || r.display_name.split(', ')[0] }}</span>
-                                                        <span class="truncate text-xs text-muted-foreground">{{ r.display_name }}</span>
-                                                    </button>
-                                                </div>
-                                            </Teleport>
-                                        </div>
-                                        <!-- Gespeicherter Standort -->
-                                        <div v-if="form.venue_lat && form.venue_lng" class="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                            <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                                                <circle cx="12" cy="10" r="3" />
-                                            </svg>
-                                            {{ form.venue_lat.toFixed(5) }}, {{ form.venue_lng.toFixed(5) }}
-                                            <a
-                                                :href="`https://www.openstreetmap.org/?mlat=${form.venue_lat}&mlon=${form.venue_lng}#map=15/${form.venue_lat}/${form.venue_lng}`"
-                                                target="_blank"
-                                                rel="noopener"
-                                                class="underline underline-offset-2 hover:text-foreground"
-                                            >
-                                                {{ t('event.venueGeocodeVerify') }}
-                                            </a>
-                                            <button
-                                                type="button"
-                                                class="ml-auto hover:text-destructive"
-                                                @click="
-                                                    form.venue_lat = null;
-                                                    form.venue_lng = null;
-                                                "
-                                            >
-                                                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <line x1="18" y1="6" x2="6" y2="18" />
-                                                    <line x1="6" y1="6" x2="18" y2="18" />
-                                                </svg>
-                                            </button>
-                                        </div>
                                     </div>
                                     <div class="grid gap-2">
                                         <Label>{{ t('event.venueName') }}</Label>
