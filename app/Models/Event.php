@@ -19,6 +19,7 @@ class Event extends Model
         'venue_display_mode',
         'dresscode', 'schedule',
         'color_primary', 'color_secondary', 'color_tertiary', 'color_home_text',
+        'color_home_shadow', 'home_shadow_opacity',
         'role_screen_bg', 'role_card_bg', 'role_card_text',
         'role_card_button', 'role_card_button_text',
         'role_tab_tint', 'role_border', 'role_fab', 'role_fab_icon',
