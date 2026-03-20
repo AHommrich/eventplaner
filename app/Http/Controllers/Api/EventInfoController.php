@@ -28,13 +28,39 @@ class EventInfoController extends Controller
         $r = fn(string $field, string $fallback): string =>
             $palette[$event->$field ?? $fallback] ?? $palette[$fallback];
 
+        $isGermany = !$event->venue_country ||
+            in_array(strtolower($event->venue_country), ['deutschland', 'germany', 'de']);
+
+        // Adresse aus strukturierten Feldern zusammenbauen
+        $assembledAddress = null;
+        if ($event->venue_street || $event->venue_city) {
+            if ($isGermany) {
+                $street = trim(($event->venue_street ?? '') . ' ' . ($event->venue_house_number ?? ''));
+                $city   = trim(($event->venue_postal_code ?? '') . ' ' . ($event->venue_city ?? ''));
+                $parts  = array_filter([$street, $city]);
+            } else {
+                $street = trim(($event->venue_street ?? '') . ' ' . ($event->venue_house_number ?? ''));
+                $parts  = array_filter([
+                    $street,
+                    $event->venue_city,
+                    $event->venue_state,
+                    $event->venue_postal_code,
+                    $event->venue_country,
+                ]);
+            }
+            $assembledAddress = implode(', ', $parts) ?: null;
+        } elseif ($event->venue_address) {
+            // Fallback auf altes Freitextfeld
+            $assembledAddress = $event->venue_address;
+        }
+
         return response()->json([
             'name'            => $event->name,
             'date'            => $event->date ? Carbon::parse($event->date)->toIso8601String() : null,
             'rsvp_deadline'   => $event->rsvp_deadline ? Carbon::parse($event->rsvp_deadline)->toIso8601String() : null,
             'cover_image_url' => $event->cover_image_url,
             'venue_name'      => $event->venue_name,
-            'venue_address'   => $event->venue_address,
+            'venue_address'   => $assembledAddress,
             'venue_lat'       => $event->venue_lat,
             'venue_lng'       => $event->venue_lng,
             'dresscode'       => $event->dresscode,
