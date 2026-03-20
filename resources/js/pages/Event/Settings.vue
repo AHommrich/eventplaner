@@ -9,9 +9,17 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import heic2any from 'heic2any';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+
+// Leaflet default icon fix für Vite
+import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
+import iconUrl from 'leaflet/dist/images/marker-icon.png';
+import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
+L.Icon.Default.mergeOptions({ iconUrl, iconRetinaUrl, shadowUrl });
 
 interface EventData {
     id: number;
@@ -20,6 +28,8 @@ interface EventData {
     rsvp_deadline: string | null;
     cover_image_url: string | null;
     venue_name: string | null;
+    venue_lat: number | null;
+    venue_lng: number | null;
     venue_street: string | null;
     venue_house_number: string | null;
     venue_postal_code: string | null;
@@ -53,13 +63,15 @@ const form = useForm({
     name: props.event.name ?? '',
     date: props.event.date ? props.event.date.slice(0, 16) : '',
     rsvp_deadline: props.event.rsvp_deadline ? props.event.rsvp_deadline.slice(0, 16) : '',
-    venue_name:         props.event.venue_name         ?? '',
-    venue_street:       props.event.venue_street       ?? '',
+    venue_name: props.event.venue_name ?? '',
+    venue_lat: props.event.venue_lat ?? (null as number | null),
+    venue_lng: props.event.venue_lng ?? (null as number | null),
+    venue_street: props.event.venue_street ?? '',
     venue_house_number: props.event.venue_house_number ?? '',
-    venue_postal_code:  props.event.venue_postal_code  ?? '',
-    venue_city:         props.event.venue_city         ?? '',
-    venue_state:        props.event.venue_state        ?? '',
-    venue_country:      props.event.venue_country      ?? 'Deutschland',
+    venue_postal_code: props.event.venue_postal_code ?? '',
+    venue_city: props.event.venue_city ?? '',
+    venue_state: props.event.venue_state ?? '',
+    venue_country: props.event.venue_country ?? 'Deutschland',
     dresscode: props.event.dresscode ?? '',
     schedule: props.event.schedule ?? '',
     // Palette
@@ -80,7 +92,6 @@ const form = useForm({
     font_heading: props.event.font_heading ?? '',
     cover: null as File | null,
 });
-
 
 const skipGuard = ref(false);
 const isDirty = computed(() => form.isDirty);
@@ -105,6 +116,8 @@ let removeInertiaGuard: (() => void) | null = null;
 
 onMounted(() => {
     window.addEventListener('beforeunload', handleBeforeUnload);
+    // Map lazy-init: kurz warten bis DOM gerendert
+    setTimeout(initMap, 50);
     removeInertiaGuard = router.on('before', (event) => {
         if (isDirty.value && !skipGuard.value) {
             const confirmed = window.confirm(t('drink.unsavedChangesPrompt'));
@@ -118,6 +131,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     window.removeEventListener('beforeunload', handleBeforeUnload);
+    if (leafletMap) { leafletMap.remove(); leafletMap = null; }
     removeInertiaGuard?.();
     floatingBarActive.value = false;
 });
@@ -236,29 +250,79 @@ const previewDaysLeft = computed(() => {
 
 // --- Adressform ---
 const COUNTRIES = [
-    'Deutschland', 'Österreich', 'Schweiz',
-    'Frankreich', 'Italien', 'Spanien', 'Portugal', 'Niederlande', 'Belgien', 'Luxemburg',
-    'Polen', 'Tschechien', 'Slowakei', 'Ungarn', 'Rumänien', 'Bulgarien', 'Griechenland',
-    'Kroatien', 'Slowenien', 'Serbien', 'Albanien', 'Montenegro', 'Nordmazedonien', 'Kosovo',
-    'Dänemark', 'Schweden', 'Norwegen', 'Finnland', 'Island',
-    'Vereinigtes Königreich', 'Irland',
-    'Vereinigte Staaten', 'Kanada', 'Mexiko',
-    'Brasilien', 'Argentinien', 'Chile', 'Kolumbien', 'Peru',
-    'Türkei', 'Russland', 'Ukraine', 'Litauen', 'Lettland', 'Estland',
-    'Japan', 'China', 'Südkorea', 'Indien', 'Thailand', 'Vietnam', 'Singapur', 'Indonesien', 'Malaysia', 'Philippinen',
-    'Australien', 'Neuseeland',
-    'Südafrika', 'Ägypten', 'Marokko',
-    'Israel', 'Vereinigte Arabische Emirate', 'Saudi-Arabien',
+    'Deutschland',
+    'Österreich',
+    'Schweiz',
+    'Frankreich',
+    'Italien',
+    'Spanien',
+    'Portugal',
+    'Niederlande',
+    'Belgien',
+    'Luxemburg',
+    'Polen',
+    'Tschechien',
+    'Slowakei',
+    'Ungarn',
+    'Rumänien',
+    'Bulgarien',
+    'Griechenland',
+    'Kroatien',
+    'Slowenien',
+    'Serbien',
+    'Albanien',
+    'Montenegro',
+    'Nordmazedonien',
+    'Kosovo',
+    'Dänemark',
+    'Schweden',
+    'Norwegen',
+    'Finnland',
+    'Island',
+    'Vereinigtes Königreich',
+    'Irland',
+    'Vereinigte Staaten',
+    'Kanada',
+    'Mexiko',
+    'Brasilien',
+    'Argentinien',
+    'Chile',
+    'Kolumbien',
+    'Peru',
+    'Türkei',
+    'Russland',
+    'Ukraine',
+    'Litauen',
+    'Lettland',
+    'Estland',
+    'Japan',
+    'China',
+    'Südkorea',
+    'Indien',
+    'Thailand',
+    'Vietnam',
+    'Singapur',
+    'Indonesien',
+    'Malaysia',
+    'Philippinen',
+    'Australien',
+    'Neuseeland',
+    'Südafrika',
+    'Ägypten',
+    'Marokko',
+    'Israel',
+    'Vereinigte Arabische Emirate',
+    'Saudi-Arabien',
 ];
 
-const countryQuery   = ref(props.event.venue_country ?? 'Deutschland');
-const countryOpen    = ref(false);
+const countryQuery = ref(props.event.venue_country ?? 'Deutschland');
+const countryOpen = ref(false);
 const countryInputRef = ref<HTMLElement | null>(null);
 const countryDropdownStyle = ref({ top: '0px', left: '0px', width: '0px' });
 
 const filteredCountries = computed(() => {
     const q = countryQuery.value.toLowerCase().trim();
-    return q ? COUNTRIES.filter(c => c.toLowerCase().includes(q)) : COUNTRIES;
+    return q ? COUNTRIES.filter((c) => c.toLowerCase().includes(q)) : COUNTRIES;
 });
 
 function updateCountryDropdownStyle() {
@@ -269,8 +333,8 @@ function updateCountryDropdownStyle() {
 
 function selectCountry(country: string) {
     form.venue_country = country;
-    countryQuery.value  = country;
-    countryOpen.value   = false;
+    countryQuery.value = country;
+    countryOpen.value = false;
 }
 
 const isGermanyForm = computed(() => {
@@ -278,18 +342,85 @@ const isGermanyForm = computed(() => {
     return c === 'deutschland' || c === 'germany' || c === 'de';
 });
 
-const previewVenueName = computed(() =>
-    form.venue_name || form.venue_city || 'Musterort'
-);
+const previewVenueName = computed(() => form.venue_name || form.venue_city || 'Musterort');
 const previewVenueAddress = computed(() => {
     if (!form.venue_street && !form.venue_city) return 'Musterstraße 1';
     if (isGermanyForm.value) {
         const street = [form.venue_street, form.venue_house_number].filter(Boolean).join(' ');
-        const city   = [form.venue_postal_code, form.venue_city].filter(Boolean).join(' ');
+        const city = [form.venue_postal_code, form.venue_city].filter(Boolean).join(' ');
         return [street, city].filter(Boolean).join(', ');
     }
     return [form.venue_street, form.venue_city].filter(Boolean).join(', ');
 });
+
+// --- Leaflet Map-Picker ---
+const mapContainer     = ref<HTMLElement | null>(null);
+const reverseGeocoding = ref(false);
+let leafletMap: L.Map | null = null;
+let mapMarker: L.Marker | null = null;
+
+function initMap() {
+    if (!mapContainer.value || leafletMap) return;
+    const center: [number, number] = (form.venue_lat && form.venue_lng)
+        ? [form.venue_lat, form.venue_lng] : [51.1657, 10.4515];
+    leafletMap = L.map(mapContainer.value).setView(center, form.venue_lat ? 15 : 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19,
+    }).addTo(leafletMap);
+    if (form.venue_lat && form.venue_lng) {
+        mapMarker = L.marker([form.venue_lat, form.venue_lng], { draggable: true }).addTo(leafletMap);
+        mapMarker.on('dragend', (e) => {
+            const ll = (e.target as L.Marker).getLatLng();
+            setCoords(ll.lat, ll.lng);
+        });
+    }
+    leafletMap.on('click', (e: L.LeafletMouseEvent) => setCoords(e.latlng.lat, e.latlng.lng));
+}
+
+async function setCoords(lat: number, lng: number) {
+    form.venue_lat = lat;
+    form.venue_lng = lng;
+    if (!leafletMap) return;
+    if (mapMarker) {
+        mapMarker.setLatLng([lat, lng]);
+    } else {
+        mapMarker = L.marker([lat, lng], { draggable: true }).addTo(leafletMap);
+        mapMarker.on('dragend', (e) => {
+            const ll = (e.target as L.Marker).getLatLng();
+            setCoords(ll.lat, ll.lng);
+        });
+    }
+    await reverseGeocode(lat, lng);
+}
+
+async function reverseGeocode(lat: number, lng: number) {
+    reverseGeocoding.value = true;
+    try {
+        const res  = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`,
+            { headers: { 'Accept-Language': 'de' } },
+        );
+        const data = await res.json();
+        const addr = data.address;
+        if (!addr) return;
+        form.venue_street       = addr.road ?? addr.pedestrian ?? addr.path ?? '';
+        form.venue_house_number = addr.house_number ?? '';
+        form.venue_postal_code  = addr.postcode ?? '';
+        form.venue_city         = addr.city ?? addr.town ?? addr.village ?? addr.municipality ?? addr.county ?? '';
+        form.venue_state        = addr.state ?? '';
+        const country           = addr.country ?? 'Deutschland';
+        form.venue_country      = country;
+        countryQuery.value      = country;
+    } catch { /* silent — User kann manuell befüllen */ }
+    finally { reverseGeocoding.value = false; }
+}
+
+function clearMapCoords() {
+    form.venue_lat = null;
+    form.venue_lng = null;
+    if (mapMarker && leafletMap) { leafletMap.removeLayer(mapMarker); mapMarker = null; }
+}
 
 // Palette + Rollen-Auflösung
 const palette = computed(() => ({
@@ -386,14 +517,16 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                     </div>
                                     <!-- Veranstaltungsort-Name (optional) -->
                                     <div class="grid gap-2">
-                                        <Label>{{ t('event.venueName') }} <span class="text-xs text-muted-foreground font-normal">({{ t('event.venueNameOptional') }})</span></Label>
+                                        <Label
+                                            >{{ t('event.venueName') }}
+                                            <span class="text-xs font-normal text-muted-foreground">({{ t('event.venueNameOptional') }})</span></Label
+                                        >
                                         <Input v-model="form.venue_name" :placeholder="t('event.venueNamePlaceholder')" />
-                                        <p class="text-xs text-muted-foreground -mt-1">{{ t('event.venueNameHint') }}</p>
+                                        <p class="-mt-1 text-xs text-muted-foreground">{{ t('event.venueNameHint') }}</p>
                                     </div>
 
                                     <!-- Strukturierte Adresse -->
                                     <div class="grid gap-3 rounded-lg border border-input p-3">
-
                                         <!-- DE-Form -->
                                         <template v-if="isGermanyForm">
                                             <div class="grid grid-cols-[1fr_80px] gap-2">
@@ -435,7 +568,10 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                 </div>
                                             </div>
                                             <div class="grid gap-1.5">
-                                                <Label class="text-xs">{{ t('event.venueState') }} <span class="text-muted-foreground font-normal">({{ t('event.venueOptional') }})</span></Label>
+                                                <Label class="text-xs"
+                                                    >{{ t('event.venueState') }}
+                                                    <span class="font-normal text-muted-foreground">({{ t('event.venueOptional') }})</span></Label
+                                                >
                                                 <Input v-model="form.venue_state" :placeholder="t('event.venueState')" />
                                             </div>
                                         </template>
@@ -448,9 +584,19 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                     v-model="countryQuery"
                                                     :placeholder="t('event.venueCountry')"
                                                     autocomplete="off"
-                                                    @focus="countryOpen = true; updateCountryDropdownStyle()"
-                                                    @input="countryOpen = true; updateCountryDropdownStyle()"
-                                                    @blur="setTimeout(() => { countryOpen = false }, 150)"
+                                                    @focus="
+                                                        countryOpen = true;
+                                                        updateCountryDropdownStyle();
+                                                    "
+                                                    @input="
+                                                        countryOpen = true;
+                                                        updateCountryDropdownStyle();
+                                                    "
+                                                    @blur="
+                                                        setTimeout(() => {
+                                                            countryOpen = false;
+                                                        }, 150)
+                                                    "
                                                 />
                                                 <Teleport to="body">
                                                     <div
@@ -465,12 +611,32 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                             class="flex w-full items-center px-3 py-2 text-sm hover:bg-accent"
                                                             :class="form.venue_country === country ? 'bg-muted font-medium' : ''"
                                                             @mousedown.prevent="selectCountry(country)"
-                                                        >{{ country }}</button>
+                                                        >
+                                                            {{ country }}
+                                                        </button>
                                                     </div>
                                                 </Teleport>
                                             </div>
                                         </div>
                                     </div>
+                                    <!-- Map-Picker -->
+                                    <div class="grid gap-2">
+                                        <div class="flex items-center justify-between">
+                                            <Label>{{ t('event.venueMap') }}</Label>
+                                            <span v-if="reverseGeocoding" class="text-xs text-muted-foreground animate-pulse">{{ t('event.venueGeocoding') }}</span>
+                                            <button v-else-if="form.venue_lat && form.venue_lng"
+                                                type="button" class="text-xs text-muted-foreground hover:text-destructive"
+                                                @click="clearMapCoords">
+                                                {{ t('event.venueMapClear') }}
+                                            </button>
+                                        </div>
+                                        <p class="text-xs text-muted-foreground -mt-1">{{ t('event.venueMapHint') }}</p>
+                                        <div ref="mapContainer" class="h-56 w-full overflow-hidden rounded-lg border border-input" style="z-index:0;" />
+                                        <p v-if="form.venue_lat && form.venue_lng" class="text-xs text-muted-foreground">
+                                            {{ form.venue_lat.toFixed(6) }}, {{ form.venue_lng.toFixed(6) }}
+                                        </p>
+                                    </div>
+
                                     <div class="grid gap-2">
                                         <Label>{{ t('event.dresscode') }}</Label>
                                         <textarea
@@ -529,7 +695,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                     :class="[
                                         coverConverting ? 'pointer-events-none opacity-50' : '',
                                         isDraggingCover
-                                            ? 'border-ring bg-muted/30 scale-[1.01]'
+                                            ? 'scale-[1.01] border-ring bg-muted/30'
                                             : 'border-input hover:border-muted-foreground hover:bg-muted/20',
                                     ]"
                                     @dragover.prevent
@@ -544,10 +710,19 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                         @change="onFileSelect"
                                         :disabled="coverConverting"
                                     />
-                                    <svg class="h-6 w-6 text-muted-foreground" :class="{ 'animate-bounce': isDraggingCover }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                        <polyline points="17 8 12 3 7 8"/>
-                                        <line x1="12" y1="3" x2="12" y2="15"/>
+                                    <svg
+                                        class="h-6 w-6 text-muted-foreground"
+                                        :class="{ 'animate-bounce': isDraggingCover }"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="1.5"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    >
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                        <polyline points="17 8 12 3 7 8" />
+                                        <line x1="12" y1="3" x2="12" y2="15" />
                                     </svg>
                                     <span class="text-sm font-medium">
                                         {{
@@ -864,7 +1039,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                 </div>
                                                 <div class="relative flex flex-1 flex-col items-center justify-center px-2.5 pb-1">
                                                     <p class="text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">
-                                                        Willkommen, Gast!
+                                                        Willkommen, Max!
                                                     </p>
                                                     <p
                                                         class="mt-0.5 text-center text-[9px] leading-tight font-bold"
@@ -937,7 +1112,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                     <span>9:41</span><span style="font-size: 6px">▲▲ ▐</span>
                                                 </div>
                                                 <div class="flex flex-1 flex-col items-center justify-center px-2.5 pb-1">
-                                                    <p class="text-center text-[6px]" :style="{ color: cCardText }">Willkommen, Gast!</p>
+                                                    <p class="text-center text-[6px]" :style="{ color: cCardText }">Willkommen, Max!</p>
                                                     <p
                                                         class="mt-0.5 text-center text-[9px] leading-tight font-bold"
                                                         :style="{ color: cCardText, fontFamily: previewFontFamily }"
