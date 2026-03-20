@@ -1362,8 +1362,8 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                         <div class="flex items-center justify-between">
                                                             <span class="text-[7px] font-semibold" :style="{ color: cCardText }">Max Mustermann</span>
                                                             <span
-                                                                class="rounded-full px-1 py-0.5 text-[4px] font-semibold"
-                                                                :style="{ backgroundColor: cCardButton, color: cCardButtonText }"
+                                                                class="rounded-full px-1 py-0.5 text-[4px] font-semibold text-white"
+                                                                style="background-color: #4a7c59"
                                                                 >Zugesagt</span
                                                             >
                                                         </div>
@@ -1413,7 +1413,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                                 <div class="flex items-center gap-0.5">
                                                                     <span
                                                                         class="rounded-full px-1 py-0.5 text-[4px] font-semibold"
-                                                                        :style="{ backgroundColor: member.red ? '#b45a3c' : cCardButton, color: member.red ? '#ffffff' : cCardButtonText }"
+                                                                        :style="{ backgroundColor: member.red ? '#b45a3c' : '#4a7c59', color: '#ffffff' }"
                                                                         >{{ member.status }}</span
                                                                     >
                                                                     <span class="text-[6px]" :style="{ color: cCardText + '88' }">▼</span>
