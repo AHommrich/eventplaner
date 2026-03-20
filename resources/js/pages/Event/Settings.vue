@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm, router } from '@inertiajs/vue3';
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { useFloatingBar } from '@/composables/useFloatingBar';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
@@ -93,6 +93,19 @@ const locationSearching = ref(false);
 const locationOpen    = ref(false);
 let locationDebounce: ReturnType<typeof setTimeout> | null = null;
 
+const locationInputWrapper = ref<HTMLElement | null>(null);
+const locationDropdownStyle = ref({ top: '0px', left: '0px', width: '0px' });
+
+function updateLocationDropdownStyle() {
+    if (!locationInputWrapper.value) return;
+    const rect = locationInputWrapper.value.getBoundingClientRect();
+    locationDropdownStyle.value = {
+        top:   `${rect.bottom + 4}px`,
+        left:  `${rect.left}px`,
+        width: `${rect.width}px`,
+    };
+}
+
 watch(locationQuery, (val) => {
     if (locationDebounce) clearTimeout(locationDebounce);
     if (!val || val.length < 2) { locationResults.value = []; locationOpen.value = false; return; }
@@ -100,11 +113,12 @@ watch(locationQuery, (val) => {
         locationSearching.value = true;
         try {
             const res = await fetch(
-                `https://nominatim.openstreetmap.org/search?format=json&limit=6&q=${encodeURIComponent(val)}&addressdetails=1`,
+                `https://nominatim.openstreetmap.org/search?format=json&limit=6&dedupe=0&q=${encodeURIComponent(val)}&addressdetails=1`,
                 { headers: { 'Accept-Language': 'de' } }
             );
             locationResults.value = await res.json();
             locationOpen.value = locationResults.value.length > 0;
+            if (locationOpen.value) nextTick(updateLocationDropdownStyle);
         } catch {
             locationResults.value = [];
         } finally {
@@ -350,7 +364,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                 <!-- Standort-Suche -->
                                 <div class="grid gap-2">
                                     <Label>{{ t('event.venueSearch') }}</Label>
-                                    <div class="relative">
+                                    <div ref="locationInputWrapper" class="relative">
                                         <Input v-model="locationQuery"
                                             :placeholder="t('event.venueSearchPlaceholder')"
                                             autocomplete="off"
@@ -358,16 +372,19 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                         <div v-if="locationSearching" class="absolute right-2.5 top-1/2 -translate-y-1/2">
                                             <svg class="h-4 w-4 animate-spin text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
                                         </div>
-                                        <div v-if="locationOpen && locationResults.length"
-                                            class="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-md border bg-popover shadow-lg">
-                                            <button v-for="r in locationResults" :key="r.place_id"
-                                                type="button"
-                                                class="flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-accent focus:bg-accent"
-                                                @mousedown.prevent="selectLocation(r)">
-                                                <span class="font-medium truncate">{{ r.name || r.display_name.split(', ')[0] }}</span>
-                                                <span class="text-xs text-muted-foreground truncate">{{ r.display_name }}</span>
-                                            </button>
-                                        </div>
+                                        <Teleport to="body">
+                                            <div v-if="locationOpen && locationResults.length"
+                                                class="fixed z-[9999] max-h-60 overflow-y-auto rounded-md border bg-popover shadow-lg"
+                                                :style="locationDropdownStyle">
+                                                <button v-for="r in locationResults" :key="r.place_id"
+                                                    type="button"
+                                                    class="flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-accent focus:bg-accent"
+                                                    @mousedown.prevent="selectLocation(r)">
+                                                    <span class="font-medium truncate">{{ r.name || r.display_name.split(', ')[0] }}</span>
+                                                    <span class="text-xs text-muted-foreground truncate">{{ r.display_name }}</span>
+                                                </button>
+                                            </div>
+                                        </Teleport>
                                     </div>
                                     <!-- Gespeicherter Standort -->
                                     <div v-if="form.venue_lat && form.venue_lng" class="flex items-center gap-1.5 text-xs text-muted-foreground">
