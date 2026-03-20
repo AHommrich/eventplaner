@@ -35,6 +35,8 @@ class EventInfoController extends Controller
             'cover_image_url' => $event->cover_image_url,
             'venue_name'      => $event->venue_name,
             'venue_address'   => $event->venue_address,
+            'venue_lat'       => $event->venue_lat,
+            'venue_lng'       => $event->venue_lng,
             'dresscode'       => $event->dresscode,
             'schedule'        => $event->schedule,
             // Palette
