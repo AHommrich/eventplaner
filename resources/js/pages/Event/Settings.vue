@@ -43,6 +43,8 @@ interface EventData {
     color_secondary: string | null;
     color_tertiary: string | null;
     color_home_text: string | null;
+    color_home_shadow: string | null;
+    home_shadow_opacity: number | null;
     role_screen_bg: string | null;
     role_card_bg: string | null;
     role_card_text: string | null;
@@ -81,6 +83,8 @@ const form = useForm({
     color_secondary: props.event.color_secondary ?? '#e8e3de',
     color_tertiary: props.event.color_tertiary ?? '#ffffff',
     color_home_text: props.event.color_home_text ?? '#ffffff',
+    color_home_shadow: props.event.color_home_shadow ?? '#000000',
+    home_shadow_opacity: props.event.home_shadow_opacity ?? 50,
     // Rollen
     role_screen_bg: props.event.role_screen_bg ?? 'secondary',
     role_card_bg: props.event.role_card_bg ?? 'tertiary',
@@ -598,47 +602,55 @@ const fontOptions = [
 const previewFontFamily = computed(() => fontOptions.find((f) => f.key === form.font_heading)?.family ?? 'inherit');
 
 // Tab-Bar Icons
-// Ionicons outline — exakte Pfade (viewBox 0 0 24 24, stroke-based)
+// Ionicons outline — exakte Pfade (viewBox 0 0 512 512, stroke-based)
 const tabDefs = [
     {
-        // home-outline
         label: 'Home',
+        viewBox: '0 0 512 512',
+        strokeWidth: 40,
         paths: [
-            'M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z',
-            'M9 21V12h6v9',
+            'M80 212v236a16 16 0 0 0 16 16h96V328a24 24 0 0 1 24-24h80a24 24 0 0 1 24 24v136h96a16 16 0 0 0 16-16V212',
+            'M480 256 266.89 52c-5-5.28-16.69-5.34-21.78 0L32 256',
+            'M400 179V64h-48v69',
         ],
     },
     {
-        // checkmark-circle-outline
         label: 'Zusage',
+        viewBox: '0 0 512 512',
+        strokeWidth: 40,
         paths: [
-            'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z',
-            'M7.5 12l3 3 6-6',
+            'M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z',
+            'M352 176 217.6 336 160 272',
         ],
     },
     {
-        // images-outline (zwei überlappende Fotorahmen)
         label: 'Fotos',
+        viewBox: '0 0 512 512',
+        strokeWidth: 40,
         paths: [
-            'M20 5H9a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z',
-            'M4 8H3a1 1 0 0 0-1 1v10a2 2 0 0 0 2 2h10a1 1 0 0 0 1-1v-1',
+            'M432 112V96a48 48 0 0 0-48-48H64a48 48 0 0 0-48 48v256a48 48 0 0 0 64 48h16',
+            'M142 128h308a46 46 0 0 1 46 46v244a46 46 0 0 1-46 46H142a46 46 0 0 1-46-46V174a46 46 0 0 1 46-46z',
+            'M342.15 219.64a30.77 30.55 0 1 0 61.54 0 30.77 30.55 0 1 0-61.54 0',
+            'M342.15 372.17 255 285.78a31 31 0 0 0-42.18-1.21L96 387.64',
+            'M265.23 464l118.59-117.73a31 31 0 0 1 41.46-1.87L496 402.91',
         ],
     },
     {
-        // beer-outline (Krug mit Henkel)
         label: 'Spiel',
+        viewBox: '0 0 512 512',
+        strokeWidth: 40,
         paths: [
-            'M6 2h10l-1.5 17a1.5 1.5 0 0 1-1.5 1.4H9a1.5 1.5 0 0 1-1.5-1.4L6 2z',
-            'M17 7.5h2a1.5 1.5 0 0 1 0 3h-2',
-            'M6 7h10',
+            'M352 200v240a40 40 0 0 1-40 40H136a40 40 0 0 1-40-40V224',
+            'M352 224h40a56 56 0 0 1 56 56v80a56 56 0 0 1-56 56h-40',
+            'M320 112a48 48 0 0 1 0 96c-13.25 0-29.31-7.31-38-16H160c-8 22-27 32-48 32a48 48 0 0 1 0-96 47.9 47.9 0 0 1 26 9',
         ],
     },
     {
-        // settings-outline (Zahnrad)
         label: 'Einst.',
+        viewBox: '0 0 512 512',
+        strokeWidth: 40,
         paths: [
-            'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z',
-            'M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41',
+            'M262.29 192.31a64 64 0 1 0 57.4 57.4 64.13 64.13 0 0 0-57.4-57.4M416.39 256a154 154 0 0 1-1.53 20.79l45.21 35.46a10.81 10.81 0 0 1 2.45 13.75l-42.77 74a10.81 10.81 0 0 1-13.14 4.59l-44.9-18.08a16.11 16.11 0 0 0-15.17 1.75A164.5 164.5 0 0 1 325 400.8a15.94 15.94 0 0 0-8.82 12.14l-6.73 47.89a11.08 11.08 0 0 1-10.68 9.17h-85.54a11.11 11.11 0 0 1-10.69-8.87l-6.72-47.82a16.07 16.07 0 0 0-9-12.22 155 155 0 0 1-21.46-12.57 16 16 0 0 0-15.11-1.71l-44.89 18.07a10.81 10.81 0 0 1-13.14-4.58l-42.77-74a10.8 10.8 0 0 1 2.45-13.75l38.21-30a16.05 16.05 0 0 0 6-14.08c-.36-4.17-.58-8.33-.58-12.5s.21-8.27.58-12.35a16 16 0 0 0-6.07-13.94l-38.19-30A10.81 10.81 0 0 1 49.48 186l42.77-74a10.81 10.81 0 0 1 13.14-4.59l44.9 18.08a16.11 16.11 0 0 0 15.17-1.75A164.5 164.5 0 0 1 187 111.2a15.94 15.94 0 0 0 8.82-12.14l6.73-47.89A11.08 11.08 0 0 1 213.23 42h85.54a11.11 11.11 0 0 1 10.69 8.87l6.72 47.82a16.07 16.07 0 0 0 9 12.22 155 155 0 0 1 21.46 12.57 16 16 0 0 0 15.11 1.71l44.89-18.07a10.81 10.81 0 0 1 13.14 4.58l42.77 74a10.8 10.8 0 0 1-2.45 13.75l-38.21 30a16.05 16.05 0 0 0-6.05 14.08c.33 4.14.55 8.3.55 12.47',
         ],
     },
 ];
@@ -990,6 +1002,29 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                         />
                                     </div>
                                 </div>
+                                <div v-if="displayCoverUrl" class="grid gap-2">
+                                    <Label>{{ t('event.colorHomeShadow') }}</Label>
+                                    <div class="flex items-center gap-2">
+                                        <input
+                                            type="color"
+                                            v-model="form.color_home_shadow"
+                                            class="h-9 w-10 shrink-0 cursor-pointer rounded border border-input bg-transparent p-0.5"
+                                        />
+                                        <span class="text-sm text-muted-foreground">{{ form.color_home_shadow }}</span>
+                                    </div>
+                                </div>
+                                <div v-if="displayCoverUrl" class="grid gap-2">
+                                    <Label>{{ t('event.homeShadowOpacity') }} <span class="text-xs font-normal text-muted-foreground">{{ form.home_shadow_opacity }}%</span></Label>
+                                    <input
+                                        type="range"
+                                        v-model.number="form.home_shadow_opacity"
+                                        min="0"
+                                        max="100"
+                                        step="5"
+                                        class="w-full"
+                                    />
+                                    <p class="text-xs text-muted-foreground -mt-1">{{ t('event.homeShadowOpacityHint') }}</p>
+                                </div>
                             </CardContent>
                         </Card>
 
@@ -1263,7 +1298,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                 style="height: 244px; background-size: cover; background-position: center"
                                                 :style="{ backgroundImage: `url('${displayCoverUrl}')`, fontFamily: previewFontFamily }"
                                             >
-                                                <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/5 to-black/75" />
+                                                <div class="absolute inset-0" :style="{ backgroundColor: form.color_home_shadow, opacity: (form.home_shadow_opacity ?? 50) / 100 }" />
                                                 <div
                                                     class="relative flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-white"
                                                 >
@@ -1302,9 +1337,9 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                         <svg
                                                             width="9"
                                                             height="9"
-                                                            viewBox="0 0 24 24"
+                                                            :viewBox="tab.viewBox ?? '0 0 24 24'"
                                                             fill="none"
-                                                            stroke-width="2"
+                                                            :stroke-width="tab.strokeWidth ?? 2"
                                                             stroke-linecap="round"
                                                             stroke-linejoin="round"
                                                             :stroke="
@@ -1373,9 +1408,9 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                         <svg
                                                             width="9"
                                                             height="9"
-                                                            viewBox="0 0 24 24"
+                                                            :viewBox="tab.viewBox ?? '0 0 24 24'"
                                                             fill="none"
-                                                            stroke-width="2"
+                                                            :stroke-width="tab.strokeWidth ?? 2"
                                                             stroke-linecap="round"
                                                             stroke-linejoin="round"
                                                             :stroke="i === 0 ? cTabTint : cTabTint + '55'"
@@ -1487,7 +1522,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                                         :style="{ backgroundColor: member.red ? '#b45a3c' : '#4a7c59', color: '#ffffff' }"
                                                                         >{{ member.status }}</span
                                                                     >
-                                                                    <svg width="6" height="6" viewBox="0 0 24 24" fill="none" :stroke="cCardText + '88'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                                                                    <svg width="6" height="6" viewBox="0 0 24 24" fill="none" :stroke="cCardText + '88'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" :class="hintTextClass('cardText')"><path d="M6 9l6 6 6-6"/></svg>
                                                                 </div>
                                                             </div>
                                                             <p class="text-[4px]" :style="{ color: cCardText + '66' }" :class="hintTextClass('cardText')">Von dir gesetzt</p>
@@ -1502,9 +1537,9 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                         <svg
                                                             width="9"
                                                             height="9"
-                                                            viewBox="0 0 24 24"
+                                                            :viewBox="tab.viewBox ?? '0 0 24 24'"
                                                             fill="none"
-                                                            stroke-width="2"
+                                                            :stroke-width="tab.strokeWidth ?? 2"
                                                             stroke-linecap="round"
                                                             stroke-linejoin="round"
                                                             :stroke="i === 1 ? cTabTint : cTabTint + '55'"
@@ -1583,9 +1618,9 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                         <svg
                                                             width="9"
                                                             height="9"
-                                                            viewBox="0 0 24 24"
+                                                            :viewBox="tab.viewBox ?? '0 0 24 24'"
                                                             fill="none"
-                                                            stroke-width="2"
+                                                            :stroke-width="tab.strokeWidth ?? 2"
                                                             stroke-linecap="round"
                                                             stroke-linejoin="round"
                                                             :stroke="i === 2 ? cTabTint : cTabTint + '55'"
@@ -1700,9 +1735,9 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                         <svg
                                                             width="9"
                                                             height="9"
-                                                            viewBox="0 0 24 24"
+                                                            :viewBox="tab.viewBox ?? '0 0 24 24'"
                                                             fill="none"
-                                                            stroke-width="2"
+                                                            :stroke-width="tab.strokeWidth ?? 2"
                                                             stroke-linecap="round"
                                                             stroke-linejoin="round"
                                                             :stroke="i === 4 ? cTabTint : cTabTint + '55'"

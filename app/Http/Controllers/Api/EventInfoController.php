@@ -80,6 +80,8 @@ class EventInfoController extends Controller
             'color_fab'              => $r('role_fab',              'primary'),
             'color_fab_icon'         => $r('role_fab_icon',         'tertiary'),
             'color_home_text'        => $event->color_home_text,
+            'color_home_shadow'      => $event->color_home_shadow  ?? '#000000',
+            'home_shadow_opacity'    => $event->home_shadow_opacity ?? 50,
             'font_heading'           => $event->font_heading,
             'venue_display_mode'     => $event->venue_display_mode ?? 'both',
             'drink_game_enabled'     => (bool) $event->drink_game_enabled,
