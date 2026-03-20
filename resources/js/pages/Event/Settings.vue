@@ -97,7 +97,7 @@ const skipGuard = ref(false);
 const isDirty = computed(() => form.isDirty);
 
 // Field-level dirty detection for address section
-const savedAddress = {
+const savedAddress: Record<string, string> = {
     venue_name:         props.event.venue_name         ?? '',
     venue_street:       props.event.venue_street       ?? '',
     venue_house_number: props.event.venue_house_number ?? '',
@@ -105,7 +105,7 @@ const savedAddress = {
     venue_city:         props.event.venue_city         ?? '',
     venue_state:        props.event.venue_state        ?? '',
     venue_country:      props.event.venue_country      ?? 'Deutschland',
-} as const;
+};
 type AddressField = keyof typeof savedAddress;
 const formAny = form as unknown as Record<string, string | null>;
 function isFieldDirty(field: AddressField): boolean {
@@ -170,6 +170,10 @@ function submit() {
             toast.success(t('toast.eventSettingsSaved'));
             coverPreview.value = null;
             form.cover = null;
+            // Dirty-Baseline aktualisieren
+            for (const key of Object.keys(savedAddress) as AddressField[]) {
+                savedAddress[key] = (formAny[key] ?? '') as string;
+            }
         },
         onFinish: () => {
             skipGuard.value = false;
@@ -593,9 +597,9 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
     <Head :title="t('event.settings')" />
     <AppLayout :breadcrumbs="breadcrumbItems">
         <!-- Split-Screen: Mobile = oben Preview / unten Form; Desktop = links Form / rechts Preview -->
-        <div class="flex h-[calc(100vh-4rem)] flex-col overflow-hidden lg:flex-row lg:gap-6 lg:px-4 lg:pt-4">
+        <div class="flex h-[calc(100vh-4rem)] flex-col overflow-hidden lg:grid lg:grid-cols-2 lg:gap-6 lg:px-4 lg:pt-4">
             <!-- Form — unten auf Mobile (order-last), links auf Desktop (order-first) -->
-            <div class="order-last flex-1 overflow-y-auto px-4 pt-2 pb-24 lg:order-first lg:px-0 lg:pt-0">
+            <div class="order-last overflow-y-auto px-4 pt-2 pb-24 lg:order-first lg:px-0 lg:pt-0">
                 <div class="space-y-4">
                     <!-- Linke Spalte: Formular -->
                     <form @submit.prevent="submit" class="space-y-4">
@@ -1173,7 +1177,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
             </div>
 
             <!-- Preview — oben auf Mobile (order-first), rechts auf Desktop (order-last) -->
-            <div class="order-first h-[50vh] overflow-hidden lg:order-last lg:h-full lg:w-auto lg:overflow-y-auto lg:pb-4">
+            <div class="order-first h-[50vh] overflow-hidden lg:order-last lg:h-full lg:overflow-y-auto lg:pb-4">
                 <div class="flex flex-col items-center gap-2 pt-3 lg:pt-0">
                     <p class="text-sm font-medium text-muted-foreground">{{ t('event.phonePreview') }}</p>
 
@@ -1183,8 +1187,8 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                             <!-- ===== SCREEN 1: HOME ===== -->
                             <div class="flex flex-col items-center gap-1.5">
                                 <span class="text-[11px] font-medium text-muted-foreground">Home</span>
-                                <div style="width: 168px; height: 342px; overflow: hidden; flex-shrink: 0">
-                                    <div style="transform: scale(1.4); transform-origin: top left">
+                                <div style="width: 240px; height: 488px; overflow: hidden; flex-shrink: 0">
+                                    <div style="transform: scale(2); transform-origin: top left">
                                         <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width: 120px">
                                             <!-- Mit Cover -->
                                             <div
@@ -1330,8 +1334,8 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                             <!-- ===== SCREEN 2: ZUSAGE ===== -->
                             <div class="flex flex-col items-center gap-1.5">
                                 <span class="text-[11px] font-medium text-muted-foreground">Zusage</span>
-                                <div style="width: 168px; height: 342px; overflow: hidden; flex-shrink: 0">
-                                    <div style="transform: scale(1.4); transform-origin: top left">
+                                <div style="width: 240px; height: 488px; overflow: hidden; flex-shrink: 0">
+                                    <div style="transform: scale(2); transform-origin: top left">
                                         <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width: 120px">
                                             <div
                                                 class="flex flex-col"
@@ -1455,8 +1459,8 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                             <!-- ===== SCREEN 3: FOTOS ===== -->
                             <div class="flex flex-col items-center gap-1.5">
                                 <span class="text-[11px] font-medium text-muted-foreground">Fotos</span>
-                                <div style="width: 168px; height: 342px; overflow: hidden; flex-shrink: 0">
-                                    <div style="transform: scale(1.4); transform-origin: top left">
+                                <div style="width: 240px; height: 488px; overflow: hidden; flex-shrink: 0">
+                                    <div style="transform: scale(2); transform-origin: top left">
                                         <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width: 120px">
                                             <div
                                                 class="flex flex-col"
@@ -1533,8 +1537,8 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                             <!-- ===== SCREEN 4: EINSTELLUNGEN ===== -->
                             <div class="flex flex-col items-center gap-1.5">
                                 <span class="text-[11px] font-medium text-muted-foreground">Einstellungen</span>
-                                <div style="width: 168px; height: 342px; overflow: hidden; flex-shrink: 0">
-                                    <div style="transform: scale(1.4); transform-origin: top left">
+                                <div style="width: 240px; height: 488px; overflow: hidden; flex-shrink: 0">
+                                    <div style="transform: scale(2); transform-origin: top left">
                                         <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width: 120px">
                                             <div
                                                 class="flex flex-col"
