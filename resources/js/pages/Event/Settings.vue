@@ -1361,14 +1361,11 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                 </button>
 
                 <div v-show="!previewCollapsed" class="flex flex-col items-center gap-2 pt-2 lg:pt-0">
-                    <p class="text-sm font-medium text-muted-foreground">{{ t('event.phonePreview') }}</p>
-
                     <!-- Phones: Mobile horizontal scroll, Desktop 2×2 Grid -->
                     <div class="w-full overflow-x-auto lg:overflow-x-visible">
                         <div class="flex gap-4 px-4 pb-4 lg:grid lg:grid-cols-2 lg:px-0">
                             <!-- ===== SCREEN 1: HOME ===== -->
                             <div class="flex flex-col items-center gap-1.5">
-                                <span class="text-[11px] font-medium text-muted-foreground">Home</span>
                                 <div class="phone-frame-outer">
                                     <div class="phone-frame-inner">
                                         <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width: 120px">
@@ -1546,7 +1543,6 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
 
                             <!-- ===== SCREEN 2: ZUSAGE ===== -->
                             <div class="flex flex-col items-center gap-1.5">
-                                <span class="text-[11px] font-medium text-muted-foreground">Zusage</span>
                                 <div class="phone-frame-outer">
                                     <div class="phone-frame-inner">
                                         <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width: 120px">
@@ -1675,7 +1671,6 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
 
                             <!-- ===== SCREEN 3: FOTOS ===== -->
                             <div class="flex flex-col items-center gap-1.5">
-                                <span class="text-[11px] font-medium text-muted-foreground">Fotos</span>
                                 <div class="phone-frame-outer">
                                     <div class="phone-frame-inner">
                                         <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width: 120px">
@@ -1756,7 +1751,6 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
 
                             <!-- ===== SCREEN 4: EINSTELLUNGEN ===== -->
                             <div class="flex flex-col items-center gap-1.5">
-                                <span class="text-[11px] font-medium text-muted-foreground">Einstellungen</span>
                                 <div class="phone-frame-outer">
                                     <div class="phone-frame-inner">
                                         <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width: 120px">
@@ -1920,11 +1914,11 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
 @import '@fontsource/josefin-sans/700.css';
 
 /* Phone-Preview-Größen */
-.phone-frame-outer { width: 240px; height: 488px; overflow: hidden; flex-shrink: 0; }
-.phone-frame-inner { transform: scale(2); transform-origin: top left; }
+.phone-frame-outer { width: 228px; height: 464px; overflow: hidden; flex-shrink: 0; }
+.phone-frame-inner { transform: scale(1.9); transform-origin: top left; }
 @media (max-width: 1023px) {
-    .phone-frame-outer { width: 180px; height: 366px; }
-    .phone-frame-inner { transform: scale(1.5); }
+    .phone-frame-outer { width: 171px; height: 348px; }
+    .phone-frame-inner { transform: scale(1.425); }
 }
 
 /* Einheitliches Amber-Overlay für alle Hint-Elemente */
