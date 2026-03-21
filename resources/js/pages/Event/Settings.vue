@@ -1343,7 +1343,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
             </div>
 
             <!-- Preview — oben auf Mobile (order-first), rechts auf Desktop (order-last) -->
-            <div class="order-first lg:order-last lg:h-full lg:overflow-y-auto lg:pb-4">
+            <div class="sticky top-16 z-20 bg-background order-first lg:static lg:z-auto lg:order-last lg:h-full lg:overflow-y-auto lg:pb-4">
                 <!-- Mobile: einklappbarer Header -->
                 <button
                     type="button"
