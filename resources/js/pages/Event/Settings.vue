@@ -124,8 +124,6 @@ function resetField(field: AddressField) {
 
 // Hint-System
 const activeHint = ref<string | null>(null);
-const mobilePreviewTab = ref(0);
-const mobilePreviewNames = ['Home', 'Zusage', 'Fotos', 'Einst.'];
 const previewCollapsed = ref(false);
 let hintTimer: ReturnType<typeof setTimeout> | null = null;
 function showHint(section: string) {
@@ -1363,26 +1361,13 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                 </button>
 
                 <div v-show="!previewCollapsed" class="flex flex-col items-center gap-2 pt-2 lg:pt-0">
-                    <!-- Desktop title -->
-                    <p class="hidden text-sm font-medium text-muted-foreground lg:block">{{ t('event.phonePreview') }}</p>
+                    <p class="text-sm font-medium text-muted-foreground">{{ t('event.phonePreview') }}</p>
 
-                    <!-- Mobile: Tab-Wechsler -->
-                    <div class="flex w-full gap-1 rounded-lg border bg-muted/50 p-1 px-4 lg:hidden">
-                        <button
-                            v-for="(name, i) in mobilePreviewNames"
-                            :key="i"
-                            type="button"
-                            class="flex-1 rounded-md py-1.5 text-xs font-medium transition-colors"
-                            :class="mobilePreviewTab === i ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'"
-                            @click="mobilePreviewTab = i"
-                        >{{ name }}</button>
-                    </div>
-
-                    <!-- Phones: auf Mobile zentriert, 1 sichtbar; Desktop: 2×2 Grid -->
-                    <div class="w-full">
-                        <div class="flex justify-center pb-4 lg:grid lg:grid-cols-2 lg:justify-normal lg:gap-y-4 lg:px-0">
+                    <!-- Phones: Mobile horizontal scroll, Desktop 2×2 Grid -->
+                    <div class="w-full overflow-x-auto lg:overflow-x-visible">
+                        <div class="flex gap-4 px-4 pb-4 lg:grid lg:grid-cols-2 lg:px-0">
                             <!-- ===== SCREEN 1: HOME ===== -->
-                            <div class="flex flex-col items-center gap-1.5" :class="{ 'hidden lg:flex': mobilePreviewTab !== 0 }">
+                            <div class="flex flex-col items-center gap-1.5">
                                 <span class="text-[11px] font-medium text-muted-foreground">Home</span>
                                 <div class="phone-frame-outer">
                                     <div class="phone-frame-inner">
@@ -1560,7 +1545,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                             </div>
 
                             <!-- ===== SCREEN 2: ZUSAGE ===== -->
-                            <div class="flex flex-col items-center gap-1.5" :class="{ 'hidden lg:flex': mobilePreviewTab !== 1 }">
+                            <div class="flex flex-col items-center gap-1.5">
                                 <span class="text-[11px] font-medium text-muted-foreground">Zusage</span>
                                 <div class="phone-frame-outer">
                                     <div class="phone-frame-inner">
@@ -1689,7 +1674,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                             </div>
 
                             <!-- ===== SCREEN 3: FOTOS ===== -->
-                            <div class="flex flex-col items-center gap-1.5" :class="{ 'hidden lg:flex': mobilePreviewTab !== 2 }">
+                            <div class="flex flex-col items-center gap-1.5">
                                 <span class="text-[11px] font-medium text-muted-foreground">Fotos</span>
                                 <div class="phone-frame-outer">
                                     <div class="phone-frame-inner">
@@ -1770,7 +1755,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                             </div>
 
                             <!-- ===== SCREEN 4: EINSTELLUNGEN ===== -->
-                            <div class="flex flex-col items-center gap-1.5" :class="{ 'hidden lg:flex': mobilePreviewTab !== 3 }">
+                            <div class="flex flex-col items-center gap-1.5">
                                 <span class="text-[11px] font-medium text-muted-foreground">Einstellungen</span>
                                 <div class="phone-frame-outer">
                                     <div class="phone-frame-inner">
