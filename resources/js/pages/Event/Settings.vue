@@ -167,9 +167,6 @@ function handleBeforeUnload(e: BeforeUnloadEvent) {
 let removeInertiaGuard: (() => void) | null = null;
 
 onMounted(() => {
-    // Verhindert Dokument-Scroll auf der Settings-Seite (Fixed-Layout mit internem Scroll)
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
     window.addEventListener('beforeunload', handleBeforeUnload);
     // Map lazy-init: kurz warten bis DOM gerendert
     setTimeout(initMap, 50);
@@ -185,8 +182,6 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-    document.documentElement.style.overflow = '';
-    document.body.style.overflow = '';
     window.removeEventListener('beforeunload', handleBeforeUnload);
     if (leafletMap) { leafletMap.remove(); leafletMap = null; }
     removeInertiaGuard?.();
