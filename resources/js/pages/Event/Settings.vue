@@ -704,10 +704,10 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
 <template>
     <Head :title="t('event.settings')" />
     <AppLayout :breadcrumbs="breadcrumbItems">
-        <!-- Split-Screen: Mobile = oben Preview / unten Form; Desktop = links Form / rechts Preview -->
-        <div class="flex flex-col lg:grid lg:h-[calc(100vh-4rem)] lg:grid-cols-2 lg:overflow-hidden lg:gap-6 lg:px-4 lg:pt-4">
-            <!-- Form — nach Preview auf Mobile (order-last), links auf Desktop (order-first) -->
-            <div class="order-last px-4 pt-2 pb-24 lg:order-first lg:overflow-y-auto lg:px-0 lg:pt-0">
+        <!-- Split-Screen: Mobile = oben Preview (shrink-0) / unten Form (scroll); Desktop = links Form / rechts Preview -->
+        <div class="flex min-h-0 flex-1 flex-col lg:grid lg:h-[calc(100vh-4rem)] lg:grid-cols-2 lg:overflow-hidden lg:gap-6 lg:px-4 lg:pt-4">
+            <!-- Form — nach Preview auf Mobile (order-last, flex-1 scroll), links auf Desktop -->
+            <div class="order-last min-h-0 flex-1 overflow-y-auto px-4 pt-2 pb-24 lg:order-first lg:px-0 lg:pt-0">
                 <div class="space-y-4">
                     <!-- Linke Spalte: Formular -->
                     <form @submit.prevent="submit" class="space-y-4">
@@ -1343,7 +1343,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
             </div>
 
             <!-- Preview — oben auf Mobile (order-first), rechts auf Desktop (order-last) -->
-            <div class="sticky top-16 z-20 bg-background order-first lg:static lg:z-auto lg:order-last lg:h-full lg:overflow-y-auto lg:pb-4">
+            <div class="order-first flex-shrink-0 lg:order-last lg:h-full lg:overflow-y-auto lg:pb-4">
                 <!-- Mobile: einklappbarer Header -->
                 <button
                     type="button"
