@@ -167,6 +167,9 @@ function handleBeforeUnload(e: BeforeUnloadEvent) {
 let removeInertiaGuard: (() => void) | null = null;
 
 onMounted(() => {
+    // Verhindert Dokument-Scroll auf der Settings-Seite (Fixed-Layout mit internem Scroll)
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
     window.addEventListener('beforeunload', handleBeforeUnload);
     // Map lazy-init: kurz warten bis DOM gerendert
     setTimeout(initMap, 50);
@@ -182,6 +185,8 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
     window.removeEventListener('beforeunload', handleBeforeUnload);
     if (leafletMap) { leafletMap.remove(); leafletMap = null; }
     removeInertiaGuard?.();
@@ -705,7 +710,7 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
     <Head :title="t('event.settings')" />
     <AppLayout :breadcrumbs="breadcrumbItems">
         <!-- Split-Screen: Mobile = oben Preview (shrink-0) / unten Form (scroll); Desktop = links Form / rechts Preview -->
-        <div class="flex min-h-0 flex-1 flex-col lg:grid lg:h-[calc(100vh-4rem)] lg:grid-cols-2 lg:overflow-hidden lg:gap-6 lg:px-4 lg:pt-4">
+        <div class="flex h-[calc(100dvh-4rem)] flex-col overflow-hidden lg:grid lg:h-[calc(100vh-4rem)] lg:grid-cols-2 lg:gap-6 lg:px-4 lg:pt-4">
             <!-- Form — nach Preview auf Mobile (order-last, flex-1 scroll), links auf Desktop -->
             <div class="order-last min-h-0 flex-1 overflow-y-auto px-4 pt-2 pb-24 lg:order-first lg:px-0 lg:pt-0">
                 <div class="space-y-4">
