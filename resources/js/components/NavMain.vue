@@ -19,7 +19,7 @@ const page = usePage();
             <SidebarMenuItem v-for="item in items" :key="item.title">
                 <SidebarMenuButton as-child :is-active="item.href === page.url" :tooltip="item.title">
                     <Link :href="item.href">
-                        <component :is="item.icon" />
+                        <component :is="item.icon" class="pointer-events-none" />
                         <span>{{ item.title }}</span>
                     </Link>
                 </SidebarMenuButton>
