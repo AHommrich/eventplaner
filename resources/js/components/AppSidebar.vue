@@ -78,8 +78,8 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
                         <DropdownMenuTrigger as-child>
                             <SidebarMenuButton class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
                                 <CalendarDays class="size-4 shrink-0" />
-                                <span class="truncate text-sm font-medium">{{ activeEvent.name }}</span>
-                                <ChevronsUpDown class="ml-auto size-4 shrink-0 opacity-50" />
+                                <span v-if="state !== 'collapsed'" class="truncate text-sm font-medium">{{ activeEvent.name }}</span>
+                                <ChevronsUpDown v-if="state !== 'collapsed'" class="ml-auto size-4 shrink-0 opacity-50" />
                             </SidebarMenuButton>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
