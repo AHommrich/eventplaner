@@ -52,7 +52,6 @@ function handleCreate(query: string) {
         :on-create="handleCreate"
         :searchable="true"
         :close-on-select="false"
-        :append-to-body="true"
         no-options-text=""
         no-results-text=""
         class="multiselect-custom"
