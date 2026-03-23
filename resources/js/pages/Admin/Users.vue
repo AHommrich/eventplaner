@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 
@@ -16,6 +16,8 @@ const props = defineProps<{ users: User[]; events: Event[]; }>();
 
 const { t } = useI18n();
 const selectClass = 'flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]';
+
+const approvedUsers = computed(() => props.users);
 
 const addForm = useForm({ email: '', event_id: '' });
 function addToEvent() { addForm.post(route('admin.users.addToEvent'), { onSuccess: () => { addForm.reset(); toast.success(t('toast.userAdded')); } }); }
@@ -54,7 +56,7 @@ function doDelete() {
             </Card>
 
             <Card>
-                <CardHeader><CardTitle>{{ t('admin.allUsers', { count: users.length }) }}</CardTitle></CardHeader>
+                <CardHeader><CardTitle>{{ t('admin.allUsers', { count: approvedUsers.length }) }}</CardTitle></CardHeader>
                 <CardContent class="p-0">
                     <table class="w-full text-sm">
                         <thead class="border-b">
@@ -67,7 +69,7 @@ function doDelete() {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="user in users" :key="user.id" class="border-b transition-colors hover:bg-muted/50 last:border-0">
+                            <tr v-for="user in approvedUsers" :key="user.id" class="border-b transition-colors hover:bg-muted/50 last:border-0">
                                 <td class="px-6 py-3 font-medium">{{ user.name }}</td>
                                 <td class="px-6 py-3 text-muted-foreground">{{ user.email }}</td>
                                 <td class="px-6 py-3">
