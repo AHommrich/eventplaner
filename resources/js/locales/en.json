@@ -31,6 +31,7 @@
     "yes": "Yes",
     "no": "No",
     "createItem": "Create \"{name}\"",
+    "createItemAgain": "Create \"{name}\" again?",
     "noResults": "No results"
   },
   "dashboard": {
@@ -277,6 +278,12 @@
     "groups": "Groups",
     "solo": "Individual invitations",
     "noQR": "No QR code yet",
+    "generateSingle": "Generate QR code",
+    "downloadPdf": "PDF",
+    "downloadPng": "PNG",
+    "regenerate": "Regenerate",
+    "regenerateConfirmTitle": "Regenerate QR code?",
+    "regenerateConfirmDescription": "The old QR code will become invalid. Guests who already have it won't be able to log in with it anymore.",
     "none": "No guests or groups with invitation tokens yet."
   },
   "access": {
