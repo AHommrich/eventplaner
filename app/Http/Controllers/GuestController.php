@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Str;
-use App\Models\Category;
 use App\Models\DrinkLog;
 use App\Models\FoodSpecial;
 use App\Models\Group;
@@ -20,10 +19,7 @@ class GuestController extends Controller
         $data = $request->validate([
             'firstname'       => 'required|string|max:255',
             'lastname'        => 'nullable|string|max:255',
-            'category_id'     => 'required|exists:categories,id',
             'group_id'        => 'nullable|exists:groups,id',
-            'likelihood'      => 'required|in:sure,likely,maybe,unlikely,no',
-            'invite'          => 'boolean',
             'food_specials'   => 'nullable|array',
             'food_specials.*' => 'exists:food_specials,id',
         ]);
@@ -34,13 +30,10 @@ class GuestController extends Controller
         }
 
         $guest = Guest::create([
-            'event_id'    => $event?->id,
-            'firstname'   => $data['firstname'],
-            'lastname'    => $data['lastname'] ?? '',
-            'category_id' => $data['category_id'],
-            'group_id'    => $data['group_id'] ?? null,
-            'likelihood'  => $data['likelihood'] ?? 'maybe',
-            'invite'      => $data['invite'] ?? false,
+            'event_id'  => $event?->id,
+            'firstname' => $data['firstname'],
+            'lastname'  => $data['lastname'] ?? '',
+            'group_id'  => $data['group_id'] ?? null,
         ]);
 
         $guest->foodSpecials()->sync($data['food_specials'] ?? []);
@@ -58,7 +51,7 @@ class GuestController extends Controller
     {
         $event = $this->activeEvent();
 
-        $guest->load('category', 'group.invitationToken', 'foodSpecials', 'invitationToken', 'rsvpSetByGuest', 'rsvpSetByUser');
+        $guest->load('group.invitationToken', 'foodSpecials', 'invitationToken', 'rsvpSetByGuest', 'rsvpSetByUser');
 
         $returnTo = $request->query('return_to', url()->previous());
         if ($returnTo && Str::startsWith($returnTo, url('/'))) {
@@ -80,7 +73,6 @@ class GuestController extends Controller
         return Inertia::render('Guests/Edit', [
             'guest'         => $guestData,
             'qr_url'        => $qrUrl,
-            'categories'    => Category::orderBy('title', 'asc')->get(['id', 'title']),
             'groups'        => $event ? $event->groups()->orderBy('name')->get(['id', 'name']) : collect(),
             'food_specials' => FoodSpecial::orderBy('name')->get(['id', 'name']),
         ]);
@@ -91,21 +83,15 @@ class GuestController extends Controller
         $data = $request->validate([
             'firstname'       => 'required|string|max:255',
             'lastname'        => 'nullable|string|max:255',
-            'category_id'     => 'nullable|exists:categories,id',
             'group_id'        => 'nullable|exists:groups,id',
-            'likelihood'      => 'required|in:sure,likely,maybe,unlikely,no',
-            'invite'          => 'boolean',
             'food_specials'   => 'nullable|array',
             'food_specials.*' => 'exists:food_specials,id',
         ]);
 
         $guest->update([
-            'firstname'   => $data['firstname'],
-            'lastname'    => $data['lastname'] ?? '',
-            'category_id' => $data['category_id'],
-            'group_id'    => $data['group_id'],
-            'likelihood'  => $data['likelihood'],
-            'invite'      => $data['invite'] ?? false,
+            'firstname' => $data['firstname'],
+            'lastname'  => $data['lastname'] ?? '',
+            'group_id'  => $data['group_id'],
         ]);
 
         $guest->foodSpecials()->sync($data['food_specials'] ?? []);
@@ -115,7 +101,7 @@ class GuestController extends Controller
             return redirect()->to($returnTo)->with('success', 'Gast erfolgreich aktualisiert.');
         }
 
-        return redirect()->route('table')->with('success', 'Gast erfolgreich aktualisiert.');
+        return redirect()->route('guests.index')->with('success', 'Gast erfolgreich aktualisiert.');
     }
 
     /**

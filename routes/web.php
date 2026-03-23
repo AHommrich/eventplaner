@@ -31,7 +31,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // Hauptapp — zugänglich für alle User mit mind. einem Event
 Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('table', [TableController::class, 'index'])->name('table');
+    Route::get('guests', [TableController::class, 'index'])->name('guests.index');
     Route::get('invitations', [InvitationController::class, 'index'])->name('invitations');
     Route::post('invitations/generate', [InvitationTokenController::class, 'generate'])->name('invitations.generate');
     Route::get('photos', [PhotoController::class, 'index'])->name('photos');

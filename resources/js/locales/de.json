@@ -1,7 +1,7 @@
 {
   "nav": {
     "platform": "Plattform",
-    "forms": "Formulare",
+    "forms": "Übersicht",
     "guests": "Gäste",
     "drinks": "Getränke",
     "drinkGame": "Trinkspiel",
@@ -29,7 +29,17 @@
     "role": "Rolle",
     "all": "Alle",
     "yes": "Ja",
-    "no": "Nein"
+    "no": "Nein",
+    "createItem": "\"{name}\" anlegen",
+    "noResults": "Keine Ergebnisse"
+  },
+  "dashboard": {
+    "title": "Übersicht",
+    "guestTotal": "Gäste gesamt",
+    "rsvpAccepted": "Zugesagt",
+    "rsvpDeclined": "Abgesagt",
+    "rsvpOpen": "Offen",
+    "photos": "Fotos"
   },
   "event": {
     "search": "Event suchen...",
@@ -169,21 +179,13 @@
   "guest": {
     "firstName": "Vorname",
     "lastName": "Nachname",
-    "category": "Kategorie",
     "group": "Gruppe",
-    "likelihood": "Wahrscheinlichkeit",
-    "invite": "Einladung",
     "food": "Essen",
     "foodSpecials": "Essensbesonderheiten",
-    "inviteNeeded": "Einladung nötig?",
-    "selectCategory": "Kategorie auswählen",
     "noGroup": "Keine Gruppe",
-    "pleaseSelect": "Bitte auswählen...",
-    "sure": "Sicher",
-    "likely": "Wahrscheinlich",
-    "maybe": "Vielleicht",
-    "unlikely": "Unwahrscheinlich",
-    "no": "Nein",
+    "addGuest": "Gast hinzufügen",
+    "groupSearchPlaceholder": "Gruppe suchen oder anlegen…",
+    "foodSpecialSearchPlaceholder": "Essensbesonderheit suchen oder anlegen…",
     "createNew": "Neuen Gast erstellen",
     "create": "Gast erstellen",
     "edit": "Gast bearbeiten",
@@ -222,11 +224,6 @@
     "drinksReset": "Logs zurücksetzen",
     "drinksResetTitle": "Getränke-Logs löschen?",
     "drinksResetDesc": "Alle getrackten Getränke dieses Gastes werden unwiderruflich gelöscht."
-  },
-  "category": {
-    "new": "Neue Kategorie",
-    "namePlaceholder": "Kategoriename",
-    "filter": "Kategorie:"
   },
   "group": {
     "new": "Neue Gruppe",
