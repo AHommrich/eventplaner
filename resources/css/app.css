@@ -303,13 +303,34 @@
 
 .multiselect-custom {
   background-color: transparent !important;
+  overflow: visible !important;
 }
 
 .dark .multiselect-custom {
   background-color: hsl(0 0% 14.9% / 0.3) !important;
 }
 
-/* Multiselect-Dropdown wenn per appendToBody ans <body> teleportiert */
+/* Offen: Input-Ring oben/seitlich sichtbar, unten verdeckt durch Dropdown */
+.multiselect-custom.is-open {
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+/* Dropdown: Ring nur unten/seitlich via clip-path → wirkt wie ein gemeinsamer Ring */
+.multiselect-custom.is-open .multiselect-dropdown {
+  border-top: 0 !important;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+  border-color: hsl(0 0% 3.9%) !important;
+  box-shadow: 0 0 0 3px hsl(0 0% 3.9% / 0.5) !important;
+  clip-path: inset(0 -4px -4px -4px) !important;
+}
+
+.dark .multiselect-custom.is-open .multiselect-dropdown {
+  border-color: hsl(0 0% 83.1%) !important;
+  box-shadow: 0 0 0 3px hsl(0 0% 83.1% / 0.5) !important;
+}
+
 .multiselect-dropdown {
   z-index: 200 !important;
 }

@@ -7,7 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuIte
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarGroup, SidebarGroupLabel, useSidebar } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { router, usePage } from '@inertiajs/vue3';
-import { Users, SquarePen, QrCode, Images, ShieldCheck, GlassWater, Trophy, ChevronsUpDown, Check, KeyRound, Undo2, Settings2, CalendarDays, Plus, CalendarPlus, Clock } from 'lucide-vue-next';
+import { Users, LayoutDashboard, QrCode, Images, ShieldCheck, GlassWater, Trophy, ChevronsUpDown, Check, KeyRound, Undo2, Settings2, CalendarDays, Plus, CalendarPlus, Clock } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -48,7 +48,7 @@ function switchEvent(eventId: number) {
 }
 
 const mainNavItems = computed<NavItem[]>(() => [
-    { title: t('nav.forms'),         href: '/dashboard',      icon: SquarePen },
+    { title: t('nav.forms'),         href: '/dashboard',      icon: LayoutDashboard },
     { title: t('nav.guests'),        href: '/guests',         icon: Users },
     { title: t('nav.drinks'),        href: '/drinks',         icon: GlassWater },
     { title: t('nav.drinkGame'),     href: '/drinks/game',    icon: Trophy },

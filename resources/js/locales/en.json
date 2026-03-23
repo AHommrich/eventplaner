@@ -124,6 +124,7 @@
   "toast": {
     "categoryCreated": "Category created",
     "groupCreated": "Group created",
+    "groupDeleted": "Group deleted",
     "foodSpecialCreated": "Food special created",
     "guestCreated": "Guest created",
     "guestDeleted": "Guest deleted",
@@ -227,7 +228,10 @@
   },
   "group": {
     "new": "New group",
-    "namePlaceholder": "Group name"
+    "namePlaceholder": "Group name",
+    "unused": "Unused groups",
+    "deleteTitle": "Delete group?",
+    "deleteDescription": "This group has no guests and will be deleted."
   },
   "foodSpecial": {
     "new": "New food special",
