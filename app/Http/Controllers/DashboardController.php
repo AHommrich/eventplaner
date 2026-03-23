@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
-use App\Models\FoodSpecial;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
@@ -13,14 +11,13 @@ class DashboardController extends Controller
         $event = $this->activeEvent();
 
         return Inertia::render('Dashboard', [
-            'categories'    => Category::orderBy('title', 'asc')->get(['id', 'title']),
-            'guests'        => $event
-                                ? $event->guests()->with(['category', 'group', 'foodSpecials'])->latest()->take(10)->get()
-                                : collect(),
-            'groups'        => $event
-                                ? $event->groups()->orderBy('name')->get(['id', 'name'])
-                                : collect(),
-            'food_specials' => FoodSpecial::orderBy('name')->get(['id', 'name']),
+            'stats' => [
+                'guest_total'   => $event?->guests()->count() ?? 0,
+                'rsvp_accepted' => $event?->guests()->whereIn('rsvp_status', ['accepted', 'accepted_pending'])->count() ?? 0,
+                'rsvp_declined' => $event?->guests()->whereIn('rsvp_status', ['declined', 'declined_pending'])->count() ?? 0,
+                'rsvp_open'     => $event?->guests()->whereNull('rsvp_status')->count() ?? 0,
+                'photo_count'   => $event?->photos()->count() ?? 0,
+            ],
         ]);
     }
 }

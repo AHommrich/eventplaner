@@ -12,11 +12,9 @@ class Guest extends Model
 
     protected $fillable = [
         'event_id',
-        'category_id',
         'group_id',
         'firstname',
         'lastname',
-        'likelihood',
         'rsvp_status',
         'rsvp_set_by_guest_id',
         'rsvp_set_by_user_id',
@@ -34,11 +32,6 @@ class Guest extends Model
     public function event()
     {
         return $this->belongsTo(Event::class);
-    }
-
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
     }
 
     public function group()

@@ -46,9 +46,7 @@
     {{-- (Optional) Maskable icon hint – Android/Chrome nutzt purpose:maskable aus dem Manifest --}}
     <link rel="mask-icon" href="/icons/maskable-512.png" color="#111827">
 
-    {{-- Fonts & Vite/Inertia --}}
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
+    {{-- Fonts werden self-hosted via app.css geladen (kein externer Drittanbieter) --}}
 
     @routes
     @vite(['resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])

@@ -1,7 +1,7 @@
 {
   "nav": {
     "platform": "Plattform",
-    "forms": "Formulare",
+    "forms": "Übersicht",
     "guests": "Gäste",
     "drinks": "Getränke",
     "drinkGame": "Trinkspiel",
@@ -20,6 +20,7 @@
     "delete": "Löschen",
     "remove": "Entfernen",
     "cancel": "Abbrechen",
+    "close": "Schließen",
     "confirm": "Bestätigen",
     "print": "Drucken",
     "open": "Öffnen",
@@ -28,7 +29,17 @@
     "role": "Rolle",
     "all": "Alle",
     "yes": "Ja",
-    "no": "Nein"
+    "no": "Nein",
+    "createItem": "\"{name}\" anlegen",
+    "noResults": "Keine Ergebnisse"
+  },
+  "dashboard": {
+    "title": "Übersicht",
+    "guestTotal": "Gäste gesamt",
+    "rsvpAccepted": "Zugesagt",
+    "rsvpDeclined": "Abgesagt",
+    "rsvpOpen": "Offen",
+    "photos": "Fotos"
   },
   "event": {
     "search": "Event suchen...",
@@ -168,21 +179,13 @@
   "guest": {
     "firstName": "Vorname",
     "lastName": "Nachname",
-    "category": "Kategorie",
     "group": "Gruppe",
-    "likelihood": "Wahrscheinlichkeit",
-    "invite": "Einladung",
     "food": "Essen",
     "foodSpecials": "Essensbesonderheiten",
-    "inviteNeeded": "Einladung nötig?",
-    "selectCategory": "Kategorie auswählen",
     "noGroup": "Keine Gruppe",
-    "pleaseSelect": "Bitte auswählen...",
-    "sure": "Sicher",
-    "likely": "Wahrscheinlich",
-    "maybe": "Vielleicht",
-    "unlikely": "Unwahrscheinlich",
-    "no": "Nein",
+    "addGuest": "Gast hinzufügen",
+    "groupSearchPlaceholder": "Gruppe suchen oder anlegen…",
+    "foodSpecialSearchPlaceholder": "Essensbesonderheit suchen oder anlegen…",
     "createNew": "Neuen Gast erstellen",
     "create": "Gast erstellen",
     "edit": "Gast bearbeiten",
@@ -221,11 +224,6 @@
     "drinksReset": "Logs zurücksetzen",
     "drinksResetTitle": "Getränke-Logs löschen?",
     "drinksResetDesc": "Alle getrackten Getränke dieses Gastes werden unwiderruflich gelöscht."
-  },
-  "category": {
-    "new": "Neue Kategorie",
-    "namePlaceholder": "Kategoriename",
-    "filter": "Kategorie:"
   },
   "group": {
     "new": "Neue Gruppe",
@@ -279,6 +277,7 @@
   },
   "access": {
     "title": "Zugang verwalten",
+    "manageTitle": "Event-Zugang verwalten",
     "description": "Verwalte wer Zugang zu diesem Event hat.",
     "addUser": "User hinzufügen",
     "emailPlaceholder": "Email-Adresse des Users",
@@ -290,9 +289,11 @@
   },
   "admin": {
     "title": "User-Verwaltung",
-    "addToEvent": "User zu Event hinzufügen",
-    "emailPlaceholder": "Email-Adresse",
-    "selectEvent": "Event auswählen",
+    "addToEvent": "User hinzufügen",
+    "emailPlaceholder": "Email-Adresse des Users",
+    "selectEvent": "Event auswählen …",
+    "selectEventLabel": "Event auswählen",
+    "selectEventHint": "Wähle ein Event um die Mitglieder zu sehen und zu verwalten.",
     "allUsers": "Alle User ({count})",
     "registered": "Registriert",
     "user": "User",
@@ -311,7 +312,12 @@
     "requestDesc": "Gib den Namen deines Events ein. Der Admin genehmigt die Anfrage und erstellt dein Event.",
     "request": "Anfrage senden",
     "pendingTitle": "Anfrage in Bearbeitung",
-    "pendingDesc": "Deine Event-Anfrage wurde eingereicht und wartet auf Genehmigung durch den Admin."
+    "pendingShort": "Warten auf Freigabe",
+    "pendingEventName": "Event",
+    "pendingDesc": "Deine Anfrage wartet auf Genehmigung durch den Admin.",
+    "declinedTitle": "Anfrage abgelehnt",
+    "declinedEventName": "Event",
+    "declinedDesc": "Du kannst eine neue Anfrage stellen."
   },
   "appearance": {
     "light": "Hell",

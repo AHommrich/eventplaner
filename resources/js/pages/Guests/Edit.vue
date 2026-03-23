@@ -95,7 +95,6 @@ function setterName(guest: any): string | null {
         <div class="m-4 rounded-xl border bg-white p-4 dark:bg-gray-900">
             <h2 class="mb-4 text-lg font-semibold">{{ t('guest.edit') }}</h2>
             <GuestForm
-                :categories="categories"
                 :groups="groups"
                 :food-specials="food_specials"
                 :initial-form="guest"
