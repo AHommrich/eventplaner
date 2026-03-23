@@ -34,6 +34,8 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::get('guests', [TableController::class, 'index'])->name('guests.index');
     Route::get('invitations', [InvitationController::class, 'index'])->name('invitations');
     Route::post('invitations/generate', [InvitationTokenController::class, 'generate'])->name('invitations.generate');
+    Route::post('invitations/generate/group/{group}', [InvitationTokenController::class, 'generateForGroup'])->name('invitations.generate.group');
+    Route::post('invitations/generate/guest/{guest}', [InvitationTokenController::class, 'generateForGuest'])->name('invitations.generate.guest');
     Route::get('photos', [PhotoController::class, 'index'])->name('photos');
     Route::post('photos', [PhotoController::class, 'store'])->name('photos.store');
     Route::delete('photos/{photo}', [PhotoController::class, 'destroy'])->name('photos.destroy');

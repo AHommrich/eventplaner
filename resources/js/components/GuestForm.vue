@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import CreatableCombobox from './CreatableCombobox.vue';
 import CreatableMultiCombobox from './CreatableMultiCombobox.vue';
+import { computed, ref } from 'vue';
 import { useForm, type InertiaForm } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 
@@ -15,7 +16,7 @@ type GuestFormData = {
 };
 
 const props = defineProps<{
-    groups: { id: number; name: string }[];
+    groups: { id: number; name: string; guests?: { id: number; firstname: string }[] }[];
     foodSpecials: { id: number; name: string }[];
     initialForm?: Partial<GuestFormData>;
     submitLabel?: string;
@@ -33,6 +34,23 @@ const form = useForm<GuestFormData>({
 });
 
 const { t } = useI18n();
+
+const localGroups = ref<{ id: number; name: string; guests: { id: number; firstname: string }[] }[]>([]);
+
+const allGroups = computed(() => [...props.groups, ...localGroups.value]);
+
+const duplicateGroupNames = computed(() => {
+    const names = allGroups.value.map(g => g.name);
+    return new Set(names.filter((n, i) => names.indexOf(n) !== i));
+});
+
+function onGroupCreated(created: { id: number; name: string }) {
+    localGroups.value.push({
+        id: created.id,
+        name: created.name,
+        guests: form.firstname ? [{ id: -1, firstname: form.firstname }] : [],
+    });
+}
 
 function submit() { emit('submit', form); }
 </script>
@@ -56,10 +74,16 @@ function submit() { emit('submit', form); }
             <Label>{{ t('guest.group') }}</Label>
             <CreatableCombobox
                 v-model="form.group_id"
-                :options="groups.map(g => ({ id: g.id, label: g.name }))"
+                :options="allGroups.map(g => ({
+                    id: g.id,
+                    label: duplicateGroupNames.has(g.name) && g.guests?.length
+                        ? `${g.name} · ${g.guests.map(m => m.firstname).join(', ')}`
+                        : g.name
+                }))"
                 :placeholder="t('guest.groupSearchPlaceholder')"
                 create-route="groups.store"
                 create-field="name"
+                @created="onGroupCreated"
             />
             <p v-if="form.errors.group_id" class="text-xs text-destructive">{{ form.errors.group_id }}</p>
         </div>
