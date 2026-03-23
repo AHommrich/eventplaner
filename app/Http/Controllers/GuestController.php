@@ -73,7 +73,7 @@ class GuestController extends Controller
         return Inertia::render('Guests/Edit', [
             'guest'         => $guestData,
             'qr_url'        => $qrUrl,
-            'groups'        => $event ? $event->groups()->orderBy('name')->get(['id', 'name']) : collect(),
+            'groups'        => $event ? $event->groups()->with(['guests' => fn($q) => $q->select('id', 'group_id', 'firstname')])->orderBy('name')->get(['id', 'name']) : collect(),
             'food_specials' => FoodSpecial::orderBy('name')->get(['id', 'name']),
         ]);
     }

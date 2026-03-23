@@ -2,9 +2,10 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Head, useForm } from '@inertiajs/vue3';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import QRCode from 'qrcode';
-import { onMounted, ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -20,17 +21,49 @@ const props = defineProps<{ groups: GroupInvitation[]; soloGuests: SoloInvitatio
 
 const groupQrCodes = ref<Record<number, string>>({});
 const soloQrCodes  = ref<Record<number, string>>({});
+const generatingId    = ref<string | null>(null);
+const confirmOpen     = ref(false);
+const pendingRegenerate = ref<{ type: 'group' | 'guest'; id: number } | null>(null);
 
-onMounted(async () => {
+function generateSingle(type: 'group' | 'guest', id: number) {
+    const key = `${type}-${id}`;
+    generatingId.value = key;
+    const routeName = type === 'group' ? 'invitations.generate.group' : 'invitations.generate.guest';
+    router.post(route(routeName, id), {}, {
+        onFinish: () => { generatingId.value = null; },
+    });
+}
+
+function askRegenerate(type: 'group' | 'guest', id: number) {
+    pendingRegenerate.value = { type, id };
+    confirmOpen.value = true;
+}
+
+function doRegenerate() {
+    if (!pendingRegenerate.value) return;
+    generateSingle(pendingRegenerate.value.type, pendingRegenerate.value.id);
+    pendingRegenerate.value = null;
+}
+
+async function renderQrCodes() {
     for (const f of props.groups)     if (f.qr_url) groupQrCodes.value[f.id] = await QRCode.toDataURL(f.qr_url, { width: 200, margin: 1 });
     for (const g of props.soloGuests) if (g.qr_url) soloQrCodes.value[g.id]  = await QRCode.toDataURL(g.qr_url, { width: 200, margin: 1 });
-});
+}
 
-function print(url: string) {
+watch(() => [props.groups, props.soloGuests], renderQrCodes, { immediate: true, deep: true });
+
+function openPdf(url: string, name: string) {
     const win = window.open('', '_blank');
     if (!win) return;
-    win.document.write(`<html><body style="display:flex;justify-content:center;align-items:center;height:100vh;margin:0"><img src="${url}" style="width:300px;height:300px" onload="window.print();window.close()"/></body></html>`);
+    win.document.write(`<html><head><title>${name}</title></head><body style="display:flex;justify-content:center;align-items:center;height:100vh;margin:0"><img src="${url}" style="width:300px;height:300px" onload="window.print()"/></body></html>`);
     win.document.close();
+}
+
+function downloadPng(url: string, name: string) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${name}.png`;
+    a.click();
 }
 </script>
 
@@ -55,10 +88,19 @@ function print(url: string) {
                             <p class="font-semibold text-center text-sm">{{ group.name }}</p>
                             <p class="text-xs text-muted-foreground text-center">{{ group.guests.join(', ') }}</p>
                             <img v-if="groupQrCodes[group.id]" :src="groupQrCodes[group.id]" alt="QR Code" class="w-36 h-36" />
-                            <p v-else class="text-xs text-muted-foreground italic">{{ t('invitation.noQR') }}</p>
-                            <Button v-if="groupQrCodes[group.id]" variant="outline" size="sm" @click="print(groupQrCodes[group.id])">
-                                {{ t('common.print') }}
-                            </Button>
+                            <template v-else>
+                                <p class="text-xs text-muted-foreground italic">{{ t('invitation.noQR') }}</p>
+                                <Button variant="outline" size="sm"
+                                    :disabled="generatingId === `group-${group.id}`"
+                                    @click="generateSingle('group', group.id)">
+                                    {{ generatingId === `group-${group.id}` ? t('invitation.generating') : t('invitation.generateSingle') }}
+                                </Button>
+                            </template>
+                            <div v-if="groupQrCodes[group.id]" class="flex gap-2 flex-wrap justify-center">
+                                <Button variant="outline" size="sm" @click="openPdf(groupQrCodes[group.id], group.name)">{{ t('invitation.downloadPdf') }}</Button>
+                                <Button variant="outline" size="sm" @click="downloadPng(groupQrCodes[group.id], group.name)">{{ t('invitation.downloadPng') }}</Button>
+                                <Button variant="ghost" size="sm" @click="askRegenerate('group', group.id)">{{ t('invitation.regenerate') }}</Button>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
@@ -72,10 +114,19 @@ function print(url: string) {
                         <CardContent class="flex flex-col items-center gap-2 px-4">
                             <p class="font-semibold text-center text-sm">{{ guest.name }}</p>
                             <img v-if="soloQrCodes[guest.id]" :src="soloQrCodes[guest.id]" alt="QR Code" class="w-36 h-36" />
-                            <p v-else class="text-xs text-muted-foreground italic">{{ t('invitation.noQR') }}</p>
-                            <Button v-if="soloQrCodes[guest.id]" variant="outline" size="sm" @click="print(soloQrCodes[guest.id])">
-                                {{ t('common.print') }}
-                            </Button>
+                            <template v-else>
+                                <p class="text-xs text-muted-foreground italic">{{ t('invitation.noQR') }}</p>
+                                <Button variant="outline" size="sm"
+                                    :disabled="generatingId === `guest-${guest.id}`"
+                                    @click="generateSingle('guest', guest.id)">
+                                    {{ generatingId === `guest-${guest.id}` ? t('invitation.generating') : t('invitation.generateSingle') }}
+                                </Button>
+                            </template>
+                            <div v-if="soloQrCodes[guest.id]" class="flex gap-2 flex-wrap justify-center">
+                                <Button variant="outline" size="sm" @click="openPdf(soloQrCodes[guest.id], guest.name)">{{ t('invitation.downloadPdf') }}</Button>
+                                <Button variant="outline" size="sm" @click="downloadPng(soloQrCodes[guest.id], guest.name)">{{ t('invitation.downloadPng') }}</Button>
+                                <Button variant="ghost" size="sm" @click="askRegenerate('guest', guest.id)">{{ t('invitation.regenerate') }}</Button>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
@@ -85,5 +136,14 @@ function print(url: string) {
                 {{ t('invitation.none') }}
             </p>
         </div>
+
+        <ConfirmDialog
+            v-model:open="confirmOpen"
+            :title="t('invitation.regenerateConfirmTitle')"
+            :description="t('invitation.regenerateConfirmDescription')"
+            :confirm-label="t('invitation.regenerate')"
+            :destructive="true"
+            @confirm="doRegenerate"
+        />
     </AppLayout>
 </template>
