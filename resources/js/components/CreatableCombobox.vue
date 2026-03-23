@@ -30,6 +30,7 @@ const multiselectOptions = computed(() =>
 function handleCreate(query: string) {
     router.post(route(props.createRoute), { [props.createField]: query }, {
         preserveScroll: true,
+        preserveState: true,
         onSuccess: () => {
             const newItem = props.options.find(o => o.label === query);
             if (newItem) emit('update:modelValue', newItem.id);
