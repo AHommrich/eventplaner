@@ -12,9 +12,22 @@ class UserController extends Controller
 {
     public function index()
     {
+        $activeEvent = $this->activeEvent();
+
+        $eventAccess = null;
+        if ($activeEvent) {
+            $owner = $activeEvent->owner;
+            $eventAccess = [
+                'event'   => ['id' => $activeEvent->id, 'name' => $activeEvent->name],
+                'owner'   => $owner ? ['id' => $owner->id, 'name' => $owner->name, 'email' => $owner->email] : null,
+                'members' => $activeEvent->users()->get(['users.id', 'users.name', 'users.email'])->toArray(),
+            ];
+        }
+
         return Inertia::render('Admin/Users', [
-            'users'  => User::orderBy('name')->get(['id', 'name', 'email', 'role', 'created_at']),
-            'events' => Event::orderBy('name')->get(['id', 'name']),
+            'users'        => User::orderBy('name')->get(['id', 'name', 'email', 'role', 'created_at']),
+            'events'       => Event::orderBy('name')->get(['id', 'name']),
+            'event_access' => $eventAccess,
         ]);
     }
 
