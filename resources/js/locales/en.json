@@ -10,7 +10,8 @@
     "userManagement": "User Management",
     "manageAccess": "Manage Access",
     "requests": "Requests",
-    "eventSettings": "Event Settings"
+    "eventSettings": "Event Settings",
+    "requestEvent": "Request event"
   },
   "common": {
     "create": "Create",
