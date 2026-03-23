@@ -13,10 +13,14 @@ class GroupController extends Controller
 
         $request->validate(['name' => 'required|string|max:255']);
 
-        Group::create([
+        $group = Group::create([
             'event_id' => $event?->id,
             'name'     => $request->name,
         ]);
+
+        if ($request->wantsJson()) {
+            return response()->json(['id' => $group->id, 'name' => $group->name]);
+        }
 
         return redirect()->back()->with('success', 'Gruppe erstellt!');
     }
