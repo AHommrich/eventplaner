@@ -19,10 +19,13 @@ class RequestController extends Controller
     public function index(Request $request)
     {
         $event = $this->activeEvent();
-        abort_if(!$event, 404);
+        $isAdmin = auth()->user()->isAdmin();
 
-        // Rücknahme-Anfragen (declined → will zurück zu open)
-        $revocations = Guest::where('event_id', $event->id)
+        // Nicht-Admin braucht zwingend ein aktives Event
+        abort_if(!$event && !$isAdmin, 404);
+
+        // Rücknahme-Anfragen (nur wenn Event vorhanden)
+        $revocations = $event ? Guest::where('event_id', $event->id)
             ->where('rsvp_status', 'revocation_requested')
             ->with(['group', 'rsvpSetByGuest', 'rsvpSetByUser'])
             ->orderBy('rsvp_set_at', 'desc')
@@ -41,7 +44,7 @@ class RequestController extends Controller
                 'set_by_user'  => $g->rsvpSetByUser
                     ? ['id' => $g->rsvpSetByUser->id, 'name' => $g->rsvpSetByUser->name]
                     : null,
-            ]);
+            ]) : collect();
 
         // Event-Anfragen (nur für Admin sichtbar)
         $eventRequests = [];
