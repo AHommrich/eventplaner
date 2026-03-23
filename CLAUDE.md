@@ -48,8 +48,9 @@ Coolify deployt automatisch nach Push. Migrations laufen automatisch.
 
 ## Datenmodelle
 
-- **Event** — user_id (Owner), name, slug, date, rsvp_deadline, cover_image_url, cover_image_r2_key, venue_name, venue_address, venue_lat, venue_lng, dresscode, schedule, font_heading, drink_game_enabled, drink_game_end_time
-- **Event Farbsystem** — 3 Palette-Felder (`color_primary`, `color_secondary`, `color_tertiary`) + 9 Rollen-Felder die Keys `'primary'|'secondary'|'tertiary'` speichern: `role_screen_bg`, `role_card_bg`, `role_card_text`, `role_card_button`, `role_card_button_text`, `role_tab_tint`, `role_border`, `role_fab`, `role_fab_icon`. Dazu `color_home_text` (freier Hex-Picker, nur relevant wenn Cover gesetzt).
+- **Event** — user_id (Owner), name, slug, date, rsvp_deadline, cover_image_url, cover_image_r2_key, venue_name, venue_street, venue_house_number, venue_postal_code, venue_city, venue_state, venue_country, venue_display_mode (`'both'|'name'|'address'`), venue_lat, venue_lng, dresscode, schedule, font_heading, drink_game_enabled, drink_game_end_time
+  - Legacy-Feld `venue_address` bleibt in DB (Fallback in EventInfoController)
+- **Event Farbsystem** — 3 Palette-Felder (`color_primary`, `color_secondary`, `color_tertiary`) + 9 Rollen-Felder die Keys `'primary'|'secondary'|'tertiary'` speichern: `role_screen_bg`, `role_card_bg`, `role_card_text`, `role_card_button`, `role_card_button_text`, `role_tab_tint`, `role_border`, `role_fab`, `role_fab_icon`. Dazu `color_home_text`, `color_home_shadow`, `home_shadow_opacity` (Cover-Overlay, nur relevant wenn Cover gesetzt).
 - **User** — role: `admin` (Superadmin = André) oder null (Event-Owner)
 - **Guest** — event_id, category_id, group_id, beer/wine, likelihood, invite, app_access (bool), drinks_access (bool)
 - **Group** — event_id (früher Family)
@@ -94,13 +95,13 @@ Middleware-Aliase: `admin` = EnsureUserIsAdmin, `has_event` = EnsureHasEventAcce
 
 Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
 
-### `/api/event/info` — Farb-Response
+### `/api/event/info` — Response-Felder
 
-Der Endpunkt löst Rollen-Keys zu Hex auf. Die App bekommt fertige Hex-Werte:
+- `name`, `date`, `rsvp_deadline`, `dresscode`, `schedule`
+- `cover_image_url`, `venue_name`, `venue_address` (zusammengesetzt aus Adressfeldern), `venue_lat`, `venue_lng`, `venue_display_mode`
 - `color_primary`, `color_secondary`, `color_tertiary` — Palette
-- `color_screen_bg`, `color_card`, `color_card_text`, `color_card_button`, `color_card_button_text`, `color_tab_tint`, `color_border`, `color_fab`, `color_fab_icon` — aufgelöste Rollen
-- `color_home_text` — kann `null` sein wenn kein Cover gesetzt
-- `venue_lat`, `venue_lng` — können `null` sein wenn noch kein Standort ermittelt wurde
+- `color_screen_bg`, `color_card`, `color_card_text`, `color_card_button`, `color_card_button_text`, `color_tab_tint`, `color_border`, `color_fab`, `color_fab_icon` — aufgelöste Rollen (fertige Hex-Werte)
+- `color_home_text`, `color_home_shadow`, `home_shadow_opacity` — Cover-Overlay (können `null` sein wenn kein Cover)
 - `font_heading`, `drink_game_enabled`, `drink_game_end_time`
 
 ### QR-Login Flow
@@ -146,9 +147,11 @@ Der Endpunkt löst Rollen-Keys zu Hex auf. Die App bekommt fertige Hex-Werte:
 - **i18n (vue-i18n v11)** — Plugin in `resources/js/plugins/i18n.ts`. Locale-Dateien: `resources/js/locales/de.json` + `en.json`. Sprache wird in `localStorage` gespeichert. Standard: Deutsch.
   - Nav-Arrays und Tab-Arrays MÜSSEN als `computed()` definiert sein, damit sie auf Sprachwechsel reagieren.
   - Language-Switcher (DE/EN) in `AppSidebar.vue` oben links.
-- **Event-Einstellungen** (`pages/Event/Settings.vue`) — Split-Screen (Preview rechts / Formular links). Formular-Reihenfolge: Textfelder → Cover-Upload (+ Home-Textfarbe darin) → Design-Card (Schrift + Farbsystem).
+- **Event-Einstellungen** (`pages/Event/Settings.vue`) — Split-Screen (Preview rechts / Formular links, auf Mobile collapsed). Formular-Reihenfolge: Textfelder → Veranstaltungsort (strukturierte Adressfelder + Nominatim-Autocomplete + Leaflet-Map) → Cover-Upload (+ Home-Textfarbe + Shadow-Picker) → Design-Card (Schrift + Farbsystem).
+  - **Nominatim**: `dedupe=0` im Request-Parameter, damit auch gleichnamige Adressen in verschiedenen Orten erscheinen.
   - **Farbsystem**: 3 Palette-Picker (Primär/Sekundär/Tertiär) + 9 Radio-Selektoren die Keys speichern. `palette` + `resolve()` computed, `cScreenBg` … `cFabIcon` als Convenience-Computeds für Preview.
-  - **Phone-Preview**: 4 simulierte App-Screens (Home, Zusage, Fotos, Einstellungen) — reagieren live auf alle Farb-/Font-Änderungen.
+  - **Phone-Preview**: 4 simulierte App-Screens (Home, Zusage, Fotos, Einstellungen) — reagieren live auf alle Farb-/Font-Änderungen. Auf Mobile einklappbar.
+  - **Dirty-Guard**: `router.on('before', ...)` zeigt `window.confirm()` bei ungespeicherten Änderungen. Floating Save Bar unten rechts wenn `isDirty`.
 - **Getränke-Tracking** — Gäste können Getränke loggen; Trinkspiel mit Rangliste + Punkte. Aktivierbar pro Event (`drink_game_enabled`), optionales Spielende-Datum.
 - **RSVP-Verwaltung** — Zu-/Absage durch Gast oder Admin, Rücknahme-Anfragen mit Approve/Decline.
 - **App-Zugang pro Gast** — `app_access` + `drinks_access` togglebar pro Gast.
@@ -164,3 +167,4 @@ Der Endpunkt löst Rollen-Keys zu Hex auf. Die App bekommt fertige Hex-Werte:
 - **Farbsystem-Palette-Mapping**: `color_primary` = Bordeaux (#7c2d3e, ex-`color_accent`), `color_secondary` = Beige (#e8e3de, ex-`color_background`), `color_tertiary` = Weiß (#ffffff, ex-`color_card`). Migration: `2026_03_19_000010_refactor_color_system_to_palette_and_roles`.
 - **HEIC-Upload**: Wird clientseitig via `heic2any` zu JPEG konvertiert (Settings.vue Cover-Upload) und serverseitig via Imagick (API Photo-Upload).
 - **`npm run build` lokal schlägt fehl** (esbuild macOS vs. Linux Docker) — ist ein bekanntes Pre-existing Issue, kein Fehler in unserem Code. TypeScript-Check mit `npx tsc --noEmit` als Ersatz.
+- **Reka UI SidebarGroupLabel**: Im collapsed mode wird der Label mit `-mt-8 opacity-0` versteckt, belegt aber weiterhin Platz und blockiert pointer-events. Daher `group-data-[collapsible=icon]:pointer-events-none` auf dem Label — fehlt das, ist das letzte Item der vorherigen NavMain-Gruppe nicht vollständig klickbar.
