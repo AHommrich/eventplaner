@@ -101,7 +101,8 @@
     "drinkGameEndTime": "Game end time",
     "drinkGameEndTimeDesc": "After this time, no more drinks can be logged.",
     "phonePreview": "Preview",
-    "saveSettings": "Save settings"
+    "saveSettings": "Save settings",
+    "newEvent": "New event"
   },
   "confirm": {
     "defaultTitle": "Are you sure?",
@@ -137,7 +138,9 @@
     "drinksAccessEnabled": "Drink tracking enabled",
     "drinksAccessDisabled": "Drink tracking blocked",
     "drinkLogsReset": "Drink logs reset",
-    "gameSettingsSaved": "Game settings saved"
+    "gameSettingsSaved": "Game settings saved",
+    "eventRequestApproved": "Event created.",
+    "eventRequestDeclined": "Request declined."
   },
   "requests": {
     "title": "Requests",
@@ -151,7 +154,15 @@
     "confirmApproveTitle": "Approve request?",
     "confirmApproveDesc": "The guest will be able to RSVP again.",
     "confirmDeclineTitle": "Decline request?",
-    "confirmDeclineDesc": "The guest's decline remains in place."
+    "confirmDeclineDesc": "The guest's decline remains in place.",
+    "eventRequestsTitle": "Event Requests",
+    "eventRequestsDesc": "New users have requested an event and are waiting for approval.",
+    "approveEvent": "Approve",
+    "declineEvent": "Decline",
+    "confirmApproveEventTitle": "Create event?",
+    "confirmApproveEventDesc": "A new event will be created for this user.",
+    "confirmDeclineEventTitle": "Decline request?",
+    "confirmDeclineEventDesc": "The user can submit a new request afterwards."
   },
   "guest": {
     "firstName": "First name",
@@ -286,14 +297,20 @@
     "user": "User",
     "admin": "Admin",
     "deleteTitle": "Delete {name}?",
-    "deleteDescription": "The account will be permanently deleted and cannot be restored."
+    "deleteDescription": "The account will be permanently deleted and cannot be restored.",
+    "allUsersLabel": "All users"
   },
   "onboarding": {
     "title": "Welcome!",
-    "description": "Create your first event to get started.",
-    "eventName": "Event name",
+    "descriptionAdmin": "Create a new event to get started.",
+    "descriptionUser": "Request your first event — the admin will approve it.",
     "placeholder": "e.g. Wedding Max & Anna",
-    "create": "Create event"
+    "create": "Create event",
+    "requestTitle": "Request an event",
+    "requestDesc": "Enter your event name. The admin will review and create your event.",
+    "request": "Send request",
+    "pendingTitle": "Request pending",
+    "pendingDesc": "Your event request has been submitted and is waiting for admin approval."
   },
   "appearance": {
     "light": "Light",
@@ -365,5 +382,10 @@
     "confirmTitle": "Confirm your password",
     "confirmDesc": "This is a secure area of the application. Please confirm your password before continuing.",
     "confirmBtn": "Confirm Password"
+  },
+  "pending": {
+    "title": "Account pending approval",
+    "description": "Your account needs to be approved before you can get started.",
+    "logout": "Sign out"
   }
 }

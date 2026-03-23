@@ -50,7 +50,6 @@ class UserController extends Controller
         $user  = User::where('email', $data['email'])->first();
         $event = Event::find($data['event_id']);
 
-        // Nicht doppelt hinzufügen
         $event->users()->syncWithoutDetaching([$user->id]);
 
         return redirect()->back()->with('success', "{$user->name} wurde zum Event hinzugefügt.");

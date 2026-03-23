@@ -6,7 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuIte
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { Users, SquarePen, QrCode, Images, ShieldCheck, GlassWater, Trophy, ChevronsUpDown, Check, KeyRound, Undo2, Settings2, CalendarDays } from 'lucide-vue-next';
+import { Users, SquarePen, QrCode, Images, ShieldCheck, GlassWater, Trophy, ChevronsUpDown, Check, KeyRound, Undo2, Settings2, CalendarDays, Plus } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -112,6 +112,15 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
                             <p v-if="filteredEvents.length === 0" class="px-2 py-3 text-center text-xs text-muted-foreground">
                                 {{ t('event.notFound') }}
                             </p>
+                            <template v-if="isAdmin">
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem as-child>
+                                    <Link :href="route('onboarding')" class="flex cursor-pointer items-center">
+                                        <Plus class="mr-2 size-4" />
+                                        {{ t('event.newEvent') }}
+                                    </Link>
+                                </DropdownMenuItem>
+                            </template>
                         </DropdownMenuContent>
                     </DropdownMenu>
 
@@ -124,8 +133,8 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="mainNavItems" />
-            <NavMain v-if="isEventOwner" :items="eventOwnerNavItems" />
+            <NavMain v-if="activeEvent" :items="mainNavItems" />
+            <NavMain v-if="activeEvent && isEventOwner" :items="eventOwnerNavItems" />
             <NavMain v-if="isAdmin" :items="adminNavItems" />
         </SidebarContent>
 

@@ -18,12 +18,24 @@ interface RevocationRequest {
     firstname: string;
     lastname: string;
     group_name: string | null;
+    rsvp_status: string;
     rsvp_set_at: string | null;
     set_by_guest: SetByGuest | null;
     set_by_user: SetByUser | null;
 }
 
-const props = defineProps<{ revocations: RevocationRequest[] }>();
+interface EventRequestItem {
+    id: number;
+    user_name: string;
+    user_email: string;
+    event_name: string;
+    created_at: string;
+}
+
+const props = defineProps<{
+    revocations: RevocationRequest[];
+    event_requests: EventRequestItem[];
+}>();
 
 const { t } = useI18n();
 
@@ -31,6 +43,7 @@ const breadcrumbItems: BreadcrumbItem[] = [
     { title: t('requests.title'), href: '/requests' },
 ];
 
+// --- Rücknahmen ---
 const confirmOpen   = ref(false);
 const pendingAction = ref<{ item: RevocationRequest; action: 'approve' | 'decline' } | null>(null);
 
@@ -45,6 +58,24 @@ function doAction() {
     const routeName = action === 'approve' ? 'requests.revocations.approve' : 'requests.revocations.decline';
     useForm({}).post(route(routeName, item.id), {
         onSuccess: () => toast.success(action === 'approve' ? t('toast.revocationApproved') : t('toast.revocationDeclined')),
+    });
+}
+
+// --- Event-Anfragen ---
+const eventReqConfirmOpen   = ref(false);
+const eventReqPendingAction = ref<{ item: EventRequestItem; action: 'approve' | 'decline' } | null>(null);
+
+function askEventReq(item: EventRequestItem, action: 'approve' | 'decline') {
+    eventReqPendingAction.value = { item, action };
+    eventReqConfirmOpen.value = true;
+}
+
+function doEventReqAction() {
+    if (!eventReqPendingAction.value) return;
+    const { item, action } = eventReqPendingAction.value;
+    const routeName = action === 'approve' ? 'requests.event-requests.approve' : 'requests.event-requests.decline';
+    useForm({}).post(route(routeName, item.id), {
+        onSuccess: () => toast.success(action === 'approve' ? t('toast.eventRequestApproved') : t('toast.eventRequestDeclined')),
     });
 }
 
@@ -65,10 +96,39 @@ function setterName(item: RevocationRequest): string {
     <AppLayout :breadcrumbs="breadcrumbItems">
         <div class="m-4 space-y-4">
 
+            <!-- Event-Anfragen (nur Admin) -->
+            <Card v-if="event_requests.length > 0">
+                <CardHeader>
+                    <CardTitle class="flex items-center gap-2">
+                        {{ t('requests.eventRequestsTitle') }}
+                        <span class="inline-flex size-5 items-center justify-center rounded-full bg-amber-500 text-[11px] font-bold text-white">{{ event_requests.length }}</span>
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p class="mb-4 text-sm text-muted-foreground">{{ t('requests.eventRequestsDesc') }}</p>
+                    <div class="divide-y">
+                        <div v-for="item in event_requests" :key="item.id" class="flex items-center justify-between gap-4 py-3">
+                            <div class="min-w-0">
+                                <p class="font-medium">{{ item.event_name }}</p>
+                                <p class="text-sm text-muted-foreground">{{ item.user_name }} · {{ item.user_email }}</p>
+                                <p class="text-xs text-muted-foreground">{{ formatDate(item.created_at) }}</p>
+                            </div>
+                            <div class="flex shrink-0 gap-2">
+                                <Button size="sm" @click="askEventReq(item, 'approve')">{{ t('requests.approveEvent') }}</Button>
+                                <Button size="sm" variant="outline" @click="askEventReq(item, 'decline')">{{ t('requests.declineEvent') }}</Button>
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
             <!-- Rücknahme-Anfragen -->
             <Card>
                 <CardHeader>
-                    <CardTitle>{{ t('requests.revocationsTitle') }}</CardTitle>
+                    <CardTitle class="flex items-center gap-2">
+                        {{ t('requests.revocationsTitle') }}
+                        <span v-if="revocations.length > 0" class="inline-flex size-5 items-center justify-center rounded-full bg-amber-500 text-[11px] font-bold text-white">{{ revocations.length }}</span>
+                    </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <p class="mb-4 text-sm text-muted-foreground">{{ t('requests.revocationsDesc') }}</p>
@@ -96,10 +156,9 @@ function setterName(item: RevocationRequest): string {
                 </CardContent>
             </Card>
 
-            <!-- Hier später weitere Anfrage-Sektionen ergänzen -->
-
         </div>
 
+        <!-- Rücknahme-Dialog -->
         <ConfirmDialog
             v-model:open="confirmOpen"
             :title="pendingAction?.action === 'approve' ? t('requests.confirmApproveTitle') : t('requests.confirmDeclineTitle')"
@@ -107,6 +166,16 @@ function setterName(item: RevocationRequest): string {
             :confirm-label="pendingAction?.action === 'approve' ? t('requests.approve') : t('requests.decline')"
             :destructive="pendingAction?.action === 'decline'"
             @confirm="doAction"
+        />
+
+        <!-- Event-Anfragen-Dialog -->
+        <ConfirmDialog
+            v-model:open="eventReqConfirmOpen"
+            :title="eventReqPendingAction?.action === 'approve' ? t('requests.confirmApproveEventTitle') : t('requests.confirmDeclineEventTitle')"
+            :description="eventReqPendingAction?.action === 'approve' ? t('requests.confirmApproveEventDesc') : t('requests.confirmDeclineEventDesc')"
+            :confirm-label="eventReqPendingAction?.action === 'approve' ? t('requests.approveEvent') : t('requests.declineEvent')"
+            :destructive="eventReqPendingAction?.action === 'decline'"
+            @confirm="doEventReqAction"
         />
     </AppLayout>
 </template>

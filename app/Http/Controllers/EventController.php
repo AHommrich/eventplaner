@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Models\EventRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -12,18 +13,37 @@ class EventController extends Controller
     {
         $user = auth()->user();
 
-        // Hat bereits Zugriff auf ein Event → direkt zur App
-        if ($user->isAdmin() || $user->accessibleEvents()->exists()) {
+        if ($user->isAdmin()) {
+            return Inertia::render('Onboarding', [
+                'isAdmin'           => true,
+                'hasPendingRequest' => false,
+                'email'             => $user->email,
+            ]);
+        }
+
+        // Nicht-Admin mit bestehendem Event → direkt zur App
+        if ($user->accessibleEvents()->exists()) {
             return redirect()->route('dashboard');
         }
 
+        $hasPendingRequest = EventRequest::where('user_id', $user->id)
+            ->where('status', 'pending')
+            ->exists();
+
         return Inertia::render('Onboarding', [
-            'email' => $user->email,
+            'isAdmin'           => false,
+            'hasPendingRequest' => $hasPendingRequest,
+            'email'             => $user->email,
         ]);
     }
 
     public function store(Request $request)
     {
+        // Nur Admins dürfen Events direkt erstellen
+        if (!auth()->user()->isAdmin()) {
+            abort(403);
+        }
+
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'date' => 'nullable|date',
@@ -35,10 +55,30 @@ class EventController extends Controller
             'date'    => $data['date'] ?? null,
         ]);
 
-        // Neu erstelltes Event direkt als aktives Event setzen
         session(['active_event_id' => $event->id]);
 
         return redirect()->route('dashboard');
+    }
+
+    public function requestEvent(Request $request)
+    {
+        $user = auth()->user();
+
+        if (EventRequest::where('user_id', $user->id)->where('status', 'pending')->exists()) {
+            return redirect()->back();
+        }
+
+        $data = $request->validate([
+            'event_name' => 'required|string|max:255',
+        ]);
+
+        EventRequest::create([
+            'user_id'    => $user->id,
+            'event_name' => $data['event_name'],
+            'status'     => 'pending',
+        ]);
+
+        return redirect()->route('onboarding');
     }
 
     public function switch(Request $request)
@@ -55,8 +95,6 @@ class EventController extends Controller
 
         $request->session()->put('active_event_id', $event->id);
 
-        // Inertia::location() erzwingt einen Hard-Redirect statt SPA-Update,
-        // damit alle Vue-Komponenten neu gemountet werden (useForm etc. re-initialisiert).
         return Inertia::location(back()->getTargetUrl());
     }
 }
