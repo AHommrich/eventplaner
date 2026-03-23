@@ -78,8 +78,20 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
                 </SidebarMenuItem>
             </SidebarMenu>
 
-            <!-- Event-Dropdown (Admin immer, User wenn mind. 1 Event) -->
-            <SidebarMenu v-if="activeEvent && showSwitcher">
+            <!-- Admin ohne Events: direkter Link zu "Neues Event" -->
+            <SidebarMenu v-if="isAdmin && !activeEvent">
+                <SidebarMenuItem>
+                    <SidebarMenuButton as-child :tooltip="t('event.newEvent')">
+                        <Link :href="route('onboarding')">
+                            <Plus class="size-4 shrink-0" />
+                            <span>{{ t('event.newEvent') }}</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            </SidebarMenu>
+
+            <!-- Event-Dropdown (Admin mit Events immer, User wenn mind. 1 Event) -->
+            <SidebarMenu v-else-if="activeEvent && showSwitcher">
                 <SidebarMenuItem>
                     <DropdownMenu>
                         <DropdownMenuTrigger as-child>
@@ -169,7 +181,7 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
                 </SidebarMenu>
             </SidebarGroup>
 
-            <NavMain v-if="activeEvent" :items="mainNavItems" />
+            <NavMain v-if="activeEvent || isAdmin" :items="mainNavItems" />
             <NavMain v-if="activeEvent && isEventOwner" :items="eventOwnerNavItems" />
             <NavMain v-if="isAdmin" :items="adminNavItems" />
         </SidebarContent>
