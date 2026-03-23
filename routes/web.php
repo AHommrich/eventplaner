@@ -84,6 +84,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::put('/admin/users/{user}', [UserController::class, 'update'])->name('admin.users.update');
     Route::delete('/admin/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
     Route::post('/admin/users/add-to-event', [UserController::class, 'addToEvent'])->name('admin.users.addToEvent');
+    Route::delete('/admin/users/{user}/from-event', [UserController::class, 'removeFromEvent'])->name('admin.users.removeFromEvent');
 });
 
 require __DIR__.'/settings.php';

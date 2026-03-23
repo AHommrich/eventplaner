@@ -280,6 +280,7 @@
   },
   "access": {
     "title": "Manage Access",
+    "manageTitle": "Manage Event Access",
     "description": "Manage who has access to this event.",
     "addUser": "Add user",
     "emailPlaceholder": "User's email address",
@@ -291,9 +292,11 @@
   },
   "admin": {
     "title": "User Management",
-    "addToEvent": "Add user to event",
-    "emailPlaceholder": "Email address",
-    "selectEvent": "Select event",
+    "addToEvent": "Add user",
+    "emailPlaceholder": "User's email address",
+    "selectEvent": "Select event …",
+    "selectEventLabel": "Select event",
+    "selectEventHint": "Select an event to view and manage its members.",
     "allUsers": "All users ({count})",
     "registered": "Registered",
     "user": "User",
