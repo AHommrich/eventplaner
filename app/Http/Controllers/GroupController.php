@@ -24,4 +24,14 @@ class GroupController extends Controller
 
         return redirect()->back()->with('success', 'Gruppe erstellt!');
     }
+
+    public function destroy(Group $group)
+    {
+        $event = $this->activeEvent();
+        abort_if($group->event_id !== $event?->id, 403);
+
+        $group->delete();
+
+        return redirect()->back()->with('success', 'Gruppe gelöscht.');
+    }
 }

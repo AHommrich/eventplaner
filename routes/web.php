@@ -39,6 +39,7 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::delete('photos/{photo}', [PhotoController::class, 'destroy'])->name('photos.destroy');
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
     Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
+    Route::delete('/groups/{group}', [GroupController::class, 'destroy'])->name('groups.destroy');
     Route::post('/foodspecials', [FoodSpecialController::class, 'store'])->name('foodspecials.store');
 
     // Event-Zugang (für Owner und Superadmin)

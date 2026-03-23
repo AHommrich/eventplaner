@@ -16,9 +16,14 @@ class TableController extends Controller
             ? $event->guests()->with(['group', 'foodSpecials'])
             : \App\Models\Guest::with(['group', 'foodSpecials'])->whereNull('id');
 
+        $unusedGroups = $event
+            ? $event->groups()->whereDoesntHave('guests')->orderBy('name')->get(['id', 'name'])
+            : collect();
+
         return Inertia::render('Guests', [
             'guests'        => $query->get(),
             'groups'        => $event ? $event->groups()->orderBy('name')->get(['id', 'name']) : collect(),
+            'unused_groups' => $unusedGroups,
             'food_specials' => FoodSpecial::orderBy('name')->get(['id', 'name']),
         ]);
     }
