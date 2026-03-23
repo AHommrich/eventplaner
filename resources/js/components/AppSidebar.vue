@@ -2,21 +2,24 @@
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import RequestEventModal from '@/components/RequestEventModal.vue';
+import OnboardingModal from '@/components/OnboardingModal.vue';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarGroup, SidebarGroupLabel, useSidebar } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
-import { Link, router, usePage } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 import { Users, SquarePen, QrCode, Images, ShieldCheck, GlassWater, Trophy, ChevronsUpDown, Check, KeyRound, Undo2, Settings2, CalendarDays, Plus, CalendarPlus, Clock } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { setLocale } from '@/plugins/i18n';
 import { useEventRequestModal } from '@/composables/useEventRequestModal';
+import { useOnboardingModal } from '@/composables/useOnboardingModal';
 
 const { t, locale } = useI18n();
 const page = usePage();
 const { isMobile, state } = useSidebar();
 const { open: requestModalOpen } = useEventRequestModal();
+const { open: onboardingOpen } = useOnboardingModal();
 
 const isAdmin       = computed(() => (page.props.auth as any)?.user?.role === 'admin');
 const activeEvent   = computed(() => (page.props as any).active_event as { id: number; name: string; user_id?: number; drink_game_enabled?: boolean } | null);
@@ -81,11 +84,9 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
             <!-- Admin ohne Events: direkter Link zu "Neues Event" -->
             <SidebarMenu v-if="isAdmin && !activeEvent">
                 <SidebarMenuItem>
-                    <SidebarMenuButton as-child :tooltip="t('event.newEvent')">
-                        <Link :href="route('onboarding')">
-                            <Plus class="size-4 shrink-0" />
-                            <span>{{ t('event.newEvent') }}</span>
-                        </Link>
+                    <SidebarMenuButton :tooltip="t('event.newEvent')" @click="onboardingOpen = true">
+                        <Plus class="size-4 shrink-0" />
+                        <span>{{ t('event.newEvent') }}</span>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
@@ -134,11 +135,9 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
                             <DropdownMenuSeparator />
 
                             <!-- Admin: Event direkt erstellen -->
-                            <DropdownMenuItem v-if="isAdmin" as-child>
-                                <Link :href="route('onboarding')" class="flex cursor-pointer items-center">
-                                    <Plus class="mr-2 size-4" />
-                                    {{ t('event.newEvent') }}
-                                </Link>
+                            <DropdownMenuItem v-if="isAdmin" @click="onboardingOpen = true" class="cursor-pointer">
+                                <Plus class="mr-2 size-4" />
+                                {{ t('event.newEvent') }}
                             </DropdownMenuItem>
 
                             <!-- User: Event beantragen oder Pending-Status -->
@@ -202,5 +201,6 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
     </Sidebar>
 
     <RequestEventModal />
+    <OnboardingModal />
     <slot />
 </template>
