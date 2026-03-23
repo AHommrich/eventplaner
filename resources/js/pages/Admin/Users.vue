@@ -25,9 +25,9 @@ const selectClass = 'flex h-9 rounded-md border border-input bg-transparent px-3
 
 const approvedUsers = computed(() => props.users);
 
-// --- User zu beliebigem Event hinzufügen ---
-const addForm = useForm({ email: '', event_id: '' });
-function addToEvent() { addForm.post(route('admin.users.addToEvent'), { onSuccess: () => { addForm.reset(); toast.success(t('toast.userAdded')); } }); }
+// --- Zugang verwalten (unified) ---
+const addForm = useForm({ email: '', event_id: String(props.event_access?.event.id ?? '') });
+function addToEvent() { addForm.post(route('admin.users.addToEvent'), { onSuccess: () => { addForm.reset('email'); toast.success(t('toast.userAdded')); } }); }
 
 // --- Rolle ändern ---
 function updateRole(user: User, role: string) {
@@ -42,10 +42,7 @@ function doDelete() {
     if (pendingUser.value) useForm({}).delete(route('admin.users.destroy', pendingUser.value.id), { onSuccess: () => toast.success(t('toast.userDeleted')) });
 }
 
-// --- Zugang zum aktiven Event ---
-const inviteForm = useForm({ email: '' });
-function inviteToEvent() { inviteForm.post(route('event.access.invite'), { onSuccess: () => { inviteForm.reset(); toast.success(t('toast.accessAdded')); } }); }
-
+// --- User aus aktivem Event entfernen ---
 const removeConfirmOpen = ref(false);
 const pendingRemoveMember = ref<Member | null>(null);
 function askRemove(member: Member) { pendingRemoveMember.value = member; removeConfirmOpen.value = true; }
@@ -59,51 +56,44 @@ function doRemove() {
     <AppLayout>
         <div class="m-4 space-y-4">
 
-            <!-- Zugang zum aktiven Event -->
-            <Card v-if="event_access">
-                <CardHeader><CardTitle>{{ t('access.currentAccess') }}: {{ event_access.event.name }}</CardTitle></CardHeader>
-                <CardContent class="space-y-4">
-                    <form @submit.prevent="inviteToEvent" class="flex gap-2">
-                        <Input v-model="inviteForm.email" type="email" :placeholder="t('access.emailPlaceholder')" required class="flex-1" />
-                        <Button type="submit" :disabled="inviteForm.processing" class="whitespace-nowrap">{{ t('common.add') }}</Button>
-                    </form>
-                    <p v-if="inviteForm.errors.email" class="text-xs text-destructive">{{ inviteForm.errors.email }}</p>
-                    <ul class="divide-y">
-                        <li v-if="event_access.owner" class="flex items-center justify-between py-2.5">
-                            <div>
-                                <p class="text-sm font-medium">{{ event_access.owner.name }}</p>
-                                <p class="text-xs text-muted-foreground">{{ event_access.owner.email }}</p>
-                            </div>
-                            <span class="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">{{ t('access.owner') }}</span>
-                        </li>
-                        <li v-for="member in event_access.members" :key="member.id" class="flex items-center justify-between py-2.5">
-                            <div>
-                                <p class="text-sm font-medium">{{ member.name }}</p>
-                                <p class="text-xs text-muted-foreground">{{ member.email }}</p>
-                            </div>
-                            <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="askRemove(member)">{{ t('common.remove') }}</Button>
-                        </li>
-                        <li v-if="event_access.members.length === 0" class="py-4 text-center text-sm text-muted-foreground">
-                            {{ t('access.none') }}
-                        </li>
-                    </ul>
-                </CardContent>
-            </Card>
-
-            <!-- User zu beliebigem Event hinzufügen -->
+            <!-- Event-Zugang verwalten -->
             <Card>
                 <CardHeader><CardTitle>{{ t('admin.addToEvent') }}</CardTitle></CardHeader>
-                <CardContent>
+                <CardContent class="space-y-4">
                     <form @submit.prevent="addToEvent" class="flex flex-col sm:flex-row gap-2">
                         <Input v-model="addForm.email" type="email" :placeholder="t('admin.emailPlaceholder')" required class="flex-1" />
                         <select v-model="addForm.event_id" :class="selectClass" required>
                             <option value="">{{ t('admin.selectEvent') }}</option>
-                            <option v-for="event in events" :key="event.id" :value="event.id">{{ event.name }}</option>
+                            <option v-for="event in events" :key="event.id" :value="String(event.id)">{{ event.name }}</option>
                         </select>
                         <Button type="submit" :disabled="addForm.processing" class="whitespace-nowrap">{{ t('common.add') }}</Button>
                     </form>
-                    <p v-if="addForm.errors.email"    class="mt-1.5 text-xs text-destructive">{{ addForm.errors.email }}</p>
-                    <p v-if="addForm.errors.event_id" class="mt-1.5 text-xs text-destructive">{{ addForm.errors.event_id }}</p>
+                    <p v-if="addForm.errors.email"    class="text-xs text-destructive">{{ addForm.errors.email }}</p>
+                    <p v-if="addForm.errors.event_id" class="text-xs text-destructive">{{ addForm.errors.event_id }}</p>
+
+                    <!-- Mitglieder des aktiven Events -->
+                    <template v-if="event_access">
+                        <p class="text-xs font-medium text-muted-foreground uppercase tracking-wide pt-2">{{ t('access.currentAccess') }}: {{ event_access.event.name }}</p>
+                        <ul class="divide-y">
+                            <li v-if="event_access.owner" class="flex items-center justify-between py-2.5">
+                                <div>
+                                    <p class="text-sm font-medium">{{ event_access.owner.name }}</p>
+                                    <p class="text-xs text-muted-foreground">{{ event_access.owner.email }}</p>
+                                </div>
+                                <span class="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">{{ t('access.owner') }}</span>
+                            </li>
+                            <li v-for="member in event_access.members" :key="member.id" class="flex items-center justify-between py-2.5">
+                                <div>
+                                    <p class="text-sm font-medium">{{ member.name }}</p>
+                                    <p class="text-xs text-muted-foreground">{{ member.email }}</p>
+                                </div>
+                                <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="askRemove(member)">{{ t('common.remove') }}</Button>
+                            </li>
+                            <li v-if="event_access.members.length === 0" class="py-4 text-center text-sm text-muted-foreground">
+                                {{ t('access.none') }}
+                            </li>
+                        </ul>
+                    </template>
                 </CardContent>
             </Card>
 
