@@ -3,7 +3,7 @@ import GuestForm from '@/components/GuestForm.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
 import QRCode from 'qrcode';
-import { onMounted, ref } from 'vue';
+import { ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 import { router, useForm } from '@inertiajs/vue3';
@@ -18,13 +18,33 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
-const qrDataUrl = ref<string | null>(null);
+const qrDataUrl      = ref<string | null>(null);
+const generatingQr   = ref(false);
 
-onMounted(async () => {
-    if (props.qr_url) {
-        qrDataUrl.value = await QRCode.toDataURL(props.qr_url, { width: 200, margin: 1 });
-    }
-});
+watch(() => props.qr_url, async (url) => {
+    qrDataUrl.value = url ? await QRCode.toDataURL(url, { width: 200, margin: 1 }) : null;
+}, { immediate: true });
+
+function generateQr() {
+    generatingQr.value = true;
+    const routeName = props.guest.group_id ? 'invitations.generate.group' : 'invitations.generate.guest';
+    const id        = props.guest.group_id ?? props.guest.id;
+    router.post(route(routeName, id), {}, { onFinish: () => { generatingQr.value = false; } });
+}
+
+function openPdf(url: string, name: string) {
+    const win = window.open('', '_blank');
+    if (!win) return;
+    win.document.write(`<html><head><title>${name}</title></head><body style="display:flex;justify-content:center;align-items:center;height:100vh;margin:0"><img src="${url}" style="width:300px;height:300px" onload="window.print()"/></body></html>`);
+    win.document.close();
+}
+
+function downloadPng(url: string, name: string) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${name}.png`;
+    a.click();
+}
 
 function handleUpdate(form: any) {
     form.put(route('guests.update', props.guest.id), { onSuccess: () => toast.success(t('toast.guestSaved')) });
@@ -193,8 +213,17 @@ function setterName(guest: any): string | null {
                 <template v-if="qrDataUrl">
                     <img :src="qrDataUrl" alt="QR-Code" class="rounded border" />
                     <p class="mt-2 break-all text-xs text-gray-400">{{ qr_url }}</p>
+                    <div class="mt-3 flex gap-2">
+                        <Button variant="outline" size="sm" @click="openPdf(qrDataUrl, `${guest.firstname} ${guest.lastname}`)">{{ t('invitation.downloadPdf') }}</Button>
+                        <Button variant="outline" size="sm" @click="downloadPng(qrDataUrl, `${guest.firstname} ${guest.lastname}`)">{{ t('invitation.downloadPng') }}</Button>
+                    </div>
                 </template>
-                <p v-else class="text-sm text-gray-400">{{ t('guest.noToken') }}</p>
+                <template v-else>
+                    <p class="text-sm text-gray-400">{{ t('guest.noToken') }}</p>
+                    <Button class="mt-3" size="sm" :disabled="generatingQr" @click="generateQr">
+                        {{ generatingQr ? t('invitation.generating') : t('invitation.generateSingle') }}
+                    </Button>
+                </template>
             </div>
         </div>
         <ConfirmDialog

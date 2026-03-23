@@ -31,6 +31,7 @@
     "yes": "Ja",
     "no": "Nein",
     "createItem": "\"{name}\" anlegen",
+    "createItemAgain": "\"{name}\" erneut anlegen?",
     "noResults": "Keine Ergebnisse"
   },
   "dashboard": {
@@ -277,6 +278,12 @@
     "groups": "Gruppen",
     "solo": "Einzeleinladungen",
     "noQR": "Noch kein QR-Code",
+    "generateSingle": "QR-Code generieren",
+    "downloadPdf": "PDF",
+    "downloadPng": "PNG",
+    "regenerate": "Neu generieren",
+    "regenerateConfirmTitle": "QR-Code neu generieren?",
+    "regenerateConfirmDescription": "Der alte QR-Code wird ungültig. Gäste, die ihn bereits haben, können sich damit nicht mehr einloggen.",
     "none": "Noch keine Gäste oder Gruppen mit Einladungstoken vorhanden."
   },
   "access": {
