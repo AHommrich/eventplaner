@@ -49,6 +49,7 @@ const mainNavItems = computed<NavItem[]>(() => [
 
 const adminNavItems = computed<NavItem[]>(() => [
     { title: t('nav.userManagement'), href: '/admin/users', icon: ShieldCheck },
+    ...(activeEvent.value ? [{ title: t('nav.manageAccess'), href: '/event/access', icon: KeyRound }] : []),
     { title: t('nav.requests'),    href: '/requests',  icon: Undo2 },
 ]);
 
@@ -139,7 +140,7 @@ const noEventNavItems = computed<NavItem[]>(() => [
         <SidebarContent>
             <NavMain v-if="!activeEvent && !isAdmin" :items="noEventNavItems" />
             <NavMain v-if="activeEvent" :items="mainNavItems" />
-            <NavMain v-if="activeEvent && (isEventOwner || isAdmin)" :items="eventOwnerNavItems" />
+            <NavMain v-if="activeEvent && isEventOwner" :items="eventOwnerNavItems" />
             <NavMain v-if="isAdmin" :items="adminNavItems" />
         </SidebarContent>
 
