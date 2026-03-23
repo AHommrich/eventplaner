@@ -49,7 +49,6 @@ const mainNavItems = computed<NavItem[]>(() => [
 
 const adminNavItems = computed<NavItem[]>(() => [
     { title: t('nav.userManagement'), href: '/admin/users', icon: ShieldCheck },
-    ...(activeEvent.value ? [{ title: t('nav.manageAccess'), href: '/event/access', icon: KeyRound }] : []),
     { title: t('nav.requests'),    href: '/requests',  icon: Undo2 },
 ]);
 
