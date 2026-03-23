@@ -54,6 +54,18 @@ class HandleInertiaRequests extends Middleware
         return $user->accessibleEvents()->get(['id', 'name'])->toArray();
     }
 
+    private function resolveUserEventRequests(Request $request): array
+    {
+        $user = $request->user();
+        if (!$user || $user->isAdmin()) return [];
+
+        return \App\Models\EventRequest::where('user_id', $user->id)
+            ->whereIn('status', ['pending', 'declined'])
+            ->orderBy('created_at', 'desc')
+            ->get(['id', 'event_name', 'status', 'created_at'])
+            ->toArray();
+    }
+
     public function version(Request $request): ?string
     {
         return parent::version($request);
@@ -77,8 +89,9 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
-            'active_event'      => $this->resolveActiveEvent($request),
-            'accessible_events' => $this->resolveAccessibleEvents($request),
+            'active_event'        => $this->resolveActiveEvent($request),
+            'accessible_events'   => $this->resolveAccessibleEvents($request),
+            'user_event_requests' => $this->resolveUserEventRequests($request),
             'ziggy' => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),

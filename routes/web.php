@@ -31,7 +31,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // Hauptapp — zugänglich für alle User mit mind. einem Event
 Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('table', [TableController::class, 'index'])->name('table');
+    Route::get('guests', [TableController::class, 'index'])->name('guests.index');
     Route::get('invitations', [InvitationController::class, 'index'])->name('invitations');
     Route::post('invitations/generate', [InvitationTokenController::class, 'generate'])->name('invitations.generate');
     Route::get('photos', [PhotoController::class, 'index'])->name('photos');
@@ -84,6 +84,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::put('/admin/users/{user}', [UserController::class, 'update'])->name('admin.users.update');
     Route::delete('/admin/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
     Route::post('/admin/users/add-to-event', [UserController::class, 'addToEvent'])->name('admin.users.addToEvent');
+    Route::delete('/admin/users/{user}/from-event', [UserController::class, 'removeFromEvent'])->name('admin.users.removeFromEvent');
 });
 
 require __DIR__.'/settings.php';
