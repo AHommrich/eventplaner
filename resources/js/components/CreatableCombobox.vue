@@ -14,28 +14,46 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     (e: 'update:modelValue', value: number | null): void;
+    (e: 'created', value: { id: number; name: string }): void;
 }>();
 
 const { t } = useI18n();
 
 const localOptions = ref<{ value: number; label: string }[]>([]);
+const searchQuery = ref('');
 
 const value = computed({
     get: () => props.modelValue,
     set: (val) => emit('update:modelValue', val ?? null),
 });
 
-const multiselectOptions = computed(() => [
-    ...props.options.map(o => ({ value: o.id, label: o.label })),
-    ...localOptions.value,
-]);
+const multiselectOptions = computed(() => {
+    const propIds = new Set(props.options.map(o => o.id));
+    return [
+        ...props.options.map(o => ({ value: o.id, label: o.label })),
+        ...localOptions.value.filter(o => !propIds.has(o.value)),
+    ];
+});
+
+const hasExactMatch = computed(() =>
+    searchQuery.value.trim() !== '' &&
+    multiselectOptions.value.some(o =>
+        o.label.split(' · ')[0].toLowerCase() === searchQuery.value.trim().toLowerCase()
+    )
+);
 
 async function handleCreate(option: { label: string }) {
     const response = await axios.post(route(props.createRoute), { [props.createField]: option.label });
     const newOption = { value: response.data.id, label: response.data.name };
     localOptions.value.push(newOption);
     emit('update:modelValue', newOption.value);
+    emit('created', { id: response.data.id, name: response.data.name });
+    searchQuery.value = '';
     return false;
+}
+
+async function createDuplicate() {
+    await handleCreate({ label: searchQuery.value.trim() });
 }
 </script>
 
@@ -47,7 +65,7 @@ async function handleCreate(option: { label: string }) {
         label="label"
         track-by="label"
         :placeholder="placeholder ?? t('guest.groupSearchPlaceholder')"
-        :create-option="true"
+        :create-option="!hasExactMatch"
         :on-create="handleCreate"
         :searchable="true"
         :can-clear="true"
@@ -55,7 +73,18 @@ async function handleCreate(option: { label: string }) {
         :close-on-select="true"
         no-options-text=""
         class="multiselect-custom"
+        @search-change="searchQuery = $event"
     >
+        <template #singlelabel="{ value }">
+            <div class="multiselect-single-label">
+                {{ String((value as any).label).split(' · ')[0] }}
+            </div>
+        </template>
+        <template #afterlist>
+            <li v-if="hasExactMatch" class="multiselect-option" @mousedown.prevent="createDuplicate">
+                <span class="text-primary font-medium">{{ t('common.createItemAgain', { name: searchQuery.trim() }) }}</span>
+            </li>
+        </template>
         <template #option="{ option }">
             <span v-if="(option as any).__CREATE__" class="text-primary font-medium">{{ t('common.createItem', { name: option.label }) }}</span>
             <span v-else>{{ option.label }}</span>
