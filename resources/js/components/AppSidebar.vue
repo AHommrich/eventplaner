@@ -6,7 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuIte
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { Users, SquarePen, QrCode, Images, ShieldCheck, GlassWater, Trophy, ChevronsUpDown, Check, KeyRound, Undo2, Settings2, CalendarDays, Plus } from 'lucide-vue-next';
+import { Users, SquarePen, QrCode, Images, ShieldCheck, GlassWater, Trophy, ChevronsUpDown, Check, KeyRound, Undo2, Settings2, CalendarDays, Plus, CalendarPlus } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -55,6 +55,10 @@ const adminNavItems = computed<NavItem[]>(() => [
 const eventOwnerNavItems = computed<NavItem[]>(() => [
     { title: t('nav.manageAccess'), href: '/event/access', icon: KeyRound },
     { title: t('nav.requests'),  href: '/requests',  icon: Undo2 },
+]);
+
+const noEventNavItems = computed<NavItem[]>(() => [
+    { title: t('nav.requestEvent'), href: '/no-event', icon: CalendarPlus },
 ]);
 </script>
 
@@ -133,6 +137,7 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
         </SidebarHeader>
 
         <SidebarContent>
+            <NavMain v-if="!activeEvent && !isAdmin" :items="noEventNavItems" />
             <NavMain v-if="activeEvent" :items="mainNavItems" />
             <NavMain v-if="activeEvent && isEventOwner" :items="eventOwnerNavItems" />
             <NavMain v-if="isAdmin" :items="adminNavItems" />

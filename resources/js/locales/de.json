@@ -10,7 +10,8 @@
     "userManagement": "User-Verwaltung",
     "manageAccess": "Zugang verwalten",
     "requests": "Anfragen",
-    "eventSettings": "Event-Einstellungen"
+    "eventSettings": "Event-Einstellungen",
+    "requestEvent": "Event beantragen"
   },
   "common": {
     "create": "Erstellen",
