@@ -20,6 +20,7 @@
     "delete": "Löschen",
     "remove": "Entfernen",
     "cancel": "Abbrechen",
+    "close": "Schließen",
     "confirm": "Bestätigen",
     "print": "Drucken",
     "open": "Öffnen",
@@ -311,7 +312,12 @@
     "requestDesc": "Gib den Namen deines Events ein. Der Admin genehmigt die Anfrage und erstellt dein Event.",
     "request": "Anfrage senden",
     "pendingTitle": "Anfrage in Bearbeitung",
-    "pendingDesc": "Deine Event-Anfrage wurde eingereicht und wartet auf Genehmigung durch den Admin."
+    "pendingShort": "Warten auf Freigabe",
+    "pendingEventName": "Event",
+    "pendingDesc": "Deine Anfrage wartet auf Genehmigung durch den Admin.",
+    "declinedTitle": "Anfrage abgelehnt",
+    "declinedEventName": "Event",
+    "declinedDesc": "Du kannst eine neue Anfrage stellen."
   },
   "appearance": {
     "light": "Hell",

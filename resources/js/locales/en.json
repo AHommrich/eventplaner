@@ -20,6 +20,7 @@
     "delete": "Delete",
     "remove": "Remove",
     "cancel": "Cancel",
+    "close": "Close",
     "confirm": "Confirm",
     "print": "Print",
     "open": "Open",
@@ -311,7 +312,12 @@
     "requestDesc": "Enter your event name. The admin will review and create your event.",
     "request": "Send request",
     "pendingTitle": "Request pending",
-    "pendingDesc": "Your event request has been submitted and is waiting for admin approval."
+    "pendingShort": "Waiting for approval",
+    "pendingEventName": "Event",
+    "pendingDesc": "Your request is waiting for admin approval.",
+    "declinedTitle": "Request declined",
+    "declinedEventName": "Event",
+    "declinedDesc": "You can submit a new request."
   },
   "appearance": {
     "light": "Light",
