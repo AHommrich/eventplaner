@@ -139,7 +139,7 @@ const noEventNavItems = computed<NavItem[]>(() => [
         <SidebarContent>
             <NavMain v-if="!activeEvent && !isAdmin" :items="noEventNavItems" />
             <NavMain v-if="activeEvent" :items="mainNavItems" />
-            <NavMain v-if="activeEvent && isEventOwner" :items="eventOwnerNavItems" />
+            <NavMain v-if="activeEvent && (isEventOwner || isAdmin)" :items="eventOwnerNavItems" />
             <NavMain v-if="isAdmin" :items="adminNavItems" />
         </SidebarContent>
 
