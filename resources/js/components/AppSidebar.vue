@@ -22,7 +22,7 @@ const isEventOwner = computed(() =>
     !isAdmin.value && activeEvent.value?.user_id === currentUserId.value
 );
 const accessibleEvents = computed(() => (page.props as any).accessible_events as { id: number; name: string }[]);
-const showSwitcher = computed(() => accessibleEvents.value?.length > 1);
+const showSwitcher = computed(() => isAdmin.value || (accessibleEvents.value?.length > 1));
 
 const search = ref('');
 const filteredEvents = computed(() => {
@@ -50,7 +50,6 @@ const mainNavItems = computed<NavItem[]>(() => [
 const adminNavItems = computed<NavItem[]>(() => [
     { title: t('nav.userManagement'), href: '/admin/users', icon: ShieldCheck },
     { title: t('nav.requests'),       href: '/requests',    icon: Undo2 },
-    { title: t('event.newEvent'),     href: '/onboarding',  icon: Plus },
 ]);
 
 const eventOwnerNavItems = computed<NavItem[]>(() => [
@@ -117,6 +116,15 @@ const noEventNavItems = computed<NavItem[]>(() => [
                             <p v-if="filteredEvents.length === 0" class="px-2 py-3 text-center text-xs text-muted-foreground">
                                 {{ t('event.notFound') }}
                             </p>
+                            <template v-if="isAdmin">
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem as-child>
+                                    <Link :href="route('onboarding')" class="flex cursor-pointer items-center">
+                                        <Plus class="mr-2 size-4" />
+                                        {{ t('event.newEvent') }}
+                                    </Link>
+                                </DropdownMenuItem>
+                            </template>
                         </DropdownMenuContent>
                     </DropdownMenu>
 
