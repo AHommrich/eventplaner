@@ -22,6 +22,7 @@ Route::get('/', function () { return Inertia::render('Welcome'); })->name('home'
 // Onboarding + Event-Management für eingeloggte User
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/onboarding', [EventController::class, 'onboarding'])->name('onboarding');
+    Route::get('/no-event', [EventController::class, 'noEvent'])->name('no-event');
     Route::post('/events', [EventController::class, 'store'])->name('events.store');
     Route::post('/events/request', [EventController::class, 'requestEvent'])->name('events.request');
     Route::post('/events/switch', [EventController::class, 'switch'])->name('events.switch');

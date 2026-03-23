@@ -16,6 +16,6 @@ class EnsureHasEventAccess
             return $next($request);
         }
 
-        return redirect()->route('onboarding');
+        return redirect()->route('no-event');
     }
 }

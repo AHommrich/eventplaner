@@ -11,18 +11,20 @@ class EventController extends Controller
 {
     public function onboarding()
     {
-        $user = auth()->user();
-
-        if ($user->isAdmin()) {
-            return Inertia::render('Onboarding', [
-                'isAdmin'           => true,
-                'hasPendingRequest' => false,
-                'email'             => $user->email,
-            ]);
+        // Nur Admins dürfen Events direkt erstellen
+        if (!auth()->user()->isAdmin()) {
+            return redirect()->route('no-event');
         }
 
-        // Nicht-Admin mit bestehendem Event → direkt zur App
-        if ($user->accessibleEvents()->exists()) {
+        return Inertia::render('Onboarding');
+    }
+
+    public function noEvent()
+    {
+        $user = auth()->user();
+
+        // Hat bereits ein Event → App
+        if ($user->isAdmin() || $user->accessibleEvents()->exists()) {
             return redirect()->route('dashboard');
         }
 
@@ -30,10 +32,8 @@ class EventController extends Controller
             ->where('status', 'pending')
             ->exists();
 
-        return Inertia::render('Onboarding', [
-            'isAdmin'           => false,
+        return Inertia::render('NoEvent', [
             'hasPendingRequest' => $hasPendingRequest,
-            'email'             => $user->email,
         ]);
     }
 
@@ -78,7 +78,7 @@ class EventController extends Controller
             'status'     => 'pending',
         ]);
 
-        return redirect()->route('onboarding');
+        return redirect()->route('no-event');
     }
 
     public function switch(Request $request)
