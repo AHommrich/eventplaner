@@ -30,8 +30,8 @@ const multiselectOptions = computed(() => [
     ...localOptions.value,
 ]);
 
-async function handleCreate(query: string) {
-    const response = await axios.post(route(props.createRoute), { [props.createField]: query });
+async function handleCreate(option: { label: string }) {
+    const response = await axios.post(route(props.createRoute), { [props.createField]: option.label });
     const newOption = { value: response.data.id, label: response.data.name };
     localOptions.value.push(newOption);
     emit('update:modelValue', [...props.modelValue, newOption.value]);
