@@ -2,24 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Event;
+use App\Models\EventRequest;
 use App\Models\Guest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 /**
- * Verwaltet eingehende Gast-Anfragen (Rücknahmen, ggf. weitere Typen).
+ * Verwaltet eingehende Anfragen (Rücknahmen, Event-Anfragen, ggf. weitere Typen).
  */
 class RequestController extends Controller
 {
     /**
      * GET /requests
-     * Zeigt alle offenen Anfragen für das aktive Event.
      */
     public function index(Request $request)
     {
         $event = $this->activeEvent();
         abort_if(!$event, 404);
 
+        // Rücknahme-Anfragen (declined → will zurück zu open)
         $revocations = Guest::where('event_id', $event->id)
             ->where('rsvp_status', 'revocation_requested')
             ->with(['group', 'rsvpSetByGuest', 'rsvpSetByUser'])
@@ -31,6 +33,7 @@ class RequestController extends Controller
                 'firstname'    => $g->firstname,
                 'lastname'     => $g->lastname,
                 'group_name'   => $g->group?->name,
+                'rsvp_status'  => $g->rsvp_status,
                 'rsvp_set_at'  => $g->rsvp_set_at?->toIso8601String(),
                 'set_by_guest' => $g->rsvpSetByGuest
                     ? ['id' => $g->rsvpSetByGuest->id, 'firstname' => $g->rsvpSetByGuest->firstname, 'lastname' => $g->rsvpSetByGuest->lastname]
@@ -40,15 +43,31 @@ class RequestController extends Controller
                     : null,
             ]);
 
+        // Event-Anfragen (nur für Admin sichtbar)
+        $eventRequests = [];
+        if (auth()->user()->isAdmin()) {
+            $eventRequests = EventRequest::where('status', 'pending')
+                ->with('user')
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(fn (EventRequest $er) => [
+                    'id'         => $er->id,
+                    'user_name'  => $er->user->name,
+                    'user_email' => $er->user->email,
+                    'event_name' => $er->event_name,
+                    'created_at' => $er->created_at->toIso8601String(),
+                ]);
+        }
+
         return Inertia::render('Requests/Index', [
-            'revocations' => $revocations,
-            // Hier später weitere Anfrage-Typen ergänzen
+            'revocations'   => $revocations,
+            'event_requests' => $eventRequests,
         ]);
     }
 
     /**
      * POST /requests/revocations/{guest}/approve
-     * Rücknahme freigeben → rsvp_status = null (Gast kann erneut antworten).
+     * Rücknahme freigeben → rsvp_status = null
      */
     public function approveRevocation(Request $request, Guest $guest)
     {
@@ -68,7 +87,7 @@ class RequestController extends Controller
 
     /**
      * POST /requests/revocations/{guest}/decline
-     * Rücknahme ablehnen → bleibt declined.
+     * Rücknahme ablehnen → bleibt declined
      */
     public function declineRevocation(Request $request, Guest $guest)
     {
@@ -81,6 +100,39 @@ class RequestController extends Controller
             'rsvp_set_by_user_id'  => $request->user()->id,
             'rsvp_set_at'          => now(),
         ]);
+
+        return redirect()->route('requests.index');
+    }
+
+    /**
+     * POST /requests/event-requests/{eventRequest}/approve
+     * Event-Anfrage genehmigen → Event erstellen
+     */
+    public function approveEventRequest(Request $request, EventRequest $eventRequest)
+    {
+        abort_unless(auth()->user()->isAdmin(), 403);
+        abort_if($eventRequest->status !== 'pending', 422);
+
+        $event = Event::create([
+            'user_id' => $eventRequest->user_id,
+            'name'    => $eventRequest->event_name,
+        ]);
+
+        $eventRequest->delete();
+
+        return redirect()->route('requests.index');
+    }
+
+    /**
+     * POST /requests/event-requests/{eventRequest}/decline
+     * Event-Anfrage ablehnen
+     */
+    public function declineEventRequest(Request $request, EventRequest $eventRequest)
+    {
+        abort_unless(auth()->user()->isAdmin(), 403);
+        abort_if($eventRequest->status !== 'pending', 422);
+
+        $eventRequest->update(['status' => 'declined']);
 
         return redirect()->route('requests.index');
     }

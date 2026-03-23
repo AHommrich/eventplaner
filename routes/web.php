@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\CategoryController;
@@ -24,6 +23,7 @@ Route::get('/', function () { return Inertia::render('Welcome'); })->name('home'
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/onboarding', [EventController::class, 'onboarding'])->name('onboarding');
     Route::post('/events', [EventController::class, 'store'])->name('events.store');
+    Route::post('/events/request', [EventController::class, 'requestEvent'])->name('events.request');
     Route::post('/events/switch', [EventController::class, 'switch'])->name('events.switch');
 });
 
@@ -59,10 +59,12 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::post('/event/settings/cover', [EventSettingsController::class, 'uploadCover'])->name('event.settings.cover');
     Route::delete('/event/settings/cover', [EventSettingsController::class, 'deleteCover'])->name('event.settings.cover.delete');
 
-    // Anfragen-Management (Rücknahmen + spätere Typen)
+    // Anfragen-Management
     Route::get('/requests', [RequestController::class, 'index'])->name('requests.index');
     Route::post('/requests/revocations/{guest}/approve', [RequestController::class, 'approveRevocation'])->name('requests.revocations.approve');
     Route::post('/requests/revocations/{guest}/decline', [RequestController::class, 'declineRevocation'])->name('requests.revocations.decline');
+    Route::post('/requests/event-requests/{eventRequest}/approve', [RequestController::class, 'approveEventRequest'])->name('requests.event-requests.approve');
+    Route::post('/requests/event-requests/{eventRequest}/decline', [RequestController::class, 'declineEventRequest'])->name('requests.event-requests.decline');
 
     // Guests
     Route::post('/guests', [GuestController::class, 'store'])->name('guests.store');
