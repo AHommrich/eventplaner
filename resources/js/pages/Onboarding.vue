@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, useForm, Link } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{ email: string; isAdmin: boolean; hasPendingRequest: boolean }>();
@@ -75,8 +75,13 @@ function submitRequest() { requestForm.post(route('events.request')); }
                 </CardContent>
             </Card>
 
-            <!-- Email-Adresse anzeigen (für beide) -->
             <p class="text-center text-xs text-muted-foreground">{{ email }}</p>
+
+            <div class="text-center">
+                <Link :href="route('logout')" method="post" as="button" class="text-xs text-muted-foreground underline-offset-4 hover:underline">
+                    Ausloggen
+                </Link>
+            </div>
 
         </div>
     </div>
