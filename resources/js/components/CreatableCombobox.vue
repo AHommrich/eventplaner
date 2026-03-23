@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import Multiselect from '@vueform/multiselect';
-import { router } from '@inertiajs/vue3';
+import axios from 'axios';
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
@@ -18,25 +18,24 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 
+const localOptions = ref<{ value: number; label: string }[]>([]);
+
 const value = computed({
     get: () => props.modelValue,
     set: (val) => emit('update:modelValue', val ?? null),
 });
 
-const multiselectOptions = computed(() =>
-    props.options.map(o => ({ value: o.id, label: o.label }))
-);
+const multiselectOptions = computed(() => [
+    ...props.options.map(o => ({ value: o.id, label: o.label })),
+    ...localOptions.value,
+]);
 
-function handleCreate(query: string) {
-    router.post(route(props.createRoute), { [props.createField]: query }, {
-        preserveScroll: true,
-        preserveState: true,
-        onSuccess: () => {
-            const newItem = props.options.find(o => o.label === query);
-            if (newItem) emit('update:modelValue', newItem.id);
-        },
-    });
-    return false; // don't add locally — Inertia reload liefert neues options-Array
+async function handleCreate(query: string) {
+    const response = await axios.post(route(props.createRoute), { [props.createField]: query });
+    const newOption = { value: response.data.id, label: response.data.name };
+    localOptions.value.push(newOption);
+    emit('update:modelValue', newOption.value);
+    return false;
 }
 </script>
 
