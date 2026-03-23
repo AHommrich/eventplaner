@@ -101,7 +101,8 @@
     "drinkGameEndTime": "Spielende",
     "drinkGameEndTimeDesc": "Nach diesem Zeitpunkt können keine Getränke mehr eingetragen werden.",
     "phonePreview": "Vorschau",
-    "saveSettings": "Einstellungen speichern"
+    "saveSettings": "Einstellungen speichern",
+    "newEvent": "Neues Event"
   },
   "confirm": {
     "defaultTitle": "Bist du sicher?",
@@ -137,7 +138,9 @@
     "drinksAccessEnabled": "Getränke-Tracking freigeschaltet",
     "drinksAccessDisabled": "Getränke-Tracking gesperrt",
     "drinkLogsReset": "Getränke-Logs zurückgesetzt",
-    "gameSettingsSaved": "Spieleinstellungen gespeichert"
+    "gameSettingsSaved": "Spieleinstellungen gespeichert",
+    "eventRequestApproved": "Event wurde erstellt.",
+    "eventRequestDeclined": "Anfrage abgelehnt."
   },
   "requests": {
     "title": "Anfragen",
@@ -151,7 +154,15 @@
     "confirmApproveTitle": "Anfrage freigeben?",
     "confirmApproveDesc": "Der Gast kann anschließend erneut zusagen oder absagen.",
     "confirmDeclineTitle": "Anfrage ablehnen?",
-    "confirmDeclineDesc": "Die Absage des Gastes bleibt bestehen."
+    "confirmDeclineDesc": "Die Absage des Gastes bleibt bestehen.",
+    "eventRequestsTitle": "Event-Anfragen",
+    "eventRequestsDesc": "Neue Nutzer haben ein Event beantragt und warten auf Genehmigung.",
+    "approveEvent": "Genehmigen",
+    "declineEvent": "Ablehnen",
+    "confirmApproveEventTitle": "Event erstellen?",
+    "confirmApproveEventDesc": "Ein neues Event wird für diesen User angelegt.",
+    "confirmDeclineEventTitle": "Anfrage ablehnen?",
+    "confirmDeclineEventDesc": "Der User kann danach eine neue Anfrage stellen."
   },
   "guest": {
     "firstName": "Vorname",
@@ -286,14 +297,20 @@
     "user": "User",
     "admin": "Admin",
     "deleteTitle": "{name} löschen?",
-    "deleteDescription": "Der Account wird dauerhaft gelöscht und kann nicht wiederhergestellt werden."
+    "deleteDescription": "Der Account wird dauerhaft gelöscht und kann nicht wiederhergestellt werden.",
+    "allUsersLabel": "Alle User"
   },
   "onboarding": {
     "title": "Willkommen!",
-    "description": "Erstelle dein erstes Event um loszulegen.",
-    "eventName": "Event-Name",
+    "descriptionAdmin": "Erstelle ein neues Event um loszulegen.",
+    "descriptionUser": "Beantrage dein erstes Event — der Admin schaltet es dann frei.",
     "placeholder": "z.B. Hochzeit Max & Anna",
-    "create": "Event erstellen"
+    "create": "Event erstellen",
+    "requestTitle": "Event beantragen",
+    "requestDesc": "Gib den Namen deines Events ein. Der Admin genehmigt die Anfrage und erstellt dein Event.",
+    "request": "Anfrage senden",
+    "pendingTitle": "Anfrage in Bearbeitung",
+    "pendingDesc": "Deine Event-Anfrage wurde eingereicht und wartet auf Genehmigung durch den Admin."
   },
   "appearance": {
     "light": "Hell",
@@ -365,5 +382,10 @@
     "confirmTitle": "Passwort bestätigen",
     "confirmDesc": "Dies ist ein gesicherter Bereich. Bitte Passwort eingeben um fortzufahren.",
     "confirmBtn": "Passwort bestätigen"
+  },
+  "pending": {
+    "title": "Account wird geprüft",
+    "description": "Dein Account muss zuerst freigeschaltet werden. Sobald das erledigt ist, kannst du loslegen.",
+    "logout": "Abmelden"
   }
 }
