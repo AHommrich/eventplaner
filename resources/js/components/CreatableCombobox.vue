@@ -53,7 +53,6 @@ function handleCreate(query: string) {
         :can-clear="true"
         :can-deselect="false"
         :close-on-select="true"
-        :append-to-body="true"
         no-options-text=""
         class="multiselect-custom"
     />
