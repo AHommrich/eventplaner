@@ -4,33 +4,53 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 
-interface User  { id: number; name: string; email: string; role: string; created_at: string; }
-interface Event { id: number; name: string; }
+interface User   { id: number; name: string; email: string; role: string; created_at: string; }
+interface Event  { id: number; name: string; }
+interface Member { id: number; name: string; email: string; }
+interface EventAccess {
+    event:   { id: number; name: string };
+    owner:   Member | null;
+    members: Member[];
+}
 
-const props = defineProps<{ users: User[]; events: Event[]; }>();
+const props = defineProps<{ users: User[]; events: Event[]; event_access: EventAccess | null; }>();
 
 const { t } = useI18n();
 const selectClass = 'flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]';
 
 const approvedUsers = computed(() => props.users);
 
+// --- User zu beliebigem Event hinzufügen ---
 const addForm = useForm({ email: '', event_id: '' });
 function addToEvent() { addForm.post(route('admin.users.addToEvent'), { onSuccess: () => { addForm.reset(); toast.success(t('toast.userAdded')); } }); }
 
+// --- Rolle ändern ---
 function updateRole(user: User, role: string) {
     useForm({ role }).put(route('admin.users.update', user.id), { onSuccess: () => toast.success(t('toast.roleChanged', { role })) });
 }
 
-const confirmOpen   = ref(false);
-const pendingUser   = ref<User | null>(null);
+// --- User löschen ---
+const confirmOpen = ref(false);
+const pendingUser = ref<User | null>(null);
 function askDelete(user: User) { pendingUser.value = user; confirmOpen.value = true; }
 function doDelete() {
     if (pendingUser.value) useForm({}).delete(route('admin.users.destroy', pendingUser.value.id), { onSuccess: () => toast.success(t('toast.userDeleted')) });
+}
+
+// --- Zugang zum aktiven Event ---
+const inviteForm = useForm({ email: '' });
+function inviteToEvent() { inviteForm.post(route('event.access.invite'), { onSuccess: () => { inviteForm.reset(); toast.success(t('toast.accessAdded')); } }); }
+
+const removeConfirmOpen = ref(false);
+const pendingRemoveMember = ref<Member | null>(null);
+function askRemove(member: Member) { pendingRemoveMember.value = member; removeConfirmOpen.value = true; }
+function doRemove() {
+    if (pendingRemoveMember.value) router.delete(route('event.access.remove', pendingRemoveMember.value.id), { onSuccess: () => toast.success(t('toast.accessRemoved')) });
 }
 </script>
 
@@ -39,6 +59,38 @@ function doDelete() {
     <AppLayout>
         <div class="m-4 space-y-4">
 
+            <!-- Zugang zum aktiven Event -->
+            <Card v-if="event_access">
+                <CardHeader><CardTitle>{{ t('access.currentAccess') }}: {{ event_access.event.name }}</CardTitle></CardHeader>
+                <CardContent class="space-y-4">
+                    <form @submit.prevent="inviteToEvent" class="flex gap-2">
+                        <Input v-model="inviteForm.email" type="email" :placeholder="t('access.emailPlaceholder')" required class="flex-1" />
+                        <Button type="submit" :disabled="inviteForm.processing" class="whitespace-nowrap">{{ t('common.add') }}</Button>
+                    </form>
+                    <p v-if="inviteForm.errors.email" class="text-xs text-destructive">{{ inviteForm.errors.email }}</p>
+                    <ul class="divide-y">
+                        <li v-if="event_access.owner" class="flex items-center justify-between py-2.5">
+                            <div>
+                                <p class="text-sm font-medium">{{ event_access.owner.name }}</p>
+                                <p class="text-xs text-muted-foreground">{{ event_access.owner.email }}</p>
+                            </div>
+                            <span class="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">{{ t('access.owner') }}</span>
+                        </li>
+                        <li v-for="member in event_access.members" :key="member.id" class="flex items-center justify-between py-2.5">
+                            <div>
+                                <p class="text-sm font-medium">{{ member.name }}</p>
+                                <p class="text-xs text-muted-foreground">{{ member.email }}</p>
+                            </div>
+                            <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="askRemove(member)">{{ t('common.remove') }}</Button>
+                        </li>
+                        <li v-if="event_access.members.length === 0" class="py-4 text-center text-sm text-muted-foreground">
+                            {{ t('access.none') }}
+                        </li>
+                    </ul>
+                </CardContent>
+            </Card>
+
+            <!-- User zu beliebigem Event hinzufügen -->
             <Card>
                 <CardHeader><CardTitle>{{ t('admin.addToEvent') }}</CardTitle></CardHeader>
                 <CardContent>
@@ -55,6 +107,7 @@ function doDelete() {
                 </CardContent>
             </Card>
 
+            <!-- Alle User -->
             <Card>
                 <CardHeader><CardTitle>{{ t('admin.allUsers', { count: approvedUsers.length }) }}</CardTitle></CardHeader>
                 <CardContent class="p-0">
@@ -97,6 +150,15 @@ function doDelete() {
             :confirm-label="t('common.delete')"
             destructive
             @confirm="doDelete"
+        />
+
+        <ConfirmDialog
+            v-model:open="removeConfirmOpen"
+            :title="t('access.removeTitle', { name: pendingRemoveMember?.name })"
+            :description="t('access.removeDescription')"
+            :confirm-label="t('common.remove')"
+            destructive
+            @confirm="doRemove"
         />
     </AppLayout>
 </template>
