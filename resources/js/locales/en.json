@@ -1,7 +1,7 @@
 {
   "nav": {
     "platform": "Platform",
-    "forms": "Forms",
+    "forms": "Overview",
     "guests": "Guests",
     "drinks": "Drinks",
     "drinkGame": "Drinking Game",
@@ -29,7 +29,17 @@
     "role": "Role",
     "all": "All",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "createItem": "Create \"{name}\"",
+    "noResults": "No results"
+  },
+  "dashboard": {
+    "title": "Overview",
+    "guestTotal": "Total guests",
+    "rsvpAccepted": "Accepted",
+    "rsvpDeclined": "Declined",
+    "rsvpOpen": "Open",
+    "photos": "Photos"
   },
   "event": {
     "search": "Search event...",
@@ -169,21 +179,13 @@
   "guest": {
     "firstName": "First name",
     "lastName": "Last name",
-    "category": "Category",
     "group": "Group",
-    "likelihood": "Likelihood",
-    "invite": "Invitation",
     "food": "Food",
     "foodSpecials": "Food specials",
-    "inviteNeeded": "Invitation needed?",
-    "selectCategory": "Select category",
     "noGroup": "No group",
-    "pleaseSelect": "Please select...",
-    "sure": "Sure",
-    "likely": "Likely",
-    "maybe": "Maybe",
-    "unlikely": "Unlikely",
-    "no": "No",
+    "addGuest": "Add guest",
+    "groupSearchPlaceholder": "Search or create group…",
+    "foodSpecialSearchPlaceholder": "Search or create food special…",
     "createNew": "Create new guest",
     "create": "Create guest",
     "edit": "Edit guest",
@@ -222,11 +224,6 @@
     "drinksReset": "Reset logs",
     "drinksResetTitle": "Delete drink logs?",
     "drinksResetDesc": "All tracked drinks for this guest will be permanently deleted."
-  },
-  "category": {
-    "new": "New category",
-    "namePlaceholder": "Category name",
-    "filter": "Category:"
   },
   "group": {
     "new": "New group",

@@ -49,7 +49,7 @@ function switchEvent(eventId: number) {
 
 const mainNavItems = computed<NavItem[]>(() => [
     { title: t('nav.forms'),         href: '/dashboard',      icon: SquarePen },
-    { title: t('nav.guests'),        href: '/table',          icon: Users },
+    { title: t('nav.guests'),        href: '/guests',         icon: Users },
     { title: t('nav.drinks'),        href: '/drinks',         icon: GlassWater },
     { title: t('nav.drinkGame'),     href: '/drinks/game',    icon: Trophy },
     { title: t('nav.invitations'),   href: '/invitations',    icon: QrCode },

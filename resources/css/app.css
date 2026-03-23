@@ -55,6 +55,7 @@
 }
 
 @import 'tailwindcss';
+@import '@vueform/multiselect/themes/default.css';
 
 @import 'tw-animate-css';
 
@@ -220,4 +221,95 @@
     body {
         @apply bg-background text-foreground;
     }
+}
+
+/* ── @vueform/multiselect – shadcn-Anpassung ─────────────────────────────── */
+/* Variablen global auf :root, damit auch das per appendToBody teleportierte
+   .multiselect-dropdown-Element (das kein Kind von .multiselect-custom ist)
+   die richtigen Werte bekommt.                                               */
+:root {
+  --ms-font-size: 0.875rem;
+  --ms-line-height: 1.25rem;
+  --ms-min-height: 2.25rem;
+  --ms-bg: transparent;
+  --ms-bg-disabled: transparent;
+  --ms-border-color: hsl(0 0% 92.8%);
+  --ms-border-width: 1px;
+  --ms-border-color-active: hsl(0 0% 3.9%);
+  --ms-radius: calc(0.5rem - 2px);
+  --ms-py: 0.375rem;
+  --ms-px: 0.75rem;
+  --ms-ring-width: 3px;
+  --ms-ring-color: hsl(0 0% 3.9% / 0.5);
+  --ms-placeholder-color: hsl(0 0% 45.1%);
+  --ms-max-height: 12rem;
+
+  /* Dropdown */
+  --ms-dropdown-bg: hsl(0 0% 100%);
+  --ms-dropdown-border-color: hsl(0 0% 92.8%);
+  --ms-dropdown-border-width: 1px;
+  --ms-dropdown-radius: calc(0.5rem - 2px);
+
+  /* Options */
+  --ms-option-font-size: 0.875rem;
+  --ms-option-bg-selected: hsl(0 0% 96.1%);
+  --ms-option-color-selected: hsl(0 0% 9%);
+  --ms-option-bg-selected-pointed: hsl(0 0% 96.1%);
+  --ms-option-color-selected-pointed: hsl(0 0% 9%);
+  --ms-option-bg-pointed: hsl(0 0% 96.1%);
+  --ms-option-color-pointed: hsl(0 0% 9%);
+  --ms-option-py: 0.375rem;
+  --ms-option-px: 0.5rem;
+
+  /* Tags (multi) */
+  --ms-tag-bg: hsl(0 0% 9% / 0.1);
+  --ms-tag-color: hsl(0 0% 9%);
+  --ms-tag-radius: 9999px;
+  --ms-tag-font-size: 0.75rem;
+  --ms-tag-font-weight: 500;
+  --ms-tag-py: 0.125rem;
+  --ms-tag-px: 0.5rem;
+  --ms-tag-mx: 0.25rem;
+  --ms-tag-my: 0.1875rem;
+  --ms-tag-remove-radius: 9999px;
+}
+
+.dark {
+  --ms-bg: hsl(0 0% 14.9% / 0.3);
+  --ms-border-color: hsl(0 0% 14.9%);
+  --ms-border-color-active: hsl(0 0% 83.1%);
+  --ms-ring-color: hsl(0 0% 83.1% / 0.5);
+  --ms-placeholder-color: hsl(0 0% 63.9%);
+
+  --ms-dropdown-bg: hsl(0 0% 3.9%);
+  --ms-dropdown-border-color: hsl(0 0% 14.9%);
+
+  --ms-option-bg-selected: hsl(0 0% 14.9%);
+  --ms-option-color-selected: hsl(0 0% 98%);
+  --ms-option-bg-selected-pointed: hsl(0 0% 14.9%);
+  --ms-option-color-selected-pointed: hsl(0 0% 98%);
+  --ms-option-bg-pointed: hsl(0 0% 14.9%);
+  --ms-option-color-pointed: hsl(0 0% 98%);
+
+  --ms-tag-bg: hsl(0 0% 98% / 0.15);
+  --ms-tag-color: hsl(0 0% 98%);
+}
+
+/* Exakte Höhe + gleicher Hintergrund wie shadcn Input */
+.multiselect-custom,
+.multiselect-custom .multiselect-wrapper {
+  min-height: 2.25rem !important;
+}
+
+.multiselect-custom {
+  background-color: transparent !important;
+}
+
+.dark .multiselect-custom {
+  background-color: hsl(0 0% 14.9% / 0.3) !important;
+}
+
+/* Multiselect-Dropdown wenn per appendToBody ans <body> teleportiert */
+.multiselect-dropdown {
+  z-index: 200 !important;
 }
