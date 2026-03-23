@@ -1,28 +1,35 @@
 <script setup lang="ts">
-import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
+import RequestEventModal from '@/components/RequestEventModal.vue';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarGroup, SidebarGroupLabel, useSidebar } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { Users, SquarePen, QrCode, Images, ShieldCheck, GlassWater, Trophy, ChevronsUpDown, Check, KeyRound, Undo2, Settings2, CalendarDays, Plus, CalendarPlus } from 'lucide-vue-next';
+import { Users, SquarePen, QrCode, Images, ShieldCheck, GlassWater, Trophy, ChevronsUpDown, Check, KeyRound, Undo2, Settings2, CalendarDays, Plus, CalendarPlus, Clock } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { setLocale } from '@/plugins/i18n';
+import { useEventRequestModal } from '@/composables/useEventRequestModal';
 
 const { t, locale } = useI18n();
 const page = usePage();
 const { isMobile, state } = useSidebar();
-const isAdmin = computed(() => (page.props.auth as any)?.user?.role === 'admin');
-const activeEvent = computed(() => (page.props as any).active_event as { id: number; name: string; user_id?: number; drink_game_enabled?: boolean } | null);
+const { open: requestModalOpen } = useEventRequestModal();
+
+const isAdmin       = computed(() => (page.props.auth as any)?.user?.role === 'admin');
+const activeEvent   = computed(() => (page.props as any).active_event as { id: number; name: string; user_id?: number; drink_game_enabled?: boolean } | null);
 const currentUserId = computed(() => (page.props.auth as any)?.user?.id);
-const isEventOwner = computed(() =>
-    !isAdmin.value && activeEvent.value?.user_id === currentUserId.value
-);
+const isEventOwner  = computed(() => !isAdmin.value && activeEvent.value?.user_id === currentUserId.value);
 const accessibleEvents = computed(() => (page.props as any).accessible_events as { id: number; name: string }[]);
-const showSwitcher = computed(() => isAdmin.value || (accessibleEvents.value?.length > 1));
+
+interface EventRequestItem { id: number; event_name: string; status: 'pending' | 'declined'; created_at: string; }
+const userEventRequests = computed(() => ((page.props as any).user_event_requests ?? []) as EventRequestItem[]);
+const pendingRequest    = computed(() => userEventRequests.value.find(r => r.status === 'pending'));
+
+// Admin: immer Dropdown. User mit Events: immer Dropdown. User ohne Event: kein Dropdown (Button stattdessen).
+const showSwitcher = computed(() => isAdmin.value || (accessibleEvents.value?.length > 0));
 
 const search = ref('');
 const filteredEvents = computed(() => {
@@ -38,12 +45,12 @@ function switchEvent(eventId: number) {
 }
 
 const mainNavItems = computed<NavItem[]>(() => [
-    { title: t('nav.forms'),        href: '/dashboard',      icon: SquarePen },
-    { title: t('nav.guests'),       href: '/table',          icon: Users },
-    { title: t('nav.drinks'),       href: '/drinks',         icon: GlassWater },
-    { title: t('nav.drinkGame'),    href: '/drinks/game',    icon: Trophy },
-    { title: t('nav.invitations'),  href: '/invitations',    icon: QrCode },
-    { title: t('nav.photos'),       href: '/photos',         icon: Images },
+    { title: t('nav.forms'),         href: '/dashboard',      icon: SquarePen },
+    { title: t('nav.guests'),        href: '/table',          icon: Users },
+    { title: t('nav.drinks'),        href: '/drinks',         icon: GlassWater },
+    { title: t('nav.drinkGame'),     href: '/drinks/game',    icon: Trophy },
+    { title: t('nav.invitations'),   href: '/invitations',    icon: QrCode },
+    { title: t('nav.photos'),        href: '/photos',         icon: Images },
     { title: t('nav.eventSettings'), href: '/event/settings', icon: Settings2 },
 ]);
 
@@ -54,11 +61,7 @@ const adminNavItems = computed<NavItem[]>(() => [
 
 const eventOwnerNavItems = computed<NavItem[]>(() => [
     { title: t('nav.manageAccess'), href: '/event/access', icon: KeyRound },
-    { title: t('nav.requests'),  href: '/requests',  icon: Undo2 },
-]);
-
-const noEventNavItems = computed<NavItem[]>(() => [
-    { title: t('nav.requestEvent'), href: '/no-event', icon: CalendarPlus },
+    { title: t('nav.requests'),     href: '/requests',     icon: Undo2 },
 ]);
 </script>
 
@@ -75,10 +78,10 @@ const noEventNavItems = computed<NavItem[]>(() => [
                 </SidebarMenuItem>
             </SidebarMenu>
 
-            <!-- Event-Switcher als Dropdown -->
-            <SidebarMenu v-if="activeEvent">
+            <!-- Event-Dropdown (Admin immer, User wenn mind. 1 Event) -->
+            <SidebarMenu v-if="activeEvent && showSwitcher">
                 <SidebarMenuItem>
-                    <DropdownMenu v-if="showSwitcher">
+                    <DropdownMenu>
                         <DropdownMenuTrigger as-child>
                             <SidebarMenuButton class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
                                 <CalendarDays class="size-4 shrink-0" />
@@ -92,7 +95,6 @@ const noEventNavItems = computed<NavItem[]>(() => [
                             align="start"
                             :side-offset="4"
                         >
-                            <!-- Suchfeld (ab 5 Events sinnvoll, immer anzeigen schadet nicht) -->
                             <div class="px-2 py-1.5">
                                 <input
                                     v-model="search"
@@ -116,20 +118,37 @@ const noEventNavItems = computed<NavItem[]>(() => [
                             <p v-if="filteredEvents.length === 0" class="px-2 py-3 text-center text-xs text-muted-foreground">
                                 {{ t('event.notFound') }}
                             </p>
-                            <template v-if="isAdmin">
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem as-child>
-                                    <Link :href="route('onboarding')" class="flex cursor-pointer items-center">
-                                        <Plus class="mr-2 size-4" />
-                                        {{ t('event.newEvent') }}
-                                    </Link>
+
+                            <DropdownMenuSeparator />
+
+                            <!-- Admin: Event direkt erstellen -->
+                            <DropdownMenuItem v-if="isAdmin" as-child>
+                                <Link :href="route('onboarding')" class="flex cursor-pointer items-center">
+                                    <Plus class="mr-2 size-4" />
+                                    {{ t('event.newEvent') }}
+                                </Link>
+                            </DropdownMenuItem>
+
+                            <!-- User: Event beantragen oder Pending-Status -->
+                            <template v-else>
+                                <DropdownMenuItem v-if="!pendingRequest" @click="requestModalOpen = true" class="cursor-pointer">
+                                    <CalendarPlus class="mr-2 size-4" />
+                                    {{ t('nav.requestEvent') }}
                                 </DropdownMenuItem>
+                                <div v-else class="flex items-center gap-2 px-2 py-1.5 text-xs text-muted-foreground">
+                                    <Clock class="size-3.5 shrink-0 text-amber-500" />
+                                    <span class="truncate">{{ pendingRequest.event_name }} · {{ t('onboarding.pendingShort') }}</span>
+                                </div>
                             </template>
                         </DropdownMenuContent>
                     </DropdownMenu>
+                </SidebarMenuItem>
+            </SidebarMenu>
 
-                    <!-- Kein Switcher — nur Anzeige -->
-                    <div v-else class="flex items-center gap-2 px-2 py-1.5">
+            <!-- User ohne Event: nur Event-Name anzeigen (kein Dropdown) -->
+            <SidebarMenu v-else-if="activeEvent">
+                <SidebarMenuItem>
+                    <div class="flex items-center gap-2 px-2 py-1.5">
                         <span class="truncate text-sm text-sidebar-foreground/60">{{ activeEvent.name }}</span>
                     </div>
                 </SidebarMenuItem>
@@ -137,7 +156,19 @@ const noEventNavItems = computed<NavItem[]>(() => [
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain v-if="!activeEvent && !isAdmin" :items="noEventNavItems" />
+            <!-- User ohne Event: Button öffnet Modal -->
+            <SidebarGroup v-if="!activeEvent && !isAdmin" class="px-2 py-0">
+                <SidebarGroupLabel>{{ t('nav.platform') }}</SidebarGroupLabel>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton @click="requestModalOpen = true" :tooltip="t('nav.requestEvent')">
+                            <CalendarPlus class="pointer-events-none" />
+                            <span>{{ t('nav.requestEvent') }}</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarGroup>
+
             <NavMain v-if="activeEvent" :items="mainNavItems" />
             <NavMain v-if="activeEvent && isEventOwner" :items="eventOwnerNavItems" />
             <NavMain v-if="isAdmin" :items="adminNavItems" />
@@ -157,5 +188,7 @@ const noEventNavItems = computed<NavItem[]>(() => [
             <NavUser />
         </SidebarFooter>
     </Sidebar>
+
+    <RequestEventModal />
     <slot />
 </template>
