@@ -56,5 +56,10 @@ function handleCreate(query: string) {
         :close-on-select="true"
         no-options-text=""
         class="multiselect-custom"
-    />
+    >
+        <template #option="{ option }">
+            <span v-if="(option as any).__CREATE__" class="text-primary font-medium">{{ t('common.createItem', { name: option.label }) }}</span>
+            <span v-else>{{ option.label }}</span>
+        </template>
+    </Multiselect>
 </template>
