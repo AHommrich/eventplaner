@@ -21,6 +21,13 @@ const { t } = useI18n();
 
 const localOptions = ref<{ value: number; label: string }[]>([]);
 const searchQuery = ref('');
+const isOpen = ref(false);
+
+function onKeydown(event: KeyboardEvent) {
+    if (event.key === 'Escape' && isOpen.value) {
+        event.stopPropagation();
+    }
+}
 
 const value = computed({
     get: () => props.modelValue,
@@ -74,6 +81,9 @@ async function createDuplicate() {
         no-options-text=""
         class="multiselect-custom"
         @search-change="searchQuery = $event"
+        @open="isOpen = true"
+        @close="isOpen = false"
+        @keydown="onKeydown"
     >
         <template #singlelabel="{ value }">
             <div class="multiselect-single-label">

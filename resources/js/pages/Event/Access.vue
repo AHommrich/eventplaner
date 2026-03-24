@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { type BreadcrumbItem } from '@/types';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
+import { Trash2 } from 'lucide-vue-next';
 import { ref } from 'vue';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
@@ -74,7 +75,7 @@ function doRemove() { if (pendingUserId.value) router.delete(route('event.access
                                 <p class="text-sm font-medium">{{ member.name }}</p>
                                 <p class="text-xs text-muted-foreground">{{ member.email }}</p>
                             </div>
-                            <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="askRemove(member)">{{ t('common.remove') }}</Button>
+                            <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="askRemove(member)"><Trash2 class="h-4 w-4" /></Button>
                         </li>
                         <li v-if="members.length === 0" class="py-4 text-center text-sm text-muted-foreground">
                             {{ t('access.none') }}
