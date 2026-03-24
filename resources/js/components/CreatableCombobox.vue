@@ -58,10 +58,6 @@ async function handleCreate(option: { label: string }) {
     searchQuery.value = '';
     return false;
 }
-
-async function createDuplicate() {
-    await handleCreate({ label: searchQuery.value.trim() });
-}
 </script>
 
 <template>
@@ -72,7 +68,7 @@ async function createDuplicate() {
         label="label"
         track-by="label"
         :placeholder="placeholder ?? t('guest.groupSearchPlaceholder')"
-        :create-option="!hasExactMatch"
+        :create-option="true"
         :on-create="handleCreate"
         :searchable="true"
         :can-clear="true"
@@ -90,13 +86,10 @@ async function createDuplicate() {
                 {{ String((value as any).label).split(' · ')[0] }}
             </div>
         </template>
-        <template #afterlist>
-            <li v-if="hasExactMatch" class="multiselect-option" @mousedown.prevent="createDuplicate">
-                <span class="text-primary font-medium">{{ t('common.createItemAgain', { name: searchQuery.trim() }) }}</span>
-            </li>
-        </template>
         <template #option="{ option }">
-            <span v-if="(option as any).__CREATE__" class="text-primary font-medium">{{ t('common.createItem', { name: option.label }) }}</span>
+            <span v-if="(option as any).__CREATE__" class="text-primary font-medium">
+                {{ hasExactMatch ? t('common.createItemAgain', { name: option.label }) : t('common.createItem', { name: option.label }) }}
+            </span>
             <span v-else>{{ option.label }}</span>
         </template>
     </Multiselect>
