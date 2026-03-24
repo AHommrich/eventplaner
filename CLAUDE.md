@@ -153,8 +153,12 @@ Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
   - **Phone-Preview**: 4 simulierte App-Screens (Home, Zusage, Fotos, Einstellungen) — reagieren live auf alle Farb-/Font-Änderungen. Auf Mobile einklappbar.
   - **Dirty-Guard**: `router.on('before', ...)` zeigt `window.confirm()` bei ungespeicherten Änderungen. Floating Save Bar unten rechts wenn `isDirty`.
 - **Getränke-Tracking** — Gäste können Getränke loggen; Trinkspiel mit Rangliste + Punkte. Aktivierbar pro Event (`drink_game_enabled`), optionales Spielende-Datum.
+  - **Punkteberechnung** (`DrinkScoreService`): Alkoholisch: `round(Liter × % × 10)`. Shots (category `spirit`) erhalten `×SHOT_MULTIPLIER` (aktuell 2.0) wegen schnellerer Absorption. Alkoholfrei: Flat-Wert (`negative_points`, Wasser −5, Softdrinks −3). Binge-Penalty: ≥3 alkoholische Getränke hintereinander → 50% der Basispunkte.
+  - **Longdrink alcohol_percent**: realistisch ~7% (nicht 10%) — 4cl Spirit auf ~0,25l Mixer.
+- **Gästeliste** (`components/GuestTable.vue`) — kollabierbare Gruppenblöcke mit Chevron (collapsed by default), Suchfeld filtert Gäste und klappt Gruppen automatisch auf.
 - **RSVP-Verwaltung** — Zu-/Absage durch Gast oder Admin, Rücknahme-Anfragen mit Approve/Decline.
 - **App-Zugang pro Gast** — `app_access` + `drinks_access` togglebar pro Gast.
+- **CreatableCombobox / CreatableMultiCombobox** — ESC stoppt Propagation wenn Dropdown offen (verhindert Modal-Schließen). `:create-option` immer `true`, Text im `#option`-Slot zeigt „erneut anlegen?" wenn Duplikat.
 
 ---
 
