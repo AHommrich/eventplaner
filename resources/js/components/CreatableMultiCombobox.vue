@@ -19,6 +19,13 @@ const emit = defineEmits<{
 const { t } = useI18n();
 
 const localOptions = ref<{ value: number; label: string }[]>([]);
+const isOpen = ref(false);
+
+function onKeydown(event: KeyboardEvent) {
+    if (event.key === 'Escape' && isOpen.value) {
+        event.stopPropagation();
+    }
+}
 
 const value = computed({
     get: () => props.modelValue,
@@ -55,6 +62,9 @@ async function handleCreate(option: { label: string }) {
         no-options-text=""
         no-results-text=""
         class="multiselect-custom"
+        @open="isOpen = true"
+        @close="isOpen = false"
+        @keydown="onKeydown"
     >
         <template #option="{ option }">
             <span v-if="(option as any).__CREATE__" class="text-primary font-medium">{{ t('common.createItem', { name: option.label }) }}</span>
