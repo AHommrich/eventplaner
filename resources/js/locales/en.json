@@ -185,6 +185,7 @@
     "food": "Food",
     "foodSpecials": "Food specials",
     "noGroup": "No group",
+    "searchPlaceholder": "Search guest…",
     "addGuest": "Add guest",
     "groupSearchPlaceholder": "Search or create group…",
     "foodSpecialSearchPlaceholder": "Search or create food special…",

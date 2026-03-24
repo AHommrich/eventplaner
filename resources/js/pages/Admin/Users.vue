@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
+import { Trash2 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
@@ -97,7 +98,7 @@ function doRemove() {
                                         <p class="text-sm font-medium">{{ member.name }}</p>
                                         <p class="text-xs text-muted-foreground">{{ member.email }}</p>
                                     </div>
-                                    <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="askRemove(member)">{{ t('common.remove') }}</Button>
+                                    <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="askRemove(member)"><Trash2 class="h-4 w-4" /></Button>
                                 </li>
                                 <li v-if="event_access.members.length === 0" class="py-3 text-sm text-muted-foreground">
                                     {{ t('access.none') }}
@@ -150,7 +151,7 @@ function doRemove() {
                                 </td>
                                 <td class="px-6 py-3 text-muted-foreground text-xs">{{ new Date(user.created_at).toLocaleDateString('de-DE') }}</td>
                                 <td class="px-6 py-3 text-right">
-                                    <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="askDelete(user)">{{ t('common.delete') }}</Button>
+                                    <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="askDelete(user)"><Trash2 class="h-4 w-4" /></Button>
                                 </td>
                             </tr>
                         </tbody>
