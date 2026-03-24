@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Photo;
+use App\Models\PhotoAlbum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -15,18 +16,40 @@ class PhotoController extends Controller
     {
         $event = $this->activeEvent();
 
-        $photos = $event
-            ? $event->photos()->with('guest')->latest()->get()
-                ->map(fn($photo) => [
+        if (!$event) {
+            return Inertia::render('Photos/Index', [
+                'albums'       => [],
+                'projectorUrl' => null,
+                'projectorAlbumId' => null,
+            ]);
+        }
+
+        $albums = $event->photoAlbums()
+            ->with(['photos' => function ($q) {
+                $q->with('guest')->latest();
+            }])
+            ->get()
+            ->map(fn($album) => [
+                'id'         => $album->id,
+                'slug'       => $album->slug,
+                'name'       => $album->name,
+                'sort_order' => $album->sort_order,
+                'photos'     => $album->photos->map(fn($photo) => [
                     'id'         => $photo->id,
                     'url'        => $photo->url,
                     'guest_name' => $photo->guest?->firstname ?? $photo->uploaded_by ?? 'Admin',
                     'created_at' => $photo->created_at->format('d.m.Y H:i'),
-                ])
-            : collect();
+                ]),
+            ]);
+
+        $projectorUrl = $event->projector_token
+            ? route('projector.show', $event->projector_token)
+            : null;
 
         return Inertia::render('Photos/Index', [
-            'photos' => $photos,
+            'albums'           => $albums,
+            'projectorUrl'     => $projectorUrl,
+            'projectorAlbumId' => $event->projector_album_id,
         ]);
     }
 
@@ -35,7 +58,8 @@ class PhotoController extends Controller
         $event = $this->activeEvent();
 
         $request->validate([
-            'photo' => ['required', 'file', 'mimes:jpeg,jpg,png,heic,heif', 'max:10240'],
+            'photo'    => ['required', 'file', 'mimes:jpeg,jpg,png,heic,heif', 'max:10240'],
+            'album_id' => ['nullable', 'integer', 'exists:photo_albums,id'],
         ]);
 
         $file = $request->file('photo');
@@ -50,14 +74,22 @@ class PhotoController extends Controller
         }
 
         $path = 'photos/' . Str::uuid() . '.jpg';
-
         Storage::disk('s3')->put($path, $contents, 'public');
+
+        // Default: party album für Admin-Uploads
+        $albumId = $request->input('album_id');
+        if (!$albumId && $event) {
+            $partyAlbum = $event->photoAlbums()->where('slug', PhotoAlbum::PRESENTATION)->first();
+            $albumId = $partyAlbum?->id;
+        }
 
         Photo::create([
             'event_id'    => $event?->id,
+            'album_id'    => $albumId,
             'guest_id'    => null,
             'uploaded_by' => $request->user()->name,
             'url'         => Storage::disk('s3')->url($path),
+            'r2_key'      => $path,
         ]);
 
         return back();
@@ -65,9 +97,50 @@ class PhotoController extends Controller
 
     public function destroy(Photo $photo)
     {
-        $path = parse_url($photo->url, PHP_URL_PATH);
-        Storage::disk('s3')->delete(ltrim($path, '/'));
+        $key = $photo->r2_key ?? ltrim(parse_url($photo->url, PHP_URL_PATH), '/');
+        Storage::disk('s3')->delete($key);
         $photo->delete();
+
+        return back();
+    }
+
+    public function destroyBatch(Request $request)
+    {
+        $request->validate([
+            'ids'   => ['required', 'array'],
+            'ids.*' => ['integer', 'exists:photos,id'],
+        ]);
+
+        $event = $this->activeEvent();
+        $photos = Photo::whereIn('id', $request->input('ids'))
+            ->where('event_id', $event?->id)
+            ->get();
+
+        foreach ($photos as $photo) {
+            $key = $photo->r2_key ?? ltrim(parse_url($photo->url, PHP_URL_PATH), '/');
+            Storage::disk('s3')->delete($key);
+            $photo->delete();
+        }
+
+        return back();
+    }
+
+    public function updateProjectorAlbum(Request $request)
+    {
+        $request->validate([
+            'album_id' => ['required', 'integer', 'exists:photo_albums,id'],
+        ]);
+
+        $event = $this->activeEvent();
+        $event?->update(['projector_album_id' => $request->input('album_id')]);
+
+        return back();
+    }
+
+    public function regenerateProjectorToken()
+    {
+        $event = $this->activeEvent();
+        $event?->update(['projector_token' => Str::random(32)]);
 
         return back();
     }
