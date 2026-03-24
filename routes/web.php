@@ -16,8 +16,13 @@ use App\Http\Controllers\EventAccessController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\EventSettingsController;
 use App\Http\Controllers\RequestController;
+use App\Http\Controllers\ProjectorController;
 
 Route::get('/', function () { return Inertia::render('Welcome'); })->name('home');
+
+// Projektor — öffentlich, kein Login nötig
+Route::get('/projector/{token}', [ProjectorController::class, 'show'])->name('projector.show');
+Route::get('/projector/{token}/photos', [ProjectorController::class, 'photos'])->name('projector.photos');
 
 // Onboarding + Event-Management für eingeloggte User
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -39,6 +44,9 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::get('photos', [PhotoController::class, 'index'])->name('photos');
     Route::post('photos', [PhotoController::class, 'store'])->name('photos.store');
     Route::delete('photos/{photo}', [PhotoController::class, 'destroy'])->name('photos.destroy');
+    Route::delete('photos', [PhotoController::class, 'destroyBatch'])->name('photos.destroy-batch');
+    Route::patch('photos/projector-album', [PhotoController::class, 'updateProjectorAlbum'])->name('photos.projector-album');
+    Route::post('photos/projector-token/regenerate', [PhotoController::class, 'regenerateProjectorToken'])->name('photos.projector-token.regenerate');
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
     Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
     Route::delete('/groups/{group}', [GroupController::class, 'destroy'])->name('groups.destroy');

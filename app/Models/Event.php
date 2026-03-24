@@ -26,6 +26,8 @@ class Event extends Model
         'font_heading',
         'drink_game_enabled',
         'drink_game_end_time',
+        'projector_token',
+        'projector_album_id',
     ];
 
     protected $casts = [
@@ -67,6 +69,16 @@ class Event extends Model
     public function photos()
     {
         return $this->hasMany(Photo::class);
+    }
+
+    public function photoAlbums()
+    {
+        return $this->hasMany(PhotoAlbum::class)->orderBy('sort_order');
+    }
+
+    public function projectorAlbum()
+    {
+        return $this->belongsTo(PhotoAlbum::class, 'projector_album_id');
     }
 
     public function drinks()
