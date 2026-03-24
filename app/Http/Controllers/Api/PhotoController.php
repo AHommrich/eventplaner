@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Photo;
+use App\Models\PhotoAlbum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -34,10 +35,17 @@ class PhotoController extends Controller
 
         $url = Storage::disk('s3')->url($path);
 
+        // Gäste laden immer in app_gallery hoch
+        $album = PhotoAlbum::where('event_id', $guest->event_id)
+            ->where('slug', PhotoAlbum::APP_GALLERY)
+            ->first();
+
         $photo = Photo::create([
             'event_id' => $guest->event_id,
+            'album_id' => $album?->id,
             'guest_id' => $guest->id,
             'url'      => $url,
+            'r2_key'   => $path,
         ]);
 
         return response()->json([
@@ -52,16 +60,22 @@ class PhotoController extends Controller
     {
         $guest = $request->user();
 
-        $photos = Photo::with('guest')
-            ->where('event_id', $guest->event_id)
-            ->latest()
-            ->get()
-            ->map(fn($photo) => [
-                'id'         => $photo->id,
-                'url'        => $photo->url,
-                'guest_name' => $photo->guest?->firstname ?? $photo->uploaded_by ?? 'Admin',
-                'created_at' => $photo->created_at,
-            ]);
+        // Nur app_gallery für Gäste
+        $album = PhotoAlbum::where('event_id', $guest->event_id)
+            ->where('slug', PhotoAlbum::APP_GALLERY)
+            ->first();
+
+        $query = Photo::with('guest')->where('event_id', $guest->event_id);
+        if ($album) {
+            $query->where('album_id', $album->id);
+        }
+
+        $photos = $query->latest()->get()->map(fn($photo) => [
+            'id'         => $photo->id,
+            'url'        => $photo->url,
+            'guest_name' => $photo->guest?->firstname ?? $photo->uploaded_by ?? 'Admin',
+            'created_at' => $photo->created_at,
+        ]);
 
         return response()->json(['data' => $photos]);
     }
