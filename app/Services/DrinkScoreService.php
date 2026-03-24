@@ -14,9 +14,13 @@ class DrinkScoreService
     /** Cooldown in seconds between drink logs per guest. */
     public const COOLDOWN_SECONDS = 60;
 
+    /** Multiplikator für Shots (category = spirit) — Shots treffen schneller. */
+    public const SHOT_MULTIPLIER = 2.0;
+
     /**
      * Basispunkte für ein Getränk (ohne Streak-Penalty).
      * Alkoholisch: round((amount_liter * alcohol_percent) * 10)
+     *   → Shots (spirit) erhalten zusätzlich ×SHOT_MULTIPLIER
      * Alkoholfrei: negative_points (Flat-Wert)
      */
     public static function basePoints(DrinkCatalog $catalog): int
@@ -25,7 +29,13 @@ class DrinkScoreService
             return $catalog->negative_points ?? 0;
         }
 
-        return (int) round(($catalog->amount_liter * $catalog->alcohol_percent) * 10);
+        $points = ($catalog->amount_liter * $catalog->alcohol_percent) * 10;
+
+        if ($catalog->category === 'spirit') {
+            $points *= self::SHOT_MULTIPLIER;
+        }
+
+        return (int) round($points);
     }
 
     /**
