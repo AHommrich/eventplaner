@@ -184,6 +184,14 @@ class PhotoGameController extends Controller
         abort_if(!$event, 404);
         abort_if($assignment->game->event_id !== $event->id, 403);
 
+        if ($assignment->photo_id) {
+            $photo = $assignment->photo;
+            if ($photo) {
+                \Illuminate\Support\Facades\Storage::disk('s3')->delete($photo->r2_key);
+                $photo->delete();
+            }
+        }
+
         $assignment->delete();
 
         return redirect()->back()->with('success', 'Einreichung gelöscht.');

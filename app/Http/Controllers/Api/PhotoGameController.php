@@ -108,10 +108,6 @@ class PhotoGameController extends Controller
             return response()->json(['message' => 'Du hast noch keine Aufgabe erhalten.'], 422);
         }
 
-        if ($assignment->submitted_at) {
-            return response()->json(['message' => 'Du hast bereits ein Foto eingereicht.'], 409);
-        }
-
         // Foto hochladen (analog zu Api/PhotoController)
         $file = $request->file('photo');
         $mime = strtolower($file->getClientOriginalExtension());
@@ -127,6 +123,15 @@ class PhotoGameController extends Controller
         }
 
         $url = Storage::disk('s3')->url($path);
+
+        // Altes Foto löschen (Re-Submission)
+        if ($assignment->photo_id) {
+            $oldPhoto = $assignment->photo;
+            if ($oldPhoto) {
+                Storage::disk('s3')->delete($oldPhoto->r2_key);
+                $oldPhoto->delete();
+            }
+        }
 
         // Photo im photo_game Album speichern
         $album = PhotoAlbum::where('event_id', $guest->event_id)
