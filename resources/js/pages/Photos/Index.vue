@@ -235,11 +235,10 @@ function updateProjectorAlbum(albumId: string) {
                 <template v-else-if="activeTab === 'photo_game'">{{ t('photo.descPhotoGame') }}</template>
             </p>
 
-            <!-- Foto-Grid (inkl. photo_game Tab) -->
-            <template>
-                <p v-if="sortedPhotos.length === 0" class="text-sm text-muted-foreground">{{ t('photo.none') }}</p>
+            <!-- Foto-Grid -->
+            <p v-if="sortedPhotos.length === 0" class="text-sm text-muted-foreground">{{ t('photo.none') }}</p>
 
-                <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <div v-else class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                     <div
                         v-for="photo in sortedPhotos"
                         :key="photo.id"
@@ -263,7 +262,7 @@ function updateProjectorAlbum(albumId: string) {
                         </div>
                     </div>
                 </div>
-            </template>
+            </div>
 
         </div>
 
