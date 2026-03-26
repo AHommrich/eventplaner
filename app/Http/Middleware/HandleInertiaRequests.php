@@ -39,10 +39,11 @@ class HandleInertiaRequests extends Middleware
         $request->session()->put('active_event_id', $event->id);
 
         return [
-            'id'                 => $event->id,
-            'name'               => $event->name,
-            'user_id'            => $event->user_id,
-            'drink_game_enabled' => (bool) $event->drink_game_enabled,
+            'id'                  => $event->id,
+            'name'                => $event->name,
+            'user_id'             => $event->user_id,
+            'drink_game_enabled'  => (bool) $event->drink_game_enabled,
+            'photo_game_enabled'  => (bool) $event->photo_game_enabled,
         ];
     }
 
