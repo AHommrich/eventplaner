@@ -261,7 +261,6 @@ function updateProjectorAlbum(albumId: string) {
                             </svg>
                         </div>
                     </div>
-                </div>
             </div>
 
         </div>
