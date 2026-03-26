@@ -11,7 +11,8 @@
     "manageAccess": "Manage Access",
     "requests": "Requests",
     "eventSettings": "Event Settings",
-    "requestEvent": "Request event"
+    "requestEvent": "Request event",
+    "photoGame": "Photo Game"
   },
   "common": {
     "create": "Create",
@@ -32,7 +33,8 @@
     "no": "No",
     "createItem": "Create \"{name}\"",
     "createItemAgain": "Create \"{name}\" again?",
-    "noResults": "No results"
+    "noResults": "No results",
+    "edit": "Edit"
   },
   "dashboard": {
     "title": "Overview",
@@ -111,6 +113,8 @@
     "venueDisplayModeBoth": "Both",
     "drinkGameEnabled": "Enable drinking game",
     "drinkGameEnabledDesc": "Shows the drinking game tab in the app and on the web",
+    "photoGameEnabled": "Enable photo game",
+    "photoGameEnabledDesc": "Unlocks the photo game feature (nav entry + API)",
     "drinkGameEndTime": "Game end time",
     "drinkGameEndTimeDesc": "After this time, no more drinks can be logged.",
     "phonePreview": "Preview",
@@ -430,6 +434,52 @@
     "confirmTitle": "Confirm your password",
     "confirmDesc": "This is a secure area of the application. Please confirm your password before continuing.",
     "confirmBtn": "Confirm Password"
+  },
+  "photoGame": {
+    "title": "Photo Game",
+    "settings": "Game Settings",
+    "start": "Start game",
+    "end": "End game",
+    "started": "Game started",
+    "ended": "Game ended",
+    "catalog": "Task Catalog",
+    "catalogSaved": "Catalog saved",
+    "catalogHint": "★ = global catalog (preset for weddings)",
+    "catalogForked": "Template copied — you can now customize it",
+    "noCatalog": "No catalog",
+    "tasksInCatalog": "Tasks in catalog",
+    "globalReadOnly": "Global catalog — read only. Click \"Customize template\" to create your own copy.",
+    "forkCatalog": "Customize template",
+    "forkCatalogReplace": "Replace template",
+    "forkReplaceTitle": "Replace existing catalog?",
+    "forkReplaceDesc": "All tasks in your custom catalog will be replaced with the tasks from this template. This cannot be undone.",
+    "oneCatalogHint": "Only one custom catalog is allowed per event.",
+    "oneCatalogExists": "You already have a custom catalog. Open it below to edit tasks.",
+    "tasks": "Task Management",
+    "manageTasks": "Manage tasks",
+    "submissions": "Submissions",
+    "submissionDeleted": "Submission deleted",
+    "noSubmissions": "No submissions yet.",
+    "deleteSubmissionTitle": "Delete submission?",
+    "deleteSubmissionDesc": "The photo and assignment will be permanently deleted.",
+    "newCatalog": "New Catalog",
+    "catalogNamePlaceholder": "Catalog name",
+    "catalogCreated": "Catalog created",
+    "globalCatalog": "Global",
+    "tasksCount": "tasks",
+    "noTasks": "No tasks in this catalog.",
+    "taskPlaceholder": "Describe a new task…",
+    "taskCreated": "Task created",
+    "taskSaved": "Task saved",
+    "taskDeleted": "Task deleted",
+    "deleteTaskTitle": "Delete task?",
+    "deleteTaskDesc": "The task will be permanently deleted.",
+    "status": {
+      "label": "Status",
+      "draft": "Draft",
+      "active": "Active",
+      "ended": "Ended"
+    }
   },
   "pending": {
     "title": "Account pending approval",

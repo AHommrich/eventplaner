@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\DrinkLogController;
+use App\Http\Controllers\Api\PhotoGameController as ApiPhotoGameController;
 use App\Http\Controllers\Api\EventInfoController;
 use App\Http\Controllers\Api\GuestApiController;
 use App\Http\Controllers\Api\PhotoController;
@@ -41,6 +42,11 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureGuestHasAppAccess:
     Route::post('/guest/rsvp/revoke', [GuestApiController::class, 'revoke']);
     Route::post('/guest/rsvp', [GuestApiController::class, 'rsvp']);
     Route::post('/guest/{guestId}/rsvp', [GuestApiController::class, 'rsvpForMember']);
+
+    // Fotospiel
+    Route::get('/game/photo/status', [ApiPhotoGameController::class, 'status']);
+    Route::post('/game/photo/assign', [ApiPhotoGameController::class, 'assign']);
+    Route::post('/game/photo/submit', [ApiPhotoGameController::class, 'submit']);
 
     // Getränke-Tracking (drinks_access Sperre)
     Route::middleware(\App\Http\Middleware\EnsureGuestHasDrinksAccess::class)->group(function () {

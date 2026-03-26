@@ -55,6 +55,9 @@ interface EventData {
     role_fab: string | null;
     role_fab_icon: string | null;
     font_heading: string | null;
+    drink_game_enabled: boolean;
+    drink_game_end_time: string | null;
+    photo_game_enabled: boolean;
 }
 
 const props = defineProps<{ event: EventData }>();
@@ -96,6 +99,9 @@ const form = useForm({
     role_fab: props.event.role_fab ?? 'primary',
     role_fab_icon: props.event.role_fab_icon ?? 'tertiary',
     font_heading: props.event.font_heading ?? '',
+    drink_game_enabled: props.event.drink_game_enabled ?? false,
+    drink_game_end_time: props.event.drink_game_end_time ? props.event.drink_game_end_time.slice(0, 16) : '',
+    photo_game_enabled: props.event.photo_game_enabled ?? false,
     cover: null as File | null,
 });
 
@@ -1334,6 +1340,61 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <!-- Trinkspiel -->
+                        <Card>
+                            <CardContent>
+                                <div class="space-y-3 pt-4">
+                                    <div class="flex items-center justify-between gap-4">
+                                        <div>
+                                            <Label class="text-sm font-medium">{{ t('event.drinkGameEnabled') }}</Label>
+                                            <p class="text-xs text-muted-foreground">{{ t('event.drinkGameEnabledDesc') }}</p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            role="switch"
+                                            :aria-checked="form.drink_game_enabled"
+                                            @click="form.drink_game_enabled = !form.drink_game_enabled"
+                                            :class="['relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2', form.drink_game_enabled ? 'bg-primary' : 'bg-input']"
+                                        >
+                                            <span :class="['pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform', form.drink_game_enabled ? 'translate-x-5' : 'translate-x-0']" />
+                                        </button>
+                                    </div>
+                                    <div v-if="form.drink_game_enabled" class="grid gap-1.5">
+                                        <Label class="text-sm">{{ t('event.drinkGameEndTime') }}</Label>
+                                        <input
+                                            v-model="form.drink_game_end_time"
+                                            type="datetime-local"
+                                            class="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                                        />
+                                        <p class="text-xs text-muted-foreground">{{ t('event.drinkGameEndTimeDesc') }}</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <!-- Fotospiel -->
+                        <Card>
+                            <CardContent>
+                                <div class="space-y-3 pt-4">
+                                    <div class="flex items-center justify-between gap-4">
+                                        <div>
+                                            <Label class="text-sm font-medium">{{ t('event.photoGameEnabled') }}</Label>
+                                            <p class="text-xs text-muted-foreground">{{ t('event.photoGameEnabledDesc') }}</p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            role="switch"
+                                            :aria-checked="form.photo_game_enabled"
+                                            @click="form.photo_game_enabled = !form.photo_game_enabled"
+                                            :class="['relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2', form.photo_game_enabled ? 'bg-primary' : 'bg-input']"
+                                        >
+                                            <span :class="['pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform', form.photo_game_enabled ? 'translate-x-5' : 'translate-x-0']" />
+                                        </button>
                                     </div>
                                 </div>
                             </CardContent>

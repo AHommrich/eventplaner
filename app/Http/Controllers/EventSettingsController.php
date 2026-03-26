@@ -30,6 +30,9 @@ class EventSettingsController extends Controller
                 'role_card_button', 'role_card_button_text',
                 'role_tab_tint', 'role_border', 'role_fab', 'role_fab_icon',
                 'font_heading',
+                'drink_game_enabled',
+                'drink_game_end_time',
+                'photo_game_enabled',
             ]),
         ]);
     }
@@ -74,6 +77,9 @@ class EventSettingsController extends Controller
                 'playfair', 'cormorant', 'cinzel', 'dancing',
                 'great_vibes', 'raleway', 'lora', 'josefin',
             ])],
+            'drink_game_enabled'  => 'boolean',
+            'drink_game_end_time' => 'nullable|date',
+            'photo_game_enabled'  => 'boolean',
             'cover' => 'nullable|file|mimes:jpeg,jpg,png,heic,heif|max:10240',
         ]);
 
