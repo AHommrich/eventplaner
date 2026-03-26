@@ -11,7 +11,8 @@
     "manageAccess": "Zugang verwalten",
     "requests": "Anfragen",
     "eventSettings": "Event-Einstellungen",
-    "requestEvent": "Event beantragen"
+    "requestEvent": "Event beantragen",
+    "photoGame": "Fotospiel"
   },
   "common": {
     "create": "Erstellen",
@@ -32,7 +33,8 @@
     "no": "Nein",
     "createItem": "\"{name}\" anlegen",
     "createItemAgain": "\"{name}\" erneut anlegen?",
-    "noResults": "Keine Ergebnisse"
+    "noResults": "Keine Ergebnisse",
+    "edit": "Bearbeiten"
   },
   "dashboard": {
     "title": "Übersicht",
@@ -111,6 +113,8 @@
     "venueDisplayModeBoth": "Beides",
     "drinkGameEnabled": "Trinkspiel aktivieren",
     "drinkGameEnabledDesc": "Zeigt den Trinkspiel-Tab in der App und im Web an",
+    "photoGameEnabled": "Fotospiel aktivieren",
+    "photoGameEnabledDesc": "Schaltet das Fotospiel-Feature frei (Nav-Eintrag + API)",
     "drinkGameEndTime": "Spielende",
     "drinkGameEndTimeDesc": "Nach diesem Zeitpunkt können keine Getränke mehr eingetragen werden.",
     "phonePreview": "Vorschau",
@@ -430,6 +434,52 @@
     "confirmTitle": "Passwort bestätigen",
     "confirmDesc": "Dies ist ein gesicherter Bereich. Bitte Passwort eingeben um fortzufahren.",
     "confirmBtn": "Passwort bestätigen"
+  },
+  "photoGame": {
+    "title": "Fotospiel",
+    "settings": "Spieleinstellungen",
+    "start": "Spiel starten",
+    "end": "Spiel beenden",
+    "started": "Spiel gestartet",
+    "ended": "Spiel beendet",
+    "catalog": "Aufgaben-Katalog",
+    "catalogSaved": "Katalog gespeichert",
+    "catalogHint": "★ = globaler Katalog (voreingestellt für Hochzeiten)",
+    "catalogForked": "Vorlage kopiert — du kannst sie jetzt anpassen",
+    "noCatalog": "Kein Katalog",
+    "tasksInCatalog": "Aufgaben im Katalog",
+    "globalReadOnly": "Globaler Katalog — nur lesbar. Klicke \"Vorlage anpassen\" um eine eigene Kopie zu erstellen.",
+    "forkCatalog": "Vorlage anpassen",
+    "forkCatalogReplace": "Vorlage ersetzen",
+    "forkReplaceTitle": "Bestehenden Katalog ersetzen?",
+    "forkReplaceDesc": "Alle Aufgaben in deinem eigenen Katalog werden durch die Aufgaben dieser Vorlage ersetzt. Das kann nicht rückgängig gemacht werden.",
+    "oneCatalogHint": "Pro Event ist nur ein eigener Katalog möglich.",
+    "oneCatalogExists": "Du hast bereits einen eigenen Katalog. Öffne ihn unten um Aufgaben zu bearbeiten.",
+    "tasks": "Aufgaben-Verwaltung",
+    "manageTasks": "Aufgaben verwalten",
+    "submissions": "Einreichungen",
+    "submissionDeleted": "Einreichung gelöscht",
+    "noSubmissions": "Noch keine Einreichungen.",
+    "deleteSubmissionTitle": "Einreichung löschen?",
+    "deleteSubmissionDesc": "Das Foto und die Zuordnung werden dauerhaft gelöscht.",
+    "newCatalog": "Neuer Katalog",
+    "catalogNamePlaceholder": "Name des Katalogs",
+    "catalogCreated": "Katalog erstellt",
+    "globalCatalog": "Global",
+    "tasksCount": "Aufgaben",
+    "noTasks": "Keine Aufgaben in diesem Katalog.",
+    "taskPlaceholder": "Neue Aufgabe beschreiben…",
+    "taskCreated": "Aufgabe erstellt",
+    "taskSaved": "Aufgabe gespeichert",
+    "taskDeleted": "Aufgabe gelöscht",
+    "deleteTaskTitle": "Aufgabe löschen?",
+    "deleteTaskDesc": "Die Aufgabe wird dauerhaft gelöscht.",
+    "status": {
+      "label": "Status",
+      "draft": "Entwurf",
+      "active": "Aktiv",
+      "ended": "Beendet"
+    }
   },
   "pending": {
     "title": "Account wird geprüft",

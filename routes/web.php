@@ -17,6 +17,8 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\EventSettingsController;
 use App\Http\Controllers\RequestController;
 use App\Http\Controllers\ProjectorController;
+use App\Http\Controllers\PhotoGameController;
+use App\Http\Controllers\PhotoGameTaskController;
 
 Route::get('/', function () { return Inertia::render('Welcome'); })->name('home');
 
@@ -63,13 +65,25 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::post('/drinks/batch', [DrinkController::class, 'batch'])->name('drinks.batch');
     Route::delete('/drinks/{drink}', [DrinkController::class, 'destroy'])->name('drinks.destroy');
     Route::get('/drinks/game', [DrinkController::class, 'game'])->name('drinks.game');
-    Route::post('/drinks/game-settings', [DrinkController::class, 'updateGameSettings'])->name('drinks.game.settings');
 
     // Event-Einstellungen
     Route::get('/event/settings', [EventSettingsController::class, 'show'])->name('event.settings');
     Route::post('/event/settings', [EventSettingsController::class, 'update'])->name('event.settings.update');
     Route::post('/event/settings/cover', [EventSettingsController::class, 'uploadCover'])->name('event.settings.cover');
     Route::delete('/event/settings/cover', [EventSettingsController::class, 'deleteCover'])->name('event.settings.cover.delete');
+
+    // Fotospiel
+    Route::get('/photos/game', [PhotoGameController::class, 'index'])->name('photo-game.index');
+    Route::post('/photos/game/start', [PhotoGameController::class, 'start'])->name('photo-game.start');
+    Route::post('/photos/game/end', [PhotoGameController::class, 'end'])->name('photo-game.end');
+    Route::patch('/photos/game/catalog', [PhotoGameController::class, 'updateCatalog'])->name('photo-game.catalog');
+    Route::post('/photos/game/catalog/fork', [PhotoGameController::class, 'forkCatalog'])->name('photo-game.catalog.fork');
+    Route::delete('/photos/game/assignments/{assignment}', [PhotoGameController::class, 'destroyAssignment'])->name('photo-game.assignments.destroy');
+    Route::get('/photos/game/tasks', [PhotoGameTaskController::class, 'index'])->name('photo-game.tasks.index');
+    Route::post('/photos/game/catalogs', [PhotoGameTaskController::class, 'storeCatalog'])->name('photo-game.catalogs.store');
+    Route::post('/photos/game/tasks', [PhotoGameTaskController::class, 'storeTask'])->name('photo-game.tasks.store');
+    Route::patch('/photos/game/tasks/{task}', [PhotoGameTaskController::class, 'updateTask'])->name('photo-game.tasks.update');
+    Route::delete('/photos/game/tasks/{task}', [PhotoGameTaskController::class, 'destroyTask'])->name('photo-game.tasks.destroy');
 
     // Anfragen-Management
     Route::get('/requests', [RequestController::class, 'index'])->name('requests.index');

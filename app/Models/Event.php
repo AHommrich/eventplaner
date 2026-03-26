@@ -26,6 +26,7 @@ class Event extends Model
         'font_heading',
         'drink_game_enabled',
         'drink_game_end_time',
+        'photo_game_enabled',
         'projector_token',
         'projector_album_id',
     ];
@@ -33,6 +34,7 @@ class Event extends Model
     protected $casts = [
         'drink_game_enabled'   => 'boolean',
         'drink_game_end_time'  => 'datetime',
+        'photo_game_enabled'   => 'boolean',
         'venue_lat'            => 'float',
         'venue_lng'            => 'float',
     ];
@@ -84,5 +86,10 @@ class Event extends Model
     public function drinks()
     {
         return $this->hasMany(Drink::class);
+    }
+
+    public function photoGame()
+    {
+        return $this->hasOne(EventPhotoGame::class);
     }
 }

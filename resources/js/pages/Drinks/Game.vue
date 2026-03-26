@@ -1,13 +1,9 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { type BreadcrumbItem } from '@/types';
-import { Head, useForm, usePage } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -40,59 +36,12 @@ function formatSize(liter: number): string {
 const eventTotals  = computed(() => page.props.event_totals as { drink_id: number; display_name: string; points_each: number; total: number; points_total: number }[]);
 const leaderboard  = computed(() => page.props.leaderboard as { drink_id: number; display_name: string; points_each: number; top: { guest_id: number; firstname: string; lastname: string; count: number; points_total: number }[] }[]);
 const guestTotals  = computed(() => page.props.guest_totals as { guest_id: number; firstname: string; lastname: string; total: number; points_total: number }[]);
-
-const gameForm = useForm({
-    drink_game_enabled:  (page.props.drink_game_enabled as boolean) ?? false,
-    drink_game_end_time: (page.props.drink_game_end_time as string | null) ?? '',
-});
-
-function saveGameSettings() {
-    gameForm.post(route('drinks.game.settings'), {
-        onSuccess: () => toast.success(t('toast.gameSettingsSaved')),
-    });
-}
 </script>
 
 <template>
     <Head :title="t('game.title')" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="m-4 space-y-4">
-
-            <!-- Spieleinstellungen -->
-            <Card>
-                <CardHeader>
-                    <CardTitle>{{ t('game.settings') }}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <form @submit.prevent="saveGameSettings" class="space-y-4">
-                        <div class="flex items-center justify-between rounded-lg border p-3">
-                            <div>
-                                <p class="text-sm font-medium">{{ t('event.drinkGameEnabled') }}</p>
-                                <p class="text-xs text-muted-foreground">{{ t('event.drinkGameEnabledDesc') }}</p>
-                            </div>
-                            <button
-                                type="button"
-                                role="switch"
-                                :aria-checked="gameForm.drink_game_enabled"
-                                @click="gameForm.drink_game_enabled = !gameForm.drink_game_enabled"
-                                :class="['relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2', gameForm.drink_game_enabled ? 'bg-primary' : 'bg-input']"
-                            >
-                                <span :class="['pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform', gameForm.drink_game_enabled ? 'translate-x-5' : 'translate-x-0']" />
-                            </button>
-                        </div>
-
-                        <div v-if="gameForm.drink_game_enabled" class="grid gap-1.5">
-                            <Label class="text-sm">{{ t('event.drinkGameEndTime') }}</Label>
-                            <Input v-model="gameForm.drink_game_end_time" type="datetime-local" />
-                            <p class="text-xs text-muted-foreground">{{ t('event.drinkGameEndTimeDesc') }}</p>
-                        </div>
-
-                        <Button type="submit" :disabled="gameForm.processing">
-                            {{ t('common.save') }}
-                        </Button>
-                    </form>
-                </CardContent>
-            </Card>
 
             <!-- Verfügbare Getränke mit Punkten -->
             <Card>
