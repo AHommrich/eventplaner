@@ -86,6 +86,7 @@ class EventInfoController extends Controller
             'venue_display_mode'     => $event->venue_display_mode ?? 'both',
             'drink_game_enabled'     => (bool) $event->drink_game_enabled,
             'drink_game_end_time'    => $event->drink_game_end_time ? Carbon::parse($event->drink_game_end_time)->toIso8601String() : null,
+            'photo_game_enabled'     => (bool) $event->photo_game_enabled,
         ]);
     }
 }

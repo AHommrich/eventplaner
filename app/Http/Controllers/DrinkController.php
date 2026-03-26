@@ -192,23 +192,7 @@ class DrinkController extends Controller
             'event_totals'        => $eventTotals,
             'leaderboard'         => $leaderboard,
             'guest_totals'        => $guestTotals,
-            'drink_game_enabled'  => (bool) $event?->drink_game_enabled,
-            'drink_game_end_time' => $event?->drink_game_end_time?->format('Y-m-d\TH:i'),
         ]);
     }
 
-    public function updateGameSettings(\Illuminate\Http\Request $request)
-    {
-        $event = $this->activeEvent();
-        abort_if(!$event, 404);
-
-        $data = $request->validate([
-            'drink_game_enabled'  => 'boolean',
-            'drink_game_end_time' => 'nullable|date',
-        ]);
-
-        $event->update($data);
-
-        return redirect()->route('drinks.game')->with('success', 'Spieleinstellungen gespeichert.');
-    }
 }
