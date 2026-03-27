@@ -37,7 +37,9 @@ class PhotoController extends Controller
                 'photos'     => $album->photos->map(fn($photo) => [
                     'id'          => $photo->id,
                     'url'         => $photo->url,
-                    'guest_name'  => $photo->guest?->firstname ?? $photo->uploaded_by ?? 'Admin',
+                    'guest_name'  => $photo->guest
+                        ? trim(($photo->guest->firstname ?? '') . ' ' . ($photo->guest->lastname ?? ''))
+                        : ($photo->uploaded_by ?? 'Admin'),
                     'description' => $photo->description,
                     'created_at'  => $photo->created_at->format('d.m.Y H:i'),
                 ]),
