@@ -13,8 +13,10 @@ class ProjectorController extends Controller
 
         $album = $event->projectorAlbum;
 
+        $nameMode = $event->projector_name_mode ?? 'first';
+
         $photos = $album
-            ? $this->buildProjectorPhotos($album)
+            ? $this->buildProjectorPhotos($album, $nameMode)
             : collect();
 
         return Inertia::render('Projector/Show', [
@@ -30,14 +32,16 @@ class ProjectorController extends Controller
 
         $album = $event->projectorAlbum;
 
+        $nameMode = $event->projector_name_mode ?? 'first';
+
         $photos = $album
-            ? $this->buildProjectorPhotos($album)
+            ? $this->buildProjectorPhotos($album, $nameMode)
             : collect();
 
         return response()->json(['data' => $photos]);
     }
 
-    private function buildProjectorPhotos($album): \Illuminate\Support\Collection
+    private function buildProjectorPhotos($album, string $nameMode = 'first'): \Illuminate\Support\Collection
     {
         $query = $album->photos()->latest();
 
@@ -47,11 +51,9 @@ class ProjectorController extends Controller
             $query->with(['gameAssignment.task', 'gameAssignment.override']);
         }
 
-        return $query->get()->map(function ($photo) use ($album) {
+        return $query->get()->map(function ($photo) use ($album, $nameMode) {
             $label = match ($album->slug) {
-                'app_gallery' => $photo->guest
-                    ? trim(($photo->guest->firstname ?? '') . ' ' . ($photo->guest->lastname ?? ''))
-                    : ($photo->uploaded_by ?? null),
+                'app_gallery' => $this->resolveGuestName($photo, $nameMode),
                 'presentation' => $photo->description ?: null,
                 'photo_game'   => $photo->gameAssignment?->override?->custom_text
                     ?? $photo->gameAssignment?->task?->description
@@ -65,5 +67,18 @@ class ProjectorController extends Controller
                 'label' => $label ?: null,
             ];
         });
+    }
+
+    private function resolveGuestName($photo, string $nameMode): ?string
+    {
+        if ($nameMode === 'none') return null;
+
+        if ($photo->guest) {
+            return $nameMode === 'first'
+                ? ($photo->guest->firstname ?? null)
+                : trim(($photo->guest->firstname ?? '') . ' ' . ($photo->guest->lastname ?? ''));
+        }
+
+        return $nameMode !== 'none' ? ($photo->uploaded_by ?? null) : null;
     }
 }
