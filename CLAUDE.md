@@ -48,7 +48,7 @@ Coolify deployt automatisch nach Push. Migrations laufen automatisch.
 
 ## Datenmodelle
 
-- **Event** — user_id (Owner), name, slug, date, rsvp_deadline, cover_image_url, cover_image_r2_key, venue_name, venue_street, venue_house_number, venue_postal_code, venue_city, venue_state, venue_country, venue_display_mode (`'both'|'name'|'address'`), venue_lat, venue_lng, dresscode, schedule, font_heading, drink_game_enabled, drink_game_end_time
+- **Event** — user_id (Owner), name, slug, date, rsvp_deadline, cover_image_url, cover_image_r2_key, venue_name, venue_street, venue_house_number, venue_postal_code, venue_city, venue_state, venue_country, venue_display_mode (`'both'|'name'|'address'`), venue_lat, venue_lng, dresscode, schedule, font_heading, drink_game_enabled, drink_game_end_time, photo_game_enabled, projector_token, projector_album_id, projector_name_mode (`'first'|'full'|'none'`, default `'first'`)
   - Legacy-Feld `venue_address` bleibt in DB (Fallback in EventInfoController)
 - **Event Farbsystem** — 3 Palette-Felder (`color_primary`, `color_secondary`, `color_tertiary`) + 9 Rollen-Felder die Keys `'primary'|'secondary'|'tertiary'` speichern: `role_screen_bg`, `role_card_bg`, `role_card_text`, `role_card_button`, `role_card_button_text`, `role_tab_tint`, `role_border`, `role_fab`, `role_fab_icon`. Dazu `color_home_text`, `color_home_shadow`, `home_shadow_opacity` (Cover-Overlay, nur relevant wenn Cover gesetzt).
 - **User** — role: `admin` (Superadmin = André) oder null (Event-Owner)
@@ -56,9 +56,15 @@ Coolify deployt automatisch nach Push. Migrations laufen automatisch.
 - **Group** — event_id (früher Family)
 - **Category** — (früher Badge)
 - **InvitationToken** — group_id oder guest_id, token (32-char random)
-- **Photo** — event_id, r2_key, url
+- **Photo** — event_id, album_id, guest_id, uploaded_by, uploader_user_id (FK users, nullable), url, r2_key, description (nullable, für Präsentationsfotos)
+- **PhotoAlbum** — event_id, slug (`app_gallery`|`presentation`|`photo_game`), name, sort_order
 - **FoodSpecial**, **GuestDrink** — Pivot-Tabellen
 - **Drink** — event_id, name (Getränke-Katalog pro Event)
+- **EventPhotoGame** — event_id, status (`draft`|`active`|`ended`), catalog_id (FK → Typ-Katalog, nullable)
+- **PhotoGameTaskCatalog** — event_id (null = global), name, is_base (bool), event_type (nullable: `'hochzeit'`|`'geburtstag'`). Global-Kataloge: 1× is_base=true (Allgemein, immer aktiv), n× is_base=false mit event_type (optionaler Typ-Zusatz)
+- **PhotoGameTask** — catalog_id, description, is_active
+- **EventTaskOverride** — event_id, task_id (nullable), action (`hidden`|`modified`|`added`), custom_text
+- **PhotoGameAssignment** — game_id, guest_id, task_id (nullable), override_id (nullable → EventTaskOverride), photo_id (nullable), submitted_at
 
 ---
 
@@ -92,6 +98,9 @@ Middleware-Aliase: `admin` = EnsureUserIsAdmin, `has_event` = EnsureHasEventAcce
 | `/api/photos` | GET | Alle Fotos des Events laden |
 | `/api/photos` | POST | Foto hochladen (multipart/form-data, HEIC→JPEG Konvertierung) |
 | `/api/event/info` | GET | Event-Infos inkl. aufgelöste Hex-Farben (Palette + Rollen) |
+| `/api/photo-game/status` | GET | Aktueller Spielstatus + offene Aufgabe des Gastes |
+| `/api/photo-game/assign` | POST | Neue Aufgabe zuweisen (Pool: Basis + Typ-Katalog + Overrides) |
+| `/api/photo-game/submit` | POST | Foto zur Aufgabe einreichen (multipart/form-data) |
 
 Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
 
@@ -159,6 +168,35 @@ Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
 - **RSVP-Verwaltung** — Zu-/Absage durch Gast oder Admin, Rücknahme-Anfragen mit Approve/Decline.
 - **App-Zugang pro Gast** — `app_access` + `drinks_access` togglebar pro Gast.
 - **CreatableCombobox / CreatableMultiCombobox** — ESC stoppt Propagation wenn Dropdown offen (verhindert Modal-Schließen). `:create-option` immer `true`, Text im `#option`-Slot zeigt „erneut anlegen?" wenn Duplikat.
+- **Foto-System** (`pages/Photos/Index.vue`) — 3 Alben: App-Galerie, Präsentation, Fotospiel. Tab-basierte Ansicht mit Grid, Einzel- und Batch-Löschen, Viewer-Dialog.
+  - Upload für Präsentation-Album zeigt optionalen Beschreibungs-Dialog (wird in Diashow angezeigt).
+  - App-Galerie zeigt vollständigen Gastnamen; Veranstalter-Uploads ohne Badge, Mitveranstalter mit "(Mitveranstalter)".
+- **Diashow / Projektor** (`pages/Projector/Show.vue`) — Vollbild-Diashow mit Crossfade (5s), Auto-Poll alle 10s für neue Fotos. Kontextuelles Label-Overlay:
+  - App-Galerie: Gastname (konfigurierbar: Nur Vorname / Vollname / Kein Name via `projector_name_mode`)
+  - Präsentation: Beschreibung (wenn gesetzt)
+  - Fotospiel: Aufgabentext des Assignments
+  - Einstellung im Foto-Tab sichtbar wenn App-Galerie aktiv.
+- **Fotospiel** (`pages/PhotoGame/Index.vue`) — Delta-Modell: globale Task-Kataloge (Allgemein immer aktiv + optionaler Typ-Katalog), pro Event nur Overrides gespeichert.
+  - Admin kann Tasks ausblenden, anpassen (modified) oder eigene hinzufügen (added).
+  - Gäste bekommen via API on-the-fly eine Aufgabe aus dem Pool zugewiesen.
+  - Einreichungen als Foto-Grid mit Viewer + Löschfunktion.
+
+---
+
+## Fotospiel — Delta-Modell (wichtig)
+
+- **Globale Kataloge** (`photo_game_task_catalogs` mit `event_id=null`):
+  - 1× `is_base=true` (Allgemein, 15 Tasks) — immer im Pool
+  - n× `is_base=false` mit `event_type` (`hochzeit` 9 Tasks, `geburtstag` 8 Tasks) — optional wählbar
+- **Event-Typ wählen**: `event_photo_games.catalog_id` zeigt auf den gewählten Typ-Katalog
+- **Overrides** (`event_task_overrides`): `hidden` | `modified` | `added`. `added` hat `task_id=null`.
+- **Pool-Aufbau** (in `PhotoGameController::buildTaskPool()` und `Api/PhotoGameController::buildAssignPool()`):
+  1. Base-Tasks laden
+  2. Typ-Tasks anhängen (wenn catalog_id gesetzt)
+  3. Overrides anwenden: hidden überschreibt state, modified ersetzt description, added wird hinzugefügt
+- **Assignment**: speichert `task_id` ODER `override_id` (für `added` Tasks). `resolveTaskDescription()` prüft modified-Override zuerst.
+- **Re-Submission erlaubt**: Gäste können ein neues Foto für dieselbe Aufgabe einreichen (kein 409 mehr).
+- **S3-Cleanup**: Beim Löschen eines Assignments wird das R2-Foto mitgelöscht.
 
 ---
 
@@ -172,3 +210,4 @@ Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
 - **HEIC-Upload**: Wird clientseitig via `heic2any` zu JPEG konvertiert (Settings.vue Cover-Upload) und serverseitig via Imagick (API Photo-Upload).
 - **`npm run build` lokal schlägt fehl** (esbuild macOS vs. Linux Docker) — ist ein bekanntes Pre-existing Issue, kein Fehler in unserem Code. TypeScript-Check mit `npx tsc --noEmit` als Ersatz.
 - **Reka UI SidebarGroupLabel**: Im collapsed mode wird der Label mit `-mt-8 opacity-0` versteckt, belegt aber weiterhin Platz und blockiert pointer-events. Daher `group-data-[collapsible=icon]:pointer-events-none` auf dem Label — fehlt das, ist das letzte Item der vorherigen NavMain-Gruppe nicht vollständig klickbar.
+- **Vite HMR im Docker**: Dateiänderungen auf dem Host werden vom Vite-Container manchmal nicht erkannt. Fix: `docker restart eventplaner-vite-1`.
