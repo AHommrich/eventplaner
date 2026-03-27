@@ -69,7 +69,7 @@ class ProjectorController extends Controller
         });
     }
 
-    private function resolveGuestName($photo, string $nameMode): ?string
+    private function resolveGuestName($photo, string $nameMode, ?int $ownerId = null): ?string
     {
         if ($nameMode === 'none') return null;
 
