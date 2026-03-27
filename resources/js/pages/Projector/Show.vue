@@ -88,11 +88,6 @@ onUnmounted(() => {
             </div>
         </Transition>
 
-        <!-- Event-Name unten -->
-        <div class="absolute bottom-6 left-0 right-0 text-center pointer-events-none">
-            <span class="text-white/30 text-sm tracking-widest uppercase select-none">{{ event.name }}</span>
-        </div>
-
         <!-- Foto-Counter -->
         <div v-if="allPhotos.length > 0" class="absolute top-4 right-6 text-white/30 text-xs select-none">
             {{ currentIndex + 1 }} / {{ allPhotos.length }}

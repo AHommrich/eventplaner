@@ -305,7 +305,12 @@
     "projectorTokenRegenerated": "Projector token renewed — new URL active",
     "uploadDescription": "Description (optional)",
     "uploadDescriptionPlaceholder": "e.g. where the photo was taken…",
-    "uploadDescriptionHint": "Shown in the slideshow below the photo"
+    "uploadDescriptionHint": "Shown in the slideshow below the photo",
+    "projectorNameMode": "Guest name (App Gallery)",
+    "projectorNameFirst": "First name only",
+    "projectorNameFull": "Full name",
+    "projectorNameNone": "No name",
+    "projectorNameModeHint": "Applies to app gallery photos only"
   },
   "invitation": {
     "title": "Invitations",
