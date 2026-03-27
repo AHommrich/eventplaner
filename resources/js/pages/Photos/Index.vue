@@ -13,7 +13,7 @@ interface Photo {
     id: number;
     url: string;
     guest_name: string | null;
-    is_organizer: boolean;
+    organizer_role: 'owner' | 'co_organizer' | null;
     description: string | null;
     created_at: string;
 }
@@ -303,7 +303,7 @@ function updateProjectorNameMode(mode: string) {
                             <div class="font-medium truncate">
                                 <template v-if="activeTab === 'presentation' && photo.description">{{ photo.description }}</template>
                                 <template v-else-if="photo.guest_name">
-                                    {{ photo.guest_name }}<template v-if="photo.is_organizer"> ({{ t('photo.organizer') }})</template>
+                                    {{ photo.guest_name }}<template v-if="photo.organizer_role === 'owner'"> ({{ t('photo.organizer') }})</template><template v-else-if="photo.organizer_role === 'co_organizer'"> ({{ t('photo.coOrganizer') }})</template>
                                 </template>
                                 <template v-else>{{ t('photo.uploadedByOrganizer') }}</template>
                             </div>
@@ -328,7 +328,7 @@ function updateProjectorNameMode(mode: string) {
             <DialogContent class="max-w-2xl p-0 overflow-hidden">
                 <DialogHeader class="px-4 py-3 border-b">
                     <DialogTitle>
-                        {{ selected?.guest_name ?? t('photo.uploadedByOrganizer') }}<template v-if="selected?.is_organizer"> ({{ t('photo.organizer') }})</template>
+                        {{ selected?.guest_name ?? t('photo.uploadedByOrganizer') }}<template v-if="selected?.organizer_role === 'owner'"> ({{ t('photo.organizer') }})</template><template v-else-if="selected?.organizer_role === 'co_organizer'"> ({{ t('photo.coOrganizer') }})</template>
                     </DialogTitle>
                     <p v-if="selected?.description" class="text-sm font-normal">{{ selected.description }}</p>
                     <p class="text-sm text-muted-foreground">{{ selected?.created_at }}</p>
