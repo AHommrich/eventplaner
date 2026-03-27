@@ -42,9 +42,11 @@ class PhotoController extends Controller
                     'guest_name'   => $photo->guest
                         ? trim(($photo->guest->firstname ?? '') . ' ' . ($photo->guest->lastname ?? ''))
                         : ($photo->uploaded_by ?? null),
-                    'is_organizer' => $photo->guest === null
-                        && $photo->uploader_user_id !== null
-                        && $photo->uploader_user_id !== $ownerId,
+                    'organizer_role' => $photo->guest === null && $photo->uploaded_by !== null
+                        ? ($photo->uploader_user_id !== null && $photo->uploader_user_id !== $ownerId
+                            ? 'co_organizer'
+                            : 'owner')
+                        : null,
                     'description'  => $photo->description,
                     'created_at'   => $photo->created_at->format('d.m.Y H:i'),
                 ]),
