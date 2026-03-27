@@ -48,9 +48,10 @@ class PhotoController extends Controller
             : null;
 
         return Inertia::render('Photos/Index', [
-            'albums'           => $albums,
-            'projectorUrl'     => $projectorUrl,
-            'projectorAlbumId' => $event->projector_album_id,
+            'albums'              => $albums,
+            'projectorUrl'        => $projectorUrl,
+            'projectorAlbumId'    => $event->projector_album_id,
+            'projectorNameMode'   => $event->projector_name_mode ?? 'first',
         ]);
     }
 
@@ -136,6 +137,18 @@ class PhotoController extends Controller
 
         $event = $this->activeEvent();
         $event?->update(['projector_album_id' => $request->input('album_id')]);
+
+        return back();
+    }
+
+    public function updateProjectorNameMode(Request $request)
+    {
+        $request->validate([
+            'name_mode' => ['required', 'in:full,first,none'],
+        ]);
+
+        $event = $this->activeEvent();
+        $event?->update(['projector_name_mode' => $request->input('name_mode')]);
 
         return back();
     }

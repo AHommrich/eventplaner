@@ -29,6 +29,7 @@ const props = defineProps<{
     albums: Album[];
     projectorUrl: string | null;
     projectorAlbumId: number | null;
+    projectorNameMode: 'full' | 'first' | 'none';
 }>();
 
 const { t } = useI18n();
@@ -164,6 +165,7 @@ function doBatchDelete() {
 
 // --- Projektor ---
 const projectorAlbumId = ref<string>(String(props.projectorAlbumId ?? ''));
+const projectorNameMode = ref<string>(props.projectorNameMode ?? 'first');
 
 function copyProjectorUrl() {
     if (props.projectorUrl) {
@@ -177,6 +179,11 @@ function updateProjectorAlbum(albumId: string) {
     router.patch(route('photos.projector-album'), { album_id: Number(albumId) }, {
         onSuccess: () => toast.success(t('photo.projectorAlbumSaved')),
     });
+}
+
+function updateProjectorNameMode(mode: string) {
+    projectorNameMode.value = mode;
+    router.patch(route('photos.projector-name-mode'), { name_mode: mode });
 }
 
 
@@ -211,6 +218,20 @@ function updateProjectorAlbum(albumId: string) {
                             {{ album.name }}
                         </option>
                     </select>
+                </div>
+
+                <div class="flex gap-3 items-center flex-wrap">
+                    <span class="text-sm text-muted-foreground">{{ t('photo.projectorNameMode') }}:</span>
+                    <select
+                        :value="projectorNameMode"
+                        class="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                        @change="updateProjectorNameMode(($event.target as HTMLSelectElement).value)"
+                    >
+                        <option value="first">{{ t('photo.projectorNameFirst') }}</option>
+                        <option value="full">{{ t('photo.projectorNameFull') }}</option>
+                        <option value="none">{{ t('photo.projectorNameNone') }}</option>
+                    </select>
+                    <span class="text-xs text-muted-foreground">{{ t('photo.projectorNameModeHint') }}</span>
                 </div>
             </div>
 

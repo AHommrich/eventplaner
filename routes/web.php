@@ -47,6 +47,7 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::delete('photos/{photo}', [PhotoController::class, 'destroy'])->name('photos.destroy');
     Route::delete('photos', [PhotoController::class, 'destroyBatch'])->name('photos.destroy-batch');
     Route::patch('photos/projector-album', [PhotoController::class, 'updateProjectorAlbum'])->name('photos.projector-album');
+    Route::patch('photos/projector-name-mode', [PhotoController::class, 'updateProjectorNameMode'])->name('photos.projector-name-mode');
     Route::post('photos/projector-token/regenerate', [PhotoController::class, 'regenerateProjectorToken'])->name('photos.projector-token.regenerate');
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
     Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
