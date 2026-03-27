@@ -14,10 +14,7 @@ class ProjectorController extends Controller
         $album = $event->projectorAlbum;
 
         $photos = $album
-            ? $album->photos()->with('guest')->latest()->get()->map(fn($photo) => [
-                'id'  => $photo->id,
-                'url' => $photo->url,
-            ])
+            ? $this->buildProjectorPhotos($album)
             : collect();
 
         return Inertia::render('Projector/Show', [
@@ -34,12 +31,39 @@ class ProjectorController extends Controller
         $album = $event->projectorAlbum;
 
         $photos = $album
-            ? $album->photos()->latest()->get()->map(fn($photo) => [
-                'id'  => $photo->id,
-                'url' => $photo->url,
-            ])
+            ? $this->buildProjectorPhotos($album)
             : collect();
 
         return response()->json(['data' => $photos]);
+    }
+
+    private function buildProjectorPhotos($album): \Illuminate\Support\Collection
+    {
+        $query = $album->photos()->latest();
+
+        if ($album->slug === 'app_gallery') {
+            $query->with('guest');
+        } elseif ($album->slug === 'photo_game') {
+            $query->with(['gameAssignment.task', 'gameAssignment.override']);
+        }
+
+        return $query->get()->map(function ($photo) use ($album) {
+            $label = match ($album->slug) {
+                'app_gallery' => $photo->guest
+                    ? trim(($photo->guest->firstname ?? '') . ' ' . ($photo->guest->lastname ?? ''))
+                    : ($photo->uploaded_by ?? null),
+                'presentation' => $photo->description ?: null,
+                'photo_game'   => $photo->gameAssignment?->override?->custom_text
+                    ?? $photo->gameAssignment?->task?->description
+                    ?? null,
+                default => null,
+            };
+
+            return [
+                'id'    => $photo->id,
+                'url'   => $photo->url,
+                'label' => $label ?: null,
+            ];
+        });
     }
 }
