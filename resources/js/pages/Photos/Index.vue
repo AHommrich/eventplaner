@@ -183,7 +183,9 @@ function updateProjectorAlbum(albumId: string) {
 
 function updateProjectorNameMode(mode: string) {
     projectorNameMode.value = mode;
-    router.patch(route('photos.projector-name-mode'), { name_mode: mode });
+    router.patch(route('photos.projector-name-mode'), { name_mode: mode }, {
+        onSuccess: () => toast.success(t('photo.projectorAlbumSaved')),
+    });
 }
 
 
