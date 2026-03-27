@@ -304,7 +304,7 @@
     "projectorRegenerateDescription": "Die alte Projektor-URL wird ungültig. Du erhältst eine neue URL.",
     "projectorTokenRegenerated": "Projektor-Token erneuert — neue URL aktiv",
     "uploadedByOrganizer": "Vom Veranstalter",
-    "organizer": "Veranstalter",
+    "organizer": "Mitveranstalter",
     "uploadDescription": "Beschreibung (optional)",
     "uploadDescriptionPlaceholder": "z.B. wo das Foto aufgenommen wurde…",
     "uploadDescriptionHint": "Wird bei der Diashow unter dem Bild angezeigt",
