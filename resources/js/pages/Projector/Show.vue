@@ -3,7 +3,7 @@ import { Head } from '@inertiajs/vue3';
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import axios from 'axios';
 
-interface ProjectorPhoto { id: number; url: string; }
+interface ProjectorPhoto { id: number; url: string; label: string | null; }
 
 const props = defineProps<{
     event: { name: string };
@@ -75,10 +75,18 @@ onUnmounted(() => {
             Noch keine Fotos vorhanden
         </div>
 
-        <!-- Event-Name unten -->
-        <div class="absolute bottom-6 left-0 right-0 text-center pointer-events-none">
-            <span class="text-white/30 text-sm tracking-widest uppercase select-none">{{ event.name }}</span>
-        </div>
+        <!-- Kontext-Label (Gastname / Beschreibung / Aufgabe) -->
+        <Transition name="crossfade">
+            <div
+                v-if="currentPhoto?.label && visible"
+                :key="'label-' + currentPhoto.id"
+                class="absolute bottom-16 left-0 right-0 flex justify-center px-8 pointer-events-none"
+            >
+                <span class="bg-black/60 backdrop-blur-sm text-white text-xl font-medium px-6 py-2 rounded-full max-w-2xl text-center truncate">
+                    {{ currentPhoto.label }}
+                </span>
+            </div>
+        </Transition>
 
         <!-- Foto-Counter -->
         <div v-if="allPhotos.length > 0" class="absolute top-4 right-6 text-white/30 text-xs select-none">

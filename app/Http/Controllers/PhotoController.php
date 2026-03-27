@@ -24,6 +24,8 @@ class PhotoController extends Controller
             ]);
         }
 
+        $ownerId = $event->user_id;
+
         $albums = $event->photoAlbums()
             ->with(['photos' => function ($q) {
                 $q->with('guest')->latest();
@@ -35,10 +37,16 @@ class PhotoController extends Controller
                 'name'       => $album->name,
                 'sort_order' => $album->sort_order,
                 'photos'     => $album->photos->map(fn($photo) => [
-                    'id'         => $photo->id,
-                    'url'        => $photo->url,
-                    'guest_name' => $photo->guest?->firstname ?? $photo->uploaded_by ?? 'Admin',
-                    'created_at' => $photo->created_at->format('d.m.Y H:i'),
+                    'id'           => $photo->id,
+                    'url'          => $photo->url,
+                    'guest_name'   => $photo->guest
+                        ? trim(($photo->guest->firstname ?? '') . ' ' . ($photo->guest->lastname ?? ''))
+                        : ($photo->uploaded_by ?? null),
+                    'is_organizer' => $photo->guest === null
+                        && $photo->uploader_user_id !== null
+                        && $photo->uploader_user_id !== $ownerId,
+                    'description'  => $photo->description,
+                    'created_at'   => $photo->created_at->format('d.m.Y H:i'),
                 ]),
             ]);
 
@@ -47,9 +55,10 @@ class PhotoController extends Controller
             : null;
 
         return Inertia::render('Photos/Index', [
-            'albums'           => $albums,
-            'projectorUrl'     => $projectorUrl,
-            'projectorAlbumId' => $event->projector_album_id,
+            'albums'              => $albums,
+            'projectorUrl'        => $projectorUrl,
+            'projectorAlbumId'    => $event->projector_album_id,
+            'projectorNameMode'   => $event->projector_name_mode ?? 'first',
         ]);
     }
 
@@ -58,8 +67,9 @@ class PhotoController extends Controller
         $event = $this->activeEvent();
 
         $request->validate([
-            'photo'    => ['required', 'file', 'mimes:jpeg,jpg,png,heic,heif', 'max:10240'],
-            'album_id' => ['nullable', 'integer', 'exists:photo_albums,id'],
+            'photo'       => ['required', 'file', 'mimes:jpeg,jpg,png,heic,heif', 'max:10240'],
+            'album_id'    => ['nullable', 'integer', 'exists:photo_albums,id'],
+            'description' => ['nullable', 'string', 'max:500'],
         ]);
 
         $file = $request->file('photo');
@@ -84,12 +94,14 @@ class PhotoController extends Controller
         }
 
         Photo::create([
-            'event_id'    => $event?->id,
-            'album_id'    => $albumId,
-            'guest_id'    => null,
-            'uploaded_by' => $request->user()->name,
-            'url'         => Storage::disk('s3')->url($path),
-            'r2_key'      => $path,
+            'event_id'         => $event?->id,
+            'album_id'         => $albumId,
+            'guest_id'         => null,
+            'uploaded_by'      => $request->user()->name,
+            'uploader_user_id' => $request->user()->id,
+            'url'              => Storage::disk('s3')->url($path),
+            'r2_key'           => $path,
+            'description'      => $request->input('description') ?: null,
         ]);
 
         return back();
@@ -133,6 +145,18 @@ class PhotoController extends Controller
 
         $event = $this->activeEvent();
         $event?->update(['projector_album_id' => $request->input('album_id')]);
+
+        return back();
+    }
+
+    public function updateProjectorNameMode(Request $request)
+    {
+        $request->validate([
+            'name_mode' => ['required', 'in:full,first,none'],
+        ]);
+
+        $event = $this->activeEvent();
+        $event?->update(['projector_name_mode' => $request->input('name_mode')]);
 
         return back();
     }

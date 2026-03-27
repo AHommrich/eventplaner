@@ -302,7 +302,17 @@
     "projectorRegenerate": "Token erneuern",
     "projectorRegenerateTitle": "Projektor-Token erneuern?",
     "projectorRegenerateDescription": "Die alte Projektor-URL wird ungültig. Du erhältst eine neue URL.",
-    "projectorTokenRegenerated": "Projektor-Token erneuert — neue URL aktiv"
+    "projectorTokenRegenerated": "Projektor-Token erneuert — neue URL aktiv",
+    "uploadedByOrganizer": "Vom Veranstalter",
+    "organizer": "Mitveranstalter",
+    "uploadDescription": "Beschreibung (optional)",
+    "uploadDescriptionPlaceholder": "z.B. wo das Foto aufgenommen wurde…",
+    "uploadDescriptionHint": "Wird bei der Diashow unter dem Bild angezeigt",
+    "projectorNameMode": "Gastname (App-Galerie)",
+    "projectorNameFirst": "Nur Vorname",
+    "projectorNameFull": "Vollständiger Name",
+    "projectorNameNone": "Kein Name",
+    "projectorNameModeHint": "Gilt nur für App-Galerie-Fotos"
   },
   "invitation": {
     "title": "Einladungen",
