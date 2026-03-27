@@ -29,6 +29,7 @@ class Event extends Model
         'photo_game_enabled',
         'projector_token',
         'projector_album_id',
+        'projector_name_mode',
     ];
 
     protected $casts = [
