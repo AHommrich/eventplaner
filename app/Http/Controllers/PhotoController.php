@@ -24,6 +24,8 @@ class PhotoController extends Controller
             ]);
         }
 
+        $ownerId = $event->user_id;
+
         $albums = $event->photoAlbums()
             ->with(['photos' => function ($q) {
                 $q->with('guest')->latest();
@@ -35,13 +37,14 @@ class PhotoController extends Controller
                 'name'       => $album->name,
                 'sort_order' => $album->sort_order,
                 'photos'     => $album->photos->map(fn($photo) => [
-                    'id'          => $photo->id,
-                    'url'         => $photo->url,
-                    'guest_name'  => $photo->guest
+                    'id'           => $photo->id,
+                    'url'          => $photo->url,
+                    'guest_name'   => $photo->guest
                         ? trim(($photo->guest->firstname ?? '') . ' ' . ($photo->guest->lastname ?? ''))
-                        : null,
-                    'description' => $photo->description,
-                    'created_at'  => $photo->created_at->format('d.m.Y H:i'),
+                        : ($photo->uploaded_by ?? null),
+                    'is_organizer' => $photo->guest === null && $photo->uploader_user_id === $ownerId,
+                    'description'  => $photo->description,
+                    'created_at'   => $photo->created_at->format('d.m.Y H:i'),
                 ]),
             ]);
 
@@ -89,13 +92,14 @@ class PhotoController extends Controller
         }
 
         Photo::create([
-            'event_id'    => $event?->id,
-            'album_id'    => $albumId,
-            'guest_id'    => null,
-            'uploaded_by' => $request->user()->name,
-            'url'         => Storage::disk('s3')->url($path),
-            'r2_key'      => $path,
-            'description' => $request->input('description') ?: null,
+            'event_id'         => $event?->id,
+            'album_id'         => $albumId,
+            'guest_id'         => null,
+            'uploaded_by'      => $request->user()->name,
+            'uploader_user_id' => $request->user()->id,
+            'url'              => Storage::disk('s3')->url($path),
+            'r2_key'           => $path,
+            'description'      => $request->input('description') ?: null,
         ]);
 
         return back();
