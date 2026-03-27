@@ -223,19 +223,6 @@ function updateProjectorNameMode(mode: string) {
                     </select>
                 </div>
 
-                <div class="flex gap-3 items-center flex-wrap">
-                    <span class="text-sm text-muted-foreground">{{ t('photo.projectorNameMode') }}:</span>
-                    <select
-                        :value="projectorNameMode"
-                        class="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                        @change="updateProjectorNameMode(($event.target as HTMLSelectElement).value)"
-                    >
-                        <option value="first">{{ t('photo.projectorNameFirst') }}</option>
-                        <option value="full">{{ t('photo.projectorNameFull') }}</option>
-                        <option value="none">{{ t('photo.projectorNameNone') }}</option>
-                    </select>
-                    <span class="text-xs text-muted-foreground">{{ t('photo.projectorNameModeHint') }}</span>
-                </div>
             </div>
 
             <!-- Album-Tabs + Aktionen in einer Zeile -->
@@ -278,11 +265,27 @@ function updateProjectorNameMode(mode: string) {
             </div>
 
             <!-- Tab-Beschreibung -->
-            <p class="text-xs text-muted-foreground">
-                <template v-if="activeTab === 'presentation'">{{ t('photo.descPresentation') }}</template>
-                <template v-else-if="activeTab === 'app_gallery'">{{ t('photo.descAppGallery') }}</template>
-                <template v-else-if="activeTab === 'photo_game'">{{ t('photo.descPhotoGame') }}</template>
-            </p>
+            <div class="space-y-2">
+                <p class="text-xs text-muted-foreground">
+                    <template v-if="activeTab === 'presentation'">{{ t('photo.descPresentation') }}</template>
+                    <template v-else-if="activeTab === 'app_gallery'">{{ t('photo.descAppGallery') }}</template>
+                    <template v-else-if="activeTab === 'photo_game'">{{ t('photo.descPhotoGame') }}</template>
+                </p>
+
+                <!-- Namensanzeige-Einstellung nur bei App-Galerie -->
+                <div v-if="activeTab === 'app_gallery'" class="flex gap-2 items-center">
+                    <span class="text-xs text-muted-foreground">{{ t('photo.projectorNameMode') }}:</span>
+                    <select
+                        :value="projectorNameMode"
+                        class="h-8 rounded-md border border-input bg-background px-2 py-0.5 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                        @change="updateProjectorNameMode(($event.target as HTMLSelectElement).value)"
+                    >
+                        <option value="first">{{ t('photo.projectorNameFirst') }}</option>
+                        <option value="full">{{ t('photo.projectorNameFull') }}</option>
+                        <option value="none">{{ t('photo.projectorNameNone') }}</option>
+                    </select>
+                </div>
+            </div>
 
             <!-- Foto-Grid -->
             <p v-if="sortedPhotos.length === 0" class="text-sm text-muted-foreground">{{ t('photo.none') }}</p>
