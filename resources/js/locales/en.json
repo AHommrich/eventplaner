@@ -479,7 +479,24 @@
       "draft": "Draft",
       "active": "Active",
       "ended": "Ended"
-    }
+    },
+    "eventTypeCatalog": "Event Type",
+    "noEventType": "— General only —",
+    "eventTypeHint": "Tasks from the selected type are added to the general pool",
+    "taskPool": "Task Pool",
+    "taskPoolHint": "General tasks are always active. Selecting an event type adds more.",
+    "taskState": {
+      "hidden": "Hidden",
+      "modified": "Customized",
+      "added": "Custom Task"
+    },
+    "hideTask": "Hide",
+    "restoreTask": "Restore",
+    "resetTask": "Reset",
+    "editTask": "Edit",
+    "originalText": "Original",
+    "overrideSaved": "Task customized",
+    "overrideDeleted": "Task reset"
   },
   "pending": {
     "title": "Account pending approval",
