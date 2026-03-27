@@ -39,7 +39,7 @@ class PhotoController extends Controller
                     'url'         => $photo->url,
                     'guest_name'  => $photo->guest
                         ? trim(($photo->guest->firstname ?? '') . ' ' . ($photo->guest->lastname ?? ''))
-                        : ($photo->uploaded_by ?? 'Admin'),
+                        : null,
                     'description' => $photo->description,
                     'created_at'  => $photo->created_at->format('d.m.Y H:i'),
                 ]),
