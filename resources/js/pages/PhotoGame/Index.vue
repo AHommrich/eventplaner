@@ -11,21 +11,15 @@ import { useI18n } from 'vue-i18n';
 interface Catalog {
     id: number;
     name: string;
-    event_id: number | null;
+    event_type: string | null;
 }
 
-interface Task {
-    id: number;
+interface TaskInPool {
+    id: number | null;
+    override_id: number | null;
     description: string;
-    is_active: boolean;
-    sort_order: number;
-}
-
-interface SelectedCatalog {
-    id: number;
-    name: string;
-    is_global: boolean;
-    tasks: Task[];
+    state: 'normal' | 'hidden' | 'modified' | 'added';
+    original_text: string | null;
 }
 
 interface Submission {
@@ -45,38 +39,17 @@ interface Game {
 const props = defineProps<{
     game: Game | null;
     catalogs: Catalog[];
-    selected_catalog: SelectedCatalog | null;
+    task_pool: TaskInPool[];
+    overrides: { id: number; task_id: number | null; action: string; custom_text: string | null }[];
     submissions: Submission[];
 }>();
 
 const { t } = useI18n();
 
-// --- Katalog wechseln ---
+// --- Event-Typ wechseln ---
 function setCatalog(catalogId: string) {
     router.patch(route('photo-game.catalog'), { catalog_id: catalogId || null }, {
         onSuccess: () => toast.success(t('photoGame.catalogSaved')),
-    });
-}
-
-// --- Vorlage anpassen (Fork) ---
-// Wenn schon ein eigener Katalog existiert, fragen ob Tasks überschrieben werden sollen
-const confirmForkOpen = ref(false);
-
-function forkCatalog() {
-    if (!props.game?.catalog_id) return;
-    // Hat das Event bereits einen eigenen Katalog?
-    const hasOwn = props.catalogs.some(c => c.event_id !== null);
-    if (hasOwn) {
-        confirmForkOpen.value = true;
-    } else {
-        doFork();
-    }
-}
-
-function doFork() {
-    if (!props.game?.catalog_id) return;
-    router.post(route('photo-game.catalog.fork'), { catalog_id: props.game.catalog_id }, {
-        onSuccess: () => toast.success(t('photoGame.catalogForked')),
     });
 }
 
@@ -93,55 +66,101 @@ function endGame() {
     });
 }
 
-// --- Neue Aufgabe hinzufügen ---
+// --- Aufgabe ausblenden ---
+function hideTask(taskId: number) {
+    router.post(route('photo-game.overrides.upsert'), { task_id: taskId, action: 'hidden' }, {
+        onSuccess: () => toast.success(t('photoGame.overrideSaved')),
+    });
+}
+
+// --- Aufgabe wiederherstellen / Override zurücksetzen ---
+function deleteOverride(overrideId: number) {
+    router.delete(route('photo-game.overrides.destroy', overrideId), {
+        onSuccess: () => toast.success(t('photoGame.overrideDeleted')),
+    });
+}
+
+// --- Aufgabe bearbeiten (modified) ---
+const editingTaskId = ref<number | null>(null);   // task.id (für normal/hidden tasks aus dem Pool)
+const editingAddedId = ref<number | null>(null);  // override_id (für 'added' tasks)
+const editingText = ref('');
+
+function startEditTask(task: TaskInPool) {
+    editingTaskId.value = task.id;
+    editingAddedId.value = null;
+    editingText.value = task.description;
+}
+
+function startEditAdded(task: TaskInPool) {
+    editingAddedId.value = task.override_id;
+    editingTaskId.value = null;
+    editingText.value = task.description;
+}
+
+function cancelEdit() {
+    editingTaskId.value = null;
+    editingAddedId.value = null;
+}
+
+function saveModify(taskId: number) {
+    const text = editingText.value.trim();
+    if (!text) return;
+    router.post(route('photo-game.overrides.upsert'), { task_id: taskId, action: 'modified', custom_text: text }, {
+        onSuccess: () => {
+            toast.success(t('photoGame.overrideSaved'));
+            cancelEdit();
+        },
+    });
+}
+
+function saveAddedEdit(overrideId: number) {
+    const text = editingText.value.trim();
+    if (!text) return;
+    // We update an 'added' override — we need to delete and recreate because 'added' has no task_id
+    // Instead: upsert via override_id is not exposed. We workaround by deleting the old one and creating new.
+    // The backend handles 'added' as always-new, so we patch via a delete+create approach.
+    // Actually we can't easily upsert 'added' without an override_id route.
+    // For now: we just post a new one (duplicate) — but that creates 2 entries.
+    // Better: expose a PATCH route, but we don't have one yet.
+    // For now: delete old + store new via two requests.
+    router.delete(route('photo-game.overrides.destroy', overrideId), {
+        onSuccess: () => {
+            router.post(route('photo-game.overrides.upsert'), { action: 'added', custom_text: text }, {
+                onSuccess: () => {
+                    toast.success(t('photoGame.overrideSaved'));
+                    cancelEdit();
+                },
+            });
+        },
+    });
+}
+
+// --- Eigene Aufgabe hinzufügen ---
 const newTaskText = ref('');
 
-function addTask() {
+function addOwnTask() {
     const text = newTaskText.value.trim();
-    if (!text || !props.selected_catalog) return;
-    router.post(route('photo-game.tasks.store'), {
-        catalog_id: props.selected_catalog.id,
-        description: text,
-    }, {
+    if (!text) return;
+    router.post(route('photo-game.overrides.upsert'), { action: 'added', custom_text: text }, {
         onSuccess: () => {
-            toast.success(t('photoGame.taskCreated'));
+            toast.success(t('photoGame.overrideSaved'));
             newTaskText.value = '';
         },
     });
 }
 
-// --- Aufgabe bearbeiten ---
-const editingTaskId = ref<number | null>(null);
-const editingText = ref('');
+// --- Eigene Aufgabe löschen ---
+const confirmDeleteOverrideOpen = ref(false);
+const pendingDeleteOverrideId = ref<number | null>(null);
 
-function startEdit(task: Task) {
-    editingTaskId.value = task.id;
-    editingText.value = task.description;
+function askDeleteAdded(overrideId: number) {
+    pendingDeleteOverrideId.value = overrideId;
+    confirmDeleteOverrideOpen.value = true;
 }
 
-function saveEdit(taskId: number) {
-    router.patch(route('photo-game.tasks.update', taskId), { description: editingText.value }, {
-        onSuccess: () => {
-            toast.success(t('photoGame.taskSaved'));
-            editingTaskId.value = null;
-        },
-    });
-}
-
-// --- Aufgabe löschen ---
-const confirmTaskDeleteOpen = ref(false);
-const pendingTaskDeleteId = ref<number | null>(null);
-
-function askDeleteTask(id: number) {
-    pendingTaskDeleteId.value = id;
-    confirmTaskDeleteOpen.value = true;
-}
-
-function doDeleteTask() {
-    if (pendingTaskDeleteId.value === null) return;
-    router.delete(route('photo-game.tasks.destroy', pendingTaskDeleteId.value), {
-        onSuccess: () => toast.success(t('photoGame.taskDeleted')),
-    });
+function doDeleteAdded() {
+    if (pendingDeleteOverrideId.value === null) return;
+    deleteOverride(pendingDeleteOverrideId.value);
 }
 
 // --- Einreichung löschen ---
@@ -162,6 +181,9 @@ function doDeleteSubmission() {
 
 // --- Foto-Viewer ---
 const viewerPhoto = ref<Submission | null>(null);
+
+// Active task count (hidden tasks don't count)
+const activeTaskCount = () => props.task_pool.filter(t => t.state !== 'hidden').length;
 </script>
 
 <template>
@@ -174,7 +196,6 @@ const viewerPhoto = ref<Submission | null>(null);
             <div class="rounded-lg border p-4 space-y-4">
                 <div class="flex items-center justify-between">
                     <h2 class="text-sm font-semibold">{{ t('photoGame.settings') }}</h2>
-                    <!-- Status Badge -->
                     <span
                         class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
                         :class="{
@@ -189,27 +210,27 @@ const viewerPhoto = ref<Submission | null>(null);
                     </span>
                 </div>
 
-                <!-- Katalog-Auswahl -->
+                <!-- Event-Typ-Auswahl -->
                 <div class="grid gap-1.5">
-                    <label class="text-sm font-medium">{{ t('photoGame.catalog') }}</label>
+                    <label class="text-sm font-medium">{{ t('photoGame.eventTypeCatalog') }}</label>
                     <select
                         :value="String(game?.catalog_id ?? '')"
                         class="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
                         @change="setCatalog(($event.target as HTMLSelectElement).value)"
                     >
-                        <option value="">— {{ t('photoGame.noCatalog') }} —</option>
+                        <option value="">{{ t('photoGame.noEventType') }}</option>
                         <option v-for="cat in catalogs" :key="cat.id" :value="String(cat.id)">
-                            {{ cat.name }}{{ cat.event_id === null ? ' ★' : '' }}
+                            {{ cat.name }}
                         </option>
                     </select>
-                    <p class="text-xs text-muted-foreground">{{ t('photoGame.catalogHint') }}</p>
+                    <p class="text-xs text-muted-foreground">{{ t('photoGame.eventTypeHint') }}</p>
                 </div>
 
                 <!-- Start/Stop Buttons -->
                 <div class="flex gap-2">
                     <Button
                         v-if="!game || game.status === 'draft' || game.status === 'ended'"
-                        :disabled="!game?.catalog_id || !selected_catalog?.tasks.length"
+                        :disabled="activeTaskCount() === 0"
                         @click="startGame"
                     >
                         {{ t('photoGame.start') }}
@@ -224,84 +245,151 @@ const viewerPhoto = ref<Submission | null>(null);
                 </div>
             </div>
 
-            <!-- Aufgaben-Liste des gewählten Katalogs -->
-            <div v-if="selected_catalog" class="rounded-lg border p-4 space-y-3">
-                <div class="flex items-start justify-between gap-3">
-                    <div>
-                        <h2 class="text-sm font-semibold">
-                            {{ t('photoGame.tasksInCatalog') }}
-                            <span class="font-normal text-muted-foreground">— {{ selected_catalog.name }}</span>
-                        </h2>
-                        <p v-if="selected_catalog.is_global" class="text-xs text-muted-foreground mt-0.5">
-                            {{ t('photoGame.globalReadOnly') }}
-                        </p>
-                    </div>
-                    <!-- Globalen Katalog als Vorlage kopieren -->
-                    <Button
-                        v-if="selected_catalog.is_global"
-                        variant="outline"
-                        size="sm"
-                        class="shrink-0"
-                        @click="forkCatalog"
-                    >
-                        {{ catalogs.some(c => c.event_id !== null) ? t('photoGame.forkCatalogReplace') : t('photoGame.forkCatalog') }}
-                    </Button>
+            <!-- Aufgaben-Pool -->
+            <div class="rounded-lg border p-4 space-y-3">
+                <div>
+                    <h2 class="text-sm font-semibold">
+                        {{ t('photoGame.taskPool') }}
+                        <span class="font-normal text-muted-foreground">({{ activeTaskCount() }} {{ t('photoGame.tasksCount') }})</span>
+                    </h2>
+                    <p class="text-xs text-muted-foreground mt-0.5">{{ t('photoGame.taskPoolHint') }}</p>
                 </div>
 
-                <!-- Task-Liste -->
                 <div class="space-y-1">
-                    <p v-if="selected_catalog.tasks.length === 0" class="text-sm text-muted-foreground">
+                    <p v-if="task_pool.length === 0" class="text-sm text-muted-foreground">
                         {{ t('photoGame.noTasks') }}
                     </p>
 
                     <div
-                        v-for="task in selected_catalog.tasks"
-                        :key="task.id"
-                        class="group flex items-center gap-2 rounded-md border px-3 py-2 text-sm"
-                        :class="{ 'opacity-50': !task.is_active }"
+                        v-for="task in task_pool"
+                        :key="(task.id ?? 'add') + '-' + (task.override_id ?? 'none')"
+                        class="group flex items-start gap-2 rounded-md border px-3 py-2 text-sm"
+                        :class="{
+                            'opacity-40': task.state === 'hidden',
+                            'border-dashed': task.state === 'added',
+                        }"
                     >
-                        <!-- Bearbeiten-Modus (nur eigener Katalog) -->
-                        <template v-if="editingTaskId === task.id && !selected_catalog.is_global">
+                        <!-- Bearbeitungs-Modus für normale/modified tasks -->
+                        <template v-if="editingTaskId === task.id && task.id !== null">
                             <Input
                                 v-model="editingText"
                                 class="flex-1 h-7 text-sm"
-                                @keydown.enter="saveEdit(task.id)"
-                                @keydown.esc="editingTaskId = null"
+                                @keydown.enter="saveModify(task.id!)"
+                                @keydown.esc="cancelEdit"
                                 autofocus
                             />
-                            <Button size="sm" variant="ghost" class="h-7 px-2 shrink-0" @click="saveEdit(task.id)">
+                            <Button size="sm" variant="ghost" class="h-7 px-2 shrink-0" @click="saveModify(task.id!)">
                                 {{ t('common.save') }}
                             </Button>
-                            <Button size="sm" variant="ghost" class="h-7 px-2 shrink-0" @click="editingTaskId = null">
+                            <Button size="sm" variant="ghost" class="h-7 px-2 shrink-0" @click="cancelEdit">
+                                {{ t('common.cancel') }}
+                            </Button>
+                        </template>
+
+                        <!-- Bearbeitungs-Modus für 'added' tasks -->
+                        <template v-else-if="editingAddedId === task.override_id && task.override_id !== null && task.state === 'added'">
+                            <Input
+                                v-model="editingText"
+                                class="flex-1 h-7 text-sm"
+                                @keydown.enter="saveAddedEdit(task.override_id!)"
+                                @keydown.esc="cancelEdit"
+                                autofocus
+                            />
+                            <Button size="sm" variant="ghost" class="h-7 px-2 shrink-0" @click="saveAddedEdit(task.override_id!)">
+                                {{ t('common.save') }}
+                            </Button>
+                            <Button size="sm" variant="ghost" class="h-7 px-2 shrink-0" @click="cancelEdit">
                                 {{ t('common.cancel') }}
                             </Button>
                         </template>
 
                         <!-- Anzeige-Modus -->
                         <template v-else>
-                            <span class="flex-1 leading-snug">{{ task.description }}</span>
-                            <template v-if="!selected_catalog.is_global">
-                                <button
-                                    class="hidden group-hover:inline text-xs text-muted-foreground hover:text-foreground px-1 shrink-0"
-                                    @click="startEdit(task)"
-                                >{{ t('common.edit') }}</button>
-                                <button
-                                    class="hidden group-hover:inline text-xs text-muted-foreground hover:text-destructive px-1 shrink-0"
-                                    @click="askDeleteTask(task.id)"
-                                >{{ t('common.delete') }}</button>
-                            </template>
+                            <div class="flex-1 min-w-0">
+                                <span
+                                    class="leading-snug"
+                                    :class="{
+                                        'line-through text-muted-foreground': task.state === 'hidden',
+                                        'text-blue-600': task.state === 'added',
+                                    }"
+                                >{{ task.description }}</span>
+                                <!-- Original-Text bei modified -->
+                                <p v-if="task.state === 'modified' && task.original_text" class="text-xs text-muted-foreground mt-0.5">
+                                    {{ t('photoGame.originalText') }}: {{ task.original_text }}
+                                </p>
+                            </div>
+
+                            <!-- State Badge -->
+                            <span
+                                v-if="task.state !== 'normal'"
+                                class="shrink-0 text-xs px-1.5 py-0.5 rounded-full"
+                                :class="{
+                                    'bg-red-100 text-red-700': task.state === 'hidden',
+                                    'bg-amber-100 text-amber-700': task.state === 'modified',
+                                    'bg-blue-100 text-blue-700': task.state === 'added',
+                                }"
+                            >
+                                {{ t('photoGame.taskState.' + task.state) }}
+                            </span>
+
+                            <!-- Aktions-Buttons -->
+                            <div class="hidden group-hover:flex items-center gap-1 shrink-0">
+                                <!-- Normal: ausblenden + bearbeiten -->
+                                <template v-if="task.state === 'normal' && task.id !== null">
+                                    <button
+                                        class="text-xs text-muted-foreground hover:text-foreground px-1"
+                                        @click="startEditTask(task)"
+                                    >{{ t('photoGame.editTask') }}</button>
+                                    <button
+                                        class="text-xs text-muted-foreground hover:text-destructive px-1"
+                                        @click="hideTask(task.id!)"
+                                    >{{ t('photoGame.hideTask') }}</button>
+                                </template>
+
+                                <!-- Hidden: wiederherstellen -->
+                                <template v-else-if="task.state === 'hidden' && task.override_id !== null">
+                                    <button
+                                        class="text-xs text-muted-foreground hover:text-foreground px-1"
+                                        @click="deleteOverride(task.override_id!)"
+                                    >{{ t('photoGame.restoreTask') }}</button>
+                                </template>
+
+                                <!-- Modified: zurücksetzen + nochmal bearbeiten -->
+                                <template v-else-if="task.state === 'modified' && task.override_id !== null">
+                                    <button
+                                        class="text-xs text-muted-foreground hover:text-foreground px-1"
+                                        @click="startEditTask(task)"
+                                    >{{ t('photoGame.editTask') }}</button>
+                                    <button
+                                        class="text-xs text-muted-foreground hover:text-destructive px-1"
+                                        @click="deleteOverride(task.override_id!)"
+                                    >{{ t('photoGame.resetTask') }}</button>
+                                </template>
+
+                                <!-- Added: bearbeiten + löschen -->
+                                <template v-else-if="task.state === 'added' && task.override_id !== null">
+                                    <button
+                                        class="text-xs text-muted-foreground hover:text-foreground px-1"
+                                        @click="startEditAdded(task)"
+                                    >{{ t('photoGame.editTask') }}</button>
+                                    <button
+                                        class="text-xs text-muted-foreground hover:text-destructive px-1"
+                                        @click="askDeleteAdded(task.override_id!)"
+                                    >{{ t('common.delete') }}</button>
+                                </template>
+                            </div>
                         </template>
                     </div>
                 </div>
 
-                <!-- Neue Aufgabe hinzufügen (nur eigener Katalog) -->
-                <div v-if="!selected_catalog.is_global" class="flex gap-2 pt-1">
+                <!-- Eigene Aufgabe hinzufügen -->
+                <div class="flex gap-2 pt-1">
                     <Input
                         v-model="newTaskText"
                         :placeholder="t('photoGame.taskPlaceholder')"
-                        @keydown.enter="addTask"
+                        @keydown.enter="addOwnTask"
                     />
-                    <Button size="sm" @click="addTask">{{ t('common.add') }}</Button>
+                    <Button size="sm" @click="addOwnTask">{{ t('common.add') }}</Button>
                 </div>
             </div>
 
@@ -373,21 +461,12 @@ const viewerPhoto = ref<Submission | null>(null);
         </div>
 
         <ConfirmDialog
-            v-model:open="confirmForkOpen"
-            :title="t('photoGame.forkReplaceTitle')"
-            :description="t('photoGame.forkReplaceDesc')"
-            :confirm-label="t('photoGame.forkCatalogReplace')"
-            destructive
-            @confirm="doFork"
-        />
-
-        <ConfirmDialog
-            v-model:open="confirmTaskDeleteOpen"
+            v-model:open="confirmDeleteOverrideOpen"
             :title="t('photoGame.deleteTaskTitle')"
             :description="t('photoGame.deleteTaskDesc')"
             :confirm-label="t('common.delete')"
             destructive
-            @confirm="doDeleteTask"
+            @confirm="doDeleteAdded"
         />
 
         <ConfirmDialog

@@ -479,7 +479,24 @@
       "draft": "Entwurf",
       "active": "Aktiv",
       "ended": "Beendet"
-    }
+    },
+    "eventTypeCatalog": "Event-Typ",
+    "noEventType": "— Nur Allgemein —",
+    "eventTypeHint": "Aufgaben aus dem gewählten Typ werden zum Allgemein-Pool hinzugefügt",
+    "taskPool": "Aufgaben-Pool",
+    "taskPoolHint": "Allgemein-Aufgaben sind immer aktiv. Mit Event-Typ kommen weitere hinzu.",
+    "taskState": {
+      "hidden": "Ausgeblendet",
+      "modified": "Angepasst",
+      "added": "Eigene Aufgabe"
+    },
+    "hideTask": "Ausblenden",
+    "restoreTask": "Wiederherstellen",
+    "resetTask": "Zurücksetzen",
+    "editTask": "Bearbeiten",
+    "originalText": "Original",
+    "overrideSaved": "Aufgabe angepasst",
+    "overrideDeleted": "Aufgabe zurückgesetzt"
   },
   "pending": {
     "title": "Account wird geprüft",
