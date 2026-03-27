@@ -79,6 +79,11 @@ class ProjectorController extends Controller
                 : trim(($photo->guest->firstname ?? '') . ' ' . ($photo->guest->lastname ?? ''));
         }
 
-        return $nameMode !== 'none' ? ($photo->uploaded_by ?? null) : null;
+        $uploaderName = $photo->uploaded_by ?? null;
+        if (!$uploaderName) return null;
+
+        return $nameMode === 'first'
+            ? explode(' ', $uploaderName)[0]
+            : $uploaderName;
     }
 }
