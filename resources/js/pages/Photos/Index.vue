@@ -12,7 +12,7 @@ import { useI18n } from 'vue-i18n';
 interface Photo {
     id: number;
     url: string;
-    guest_name: string;
+    guest_name: string | null;
     description: string | null;
     created_at: string;
 }
@@ -297,7 +297,9 @@ function updateProjectorNameMode(mode: string) {
                         <img :src="photo.url" :alt="photo.guest_name" class="h-full w-full object-cover transition-transform group-hover:scale-105" />
                         <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-xs text-white">
                             <div class="font-medium truncate">
-                                {{ activeTab === 'presentation' && photo.description ? photo.description : photo.guest_name }}
+                                <template v-if="activeTab === 'presentation' && photo.description">{{ photo.description }}</template>
+                                <template v-else-if="photo.guest_name">{{ photo.guest_name }}</template>
+                                <template v-else>{{ t('photo.uploadedByOrganizer') }}</template>
                             </div>
                         </div>
                         <!-- Checkbox im Auswahlmodus -->
@@ -319,7 +321,7 @@ function updateProjectorNameMode(mode: string) {
         <Dialog :open="!!selected" @update:open="val => { if (!val) selected = null }">
             <DialogContent class="max-w-2xl p-0 overflow-hidden">
                 <DialogHeader class="px-4 py-3 border-b">
-                    <DialogTitle>{{ selected?.guest_name }}</DialogTitle>
+                    <DialogTitle>{{ selected?.guest_name ?? t('photo.uploadedByOrganizer') }}</DialogTitle>
                     <p v-if="selected?.description" class="text-sm font-normal">{{ selected.description }}</p>
                     <p class="text-sm text-muted-foreground">{{ selected?.created_at }}</p>
                 </DialogHeader>
