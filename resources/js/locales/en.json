@@ -303,6 +303,7 @@
     "projectorRegenerateTitle": "Renew projector token?",
     "projectorRegenerateDescription": "The old projector URL will become invalid. You will receive a new URL.",
     "projectorTokenRegenerated": "Projector token renewed — new URL active",
+    "uploadedByOrganizer": "By organizer",
     "uploadDescription": "Description (optional)",
     "uploadDescriptionPlaceholder": "e.g. where the photo was taken…",
     "uploadDescriptionHint": "Shown in the slideshow below the photo",
