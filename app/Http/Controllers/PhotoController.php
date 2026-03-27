@@ -35,10 +35,11 @@ class PhotoController extends Controller
                 'name'       => $album->name,
                 'sort_order' => $album->sort_order,
                 'photos'     => $album->photos->map(fn($photo) => [
-                    'id'         => $photo->id,
-                    'url'        => $photo->url,
-                    'guest_name' => $photo->guest?->firstname ?? $photo->uploaded_by ?? 'Admin',
-                    'created_at' => $photo->created_at->format('d.m.Y H:i'),
+                    'id'          => $photo->id,
+                    'url'         => $photo->url,
+                    'guest_name'  => $photo->guest?->firstname ?? $photo->uploaded_by ?? 'Admin',
+                    'description' => $photo->description,
+                    'created_at'  => $photo->created_at->format('d.m.Y H:i'),
                 ]),
             ]);
 
@@ -58,8 +59,9 @@ class PhotoController extends Controller
         $event = $this->activeEvent();
 
         $request->validate([
-            'photo'    => ['required', 'file', 'mimes:jpeg,jpg,png,heic,heif', 'max:10240'],
-            'album_id' => ['nullable', 'integer', 'exists:photo_albums,id'],
+            'photo'       => ['required', 'file', 'mimes:jpeg,jpg,png,heic,heif', 'max:10240'],
+            'album_id'    => ['nullable', 'integer', 'exists:photo_albums,id'],
+            'description' => ['nullable', 'string', 'max:500'],
         ]);
 
         $file = $request->file('photo');
@@ -90,6 +92,7 @@ class PhotoController extends Controller
             'uploaded_by' => $request->user()->name,
             'url'         => Storage::disk('s3')->url($path),
             'r2_key'      => $path,
+            'description' => $request->input('description') ?: null,
         ]);
 
         return back();
