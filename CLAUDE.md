@@ -152,6 +152,7 @@ Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
 ## Web-Frontend (fertige Features)
 
 - **ConfirmDialog** (`components/ConfirmDialog.vue`) — Wiederverwendbarer shadcn-Dialog mit `v-model:open`, `@confirm`, `destructive`-Prop. Pattern: `pendingId` ref + `askDelete()` + `doDelete()`
+- **InfoTooltip** (`components/InfoTooltip.vue`) — Kleines `?`-Icon das bei Hover einen Erklärungstext einblendet. Props: `text: string`. Verwendet Reka UI TooltipProvider intern. Überall in der App für kontextuelle Hilfe eingesetzt (Farbsystem, Einladungen, Gäste-Zugang, Fotospiel, Diashow, Rücknahme-Anfragen, etc.).
 - **Toast-Benachrichtigungen** — via `vue-sonner` (v2). `<Toaster>` liegt in `AppSidebarLayout.vue`. CSS MUSS explizit importiert werden: `import 'vue-sonner/style.css'`. Toast-Aufrufe in `onSuccess`-Callbacks der Inertia-Forms.
 - **i18n (vue-i18n v11)** — Plugin in `resources/js/plugins/i18n.ts`. Locale-Dateien: `resources/js/locales/de.json` + `en.json`. Sprache wird in `localStorage` gespeichert. Standard: Deutsch.
   - Nav-Arrays und Tab-Arrays MÜSSEN als `computed()` definiert sein, damit sie auf Sprachwechsel reagieren.
@@ -162,20 +163,21 @@ Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
   - **Phone-Preview**: 4 simulierte App-Screens (Home, Zusage, Fotos, Einstellungen) — reagieren live auf alle Farb-/Font-Änderungen. Auf Mobile einklappbar.
   - **Dirty-Guard**: `router.on('before', ...)` zeigt `window.confirm()` bei ungespeicherten Änderungen. Floating Save Bar unten rechts wenn `isDirty`.
 - **Getränke-Tracking** — Gäste können Getränke loggen; Trinkspiel mit Rangliste + Punkte. Aktivierbar pro Event (`drink_game_enabled`), optionales Spielende-Datum.
+  - **Getränke-Katalog** (`pages/Drinks/Index.vue`): Veranstalter wählt welche Getränke auf der Feier verfügbar sind. Info-Box immer sichtbar (allgemeiner Hinweis), Trinkspiel-Zusatz nur wenn `active_event.drink_game_enabled === true`.
   - **Punkteberechnung** (`DrinkScoreService`): Alkoholisch: `round(Liter × % × 10)`. Shots (category `spirit`) erhalten `×SHOT_MULTIPLIER` (aktuell 2.0) wegen schnellerer Absorption. Alkoholfrei: Flat-Wert (`negative_points`, Wasser −5, Softdrinks −3). Binge-Penalty: ≥3 alkoholische Getränke hintereinander → 50% der Basispunkte.
   - **Longdrink alcohol_percent**: realistisch ~7% (nicht 10%) — 4cl Spirit auf ~0,25l Mixer.
 - **Gästeliste** (`components/GuestTable.vue`) — kollabierbare Gruppenblöcke mit Chevron (collapsed by default), Suchfeld filtert Gäste und klappt Gruppen automatisch auf.
 - **RSVP-Verwaltung** — Zu-/Absage durch Gast oder Admin, Rücknahme-Anfragen mit Approve/Decline.
 - **App-Zugang pro Gast** — `app_access` + `drinks_access` togglebar pro Gast.
 - **CreatableCombobox / CreatableMultiCombobox** — ESC stoppt Propagation wenn Dropdown offen (verhindert Modal-Schließen). `:create-option` immer `true`, Text im `#option`-Slot zeigt „erneut anlegen?" wenn Duplikat.
-- **Foto-System** (`pages/Photos/Index.vue`) — 3 Alben: App-Galerie, Präsentation, Fotospiel. Tab-basierte Ansicht mit Grid, Einzel- und Batch-Löschen, Viewer-Dialog.
+- **Foto-System** (`pages/Photos/Index.vue`) — Zwei aufklappbare Sektionen (beide starten zugeklappt): **Diashow** und **Alben**. Jede Sektion hat ein `?`-InfoTooltip. Alben-Sektion enthält 3 Tabs (App-Galerie, Präsentation, Fotospiel) mit Grid, Einzel- und Batch-Löschen, Viewer-Dialog, Tab-spezifischen ℹ-Beschreibungen.
   - Upload für Präsentation-Album zeigt optionalen Beschreibungs-Dialog (wird in Diashow angezeigt).
   - App-Galerie zeigt vollständigen Gastnamen; Veranstalter-Uploads ohne Badge, Mitveranstalter mit "(Mitveranstalter)".
-- **Diashow / Projektor** (`pages/Projector/Show.vue`) — Vollbild-Diashow mit Crossfade (5s), Auto-Poll alle 10s für neue Fotos. Kontextuelles Label-Overlay:
+  - Namensanzeige-Einstellung (`projector_name_mode`) nur bei App-Galerie-Tab sichtbar.
+- **Diashow / Projektor** (`pages/Projector/Show.vue`) — Vollbild-Diashow mit Crossfade (5s), Auto-Poll alle 10s für neue Fotos. Info-Overlay blendet sich nach 4s aus. Kontextuelles Label-Overlay:
   - App-Galerie: Gastname (konfigurierbar: Nur Vorname / Vollname / Kein Name via `projector_name_mode`)
   - Präsentation: Beschreibung (wenn gesetzt)
   - Fotospiel: Aufgabentext des Assignments
-  - Einstellung im Foto-Tab sichtbar wenn App-Galerie aktiv.
 - **Fotospiel** (`pages/PhotoGame/Index.vue`) — Delta-Modell: globale Task-Kataloge (Allgemein immer aktiv + optionaler Typ-Katalog), pro Event nur Overrides gespeichert.
   - Admin kann Tasks ausblenden, anpassen (modified) oder eigene hinzufügen (added).
   - Gäste bekommen via API on-the-fly eine Aufgabe aus dem Pool zugewiesen.

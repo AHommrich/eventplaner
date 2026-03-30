@@ -14,6 +14,7 @@ const props = defineProps<{
 const allPhotos = ref<ProjectorPhoto[]>([...props.photos]);
 const currentIndex = ref(0);
 const visible = ref(true);
+const infoVisible = ref(true);
 
 const currentPhoto = computed(() => allPhotos.value[currentIndex.value] ?? null);
 
@@ -49,6 +50,7 @@ onMounted(() => {
         slideInterval = setInterval(nextSlide, 5000);
     }
     pollInterval = setInterval(pollPhotos, 10000);
+    setTimeout(() => { infoVisible.value = false; }, 4000);
 });
 
 onUnmounted(() => {
@@ -92,6 +94,14 @@ onUnmounted(() => {
         <div v-if="allPhotos.length > 0" class="absolute top-4 right-6 text-white/30 text-xs select-none">
             {{ currentIndex + 1 }} / {{ allPhotos.length }}
         </div>
+
+        <!-- Info-Overlay (blendet sich nach 4s aus) -->
+        <Transition name="fade-slow">
+            <div v-if="infoVisible" class="absolute top-4 left-6 text-white/50 text-xs select-none space-y-0.5">
+                <p>Automatischer Wechsel alle 5 Sekunden</p>
+                <p>Neue Fotos werden alle 10 Sekunden geladen</p>
+            </div>
+        </Transition>
     </div>
 </template>
 
@@ -102,6 +112,13 @@ onUnmounted(() => {
 }
 .crossfade-enter-from,
 .crossfade-leave-to {
+    opacity: 0;
+}
+
+.fade-slow-leave-active {
+    transition: opacity 1.5s ease;
+}
+.fade-slow-leave-to {
     opacity: 0;
 }
 </style>

@@ -12,7 +12,6 @@ class DrinkCatalog extends Model
         'category',
         'type',
         'display_name',
-        'amount_liter',
         'alcohol_percent',
         'is_alcoholic',
         'negative_points',
@@ -22,13 +21,22 @@ class DrinkCatalog extends Model
     ];
 
     protected $casts = [
-        'amount_liter'    => 'float',
         'alcohol_percent' => 'float',
         'is_alcoholic'    => 'boolean',
         'is_active'       => 'boolean',
         'negative_points' => 'integer',
         'search_terms'    => 'array',
     ];
+
+    public function sizes()
+    {
+        return $this->hasMany(DrinkCatalogSize::class, 'catalog_id')->orderBy('sort_order');
+    }
+
+    public function defaultSize(): ?DrinkCatalogSize
+    {
+        return $this->sizes->firstWhere('is_default', true) ?? $this->sizes->first();
+    }
 
     public function eventDrinks()
     {
