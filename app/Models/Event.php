@@ -30,14 +30,18 @@ class Event extends Model
         'projector_token',
         'projector_album_id',
         'projector_name_mode',
+        'calculator_settings',
+        'calculator_enabled',
     ];
 
     protected $casts = [
         'drink_game_enabled'   => 'boolean',
         'drink_game_end_time'  => 'datetime',
         'photo_game_enabled'   => 'boolean',
+        'calculator_enabled'   => 'boolean',
         'venue_lat'            => 'float',
         'venue_lng'            => 'float',
+        'calculator_settings'  => 'array',
     ];
 
     protected static function booted(): void

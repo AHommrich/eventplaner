@@ -5,6 +5,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import InfoTooltip from '@/components/InfoTooltip.vue';
 
 const { t } = useI18n();
 const breadcrumbs: BreadcrumbItem[] = [
@@ -12,22 +13,11 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: t('game.title'), href: '/drinks/game' },
 ];
 
+interface SelectedSize { id: number; drink_id: number; amount_liter: number; is_default: boolean; points: number; }
+interface EventDrink { catalog_id: number; type: string; display_name: string; is_alcoholic: boolean; selected_sizes: SelectedSize[]; }
+
 const page = usePage();
-const eventDrinks  = computed(() => page.props.event_drinks as { id: number; type: string; display_name: string; amount_liter: number; is_alcoholic: boolean; points: number }[]);
-
-// Nach type gruppieren für Badge-Darstellung
-const eventDrinksByType = computed(() => {
-    const map: Record<string, typeof eventDrinks.value> = {};
-    for (const d of eventDrinks.value) {
-        if (!map[d.type]) map[d.type] = [];
-        map[d.type].push(d);
-    }
-    return map;
-});
-
-function baseName(displayName: string): string {
-    return displayName.replace(/\s+\d[\d,.]*\s*(l|cl)$/i, '').trim();
-}
+const eventDrinks = computed(() => page.props.event_drinks as EventDrink[]);
 
 function formatSize(liter: number): string {
     if (liter < 0.1) return `${Math.round(liter * 100)} cl`;
@@ -46,26 +36,29 @@ const guestTotals  = computed(() => page.props.guest_totals as { guest_id: numbe
             <!-- Verfügbare Getränke mit Punkten -->
             <Card>
                 <CardHeader>
-                    <CardTitle>{{ t('game.availableDrinks') }}</CardTitle>
+                    <CardTitle class="flex items-center gap-2">
+                        {{ t('game.availableDrinks') }}
+                        <InfoTooltip :text="t('game.pointsInfo')" />
+                    </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <p v-if="eventDrinks.length === 0" class="text-sm text-muted-foreground">{{ t('game.empty') }}</p>
                     <ul v-else class="divide-y">
-                        <li v-for="(drinks, type) in eventDrinksByType" :key="type"
+                        <li v-for="d in eventDrinks" :key="d.catalog_id"
                             class="flex items-center justify-between gap-3 py-2.5">
-                            <span class="text-sm font-medium shrink-0">{{ baseName(drinks[0].display_name) }}</span>
+                            <span class="text-sm font-medium shrink-0">{{ d.display_name }}</span>
                             <div class="flex flex-wrap gap-1.5 justify-end">
                                 <span
-                                    v-for="d in drinks"
-                                    :key="d.id"
+                                    v-for="s in d.selected_sizes"
+                                    :key="s.id"
                                     :class="[
                                         'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium',
-                                        d.points < 0
+                                        s.points < 0
                                             ? 'border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                                             : 'border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
                                     ]"
                                 >
-                                    {{ formatSize(d.amount_liter) }} · {{ d.points > 0 ? '+' : '' }}{{ d.points }} {{ t('game.points') }}
+                                    {{ formatSize(s.amount_liter) }} · {{ s.points > 0 ? '+' : '' }}{{ s.points }} {{ t('game.points') }}
                                 </span>
                             </div>
                         </li>

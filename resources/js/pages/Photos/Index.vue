@@ -4,7 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import InfoTooltip from '@/components/InfoTooltip.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
+import { ChevronDown } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
@@ -34,6 +36,10 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
+
+// --- Collapsible sections ---
+const slideshowOpen = ref(false);
+const albumsOpen = ref(false);
 
 // --- Tabs ---
 const activeTab = ref<string>(props.albums[0]?.slug ?? 'presentation');
@@ -200,125 +206,157 @@ function updateProjectorNameMode(mode: string) {
             <!-- Header -->
             <h1 class="text-xl font-semibold">{{ t('photo.title') }}</h1>
 
-            <!-- Diashow-Panel -->
-            <div v-if="projectorUrl" class="rounded-lg border p-4 space-y-3">
-                <h2 class="text-sm font-semibold">{{ t('photo.slideshowTitle') }}</h2>
-
-                <div class="flex gap-2 items-center">
-                    <code class="flex-1 text-xs bg-muted px-3 py-2 rounded font-mono truncate">{{ projectorUrl }}</code>
-                    <Button variant="outline" size="sm" @click="copyProjectorUrl">{{ t('photo.projectorCopy') }}</Button>
-                    <Button variant="outline" size="sm" as="a" :href="projectorUrl" target="_blank">{{ t('common.open') }}</Button>
-                </div>
-
-                <div class="flex gap-3 items-center flex-wrap">
-                    <span class="text-sm text-muted-foreground">{{ t('photo.projectorAlbum') }}:</span>
-                    <select
-                        :value="projectorAlbumId"
-                        class="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                        @change="updateProjectorAlbum(($event.target as HTMLSelectElement).value)"
-                    >
-                        <option v-for="album in albums" :key="album.id" :value="String(album.id)">
-                            {{ album.name }}
-                        </option>
-                    </select>
-                </div>
-
-            </div>
-
-            <!-- Album-Tabs + Aktionen in einer Zeile -->
-            <div class="flex items-end justify-between gap-2 border-b">
-                <div class="flex gap-1">
-                    <button
-                        v-for="album in albums"
-                        :key="album.slug"
-                        class="px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px"
-                        :class="activeTab === album.slug
-                            ? 'border-primary text-primary'
-                            : 'border-transparent text-muted-foreground hover:text-foreground'"
-                        @click="activeTab = album.slug; exitSelectionMode()"
-                    >
-                        {{ album.name }}
-                        <span class="ml-1 text-xs text-muted-foreground">({{ album.photos.length }})</span>
-                    </button>
-                </div>
-                <div class="flex items-center gap-2 pb-1">
-                    <Button variant="outline" size="sm" @click="sortOrder = sortOrder === 'newest' ? 'oldest' : 'newest'">
-                        {{ sortOrder === 'newest' ? t('photo.sortNewest') : t('photo.sortOldest') }}
-                    </Button>
-                    <Button v-if="!selectionMode" variant="outline" size="sm" @click="selectionMode = true">
-                        {{ t('photo.select') }}
-                    </Button>
-                    <template v-else>
-                        <Button variant="outline" size="sm" @click="toggleSelectAll">
-                            {{ selectedIds.size === sortedPhotos.length ? t('photo.deselectAll') : t('photo.selectAll') }}
-                        </Button>
-                        <Button v-if="selectedIds.size > 0" variant="destructive" size="sm" @click="confirmBatchOpen = true">
-                            {{ t('photo.deleteSelected', { count: selectedIds.size }) }}
-                        </Button>
-                        <Button variant="ghost" size="sm" @click="exitSelectionMode">{{ t('common.cancel') }}</Button>
-                    </template>
-                    <input ref="fileInput" type="file" accept="image/jpeg,image/png,image/heic" class="hidden" @change="onFileChange" />
-                    <Button :disabled="form.processing" @click="fileInput?.click()">
-                        {{ form.processing ? t('photo.uploading') : t('photo.upload') }}
-                    </Button>
-                </div>
-            </div>
-
-            <!-- Tab-Beschreibung -->
-            <div class="space-y-2">
-                <p class="text-xs text-muted-foreground">
-                    <template v-if="activeTab === 'presentation'">{{ t('photo.descPresentation') }}</template>
-                    <template v-else-if="activeTab === 'app_gallery'">{{ t('photo.descAppGallery') }}</template>
-                    <template v-else-if="activeTab === 'photo_game'">{{ t('photo.descPhotoGame') }}</template>
-                </p>
-
-                <!-- Namensanzeige-Einstellung nur bei App-Galerie -->
-                <div v-if="activeTab === 'app_gallery'" class="flex gap-2 items-center">
-                    <span class="text-xs text-muted-foreground">{{ t('photo.projectorNameMode') }}:</span>
-                    <select
-                        :value="projectorNameMode"
-                        class="h-8 rounded-md border border-input bg-background px-2 py-0.5 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                        @change="updateProjectorNameMode(($event.target as HTMLSelectElement).value)"
-                    >
-                        <option value="first">{{ t('photo.projectorNameFirst') }}</option>
-                        <option value="full">{{ t('photo.projectorNameFull') }}</option>
-                        <option value="none">{{ t('photo.projectorNameNone') }}</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Foto-Grid -->
-            <p v-if="sortedPhotos.length === 0" class="text-sm text-muted-foreground">{{ t('photo.none') }}</p>
-
-            <div v-else class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                    <div
-                        v-for="photo in sortedPhotos"
-                        :key="photo.id"
-                        class="group relative cursor-pointer overflow-hidden rounded-lg border bg-muted aspect-square"
-                        :class="{ 'ring-2 ring-primary ring-offset-1': selectedIds.has(photo.id) }"
-                        @click="selectionMode ? toggleSelection(photo.id) : openPhoto(photo)"
-                    >
-                        <img :src="photo.url" :alt="photo.guest_name" class="h-full w-full object-cover transition-transform group-hover:scale-105" />
-                        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-xs text-white">
-                            <div class="font-medium truncate">
-                                <template v-if="activeTab === 'presentation' && photo.description">{{ photo.description }}</template>
-                                <template v-else-if="photo.guest_name">
-                                    {{ photo.guest_name }}<template v-if="photo.organizer_role === 'owner'"> ({{ t('photo.organizer') }})</template><template v-else-if="photo.organizer_role === 'co_organizer'"> ({{ t('photo.coOrganizer') }})</template>
-                                </template>
-                                <template v-else>{{ t('photo.uploadedByOrganizer') }}</template>
-                            </div>
-                        </div>
-                        <!-- Checkbox im Auswahlmodus -->
-                        <div
-                            v-if="selectionMode"
-                            class="absolute top-2 left-2 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center transition-colors"
-                            :class="selectedIds.has(photo.id) ? 'bg-primary border-primary' : 'bg-black/30'"
+            <!-- Diashow-Section (collapsible) -->
+            <div v-if="projectorUrl" class="rounded-lg border overflow-hidden">
+                <button
+                    type="button"
+                    class="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors"
+                    @click="slideshowOpen = !slideshowOpen"
+                >
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-semibold">{{ t('photo.slideshowTitle') }}</span>
+                        <InfoTooltip :text="t('photo.slideshowInfo')" />
+                    </div>
+                    <ChevronDown class="h-4 w-4 text-muted-foreground transition-transform duration-200" :class="{ 'rotate-180': slideshowOpen }" />
+                </button>
+                <div v-show="slideshowOpen" class="border-t px-4 py-3 space-y-3">
+                    <div class="flex gap-2 items-center">
+                        <code class="flex-1 text-xs bg-muted px-3 py-2 rounded font-mono truncate">{{ projectorUrl }}</code>
+                        <Button variant="outline" size="sm" @click="copyProjectorUrl">{{ t('photo.projectorCopy') }}</Button>
+                        <Button variant="outline" size="sm" as="a" :href="projectorUrl" target="_blank">{{ t('common.open') }}</Button>
+                    </div>
+                    <div class="flex gap-3 items-center flex-wrap">
+                        <span class="text-sm text-muted-foreground">{{ t('photo.projectorAlbum') }}:</span>
+                        <select
+                            :value="projectorAlbumId"
+                            class="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                            @change="updateProjectorAlbum(($event.target as HTMLSelectElement).value)"
                         >
-                            <svg v-if="selectedIds.has(photo.id)" class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
+                            <option v-for="album in albums" :key="album.id" :value="String(album.id)">
+                                {{ album.name }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alben-Section (collapsible) -->
+            <div class="rounded-lg border overflow-hidden">
+                <button
+                    type="button"
+                    class="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors"
+                    @click="albumsOpen = !albumsOpen"
+                >
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-semibold">{{ t('photo.albumsTitle') }}</span>
+                        <InfoTooltip :text="t('photo.albumsInfo')" />
+                    </div>
+                    <ChevronDown class="h-4 w-4 text-muted-foreground transition-transform duration-200" :class="{ 'rotate-180': albumsOpen }" />
+                </button>
+
+                <div v-show="albumsOpen" class="border-t">
+                    <!-- Album-Tabs + Aktionen in einer Zeile -->
+                    <div class="flex items-end justify-between gap-2 border-b">
+                        <div class="flex gap-1">
+                            <button
+                                v-for="album in albums"
+                                :key="album.slug"
+                                class="px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px"
+                                :class="activeTab === album.slug
+                                    ? 'border-primary text-primary'
+                                    : 'border-transparent text-muted-foreground hover:text-foreground'"
+                                @click="activeTab = album.slug; exitSelectionMode()"
+                            >
+                                {{ album.name }}
+                                <span class="ml-1 text-xs text-muted-foreground">({{ album.photos.length }})</span>
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-2 pb-1 pr-2">
+                            <Button variant="outline" size="sm" @click="sortOrder = sortOrder === 'newest' ? 'oldest' : 'newest'">
+                                {{ sortOrder === 'newest' ? t('photo.sortNewest') : t('photo.sortOldest') }}
+                            </Button>
+                            <Button v-if="!selectionMode" variant="outline" size="sm" @click="selectionMode = true">
+                                {{ t('photo.select') }}
+                            </Button>
+                            <template v-else>
+                                <Button variant="outline" size="sm" @click="toggleSelectAll">
+                                    {{ selectedIds.size === sortedPhotos.length ? t('photo.deselectAll') : t('photo.selectAll') }}
+                                </Button>
+                                <Button v-if="selectedIds.size > 0" variant="destructive" size="sm" @click="confirmBatchOpen = true">
+                                    {{ t('photo.deleteSelected', { count: selectedIds.size }) }}
+                                </Button>
+                                <Button variant="ghost" size="sm" @click="exitSelectionMode">{{ t('common.cancel') }}</Button>
+                            </template>
+                            <input ref="fileInput" type="file" accept="image/jpeg,image/png,image/heic" class="hidden" @change="onFileChange" />
+                            <Button :disabled="form.processing" @click="fileInput?.click()">
+                                {{ form.processing ? t('photo.uploading') : t('photo.upload') }}
+                            </Button>
                         </div>
                     </div>
+
+                    <!-- Tab-Beschreibung -->
+                    <div class="px-4 py-3 space-y-2">
+                        <div class="flex items-start gap-2 rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+                            <span class="mt-px shrink-0 text-base leading-none">ℹ</span>
+                            <div>
+                                <template v-if="activeTab === 'presentation'">
+                                    <p>{{ t('photo.descPresentation') }}</p>
+                                    <p class="mt-0.5 text-xs opacity-75">{{ t('photo.descPresentationUploadHint') }}</p>
+                                </template>
+                                <template v-else-if="activeTab === 'app_gallery'">{{ t('photo.descAppGallery') }}</template>
+                                <template v-else-if="activeTab === 'photo_game'">{{ t('photo.descPhotoGame') }}</template>
+                            </div>
+                        </div>
+
+                        <!-- Namensanzeige-Einstellung nur bei App-Galerie -->
+                        <div v-if="activeTab === 'app_gallery'" class="flex gap-2 items-center">
+                            <span class="text-xs text-muted-foreground">{{ t('photo.projectorNameMode') }}:</span>
+                            <select
+                                :value="projectorNameMode"
+                                class="h-8 rounded-md border border-input bg-background px-2 py-0.5 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                                @change="updateProjectorNameMode(($event.target as HTMLSelectElement).value)"
+                            >
+                                <option value="first">{{ t('photo.projectorNameFirst') }}</option>
+                                <option value="full">{{ t('photo.projectorNameFull') }}</option>
+                                <option value="none">{{ t('photo.projectorNameNone') }}</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Foto-Grid -->
+                    <p v-if="sortedPhotos.length === 0" class="px-4 pb-4 text-sm text-muted-foreground">{{ t('photo.none') }}</p>
+
+                    <div v-else class="px-4 pb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                        <div
+                            v-for="photo in sortedPhotos"
+                            :key="photo.id"
+                            class="group relative cursor-pointer overflow-hidden rounded-lg border bg-muted aspect-square"
+                            :class="{ 'ring-2 ring-primary ring-offset-1': selectedIds.has(photo.id) }"
+                            @click="selectionMode ? toggleSelection(photo.id) : openPhoto(photo)"
+                        >
+                            <img :src="photo.url" :alt="photo.guest_name" class="h-full w-full object-cover transition-transform group-hover:scale-105" />
+                            <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-xs text-white">
+                                <div class="font-medium truncate">
+                                    <template v-if="activeTab === 'presentation' && photo.description">{{ photo.description }}</template>
+                                    <template v-else-if="photo.guest_name">
+                                        {{ photo.guest_name }}<template v-if="photo.organizer_role === 'owner'"> ({{ t('photo.organizer') }})</template><template v-else-if="photo.organizer_role === 'co_organizer'"> ({{ t('photo.coOrganizer') }})</template>
+                                    </template>
+                                    <template v-else>{{ t('photo.uploadedByOrganizer') }}</template>
+                                </div>
+                            </div>
+                            <!-- Checkbox im Auswahlmodus -->
+                            <div
+                                v-if="selectionMode"
+                                class="absolute top-2 left-2 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center transition-colors"
+                                :class="selectedIds.has(photo.id) ? 'bg-primary border-primary' : 'bg-black/30'"
+                            >
+                                <svg v-if="selectedIds.has(photo.id)" class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </div>

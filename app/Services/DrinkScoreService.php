@@ -22,14 +22,17 @@ class DrinkScoreService
      * Alkoholisch: round((amount_liter * alcohol_percent) * 10)
      *   → Shots (spirit) erhalten zusätzlich ×SHOT_MULTIPLIER
      * Alkoholfrei: negative_points (Flat-Wert)
+     *
+     * @param DrinkCatalog $catalog
+     * @param float        $amountLiter  Ausschankgröße in Litern (von der gewählten Größe)
      */
-    public static function basePoints(DrinkCatalog $catalog): int
+    public static function basePoints(DrinkCatalog $catalog, float $amountLiter): int
     {
         if (!$catalog->is_alcoholic) {
             return $catalog->negative_points ?? 0;
         }
 
-        $points = ($catalog->amount_liter * $catalog->alcohol_percent) * 10;
+        $points = ($amountLiter * $catalog->alcohol_percent) * 10;
 
         if ($catalog->category === 'spirit') {
             $points *= self::SHOT_MULTIPLIER;
@@ -43,13 +46,14 @@ class DrinkScoreService
      * Nicht-alkoholische Getränke bleiben immer beim Flat-Wert.
      * Bei alkoholischen Getränken: wenn Streak >= THRESHOLD → 50% der Basispunkte.
      *
-     * @param DrinkCatalog $catalog  Das neue Getränk
-     * @param Collection   $history  Geordnete Log-History des Gastes (neueste zuerst),
-     *                               jeder Eintrag muss 'is_alcoholic' enthalten
+     * @param DrinkCatalog $catalog
+     * @param float        $amountLiter  Ausschankgröße in Litern
+     * @param Collection   $history      Geordnete Log-History des Gastes (neueste zuerst),
+     *                                   jeder Eintrag muss 'is_alcoholic' enthalten
      */
-    public static function effectivePoints(DrinkCatalog $catalog, Collection $history): int
+    public static function effectivePoints(DrinkCatalog $catalog, float $amountLiter, Collection $history): int
     {
-        $base = self::basePoints($catalog);
+        $base = self::basePoints($catalog, $amountLiter);
 
         if (!$catalog->is_alcoholic) {
             return $base;
