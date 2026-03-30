@@ -12,7 +12,8 @@
     "requests": "Requests",
     "eventSettings": "Event Settings",
     "requestEvent": "Request event",
-    "photoGame": "Photo Game"
+    "photoGame": "Photo Game",
+    "calculator": "Quantity Calculator"
   },
   "common": {
     "create": "Create",
@@ -120,6 +121,8 @@
     "drinkGameEnabledDesc": "Shows the drinking game tab in the app and on the web",
     "photoGameEnabled": "Enable photo game",
     "photoGameEnabledDesc": "Unlocks the photo game feature (nav entry + API)",
+    "calculatorEnabled": "Enable quantity calculator",
+    "calculatorEnabledDesc": "Shows the quantity calculator in the navigation",
     "drinkGameEndTime": "Game end time",
     "drinkGameEndTimeDesc": "After this time, no more drinks can be logged.",
     "phonePreview": "Preview",

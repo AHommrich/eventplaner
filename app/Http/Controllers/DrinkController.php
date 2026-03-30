@@ -146,6 +146,61 @@ class DrinkController extends Controller
         return redirect()->back()->with('success', 'Getränk entfernt.');
     }
 
+    public function calculator()
+    {
+        $event = $this->activeEvent();
+
+        $eventDrinks = $event
+            ? $event->drinks()->with(['catalog', 'size'])->get()
+                ->groupBy('drink_catalog_id')
+                ->map(function ($group) {
+                    $first = $group->first();
+                    return [
+                        'catalog_id'     => $first->drink_catalog_id,
+                        'type'           => $first->catalog?->type,
+                        'display_name'   => $first->catalog?->display_name,
+                        'category'       => $first->catalog?->category,
+                        'is_alcoholic'   => $first->catalog?->is_alcoholic,
+                        'selected_sizes' => $group->map(fn($d) => [
+                            'id'           => $d->size_id,
+                            'drink_id'     => $d->id,
+                            'amount_liter' => $d->size?->amount_liter,
+                            'is_default'   => $d->size?->is_default,
+                            'points'       => DrinkScoreService::basePoints($first->catalog, $d->size?->amount_liter ?? 0.0),
+                        ])->sortBy('amount_liter')->values(),
+                    ];
+                })->sortBy('display_name')->values()
+            : collect();
+
+        $guestStats = $event ? [
+            'total'         => $event->guests()->count(),
+            'confirmed'     => $event->guests()->where('rsvp_status', 'accepted')->count(),
+            'rsvp_deadline' => $event->rsvp_deadline ? \Carbon\Carbon::parse($event->rsvp_deadline)->toDateString() : null,
+            'event_date'    => $event->date ? \Carbon\Carbon::parse($event->date)->toDateString() : null,
+        ] : ['total' => 0, 'confirmed' => 0, 'rsvp_deadline' => null, 'event_date' => null];
+
+        return Inertia::render('Drinks/Calculator', [
+            'event_drinks'        => $eventDrinks,
+            'guest_stats'         => $guestStats,
+            'calculator_settings' => $event?->calculator_settings,
+        ]);
+    }
+
+    public function saveCalculator(Request $request)
+    {
+        $event = $this->activeEvent();
+        abort_if(!$event, 404);
+
+        $data = $request->validate([
+            'settings' => 'nullable|array',
+        ]);
+
+        $event->calculator_settings = $data['settings'] ?? null;
+        $event->save();
+
+        return back()->with('success', 'Einstellungen gespeichert.');
+    }
+
     public function game()
     {
         $event  = $this->activeEvent();
