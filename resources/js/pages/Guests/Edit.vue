@@ -2,6 +2,7 @@
 import GuestForm from '@/components/GuestForm.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
+import InfoTooltip from '@/components/InfoTooltip.vue';
 import QRCode from 'qrcode';
 import { ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
@@ -124,7 +125,10 @@ function setterName(guest: any): string | null {
 
             <!-- App-Zugang -->
             <div class="mt-6 border-t pt-6 space-y-3">
-                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('guest.appAccess') }}</h3>
+                <div class="flex items-center gap-2">
+                    <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('guest.appAccess') }}</h3>
+                    <InfoTooltip :text="t('guest.appAccessInfo')" />
+                </div>
                 <div class="flex items-center justify-between rounded-lg border bg-muted/30 px-4 py-3">
                     <div class="text-sm">
                         <p class="font-medium">{{ appAccessForm.app_access ? t('guest.appAccessEnabled') : t('guest.appAccessDisabled') }}</p>
@@ -143,7 +147,10 @@ function setterName(guest: any): string | null {
 
             <!-- Getränke-Zugang -->
             <div class="mt-6 border-t pt-6 space-y-3">
-                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('guest.drinksAccess') }}</h3>
+                <div class="flex items-center gap-2">
+                    <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('guest.drinksAccess') }}</h3>
+                    <InfoTooltip :text="t('guest.drinksAccessInfo')" />
+                </div>
                 <div class="flex items-center justify-between rounded-lg border bg-muted/30 px-4 py-3">
                     <div class="text-sm">
                         <p class="font-medium">{{ drinksAccessForm.drinks_access ? t('guest.drinksAccessEnabled') : t('guest.drinksAccessDisabled') }}</p>

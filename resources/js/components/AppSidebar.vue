@@ -7,7 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuIte
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarGroup, SidebarGroupLabel, useSidebar } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { router, usePage } from '@inertiajs/vue3';
-import { Users, LayoutDashboard, QrCode, Images, ShieldCheck, GlassWater, Trophy, ChevronsUpDown, Check, KeyRound, Undo2, Settings2, CalendarDays, Plus, CalendarPlus, Clock, Camera } from 'lucide-vue-next';
+import { Users, LayoutDashboard, QrCode, Images, ShieldCheck, GlassWater, Trophy, ChevronsUpDown, Check, KeyRound, Undo2, Settings2, CalendarDays, Plus, CalendarPlus, Clock, Camera, Calculator } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -22,7 +22,7 @@ const { open: requestModalOpen } = useEventRequestModal();
 const { open: onboardingOpen } = useOnboardingModal();
 
 const isAdmin       = computed(() => (page.props.auth as any)?.user?.role === 'admin');
-const activeEvent   = computed(() => (page.props as any).active_event as { id: number; name: string; user_id?: number; drink_game_enabled?: boolean; photo_game_enabled?: boolean } | null);
+const activeEvent   = computed(() => (page.props as any).active_event as { id: number; name: string; user_id?: number; drink_game_enabled?: boolean; photo_game_enabled?: boolean; calculator_enabled?: boolean } | null);
 const currentUserId = computed(() => (page.props.auth as any)?.user?.id);
 const isEventOwner  = computed(() => !isAdmin.value && activeEvent.value?.user_id === currentUserId.value);
 const accessibleEvents = computed(() => (page.props as any).accessible_events as { id: number; name: string }[]);
@@ -51,7 +51,10 @@ const mainNavItems = computed<NavItem[]>(() => [
     { title: t('nav.forms'),         href: '/dashboard',      icon: LayoutDashboard },
     { title: t('nav.guests'),        href: '/guests',         icon: Users },
     { title: t('nav.invitations'),   href: '/invitations',    icon: QrCode },
-    { title: t('nav.drinks'),        href: '/drinks',         icon: GlassWater },
+    { title: t('nav.drinks'),        href: '/drinks',             icon: GlassWater },
+    ...(activeEvent.value?.calculator_enabled ? [
+        { title: t('nav.calculator'), href: '/drinks/calculator', icon: Calculator },
+    ] : []),
     ...(activeEvent.value?.drink_game_enabled ? [
         { title: t('nav.drinkGame'), href: '/drinks/game', icon: Trophy },
     ] : []),

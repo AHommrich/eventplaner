@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useFloatingBar } from '@/composables/useFloatingBar';
+import InfoTooltip from '@/components/InfoTooltip.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
@@ -58,6 +59,7 @@ interface EventData {
     drink_game_enabled: boolean;
     drink_game_end_time: string | null;
     photo_game_enabled: boolean;
+    calculator_enabled: boolean;
 }
 
 const props = defineProps<{ event: EventData }>();
@@ -102,6 +104,7 @@ const form = useForm({
     drink_game_enabled: props.event.drink_game_enabled ?? false,
     drink_game_end_time: props.event.drink_game_end_time ? props.event.drink_game_end_time.slice(0, 16) : '',
     photo_game_enabled: props.event.photo_game_enabled ?? false,
+    calculator_enabled: props.event.calculator_enabled ?? false,
     cover: null as File | null,
 });
 
@@ -760,7 +763,10 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                     </div>
                                     <!-- Venue-Anzeige auf dem Home-Screen -->
                                     <div class="grid gap-2">
-                                        <Label>{{ t('event.venueDisplayMode') }}</Label>
+                                        <div class="flex items-center gap-2">
+                                            <Label>{{ t('event.venueDisplayMode') }}</Label>
+                                            <InfoTooltip :text="t('event.venueDisplayModeHint')" />
+                                        </div>
                                         <div class="flex gap-2">
                                             <button
                                                 v-for="opt in [
@@ -1135,7 +1141,11 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
 
                                     <!-- Farb-Palette -->
                                     <div class="grid gap-3">
-                                        <Label>{{ t('event.colorHint') }}</Label>
+                                        <div class="flex items-center gap-2">
+                                            <Label>{{ t('event.colorHint') }}</Label>
+                                            <InfoTooltip :text="t('event.colorSystemInfo')" />
+                                        </div>
+                                        <p class="text-xs text-muted-foreground -mt-1">{{ t('event.colorHintSub') }}</p>
                                         <!-- 3 Basis-Picker -->
                                         <div class="grid grid-cols-3 gap-3">
                                             <div
@@ -1394,6 +1404,29 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                             :class="['relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2', form.photo_game_enabled ? 'bg-primary' : 'bg-input']"
                                         >
                                             <span :class="['pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform', form.photo_game_enabled ? 'translate-x-5' : 'translate-x-0']" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <!-- Mengenrechner -->
+                        <Card>
+                            <CardContent>
+                                <div class="space-y-3 pt-4">
+                                    <div class="flex items-center justify-between gap-4">
+                                        <div>
+                                            <Label class="text-sm font-medium">{{ t('event.calculatorEnabled') }}</Label>
+                                            <p class="text-xs text-muted-foreground">{{ t('event.calculatorEnabledDesc') }}</p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            role="switch"
+                                            :aria-checked="form.calculator_enabled"
+                                            @click="form.calculator_enabled = !form.calculator_enabled"
+                                            :class="['relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2', form.calculator_enabled ? 'bg-primary' : 'bg-input']"
+                                        >
+                                            <span :class="['pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform', form.calculator_enabled ? 'translate-x-5' : 'translate-x-0']" />
                                         </button>
                                     </div>
                                 </div>

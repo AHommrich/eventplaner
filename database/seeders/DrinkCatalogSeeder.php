@@ -3,7 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\DrinkCatalog;
+use App\Models\DrinkCatalogSize;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class DrinkCatalogSeeder extends Seeder
 {
@@ -100,43 +102,62 @@ class DrinkCatalogSeeder extends Seeder
             ['category' => 'coffee', 'type' => 'tea',        'base_name' => 'Tee',            'alcohol_percent' => 0.0, 'is_alcoholic' => false, 'negative_points' => -3, 'sizes' => [0.2, 0.3], 'search_terms' => ['Tee', 'Tea', 'Kräutertee', 'Früchtetee'],    'sort_order_base' => 50],
         ];
 
-        // ── Einträge per Upsert anlegen/aktualisieren ────────────────────────────
-        $rows = [];
+        // ── Schritt 1: Typen upserten (1 Zeile pro Getränk) ─────────────────────
+        $typeRows = [];
         foreach ($templates as $tpl) {
-            foreach ($tpl['sizes'] as $index => $liter) {
-                $rows[] = [
-                    'category'        => $tpl['category'],
-                    'type'            => $tpl['type'],
-                    'display_name'    => $tpl['base_name'] . ' ' . $this->formatLiter($liter) . ' l',
-                    'amount_liter'    => $liter,
-                    'alcohol_percent' => $tpl['alcohol_percent'],
-                    'is_alcoholic'    => $tpl['is_alcoholic'],
-                    'negative_points' => $tpl['negative_points'] ?? null,
-                    'is_active'       => true,
-                    'sort_order'      => $tpl['sort_order_base'] + $index,
-                    'search_terms'    => json_encode($tpl['search_terms']),
-                    'created_at'      => now(),
-                    'updated_at'      => now(),
-                ];
-            }
+            $typeRows[] = [
+                'category'        => $tpl['category'],
+                'type'            => $tpl['type'],
+                'display_name'    => $tpl['base_name'],
+                'alcohol_percent' => $tpl['alcohol_percent'],
+                'is_alcoholic'    => $tpl['is_alcoholic'],
+                'negative_points' => $tpl['negative_points'] ?? null,
+                'is_active'       => true,
+                'sort_order'      => $tpl['sort_order_base'],
+                'search_terms'    => json_encode($tpl['search_terms']),
+                'created_at'      => now(),
+                'updated_at'      => now(),
+            ];
         }
 
         DrinkCatalog::upsert(
-            $rows,
-            uniqueBy: ['type', 'amount_liter'],
+            $typeRows,
+            uniqueBy: ['type'],
             update: ['display_name', 'category', 'alcohol_percent', 'is_alcoholic', 'negative_points', 'is_active', 'sort_order', 'search_terms', 'updated_at'],
         );
 
-        // ── Einträge die nicht mehr im Katalog sind deaktivieren ─────────────────
+        // ── Schritt 2: Größen pro Typ upserten ──────────────────────────────────
+        foreach ($templates as $tpl) {
+            $catalog = DrinkCatalog::where('type', $tpl['type'])->first();
+            if (!$catalog) {
+                continue;
+            }
+
+            $sizes      = $tpl['sizes'];
+            $count      = count($sizes);
+            $defaultIdx = (int) floor($count / 2); // mittlere Größe als Default
+
+            $sizeRows = [];
+            foreach ($sizes as $idx => $liter) {
+                $sizeRows[] = [
+                    'catalog_id'   => $catalog->id,
+                    'amount_liter' => $liter,
+                    'is_default'   => $idx === $defaultIdx ? 1 : 0,
+                    'sort_order'   => $idx,
+                    'created_at'   => now(),
+                    'updated_at'   => now(),
+                ];
+            }
+
+            DrinkCatalogSize::upsert(
+                $sizeRows,
+                uniqueBy: ['catalog_id', 'amount_liter'],
+                update: ['is_default', 'sort_order', 'updated_at'],
+            );
+        }
+
+        // ── Nicht mehr im Katalog enthaltene Typen deaktivieren ─────────────────
         $activeTypes = collect($templates)->pluck('type')->toArray();
         DrinkCatalog::whereNotIn('type', $activeTypes)->update(['is_active' => false]);
-    }
-
-    private function formatLiter(float $liter): string
-    {
-        $s = rtrim(number_format($liter, 2, '.', ''), '0');
-        $s = rtrim($s, '.');
-
-        return str_replace('.', ',', $s);
     }
 }

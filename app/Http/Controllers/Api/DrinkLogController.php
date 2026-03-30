@@ -40,18 +40,25 @@ class DrinkLogController extends Controller
 
         $categoryOrder = array_flip(self::CATEGORY_ORDER);
 
+        // drinks: N Zeilen pro Typ — nach catalog_id gruppieren, nur ausgewählte Größen
         $drinks = Drink::where('event_id', $guest->event_id)
-            ->with('catalog')
+            ->with(['catalog', 'size'])
             ->get()
-            ->map(fn($d) => [
-                'id'             => $d->id,
-                'display_name'   => $d->catalog?->display_name,
-                'category'       => $d->catalog?->category,
-                'category_label' => self::CATEGORY_LABELS[$d->catalog?->category] ?? $d->catalog?->category,
-                'is_alcoholic'   => $d->catalog?->is_alcoholic,
-                'amount_liter'   => $d->catalog?->amount_liter,
-                'points'         => $d->catalog ? DrinkScoreService::basePoints($d->catalog) : 0,
-            ])
+            ->groupBy('drink_catalog_id')
+            ->map(fn($group) => [
+                'id'             => $group->first()->drink_catalog_id,
+                'display_name'   => $group->first()->catalog?->display_name,
+                'category'       => $group->first()->catalog?->category,
+                'category_label' => self::CATEGORY_LABELS[$group->first()->catalog?->category] ?? $group->first()->catalog?->category,
+                'is_alcoholic'   => $group->first()->catalog?->is_alcoholic,
+                'sizes'          => $group->map(fn($d) => [
+                    'drink_id'     => $d->id,
+                    'id'           => $d->size_id,
+                    'amount_liter' => $d->size?->amount_liter,
+                    'is_default'   => $d->size?->is_default,
+                    'points'       => $d->catalog ? DrinkScoreService::basePoints($d->catalog, $d->size?->amount_liter ?? 0.0) : 0,
+                ])->sortBy('amount_liter')->values(),
+            ])->values()
             ->sortBy([
                 fn($a, $b) => ($categoryOrder[$a['category']] ?? 99) <=> ($categoryOrder[$b['category']] ?? 99),
                 fn($a, $b) => $a['display_name'] <=> $b['display_name'],
@@ -87,8 +94,10 @@ class DrinkLogController extends Controller
             'drink_id' => 'required|integer|exists:drinks,id',
         ]);
 
-        $drink = Drink::with('catalog')->findOrFail($data['drink_id']);
+        $drink = Drink::with(['catalog', 'size'])->findOrFail($data['drink_id']);
         abort_if($drink->event_id !== $guest->event_id, 403);
+
+        $amountLiter = $drink->size?->amount_liter ?? $drink->catalog?->defaultSize()?->amount_liter ?? 0.0;
 
         // Game-Zeitfenster prüfen
         $event = Event::find($guest->event_id);
@@ -97,15 +106,17 @@ class DrinkLogController extends Controller
         }
 
         // Punkte berechnen
-        $history    = DrinkScoreService::guestHistory($guest->id);
-        $basePoints = $drink->catalog ? DrinkScoreService::basePoints($drink->catalog) : 0;
+        $history     = DrinkScoreService::guestHistory($guest->id);
+        $basePoints  = $drink->catalog ? DrinkScoreService::basePoints($drink->catalog, $amountLiter) : 0;
         $finalPoints = $drink->catalog
-            ? DrinkScoreService::effectivePoints($drink->catalog, $history)
+            ? DrinkScoreService::effectivePoints($drink->catalog, $amountLiter, $history)
             : 0;
 
         $log = DrinkLog::create([
             'guest_id'     => $guest->id,
             'drink_id'     => $drink->id,
+            'size_id'      => $drink->size_id,
+            'amount_liter' => $amountLiter,
             'base_points'  => $basePoints,
             'final_points' => $finalPoints,
         ]);
@@ -134,17 +145,18 @@ class DrinkLogController extends Controller
     public function stats(Request $request): JsonResponse
     {
         $guest  = $request->user();
-        $drinks = Drink::where('event_id', $guest->event_id)->with('catalog')->get();
+        $drinks = Drink::where('event_id', $guest->event_id)->with(['catalog', 'catalog.sizes'])->get();
 
         // Eigene Bilanz (nach final_points summiert)
         $myStats = $drinks->map(function ($drink) use ($guest) {
+            $defaultLiter = $drink->catalog?->defaultSize()?->amount_liter ?? 0.0;
             $logs  = DrinkLog::where('guest_id', $guest->id)->where('drink_id', $drink->id)->get();
             $count = $logs->count();
             $pts   = $logs->sum('final_points');
             return [
                 'drink_id'     => $drink->id,
                 'display_name' => $drink->catalog?->display_name,
-                'points_each'  => $drink->catalog ? DrinkScoreService::basePoints($drink->catalog) : 0,
+                'points_each'  => $drink->catalog ? DrinkScoreService::basePoints($drink->catalog, $defaultLiter) : 0,
                 'count'        => $count,
                 'points_total' => $pts,
             ];
@@ -152,12 +164,13 @@ class DrinkLogController extends Controller
 
         // Event-Gesamt pro Getränk (summe final_points)
         $eventTotals = $drinks->map(function ($drink) {
+            $defaultLiter = $drink->catalog?->defaultSize()?->amount_liter ?? 0.0;
             $total = DrinkLog::where('drink_id', $drink->id)->count();
             $pts   = DrinkLog::where('drink_id', $drink->id)->sum('final_points');
             return [
                 'drink_id'     => $drink->id,
                 'display_name' => $drink->catalog?->display_name,
-                'points_each'  => $drink->catalog ? DrinkScoreService::basePoints($drink->catalog) : 0,
+                'points_each'  => $drink->catalog ? DrinkScoreService::basePoints($drink->catalog, $defaultLiter) : 0,
                 'total'        => $total,
                 'points_total' => $pts,
             ];
@@ -165,6 +178,7 @@ class DrinkLogController extends Controller
 
         // Top-Trinker pro Getränk (nach final_points)
         $leaderboard = $drinks->map(function ($drink) {
+            $defaultLiter = $drink->catalog?->defaultSize()?->amount_liter ?? 0.0;
             $top = DrinkLog::where('drink_id', $drink->id)
                 ->selectRaw('guest_id, COUNT(*) as count, SUM(final_points) as points_total')
                 ->groupBy('guest_id')
@@ -182,7 +196,7 @@ class DrinkLogController extends Controller
             return [
                 'drink_id'     => $drink->id,
                 'display_name' => $drink->catalog?->display_name,
-                'points_each'  => $drink->catalog ? DrinkScoreService::basePoints($drink->catalog) : 0,
+                'points_each'  => $drink->catalog ? DrinkScoreService::basePoints($drink->catalog, $defaultLiter) : 0,
                 'top'          => $top,
             ];
         })->filter(fn($d) => count($d['top']) > 0)->values();
