@@ -44,6 +44,7 @@ class HandleInertiaRequests extends Middleware
             'user_id'             => $event->user_id,
             'drink_game_enabled'  => (bool) $event->drink_game_enabled,
             'photo_game_enabled'  => (bool) $event->photo_game_enabled,
+            'calculator_enabled'  => (bool) $event->calculator_enabled,
         ];
     }
 

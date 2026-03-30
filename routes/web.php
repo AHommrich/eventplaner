@@ -65,6 +65,8 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::post('/drinks/batch', [DrinkController::class, 'batch'])->name('drinks.batch');
     Route::delete('/drinks/{drink}', [DrinkController::class, 'destroy'])->name('drinks.destroy');
     Route::get('/drinks/game', [DrinkController::class, 'game'])->name('drinks.game');
+    Route::get('/drinks/calculator', [DrinkController::class, 'calculator'])->name('drinks.calculator');
+    Route::patch('/drinks/calculator', [DrinkController::class, 'saveCalculator'])->name('drinks.calculator.save');
 
     // Event-Einstellungen
     Route::get('/event/settings', [EventSettingsController::class, 'show'])->name('event.settings');
