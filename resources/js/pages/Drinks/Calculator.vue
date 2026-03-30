@@ -47,7 +47,10 @@ interface CalculatorSettings {
     bufferAbs?: number;
     bufferPct?: number;
     alkPct?: number;
+    eventDuration?: number;
     categoryPct?: Record<string, number>;
+    categoryAlcoholic?: Record<string, boolean>;
+    consumptionRate?: Record<string, number>;
     drinkShareWithinCat?: Record<string, Record<string, number>>;
     purchaseConfig?: Record<string, PurchaseConfig>;
 }
@@ -88,18 +91,19 @@ const rsvpDeadlinePassed = computed(() =>
 
 const saved = props.calculator_settings ?? {};
 
-const guestBase  = ref<'total' | 'confirmed'>(saved.guestBase ?? 'total');
-const bufferMode = ref<'absolute' | 'percent'>(saved.bufferMode ?? 'absolute');
-const bufferAbs  = ref(saved.bufferAbs ?? 10);
-const bufferPct  = ref(saved.bufferPct ?? 10);
-const alkPct     = ref(saved.alkPct ?? 70);
+const guestBase      = ref<'total' | 'confirmed'>(saved.guestBase ?? 'total');
+const bufferMode     = ref<'absolute' | 'percent'>(saved.bufferMode ?? 'absolute');
+const bufferAbs      = ref(saved.bufferAbs ?? 10);
+const bufferPct      = ref(saved.bufferPct ?? 10);
+const alkPct         = ref(saved.alkPct ?? 70);
+const eventDuration  = ref(saved.eventDuration ?? 6);
 
 // Nach Stichtag: 'confirmed' vorauswählen (nur wenn nicht gespeichert)
 watch(rsvpDeadlinePassed, (passed) => {
     if (passed && !saved.guestBase) guestBase.value = 'confirmed';
 }, { immediate: true });
 
-watch([guestBase, bufferMode, bufferAbs, bufferPct, alkPct], markDirty);
+watch([guestBase, bufferMode, bufferAbs, bufferPct, alkPct, eventDuration], markDirty);
 
 // ─── Kategorie-Verteilung ─────────────────────────────────────────────────────
 
@@ -111,11 +115,34 @@ const categoryLabels: Record<string, string> = {
 };
 
 const categoryPct = ref<Record<string, number>>({});
+const categoryAlcoholic = ref<Record<string, boolean>>({});
+
+const allDrinksByCat = computed(() => {
+    const result: Record<string, EventDrink[]> = {};
+    for (const d of eventDrinks.value) {
+        if (!result[d.category]) result[d.category] = [];
+        result[d.category].push(d);
+    }
+    return result;
+});
+
+const alcoholicDrinksByCat = computed(() => {
+    const result: Record<string, EventDrink[]> = {};
+    for (const d of eventDrinks.value) {
+        if (!d.is_alcoholic) continue;
+        if (!result[d.category]) result[d.category] = [];
+        result[d.category].push(d);
+    }
+    return result;
+});
+
+function categoryIsAlcoholic(cat: string): boolean {
+    return (alcoholicDrinksByCat.value[cat]?.length ?? 0) > 0;
+}
 
 const presentAllCategories = computed(() => {
     const present = new Set(
         eventDrinks.value
-            .filter(d => !(d.category === 'wine' && d.type === 'sekt'))
             .map(d => d.category)
     );
     return categoryOrder
@@ -125,17 +152,25 @@ const presentAllCategories = computed(() => {
 
 watch(presentAllCategories, (cats) => {
     const updated = { ...categoryPct.value };
-    if (cats.length === 0) { categoryPct.value = {}; return; }
+    const updatedAlc = { ...categoryAlcoholic.value };
+    if (cats.length === 0) { categoryPct.value = {}; categoryAlcoholic.value = {}; return; }
     const share = Math.round(100 / cats.length);
     cats.forEach((cat, i) => {
         if (!(cat in updated)) {
             updated[cat] = i === cats.length - 1 ? 100 - share * (cats.length - 1) : share;
         }
+        if (!(cat in updatedAlc)) {
+            updatedAlc[cat] = categoryIsAlcoholic(cat);
+        }
     });
     for (const k of Object.keys(updated)) {
         if (!cats.includes(k)) delete updated[k];
     }
+    for (const k of Object.keys(updatedAlc)) {
+        if (!cats.includes(k)) delete updatedAlc[k];
+    }
     categoryPct.value = updated;
+    categoryAlcoholic.value = updatedAlc;
     markDirty();
 }, { immediate: true });
 
@@ -188,41 +223,44 @@ function setCategoryPct(cat: string, newVal: number) {
     markDirty();
 }
 
-const normalizedPct = computed(() => {
-    const sum = categorySum.value;
-    if (sum === 0) return {} as Record<string, number>;
-    return Object.fromEntries(Object.entries(categoryPct.value).map(([k, v]) => [k, v / sum]));
-});
+const categorySumOk = computed(() => categorySum.value === 100);
+
+function autoDistributeCategories() {
+    const cats = presentAllCategories.value;
+    const unlocked = cats.filter(c => !lockedCategories.has(c));
+    if (unlocked.length === 0) return;
+    const lockedSum = cats
+        .filter(c => lockedCategories.has(c))
+        .reduce((s, c) => s + (categoryPct.value[c] ?? 0), 0);
+    const budget = Math.max(0, 100 - lockedSum);
+    const totalUnlocked = unlocked.reduce((s, c) => s + (categoryPct.value[c] ?? 0), 0);
+    const newPct = { ...categoryPct.value };
+    if (totalUnlocked > 0) {
+        let allocated = 0;
+        unlocked.forEach((c, i) => {
+            if (i === unlocked.length - 1) {
+                newPct[c] = Math.max(0, budget - allocated);
+            } else {
+                const share = Math.round((categoryPct.value[c] ?? 0) / totalUnlocked * budget);
+                newPct[c] = share;
+                allocated += share;
+            }
+        });
+    } else {
+        const share = Math.floor(budget / unlocked.length);
+        unlocked.forEach((c, i) => {
+            newPct[c] = i === unlocked.length - 1 ? budget - share * (unlocked.length - 1) : share;
+        });
+    }
+    categoryPct.value = newPct;
+    markDirty();
+}
 
 // ─── Drink-Share innerhalb Kategorie ─────────────────────────────────────────
 
 const drinkShareWithinCat = reactive<Record<string, Record<string, number>>>({});
 const lockedDrinks = reactive(new Set<string>());
 const expandedCatDetails = reactive(new Set<string>());
-
-const allDrinksByCat = computed(() => {
-    const result: Record<string, EventDrink[]> = {};
-    for (const d of eventDrinks.value) {
-        if (d.category === 'wine' && d.type === 'sekt') continue;
-        if (!result[d.category]) result[d.category] = [];
-        result[d.category].push(d);
-    }
-    return result;
-});
-
-const alcoholicDrinksByCat = computed(() => {
-    const result: Record<string, EventDrink[]> = {};
-    for (const d of eventDrinks.value) {
-        if (!d.is_alcoholic || (d.category === 'wine' && d.type === 'sekt')) continue;
-        if (!result[d.category]) result[d.category] = [];
-        result[d.category].push(d);
-    }
-    return result;
-});
-
-function categoryIsAlcoholic(cat: string): boolean {
-    return (alcoholicDrinksByCat.value[cat]?.length ?? 0) > 0;
-}
 
 function initSharesForCategory(cat: string, drinks: EventDrink[]) {
     if (!drinkShareWithinCat[cat]) drinkShareWithinCat[cat] = {};
@@ -311,6 +349,49 @@ function setDrinkShare(cat: string, type: string, newVal: number) {
     markDirty();
 }
 
+function drinkShareSumOk(cat: string): boolean {
+    return drinkShareSum(cat) === 100;
+}
+
+function autoDistributeDrinks(cat: string) {
+    const catShares = drinkShareWithinCat[cat];
+    if (!catShares) return;
+    const types = Object.keys(catShares);
+    const unlocked = types.filter(t => !lockedDrinks.has(`${cat}:${t}`));
+    if (unlocked.length === 0) return;
+    const lockedSum = types
+        .filter(t => lockedDrinks.has(`${cat}:${t}`))
+        .reduce((s, t) => s + (catShares[t] ?? 0), 0);
+    const budget = Math.max(0, 100 - lockedSum);
+    const totalUnlocked = unlocked.reduce((s, t) => s + (catShares[t] ?? 0), 0);
+    if (totalUnlocked > 0) {
+        let allocated = 0;
+        unlocked.forEach((t, i) => {
+            if (i === unlocked.length - 1) {
+                catShares[t] = Math.max(0, budget - allocated);
+            } else {
+                const share = Math.round((catShares[t] ?? 0) / totalUnlocked * budget);
+                catShares[t] = share;
+                allocated += share;
+            }
+        });
+    } else {
+        const share = Math.floor(budget / unlocked.length);
+        unlocked.forEach((t, i) => {
+            catShares[t] = i === unlocked.length - 1 ? budget - share * (unlocked.length - 1) : share;
+        });
+    }
+    markDirty();
+}
+
+const hasDistributionWarning = computed(() => {
+    if (!categorySumOk.value) return true;
+    for (const cat of presentAllCategories.value) {
+        if ((allDrinksByCat.value[cat]?.length ?? 0) > 1 && !drinkShareSumOk(cat)) return true;
+    }
+    return false;
+});
+
 // ─── Farben ───────────────────────────────────────────────────────────────────
 
 const categoryBgColor: Record<string, string> = {
@@ -344,10 +425,6 @@ const planGuests = computed(() =>
 
 const alkTrinker = computed(() => planGuests.value * (alkPct.value / 100));
 
-// Sekt separat
-const sektDrinks   = computed(() => eventDrinks.value.filter(d => d.type === 'sekt'));
-const sektFlaschen = computed(() => Math.floor(planGuests.value * 1.25 / 6));
-
 // ─── Ergebnis-Computed ────────────────────────────────────────────────────────
 
 interface DrinkResult {
@@ -358,13 +435,28 @@ interface DrinkResult {
     amount_liter: number;
     liters: number;
     basisText: string;
-    isSekt?: boolean;
 }
 
-const DEFAULT_GLASSES_BY_CAT: Record<string, number> = {
-    beer: 3, wine: 3, spirit: 3, longdrink: 2, cocktail: 2,
-    water: 6, softdrink: 3, coffee: 1,
+// Konsumrate pro Stunde — bei 6h reproduzieren diese Defaults exakt die alten Gläser-Werte
+const DEFAULT_RATE_BY_CAT: Record<string, number> = {
+    beer: 0.5, wine: 0.5, spirit: 0.5, longdrink: 0.33, cocktail: 0.33,
+    water: 1.0, softdrink: 0.5, coffee: 0.17,
 };
+
+const consumptionRate = ref<Record<string, number>>(
+    saved.consumptionRate ? { ...saved.consumptionRate } : {}
+);
+
+function getRateForCat(cat: string): number {
+    if (cat in consumptionRate.value) return consumptionRate.value[cat];
+    return DEFAULT_RATE_BY_CAT[cat] ?? 0.5;
+}
+
+function setRateForCat(cat: string, val: string) {
+    const v = parseFloat(val);
+    consumptionRate.value = { ...consumptionRate.value, [cat]: v > 0 ? v : DEFAULT_RATE_BY_CAT[cat] ?? 0.5 };
+    markDirty();
+}
 
 function defaultLiter(d: EventDrink): number {
     return d.selected_sizes.find(s => s.is_default)?.amount_liter ?? d.selected_sizes[0]?.amount_liter ?? 0;
@@ -385,48 +477,27 @@ const drinkResults = computed((): DrinkResult[] => {
     if (g <= 0) return [];
     const results: DrinkResult[] = [];
 
-    const sektTypes = [...new Map(sektDrinks.value.map(d => [d.type, d])).values()];
-    for (const sd of sektTypes) {
-        const fl = Math.ceil(sektFlaschen.value / Math.max(sektTypes.length, 1));
-        results.push({
-            type: sd.type, display_name: sd.display_name, category: sd.category,
-            is_alcoholic: sd.is_alcoholic, amount_liter: defaultLiter(sd),
-            liters: fl * 0.75,
-            basisText: `${g} Gäste × 1,25 Gläser / 6 Gläser je Fl.`,
-            isSekt: true,
-        });
-    }
-
-    for (const d of eventDrinks.value.filter(d => !(d.category === 'wine' && d.type === 'sekt'))) {
-        const glasses = DEFAULT_GLASSES_BY_CAT[d.category] ?? 2;
+    for (const d of eventDrinks.value) {
+        const rate    = getRateForCat(d.category);
+        const glasses = eventDuration.value * rate;
         const serving = defaultLiter(d);
         let liters = 0;
-        if (d.is_alcoholic) {
-            const catShare = normalizedPct.value[d.category] ?? 0;
-            const catDrinks = alcoholicDrinksByCat.value[d.category] ?? [];
-            const shareFactor = catDrinks.length > 1 ? drinkShareNorm(d.category, d.type) : 1;
-            const drinkers = Math.round(alkTrinker.value * catShare * shareFactor);
-            liters = alkTrinker.value * catShare * shareFactor * glasses * serving;
-            const basisParts = [`~${drinkers} Pers.`, `${glasses} Gl.`, formatSize(serving)];
-            if (catDrinks.length > 1) basisParts.splice(1, 0, `${Math.round(drinkShareNorm(d.category, d.type) * 100)} %`);
-            results.push({
-                type: d.type, display_name: d.display_name, category: d.category,
-                is_alcoholic: d.is_alcoholic, amount_liter: serving, liters,
-                basisText: basisParts.join(' × '),
-            });
-        } else {
-            const catShare = normalizedPct.value[d.category] ?? 0;
-            const catDrinks = allDrinksByCat.value[d.category] ?? [];
-            const shareFactor = catDrinks.length > 1 ? drinkShareNorm(d.category, d.type) : 1;
-            liters = g * catShare * shareFactor * glasses * serving;
-            const basisParts = [`${g} Pers.`, `${glasses} Gl.`, formatSize(serving)];
-            if (catDrinks.length > 1) basisParts.splice(1, 0, `${Math.round(shareFactor * 100)} %`);
-            results.push({
-                type: d.type, display_name: d.display_name, category: d.category,
-                is_alcoholic: d.is_alcoholic, amount_liter: serving, liters,
-                basisText: basisParts.join(' × '),
-            });
-        }
+        const catIsAlc = categoryAlcoholic.value[d.category] ?? false;
+        const base = catIsAlc ? alkTrinker.value : g;
+        const catShare = (categoryPct.value[d.category] ?? 0) / 100;
+        const catDrinks = allDrinksByCat.value[d.category] ?? [];
+        const shareFactor = catDrinks.length > 1 ? drinkShareNorm(d.category, d.type) : 1;
+        const persons = Math.round(base * catShare * shareFactor);
+        liters = base * catShare * shareFactor * glasses * serving;
+        const personLabel = catIsAlc ? `~${persons} Pers.` : `${persons} Pers.`;
+        const rateLabel = `${eventDuration.value}h × ${rate.toLocaleString('de-DE')}/h`;
+        const basisParts = [personLabel, rateLabel, formatSize(serving)];
+        if (catDrinks.length > 1) basisParts.splice(1, 0, `${Math.round(shareFactor * 100)} %`);
+        results.push({
+            type: d.type, display_name: d.display_name, category: d.category,
+            is_alcoholic: d.is_alcoholic, amount_liter: serving, liters,
+            basisText: basisParts.join(' × '),
+        });
     }
     return results;
 });
@@ -436,7 +507,7 @@ const sanityWarning = computed(() => {
     if (alkTrinker.value <= 0) return null;
     const alcCats = ['beer', 'wine', 'spirit', 'longdrink', 'cocktail'];
     const total = drinkResults.value
-        .filter(r => alcCats.includes(r.category) && !r.isSekt)
+        .filter(r => alcCats.includes(r.category))
         .reduce((s, r) => s + r.liters, 0);
     const perPerson = total / alkTrinker.value;
     return perPerson > SANITY_CAP_L ? Math.round(perPerson) : null;
@@ -531,7 +602,10 @@ function save() {
         bufferAbs:            bufferAbs.value,
         bufferPct:            bufferPct.value,
         alkPct:               alkPct.value,
+        eventDuration:        eventDuration.value,
         categoryPct:          { ...categoryPct.value },
+        categoryAlcoholic:    { ...categoryAlcoholic.value },
+        consumptionRate:      { ...consumptionRate.value },
         drinkShareWithinCat:  JSON.parse(JSON.stringify(drinkShareWithinCat)),
         purchaseConfig:       { ...purchaseConfig.value },
     };
@@ -562,6 +636,12 @@ onMounted(() => {
         const s = props.calculator_settings;
         if (s.categoryPct) {
             categoryPct.value = { ...categoryPct.value, ...s.categoryPct };
+        }
+        if (s.categoryAlcoholic) {
+            categoryAlcoholic.value = { ...categoryAlcoholic.value, ...s.categoryAlcoholic };
+        }
+        if (s.consumptionRate) {
+            consumptionRate.value = { ...s.consumptionRate };
         }
         if (s.drinkShareWithinCat) {
             for (const [cat, shares] of Object.entries(s.drinkShareWithinCat)) {
@@ -671,6 +751,15 @@ onBeforeUnmount(() => {
                         </div>
                     </div>
 
+                    <!-- Eventdauer -->
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium">{{ t('drink.calc.eventDuration') }}</label>
+                        <div class="flex items-center gap-3">
+                            <input v-model.number="eventDuration" type="range" min="2" max="12" step="1" class="w-40" />
+                            <span class="text-sm w-16">{{ eventDuration }} {{ t('drink.calc.hours') }}</span>
+                        </div>
+                    </div>
+
                     <!-- Kategorie-Verteilung (alle Kategorien unified) -->
                     <div v-if="presentAllCategories.length > 0" class="space-y-3">
                         <label class="text-sm font-medium">Kategorien-Verteilung</label>
@@ -693,9 +782,18 @@ onBeforeUnmount(() => {
                                     <span class="text-xs w-28 shrink-0 truncate" :style="{ color: categoryHexColor[cat] ?? 'inherit' }">
                                         {{ categoryEmoji[cat] }} {{ categoryLabels[cat] ?? cat }}
                                         <span class="text-muted-foreground/70 font-normal">
-                                            (~{{ Math.round((categoryIsAlcoholic(cat) ? alkTrinker : planGuests) * (normalizedPct[cat] ?? 0)) }})
+                                            (~{{ Math.round((categoryAlcoholic[cat] ? alkTrinker : planGuests) * ((categoryPct[cat] ?? 0) / 100)) }})
                                         </span>
                                     </span>
+                                    <button
+                                        type="button"
+                                        @click="categoryAlcoholic[cat] = !categoryAlcoholic[cat]; markDirty()"
+                                        :title="categoryAlcoholic[cat] ? t('drink.calc.catAlcoholic') : t('drink.calc.catNonAlcoholic')"
+                                        class="shrink-0 rounded px-1.5 py-0.5 text-xs font-medium transition-colors"
+                                        :class="categoryAlcoholic[cat]
+                                            ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                            : 'bg-muted text-muted-foreground'"
+                                    >{{ categoryAlcoholic[cat] ? '🍷' : '💧' }}</button>
                                     <input
                                         type="range" min="0" max="100" step="1"
                                         :value="categoryPct[cat] ?? 0"
@@ -711,6 +809,14 @@ onBeforeUnmount(() => {
                                         :style="{ outlineColor: categoryHexColor[cat] ?? '' }"
                                     />
                                     <span class="text-xs text-muted-foreground shrink-0">%</span>
+                                    <input
+                                        type="number" min="0.01" step="0.01"
+                                        :value="getRateForCat(cat)"
+                                        @change="setRateForCat(cat, ($event.target as HTMLInputElement).value)"
+                                        :title="t('drink.calc.consumptionRate')"
+                                        class="w-14 rounded border bg-background px-1.5 py-0.5 text-xs text-foreground text-right shrink-0"
+                                    />
+                                    <span class="text-xs text-muted-foreground shrink-0">/h</span>
                                     <button
                                         type="button"
                                         @click="toggleLock(cat)"
@@ -732,7 +838,7 @@ onBeforeUnmount(() => {
                                         type="button"
                                         @click="toggleCatDetail(cat)"
                                         :title="expandedCatDetails.has(cat) ? 'Details einklappen' : 'Getränke-Aufteilung anpassen'"
-                                        class="shrink-0 rounded p-0.5 transition-colors text-muted-foreground hover:text-foreground"
+                                        class="relative shrink-0 rounded p-0.5 transition-colors text-muted-foreground hover:text-foreground"
                                     >
                                         <svg
                                             class="h-3.5 w-3.5 transition-transform duration-200"
@@ -741,6 +847,10 @@ onBeforeUnmount(() => {
                                         >
                                             <path d="M6 9l6 6 6-6" />
                                         </svg>
+                                        <span
+                                            v-if="!expandedCatDetails.has(cat) && !drinkShareSumOk(cat)"
+                                            class="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-amber-500"
+                                        />
                                     </button>
                                 </div>
 
@@ -804,17 +914,39 @@ onBeforeUnmount(() => {
                                             </svg>
                                         </button>
                                     </div>
-                                    <div class="flex items-center justify-end gap-1.5 border-t pt-1">
-                                        <span class="text-xs text-muted-foreground">Gesamt</span>
-                                        <span class="text-xs font-semibold tabular-nums" :class="drinkShareSum(cat) === 100 ? 'text-green-500 dark:text-green-400' : 'text-amber-500 dark:text-amber-400'">{{ drinkShareSum(cat) }} %</span>
+                                    <div class="flex items-center justify-between gap-2 border-t pt-1">
+                                        <span v-if="drinkShareSumOk(cat)" class="text-xs font-medium text-green-600 dark:text-green-400">✓ 100%</span>
+                                        <span v-else-if="drinkShareSum(cat) < 100" class="text-xs font-medium text-amber-600 dark:text-amber-400">
+                                            {{ drinkShareSum(cat) }}% — {{ 100 - drinkShareSum(cat) }}% {{ t('drink.calc.distributionMissing') }}
+                                        </span>
+                                        <span v-else class="text-xs font-medium text-red-600 dark:text-red-400">
+                                            {{ drinkShareSum(cat) }}% — {{ drinkShareSum(cat) - 100 }}% {{ t('drink.calc.distributionOver') }}
+                                        </span>
+                                        <button
+                                            v-if="!drinkShareSumOk(cat)"
+                                            type="button"
+                                            @click="autoDistributeDrinks(cat)"
+                                            class="shrink-0 rounded px-2 py-0.5 text-xs font-medium bg-muted hover:bg-muted/80 transition-colors"
+                                        >{{ t('drink.calc.autoDistribute') }}</button>
                                     </div>
                                 </div>
                             </template>
                         </div>
 
-                        <div class="flex items-center justify-end gap-1.5 pt-1.5 border-t">
-                            <span class="text-xs text-muted-foreground">Gesamt</span>
-                            <span class="text-xs font-semibold tabular-nums" :class="categorySum === 100 ? 'text-green-500 dark:text-green-400' : 'text-amber-500 dark:text-amber-400'">{{ categorySum }} %</span>
+                        <div class="flex items-center justify-between gap-2 pt-1.5 border-t">
+                            <span v-if="categorySumOk" class="text-xs font-medium text-green-600 dark:text-green-400">✓ 100% — {{ t('drink.calc.distributionComplete') }}</span>
+                            <span v-else-if="categorySum < 100" class="text-xs font-medium text-amber-600 dark:text-amber-400">
+                                {{ categorySum }}% — {{ 100 - categorySum }}% {{ t('drink.calc.distributionMissing') }}
+                            </span>
+                            <span v-else class="text-xs font-medium text-red-600 dark:text-red-400">
+                                {{ categorySum }}% — {{ categorySum - 100 }}% {{ t('drink.calc.distributionOver') }}
+                            </span>
+                            <button
+                                v-if="!categorySumOk"
+                                type="button"
+                                @click="autoDistributeCategories"
+                                class="shrink-0 rounded px-2 py-0.5 text-xs font-medium bg-muted hover:bg-muted/80 transition-colors"
+                            >{{ t('drink.calc.autoDistribute') }}</button>
                         </div>
                     </div>
 
@@ -831,6 +963,11 @@ onBeforeUnmount(() => {
                     <div class="flex items-start gap-2 rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
                         <span class="mt-px shrink-0">ℹ</span>
                         <p>{{ t('drink.calc.resultsNote') }}</p>
+                    </div>
+
+                    <div v-if="hasDistributionWarning" class="flex items-start gap-2 rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800 dark:bg-amber-900/20 dark:border-amber-700 dark:text-amber-300">
+                        <span class="mt-px shrink-0">⚠</span>
+                        <p>{{ t('drink.calc.distributionWarning') }}</p>
                     </div>
 
                     <div v-if="sanityWarning" class="flex items-start gap-2 rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800 dark:bg-amber-900/20 dark:border-amber-700 dark:text-amber-300">
@@ -871,9 +1008,6 @@ onBeforeUnmount(() => {
 
                                 <p v-if="result.basisText && result.liters > 0" class="text-xs text-muted-foreground">
                                     {{ t('drink.calc.basis') }}: {{ result.basisText }}
-                                </p>
-                                <p v-if="result.isSekt" class="text-xs text-muted-foreground italic">
-                                    {{ t('drink.calc.sektNote') }}
                                 </p>
 
                                 <div v-if="result.liters > 0 && result.category !== 'coffee'" class="space-y-1.5 pt-0.5">
