@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import InfoTooltip from '@/components/InfoTooltip.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Head, router } from '@inertiajs/vue3';
@@ -248,10 +249,13 @@ const activeTaskCount = () => props.task_pool.filter(t => t.state !== 'hidden').
             <!-- Aufgaben-Pool -->
             <div class="rounded-lg border p-4 space-y-3">
                 <div>
-                    <h2 class="text-sm font-semibold">
-                        {{ t('photoGame.taskPool') }}
-                        <span class="font-normal text-muted-foreground">({{ activeTaskCount() }} {{ t('photoGame.tasksCount') }})</span>
-                    </h2>
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-sm font-semibold">
+                            {{ t('photoGame.taskPool') }}
+                            <span class="font-normal text-muted-foreground">({{ activeTaskCount() }} {{ t('photoGame.tasksCount') }})</span>
+                        </h2>
+                        <InfoTooltip :text="t('photoGame.taskPoolInfo')" />
+                    </div>
                     <p class="text-xs text-muted-foreground mt-0.5">{{ t('photoGame.taskPoolHint') }}</p>
                 </div>
 
@@ -333,7 +337,7 @@ const activeTaskCount = () => props.task_pool.filter(t => t.state !== 'hidden').
                             </span>
 
                             <!-- Aktions-Buttons -->
-                            <div class="hidden group-hover:flex items-center gap-1 shrink-0">
+                            <div class="flex sm:hidden sm:group-hover:flex items-center gap-1 shrink-0">
                                 <!-- Normal: ausblenden + bearbeiten -->
                                 <template v-if="task.state === 'normal' && task.id !== null">
                                     <button
@@ -425,7 +429,7 @@ const activeTaskCount = () => props.task_pool.filter(t => t.state !== 'hidden').
                             <div class="truncate opacity-75">{{ sub.task }}</div>
                         </div>
                         <button
-                            class="absolute top-1.5 right-1.5 hidden group-hover:flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-red-600 transition-colors"
+                            class="absolute top-1.5 right-1.5 flex sm:hidden sm:group-hover:flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-red-600 transition-colors"
                             @click.stop="askDeleteSubmission(sub.id)"
                         >
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">

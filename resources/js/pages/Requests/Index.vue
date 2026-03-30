@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import InfoTooltip from '@/components/InfoTooltip.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { type BreadcrumbItem } from '@/types';
@@ -128,6 +129,7 @@ function setterName(item: RevocationRequest): string {
                     <CardTitle class="flex items-center gap-2">
                         {{ t('requests.revocationsTitle') }}
                         <span v-if="revocations.length > 0" class="inline-flex size-5 items-center justify-center rounded-full bg-amber-500 text-[11px] font-bold text-white">{{ revocations.length }}</span>
+                        <InfoTooltip :text="t('requests.revocationsInfo')" />
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
