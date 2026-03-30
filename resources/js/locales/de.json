@@ -12,7 +12,8 @@
     "requests": "Anfragen",
     "eventSettings": "Event-Einstellungen",
     "requestEvent": "Event beantragen",
-    "photoGame": "Fotospiel"
+    "photoGame": "Fotospiel",
+    "calculator": "Mengenrechner"
   },
   "common": {
     "create": "Erstellen",
@@ -120,6 +121,8 @@
     "drinkGameEnabledDesc": "Zeigt den Trinkspiel-Tab in der App und im Web an",
     "photoGameEnabled": "Fotospiel aktivieren",
     "photoGameEnabledDesc": "Schaltet das Fotospiel-Feature frei (Nav-Eintrag + API)",
+    "calculatorEnabled": "Mengenrechner aktivieren",
+    "calculatorEnabledDesc": "Zeigt den Mengenrechner in der Navigation an",
     "drinkGameEndTime": "Spielende",
     "drinkGameEndTimeDesc": "Nach diesem Zeitpunkt können keine Getränke mehr eingetragen werden.",
     "phonePreview": "Vorschau",

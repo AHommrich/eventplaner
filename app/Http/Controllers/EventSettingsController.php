@@ -33,6 +33,7 @@ class EventSettingsController extends Controller
                 'drink_game_enabled',
                 'drink_game_end_time',
                 'photo_game_enabled',
+                'calculator_enabled',
             ]),
         ]);
     }
@@ -80,6 +81,7 @@ class EventSettingsController extends Controller
             'drink_game_enabled'  => 'boolean',
             'drink_game_end_time' => 'nullable|date',
             'photo_game_enabled'  => 'boolean',
+            'calculator_enabled'  => 'boolean',
             'cover' => 'nullable|file|mimes:jpeg,jpg,png,heic,heif|max:10240',
         ]);
 
