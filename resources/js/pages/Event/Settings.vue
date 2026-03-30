@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useFloatingBar } from '@/composables/useFloatingBar';
+import InfoTooltip from '@/components/InfoTooltip.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
@@ -760,7 +761,10 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                                     </div>
                                     <!-- Venue-Anzeige auf dem Home-Screen -->
                                     <div class="grid gap-2">
-                                        <Label>{{ t('event.venueDisplayMode') }}</Label>
+                                        <div class="flex items-center gap-2">
+                                            <Label>{{ t('event.venueDisplayMode') }}</Label>
+                                            <InfoTooltip :text="t('event.venueDisplayModeHint')" />
+                                        </div>
                                         <div class="flex gap-2">
                                             <button
                                                 v-for="opt in [
@@ -1135,7 +1139,11 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
 
                                     <!-- Farb-Palette -->
                                     <div class="grid gap-3">
-                                        <Label>{{ t('event.colorHint') }}</Label>
+                                        <div class="flex items-center gap-2">
+                                            <Label>{{ t('event.colorHint') }}</Label>
+                                            <InfoTooltip :text="t('event.colorSystemInfo')" />
+                                        </div>
+                                        <p class="text-xs text-muted-foreground -mt-1">{{ t('event.colorHintSub') }}</p>
                                         <!-- 3 Basis-Picker -->
                                         <div class="grid grid-cols-3 gap-3">
                                             <div

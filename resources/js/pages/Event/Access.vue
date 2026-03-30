@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { type BreadcrumbItem } from '@/types';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import InfoTooltip from '@/components/InfoTooltip.vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { Trash2 } from 'lucide-vue-next';
 import { ref } from 'vue';
@@ -59,7 +60,10 @@ function doRemove() { if (pendingUserId.value) router.delete(route('event.access
 
             <Card>
                 <CardHeader>
-                    <CardTitle>{{ t('access.currentAccess') }}</CardTitle>
+                    <CardTitle class="flex items-center gap-2">
+                        {{ t('access.currentAccess') }}
+                        <InfoTooltip :text="t('access.coOrganizerInfo')" />
+                    </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <ul class="divide-y">
