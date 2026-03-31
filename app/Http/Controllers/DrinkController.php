@@ -220,6 +220,7 @@ class DrinkController extends Controller
             $defaultLiter = $first->catalog?->defaultSize()?->amount_liter ?? 0.0;
             return [
                 'catalog_id'   => $first->drink_catalog_id,
+                'type'         => $first->catalog?->type,
                 'display_name' => $first->catalog?->display_name,
                 'points_each'  => $first->catalog ? DrinkScoreService::basePoints($first->catalog, $defaultLiter) : 0,
                 'total'        => $total,
@@ -249,6 +250,7 @@ class DrinkController extends Controller
 
             return [
                 'catalog_id'   => $first->drink_catalog_id,
+                'type'         => $first->catalog?->type,
                 'display_name' => $first->catalog?->display_name,
                 'points_each'  => $first->catalog ? DrinkScoreService::basePoints($first->catalog, $defaultLiter) : 0,
                 'top'          => $top,
