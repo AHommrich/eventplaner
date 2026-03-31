@@ -28,16 +28,17 @@ class PhotoGameController extends Controller
 
         $assignment = PhotoGameAssignment::where('game_id', $game->id)
             ->where('guest_id', $guest->id)
-            ->with(['task:id,description', 'override:id,custom_text', 'photo:id,url'])
+            ->with(['task:id,description,translation_key', 'override:id,custom_text', 'photo:id,url'])
             ->first();
 
         return response()->json([
             'status'     => $game->status,
             'assignment' => $assignment ? [
-                'id'           => $assignment->id,
-                'task'         => [
-                    'id'          => $assignment->task_id ?? $assignment->override_id,
-                    'description' => $this->resolveTaskDescription($assignment),
+                'id'              => $assignment->id,
+                'task'            => [
+                    'id'              => $assignment->task_id ?? $assignment->override_id,
+                    'description'     => $this->resolveTaskDescription($assignment),
+                    'translation_key' => $assignment->override ? null : $assignment->task?->translation_key,
                 ],
                 'submitted_at' => $assignment->submitted_at,
                 'photo_url'    => $assignment->photo?->url,
@@ -82,8 +83,9 @@ class PhotoGameController extends Controller
         return response()->json([
             'id'   => $assignment->id,
             'task' => [
-                'id'          => $picked['task_id'] ?? $picked['override_id'],
-                'description' => $picked['description'],
+                'id'              => $picked['task_id'] ?? $picked['override_id'],
+                'description'     => $picked['description'],
+                'translation_key' => $picked['translation_key'] ?? null,
             ],
         ], 201);
     }
@@ -164,9 +166,10 @@ class PhotoGameController extends Controller
         $baseCatalog = PhotoGameTaskCatalog::base()->first();
         $pool = $baseCatalog
             ? $baseCatalog->tasks()->active()->get()->map(fn($t) => [
-                'task_id'     => $t->id,
-                'override_id' => null,
-                'description' => $t->description,
+                'task_id'         => $t->id,
+                'override_id'     => null,
+                'description'     => $t->description,
+                'translation_key' => $t->translation_key,
             ])
             : collect();
 
@@ -175,9 +178,10 @@ class PhotoGameController extends Controller
             $typeCatalog = PhotoGameTaskCatalog::find($typeCatalogId);
             if ($typeCatalog) {
                 $typeItems = $typeCatalog->tasks()->active()->get()->map(fn($t) => [
-                    'task_id'     => $t->id,
-                    'override_id' => null,
-                    'description' => $t->description,
+                    'task_id'         => $t->id,
+                    'override_id'     => null,
+                    'description'     => $t->description,
+                    'translation_key' => $t->translation_key,
                 ]);
                 $pool = $pool->concat($typeItems);
             }
@@ -195,9 +199,10 @@ class PhotoGameController extends Controller
                     : $t);
             } elseif ($ov->action === 'added') {
                 $pool->push([
-                    'task_id'     => null,
-                    'override_id' => $ov->id,
-                    'description' => $ov->custom_text,
+                    'task_id'         => null,
+                    'override_id'     => $ov->id,
+                    'description'     => $ov->custom_text,
+                    'translation_key' => null,
                 ]);
             }
         }
