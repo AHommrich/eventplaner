@@ -121,6 +121,8 @@ class RequestController extends Controller
             'name'    => $eventRequest->event_name,
         ]);
 
+        EventController::createDefaultAlbums($event->id);
+
         $eventRequest->delete();
 
         return redirect()->route('requests.index');
