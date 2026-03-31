@@ -12,7 +12,15 @@ import { useI18n } from 'vue-i18n';
 const props = defineProps<{ guests: any[] }>();
 const emit  = defineEmits<{ (e: 'deleted', id: number): void }>();
 
-const { t } = useI18n();
+const { t, te } = useI18n();
+
+function foodSpecialLabel(fs: { name: string; translation_key?: string | null }): string {
+    if (fs.translation_key) {
+        const key = `foodSpecial.catalog.${fs.translation_key}`;
+        if (te(key)) return t(key);
+    }
+    return fs.name;
+}
 
 const rsvpLabel = computed<Record<string, string>>(() => ({
     accepted_pending:     t('guest.rsvpAcceptedPending'),
@@ -161,7 +169,7 @@ function doDelete() {
                                     </span>
                                     <span v-else class="text-xs text-muted-foreground">–</span>
                                 </td>
-                                <td class="px-4 py-2.5 text-muted-foreground text-xs">{{ guest.food_specials?.map((fs: any) => fs.name).join(', ') || '–' }}</td>
+                                <td class="px-4 py-2.5 text-muted-foreground text-xs">{{ guest.food_specials?.map((fs: any) => foodSpecialLabel(fs)).join(', ') || '–' }}</td>
                                 <td class="px-4 py-2.5 text-right">
                                     <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click.stop="askDelete(guest.id)">
                                         <Trash2 class="h-4 w-4" />

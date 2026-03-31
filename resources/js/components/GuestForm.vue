@@ -17,7 +17,7 @@ type GuestFormData = {
 
 const props = defineProps<{
     groups: { id: number; name: string; guests?: { id: number; firstname: string }[] }[];
-    foodSpecials: { id: number; name: string }[];
+    foodSpecials: { id: number; name: string; translation_key: string | null }[];
     initialForm?: Partial<GuestFormData>;
     submitLabel?: string;
 }>();
@@ -33,7 +33,7 @@ const form = useForm<GuestFormData>({
     food_specials: props.initialForm?.food_specials ?? [],
 });
 
-const { t } = useI18n();
+const { t, te } = useI18n();
 
 const localGroups = ref<{ id: number; name: string; guests: { id: number; firstname: string }[] }[]>([]);
 
@@ -92,7 +92,7 @@ function submit() { emit('submit', form); }
             <Label>{{ t('guest.foodSpecials') }}</Label>
             <CreatableMultiCombobox
                 v-model="form.food_specials"
-                :options="foodSpecials.map(f => ({ id: f.id, label: f.name }))"
+                :options="foodSpecials.map(f => ({ id: f.id, label: f.translation_key && te('foodSpecial.catalog.' + f.translation_key) ? t('foodSpecial.catalog.' + f.translation_key) : f.name }))"
                 :placeholder="t('guest.foodSpecialSearchPlaceholder')"
                 create-route="foodspecials.store"
                 create-field="name"
