@@ -7,7 +7,7 @@ import { useFloatingBar } from '@/composables/useFloatingBar';
 import InfoTooltip from '@/components/InfoTooltip.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import heic2any from 'heic2any';
 import L from 'leaflet';
@@ -212,6 +212,7 @@ function submit() {
             toast.success(t('toast.eventSettingsSaved'));
             coverPreview.value = null;
             form.cover = null;
+            coverUrl.value = (usePage().props.event as any)?.cover_image_url ?? null;
             // Dirty-Baseline aktualisieren
             for (const key of Object.keys(savedAddress) as AddressField[]) {
                 savedAddress[key] = (formAny[key] ?? '') as string;
