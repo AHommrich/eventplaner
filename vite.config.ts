@@ -40,8 +40,8 @@ export default defineConfig({
         'icons/maskable-512.png',
       ],
       manifest: {
-        name: 'Planer',
-        short_name: 'App',
+        name: 'eveplan',
+        short_name: 'eve',
         start_url: '/',
         scope: '/',
         display: 'standalone',
