@@ -10,7 +10,7 @@ import { useFloatingBar } from '@/composables/useFloatingBar';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
+const { t, te } = useI18n();
 const breadcrumbs: BreadcrumbItem[] = [{ title: t('drink.title'), href: '/drinks' }];
 const page = usePage();
 
@@ -128,11 +128,16 @@ onMounted(() => {
 onBeforeUnmount(() => { window.removeEventListener('beforeunload', handleBeforeUnload); removeInertiaGuard?.(); });
 
 const categoryOrder = ['beer', 'wine', 'spirit', 'longdrink', 'cocktail', 'softdrink', 'water', 'coffee'];
-const categoryLabels: Record<string, string> = {
-    beer: 'Bier', wine: 'Wein', spirit: 'Shots & Spirituosen',
-    longdrink: 'Longdrinks', cocktail: 'Cocktails', softdrink: 'Softdrinks',
-    water: 'Wasser', coffee: 'Kaffee & Tee',
-};
+
+function categoryLabel(cat: string): string {
+    const key = `drink.categories.${cat}`;
+    return te(key) ? t(key) : cat;
+}
+
+function drinkName(type: string, fallback: string): string {
+    const key = `drink.names.${type}`;
+    return te(key) ? t(key) : fallback;
+}
 
 const sortedCategories = computed(() => categoryOrder.filter(cat => catalog.value[cat]?.length > 0));
 const collapsed = reactive(new Set<string>(categoryOrder));
@@ -148,7 +153,9 @@ const filteredCatalog = computed(() => {
     const q = search.value.toLowerCase();
     const result: Record<string, CatalogEntry[]> = {};
     for (const cat of sortedCategories.value) {
-        const filtered = (catalog.value[cat] ?? []).filter(e => e.display_name.toLowerCase().includes(q));
+        const filtered = (catalog.value[cat] ?? []).filter(e =>
+            drinkName(e.type, e.display_name).toLowerCase().includes(q) || e.display_name.toLowerCase().includes(q)
+        );
         if (filtered.length) result[cat] = filtered;
     }
     return result;
@@ -180,7 +187,7 @@ function formatSize(liter: number): string {
                         <ul v-else class="divide-y">
                             <li v-for="d in eventDrinks" :key="d.catalog_id"
                                 class="flex items-center justify-between gap-3 px-0 py-2.5">
-                                <span class="text-sm font-medium shrink-0">{{ d.display_name }}</span>
+                                <span class="text-sm font-medium shrink-0">{{ drinkName(d.type, d.display_name) }}</span>
                                 <div class="flex flex-wrap gap-1.5 justify-end">
                                     <span
                                         v-for="s in d.selected_sizes"
@@ -216,7 +223,7 @@ function formatSize(liter: number): string {
                                 @click="toggleCategory(cat)"
                                 class="flex w-full items-center justify-between py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground transition-colors"
                             >
-                                <span>{{ categoryLabels[cat] ?? cat }}</span>
+                                <span>{{ categoryLabel(cat) }}</span>
                                 <svg
                                     class="h-3.5 w-3.5 transition-transform duration-200"
                                     :class="{ 'rotate-180': !collapsed.has(cat) }"
@@ -229,7 +236,7 @@ function formatSize(liter: number): string {
                             <ul v-if="!collapsed.has(cat)" class="divide-y rounded-md border">
                                 <li v-for="entry in filteredCatalog[cat]" :key="entry.id"
                                     class="flex items-center justify-between gap-3 px-3 py-2.5">
-                                    <span class="text-sm font-medium shrink-0">{{ entry.display_name }}</span>
+                                    <span class="text-sm font-medium shrink-0">{{ drinkName(entry.type, entry.display_name) }}</span>
                                     <div class="flex flex-wrap gap-1.5 justify-end">
                                         <button
                                             v-for="s in entry.sizes"
