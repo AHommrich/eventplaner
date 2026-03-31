@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\EventRequest;
+use App\Models\PhotoAlbum;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -55,6 +56,8 @@ class EventController extends Controller
             'date'    => $data['date'] ?? null,
         ]);
 
+        $this->createDefaultAlbums($event->id);
+
         session(['active_event_id' => $event->id]);
 
         return redirect()->route('dashboard');
@@ -96,5 +99,21 @@ class EventController extends Controller
         $request->session()->put('active_event_id', $event->id);
 
         return Inertia::location(back()->getTargetUrl());
+    }
+
+    public static function createDefaultAlbums(int $eventId): void
+    {
+        $albums = [
+            ['slug' => PhotoAlbum::APP_GALLERY,   'name' => 'App Galerie',  'sort_order' => 1],
+            ['slug' => PhotoAlbum::PRESENTATION,  'name' => 'Präsentation', 'sort_order' => 2],
+            ['slug' => PhotoAlbum::PHOTO_GAME,    'name' => 'Fotospiel',    'sort_order' => 3],
+        ];
+
+        foreach ($albums as $album) {
+            PhotoAlbum::firstOrCreate(
+                ['event_id' => $eventId, 'slug' => $album['slug']],
+                ['name' => $album['name'], 'sort_order' => $album['sort_order']]
+            );
+        }
     }
 }
