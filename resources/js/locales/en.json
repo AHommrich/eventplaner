@@ -657,6 +657,10 @@
     "eventTypeCatalog": "Event Type",
     "noEventType": "— General only —",
     "eventTypeHint": "Tasks from the selected type are added to the general pool",
+    "catalogType": {
+      "hochzeit": "Wedding",
+      "geburtstag": "Birthday"
+    },
     "taskPool": "Task Pool",
     "taskPoolHint": "General tasks are always active. Selecting an event type adds more.",
     "taskPoolInfo": "The pool is built from two sources: the general catalog (always active) and an optional event-type catalog (e.g. Wedding). You can hide individual tasks, adjust their text, or add your own — the original catalogs remain unchanged.",

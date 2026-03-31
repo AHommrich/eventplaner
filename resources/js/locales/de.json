@@ -657,6 +657,10 @@
     "eventTypeCatalog": "Event-Typ",
     "noEventType": "— Nur Allgemein —",
     "eventTypeHint": "Aufgaben aus dem gewählten Typ werden zum Allgemein-Pool hinzugefügt",
+    "catalogType": {
+      "hochzeit": "Hochzeit",
+      "geburtstag": "Geburtstag"
+    },
     "taskPool": "Aufgaben-Pool",
     "taskPoolHint": "Allgemein-Aufgaben sind immer aktiv. Mit Event-Typ kommen weitere hinzu.",
     "taskPoolInfo": "Der Pool setzt sich aus zwei Quellen zusammen: dem allgemeinen Katalog (immer aktiv) und einem optionalen Event-Typ-Katalog (z.B. Hochzeit). Du kannst einzelne Aufgaben ausblenden, den Text anpassen oder eigene Aufgaben hinzufügen — die Originalkataloge bleiben dabei unverändert.",
