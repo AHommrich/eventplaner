@@ -7,7 +7,15 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import InfoTooltip from '@/components/InfoTooltip.vue';
 
-const { t } = useI18n();
+const { t, te } = useI18n();
+
+function drinkName(type: string | null | undefined, fallback: string): string {
+    if (type) {
+        const key = `drink.names.${type}`;
+        if (te(key)) return t(key);
+    }
+    return fallback;
+}
 const breadcrumbs: BreadcrumbItem[] = [
     { title: t('drink.title'), href: '/drinks' },
     { title: t('game.title'), href: '/drinks/game' },
@@ -23,8 +31,8 @@ function formatSize(liter: number): string {
     if (liter < 0.1) return `${Math.round(liter * 100)} cl`;
     return `${liter.toLocaleString('de-DE')} l`;
 }
-const eventTotals  = computed(() => page.props.event_totals as { drink_id: number; display_name: string; points_each: number; total: number; points_total: number }[]);
-const leaderboard  = computed(() => page.props.leaderboard as { drink_id: number; display_name: string; points_each: number; top: { guest_id: number; firstname: string; lastname: string; count: number; points_total: number }[] }[]);
+const eventTotals  = computed(() => page.props.event_totals as { catalog_id: number; type: string; display_name: string; points_each: number; total: number; points_total: number }[]);
+const leaderboard  = computed(() => page.props.leaderboard as { catalog_id: number; type: string; display_name: string; points_each: number; top: { guest_id: number; firstname: string; lastname: string; count: number; points_total: number }[] }[]);
 const guestTotals  = computed(() => page.props.guest_totals as { guest_id: number; firstname: string; lastname: string; total: number; points_total: number }[]);
 </script>
 
@@ -46,7 +54,7 @@ const guestTotals  = computed(() => page.props.guest_totals as { guest_id: numbe
                     <ul v-else class="divide-y">
                         <li v-for="d in eventDrinks" :key="d.catalog_id"
                             class="flex items-center justify-between gap-3 py-2.5">
-                            <span class="text-sm font-medium shrink-0">{{ d.display_name }}</span>
+                            <span class="text-sm font-medium shrink-0">{{ drinkName(d.type, d.display_name) }}</span>
                             <div class="flex flex-wrap gap-1.5 justify-end">
                                 <span
                                     v-for="s in d.selected_sizes"
@@ -98,7 +106,7 @@ const guestTotals  = computed(() => page.props.guest_totals as { guest_id: numbe
                     <ul v-else class="divide-y">
                         <li v-for="row in eventTotals" :key="row.drink_id" class="flex items-center justify-between py-2.5">
                             <div class="flex items-center gap-2">
-                                <span class="text-sm font-medium">{{ row.display_name }}</span>
+                                <span class="text-sm font-medium">{{ drinkName(row.type, row.display_name) }}</span>
                                 <span class="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{{ row.points_each }} {{ t('game.points') }}/{{ t('game.glass') }}</span>
                             </div>
                             <div class="flex items-center gap-2 text-right">
@@ -114,7 +122,7 @@ const guestTotals  = computed(() => page.props.guest_totals as { guest_id: numbe
             <Card v-for="drink in leaderboard" :key="drink.drink_id">
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        {{ drink.display_name }}
+                        {{ drinkName(drink.type, drink.display_name) }}
                         <span class="text-sm font-normal text-muted-foreground">({{ drink.points_each }} {{ t('game.points') }}/{{ t('game.glass') }})</span>
                     </CardTitle>
                 </CardHeader>
