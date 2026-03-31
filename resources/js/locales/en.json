@@ -252,7 +252,23 @@
   },
   "foodSpecial": {
     "new": "New food special",
-    "placeholder": "e.g. Vegetarian"
+    "placeholder": "e.g. Vegetarian",
+    "catalog": {
+      "vegetarian": "Vegetarian",
+      "vegan": "Vegan",
+      "gluten_free": "Gluten-free",
+      "lactose_free": "Lactose-free",
+      "nut_allergy": "Nut allergy",
+      "no_pork": "No pork",
+      "fruitarian": "Fruitarian",
+      "fructose_intolerant": "Fructose intolerant",
+      "halal": "Halal",
+      "kosher": "Kosher",
+      "no_fish": "No fish",
+      "diabetic": "Diabetic",
+      "no_alcohol": "No alcohol",
+      "shellfish_allergy": "Shellfish allergy"
+    }
   },
   "drink": {
     "categories": {
