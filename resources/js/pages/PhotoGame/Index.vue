@@ -232,7 +232,7 @@ const activeTaskCount = () => props.task_pool.filter(t => t.state !== 'hidden').
                     >
                         <option value="">{{ t('photoGame.noEventType') }}</option>
                         <option v-for="cat in catalogs" :key="cat.id" :value="String(cat.id)">
-                            {{ cat.name }}
+                            {{ cat.event_type && te('photoGame.catalogType.' + cat.event_type) ? t('photoGame.catalogType.' + cat.event_type) : cat.name }}
                         </option>
                     </select>
                     <p class="text-xs text-muted-foreground">{{ t('photoGame.eventTypeHint') }}</p>
