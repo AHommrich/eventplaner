@@ -19,6 +19,7 @@ interface TaskInPool {
     id: number | null;
     override_id: number | null;
     description: string;
+    translation_key: string | null;
     state: 'normal' | 'hidden' | 'modified' | 'added';
     original_text: string | null;
 }
@@ -45,7 +46,17 @@ const props = defineProps<{
     submissions: Submission[];
 }>();
 
-const { t } = useI18n();
+const { t, te } = useI18n();
+
+function taskLabel(task: TaskInPool): string {
+    if (task.translation_key && te(task.translation_key)) return t(task.translation_key);
+    return task.description;
+}
+
+function originalLabel(task: TaskInPool): string {
+    if (task.translation_key && te(task.translation_key)) return t(task.translation_key);
+    return task.original_text ?? '';
+}
 
 // --- Event-Typ wechseln ---
 function setCatalog(catalogId: string) {
@@ -316,10 +327,10 @@ const activeTaskCount = () => props.task_pool.filter(t => t.state !== 'hidden').
                                         'line-through text-muted-foreground': task.state === 'hidden',
                                         'text-blue-600': task.state === 'added',
                                     }"
-                                >{{ task.description }}</span>
+                                >{{ task.state === 'modified' ? task.description : taskLabel(task) }}</span>
                                 <!-- Original-Text bei modified -->
                                 <p v-if="task.state === 'modified' && task.original_text" class="text-xs text-muted-foreground mt-0.5">
-                                    {{ t('photoGame.originalText') }}: {{ task.original_text }}
+                                    {{ t('photoGame.originalText') }}: {{ originalLabel(task) }}
                                 </p>
                             </div>
 

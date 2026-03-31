@@ -69,11 +69,12 @@ class PhotoGameController extends Controller
         $baseCatalog = PhotoGameTaskCatalog::base()->first();
         $baseTasks = $baseCatalog
             ? $baseCatalog->tasks()->active()->get()->map(fn($t) => [
-                'id'           => $t->id,
-                'description'  => $t->description,
-                'override_id'  => null,
-                'state'        => 'normal',
-                'original_text'=> null,
+                'id'              => $t->id,
+                'description'     => $t->description,
+                'translation_key' => $t->translation_key,
+                'override_id'     => null,
+                'state'           => 'normal',
+                'original_text'   => null,
             ])->all()
             : [];
 
@@ -83,11 +84,12 @@ class PhotoGameController extends Controller
             $typeCatalog = PhotoGameTaskCatalog::find($typeCatalogId);
             $typeTasks = $typeCatalog
                 ? $typeCatalog->tasks()->active()->get()->map(fn($t) => [
-                    'id'           => $t->id,
-                    'description'  => $t->description,
-                    'override_id'  => null,
-                    'state'        => 'normal',
-                    'original_text'=> null,
+                    'id'              => $t->id,
+                    'description'     => $t->description,
+                    'translation_key' => $t->translation_key,
+                    'override_id'     => null,
+                    'state'           => 'normal',
+                    'original_text'   => null,
                 ])->all()
                 : [];
         }
@@ -104,19 +106,21 @@ class PhotoGameController extends Controller
             } elseif ($ov->action === 'modified') {
                 $pool = array_map(fn($t) => $t['id'] === $ov->task_id
                     ? array_merge($t, [
-                        'state'         => 'modified',
-                        'override_id'   => $ov->id,
-                        'original_text' => $t['description'],
-                        'description'   => $ov->custom_text,
+                        'state'           => 'modified',
+                        'override_id'     => $ov->id,
+                        'original_text'   => $t['description'],
+                        'description'     => $ov->custom_text,
+                        // translation_key bleibt erhalten (für Original-Anzeige)
                     ])
                     : $t, $pool);
             } elseif ($ov->action === 'added') {
                 $pool[] = [
-                    'id'           => null,
-                    'description'  => $ov->custom_text,
-                    'override_id'  => $ov->id,
-                    'state'        => 'added',
-                    'original_text'=> null,
+                    'id'              => null,
+                    'description'     => $ov->custom_text,
+                    'translation_key' => null,
+                    'override_id'     => $ov->id,
+                    'state'           => 'added',
+                    'original_text'   => null,
                 ];
             }
         }
