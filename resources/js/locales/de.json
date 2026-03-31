@@ -252,7 +252,23 @@
   },
   "foodSpecial": {
     "new": "Neue Essensbesonderheit",
-    "placeholder": "z.B. Vegetarisch"
+    "placeholder": "z.B. Vegetarisch",
+    "catalog": {
+      "vegetarian": "Vegetarisch",
+      "vegan": "Vegan",
+      "gluten_free": "Glutenfrei",
+      "lactose_free": "Laktosefrei",
+      "nut_allergy": "Nussallergie",
+      "no_pork": "Kein Schweinefleisch",
+      "fruitarian": "Frutarier",
+      "fructose_intolerant": "Fruktose Intolerant",
+      "halal": "Halal",
+      "kosher": "Koscher",
+      "no_fish": "Kein Fisch",
+      "diabetic": "Diabetiker",
+      "no_alcohol": "Kein Alkohol",
+      "shellfish_allergy": "Schalentierallergie"
+    }
   },
   "drink": {
     "categories": {
