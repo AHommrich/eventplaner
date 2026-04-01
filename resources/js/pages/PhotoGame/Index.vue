@@ -4,6 +4,12 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import InfoTooltip from '@/components/InfoTooltip.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Head, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { toast } from 'vue-sonner';
@@ -347,52 +353,64 @@ const activeTaskCount = () => props.task_pool.filter(t => t.state !== 'hidden').
                                 {{ t('photoGame.taskState.' + task.state) }}
                             </span>
 
-                            <!-- Aktions-Buttons -->
-                            <div class="flex sm:hidden sm:group-hover:flex items-center gap-1 shrink-0">
-                                <!-- Normal: ausblenden + bearbeiten -->
-                                <template v-if="task.state === 'normal' && task.id !== null">
+                            <!-- Aktions-Menü -->
+                            <DropdownMenu>
+                                <DropdownMenuTrigger as-child>
                                     <button
-                                        class="text-xs text-muted-foreground hover:text-foreground px-1"
-                                        @click="startEditTask(task)"
-                                    >{{ t('photoGame.editTask') }}</button>
-                                    <button
-                                        class="text-xs text-muted-foreground hover:text-destructive px-1"
-                                        @click="hideTask(task.id!)"
-                                    >{{ t('photoGame.hideTask') }}</button>
-                                </template>
+                                        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                                        @click.stop
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                            <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
+                                        </svg>
+                                    </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" class="min-w-[160px]">
+                                    <!-- Normal: bearbeiten + ausblenden -->
+                                    <template v-if="task.state === 'normal' && task.id !== null">
+                                        <DropdownMenuItem @click="startEditTask(task)">
+                                            <svg class="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                            {{ t('photoGame.editTask') }}
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem class="text-destructive focus:text-destructive" @click="hideTask(task.id!)">
+                                            <svg class="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                            {{ t('photoGame.hideTask') }}
+                                        </DropdownMenuItem>
+                                    </template>
 
-                                <!-- Hidden: wiederherstellen -->
-                                <template v-else-if="task.state === 'hidden' && task.override_id !== null">
-                                    <button
-                                        class="text-xs text-muted-foreground hover:text-foreground px-1"
-                                        @click="deleteOverride(task.override_id!)"
-                                    >{{ t('photoGame.restoreTask') }}</button>
-                                </template>
+                                    <!-- Hidden: wiederherstellen -->
+                                    <template v-else-if="task.state === 'hidden' && task.override_id !== null">
+                                        <DropdownMenuItem @click="deleteOverride(task.override_id!)">
+                                            <svg class="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                            {{ t('photoGame.restoreTask') }}
+                                        </DropdownMenuItem>
+                                    </template>
 
-                                <!-- Modified: zurücksetzen + nochmal bearbeiten -->
-                                <template v-else-if="task.state === 'modified' && task.override_id !== null">
-                                    <button
-                                        class="text-xs text-muted-foreground hover:text-foreground px-1"
-                                        @click="startEditTask(task)"
-                                    >{{ t('photoGame.editTask') }}</button>
-                                    <button
-                                        class="text-xs text-muted-foreground hover:text-destructive px-1"
-                                        @click="deleteOverride(task.override_id!)"
-                                    >{{ t('photoGame.resetTask') }}</button>
-                                </template>
+                                    <!-- Modified: bearbeiten + zurücksetzen -->
+                                    <template v-else-if="task.state === 'modified' && task.override_id !== null">
+                                        <DropdownMenuItem @click="startEditTask(task)">
+                                            <svg class="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                            {{ t('photoGame.editTask') }}
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem class="text-destructive focus:text-destructive" @click="deleteOverride(task.override_id!)">
+                                            <svg class="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                                            {{ t('photoGame.resetTask') }}
+                                        </DropdownMenuItem>
+                                    </template>
 
-                                <!-- Added: bearbeiten + löschen -->
-                                <template v-else-if="task.state === 'added' && task.override_id !== null">
-                                    <button
-                                        class="text-xs text-muted-foreground hover:text-foreground px-1"
-                                        @click="startEditAdded(task)"
-                                    >{{ t('photoGame.editTask') }}</button>
-                                    <button
-                                        class="text-xs text-muted-foreground hover:text-destructive px-1"
-                                        @click="askDeleteAdded(task.override_id!)"
-                                    >{{ t('common.delete') }}</button>
-                                </template>
-                            </div>
+                                    <!-- Added: bearbeiten + löschen -->
+                                    <template v-else-if="task.state === 'added' && task.override_id !== null">
+                                        <DropdownMenuItem @click="startEditAdded(task)">
+                                            <svg class="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                            {{ t('photoGame.editTask') }}
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem class="text-destructive focus:text-destructive" @click="askDeleteAdded(task.override_id!)">
+                                            <svg class="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                                            {{ t('common.delete') }}
+                                        </DropdownMenuItem>
+                                    </template>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </template>
                     </div>
                 </div>
