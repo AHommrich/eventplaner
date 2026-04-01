@@ -58,6 +58,11 @@ class Event extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function stylePresets()
+    {
+        return $this->hasMany(EventStylePreset::class);
+    }
+
     public function users()
     {
         return $this->belongsToMany(User::class);
