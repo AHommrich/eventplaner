@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
+import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import { type BreadcrumbItem } from '@/types';
-import { Head, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { Head, router, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import InfoTooltip from '@/components/InfoTooltip.vue';
+import { toast } from 'vue-sonner';
 
 const { t, te } = useI18n();
 
@@ -27,6 +30,19 @@ interface EventDrink { catalog_id: number; type: string; display_name: string; i
 const page = usePage();
 const eventDrinks = computed(() => page.props.event_drinks as EventDrink[]);
 
+const endTime = ref<string>((page.props as any).drink_game_end_time ?? '');
+const savingEndTime = ref(false);
+
+function saveEndTime() {
+    savingEndTime.value = true;
+    router.patch(route('drinks.game.update'), {
+        drink_game_end_time: endTime.value || null,
+    }, {
+        onSuccess: () => toast.success(t('toast.saved')),
+        onFinish: () => { savingEndTime.value = false; },
+    });
+}
+
 function formatSize(liter: number): string {
     if (liter < 0.1) return `${Math.round(liter * 100)} cl`;
     return `${liter.toLocaleString('de-DE')} l`;
@@ -40,6 +56,29 @@ const guestTotals  = computed(() => page.props.guest_totals as { guest_id: numbe
     <Head :title="t('game.title')" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="m-4 space-y-4">
+
+            <!-- Spieleinstellungen -->
+            <Card>
+                <CardHeader>
+                    <CardTitle>{{ t('game.settings') }}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div class="grid gap-1.5">
+                        <Label class="text-sm">{{ t('event.drinkGameEndTime') }}</Label>
+                        <div class="flex items-center gap-2">
+                            <input
+                                v-model="endTime"
+                                type="datetime-local"
+                                class="h-9 flex-1 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                            />
+                            <Button size="sm" :disabled="savingEndTime" @click="saveEndTime">
+                                {{ savingEndTime ? '…' : t('common.save') }}
+                            </Button>
+                        </div>
+                        <p class="text-xs text-muted-foreground">{{ t('event.drinkGameEndTimeDesc') }}</p>
+                    </div>
+                </CardContent>
+            </Card>
 
             <!-- Verfügbare Getränke mit Punkten -->
             <Card>

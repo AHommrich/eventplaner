@@ -18,7 +18,7 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 }
 
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'eveplan';
 
 /** Axios nur relative URLs + XHR-Header */
 // WORKAROUND: Axios muss denselben Cookie-Namen lesen wie das Backend ihn setzt.
