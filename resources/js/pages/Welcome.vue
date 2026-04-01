@@ -17,7 +17,7 @@ import { Head, Link } from '@inertiajs/vue3';
 
             <div class="relative z-10 flex flex-col items-center gap-8 max-w-3xl mx-auto">
                 <!-- Logo -->
-                <img src="/logo.png" alt="eve" class="w-28 h-28 rounded-3xl shadow-2xl shadow-red-900/60" />
+                <img src="/logo-admin.png" alt="eve" class="w-28 h-28 rounded-3xl shadow-2xl shadow-red-900/60" />
 
                 <!-- Headline -->
                 <div class="space-y-5">
