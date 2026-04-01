@@ -301,7 +301,24 @@ class DrinkController extends Controller
             'event_totals'        => $eventTotals,
             'leaderboard'         => $leaderboard,
             'guest_totals'        => $guestTotals,
+            'drink_game_end_time' => $event?->drink_game_end_time
+                ? \Carbon\Carbon::parse($event->drink_game_end_time)->format('Y-m-d\TH:i')
+                : null,
         ]);
+    }
+
+    public function updateGameSettings(Request $request)
+    {
+        $event = $this->activeEvent();
+        abort_if(!$event, 404);
+
+        $data = $request->validate([
+            'drink_game_end_time' => 'nullable|date',
+        ]);
+
+        $event->update($data);
+
+        return back()->with('success', true);
     }
 
 }
