@@ -19,14 +19,26 @@ class DrinkLogController extends Controller
     private const CATEGORY_ORDER = ['beer', 'wine', 'spirit', 'longdrink', 'cocktail', 'softdrink', 'water', 'coffee'];
 
     private const CATEGORY_LABELS = [
-        'beer'      => 'Bier',
-        'wine'      => 'Wein',
-        'spirit'    => 'Shots & Spirituosen',
-        'longdrink' => 'Longdrinks',
-        'cocktail'  => 'Cocktails',
-        'softdrink' => 'Softdrinks',
-        'water'     => 'Wasser',
-        'coffee'    => 'Kaffee & Tee',
+        'de' => [
+            'beer'      => 'Bier',
+            'wine'      => 'Wein',
+            'spirit'    => 'Shots & Spirituosen',
+            'longdrink' => 'Longdrinks',
+            'cocktail'  => 'Cocktails',
+            'softdrink' => 'Softdrinks',
+            'water'     => 'Wasser',
+            'coffee'    => 'Kaffee & Tee',
+        ],
+        'en' => [
+            'beer'      => 'Beer',
+            'wine'      => 'Wine',
+            'spirit'    => 'Shots & Spirits',
+            'longdrink' => 'Long Drinks',
+            'cocktail'  => 'Cocktails',
+            'softdrink' => 'Soft Drinks',
+            'water'     => 'Water',
+            'coffee'    => 'Coffee & Tea',
+        ],
     ];
 
     /**
@@ -37,8 +49,10 @@ class DrinkLogController extends Controller
     public function index(Request $request): JsonResponse
     {
         $guest = $request->user();
+        $lang  = $request->getPreferredLanguage(['de', 'en']);
 
-        $categoryOrder = array_flip(self::CATEGORY_ORDER);
+        $categoryOrder  = array_flip(self::CATEGORY_ORDER);
+        $categoryLabels = self::CATEGORY_LABELS[$lang] ?? self::CATEGORY_LABELS['de'];
 
         // drinks: N Zeilen pro Typ — nach catalog_id gruppieren, nur ausgewählte Größen
         $drinks = Drink::where('event_id', $guest->event_id)
@@ -47,9 +61,11 @@ class DrinkLogController extends Controller
             ->groupBy('drink_catalog_id')
             ->map(fn($group) => [
                 'id'             => $group->first()->drink_catalog_id,
-                'display_name'   => $group->first()->catalog?->display_name,
+                'display_name'   => ($lang === 'en' && $group->first()->catalog?->display_name_en)
+                    ? $group->first()->catalog->display_name_en
+                    : $group->first()->catalog?->display_name,
                 'category'       => $group->first()->catalog?->category,
-                'category_label' => self::CATEGORY_LABELS[$group->first()->catalog?->category] ?? $group->first()->catalog?->category,
+                'category_label' => $categoryLabels[$group->first()->catalog?->category] ?? $group->first()->catalog?->category,
                 'is_alcoholic'   => $group->first()->catalog?->is_alcoholic,
                 'sizes'          => $group->map(fn($d) => [
                     'drink_id'     => $d->id,

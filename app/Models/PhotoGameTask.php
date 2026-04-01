@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class PhotoGameTask extends Model
 {
-    protected $fillable = ['catalog_id', 'description', 'sort_order', 'is_active'];
+    protected $fillable = ['catalog_id', 'description', 'description_en', 'sort_order', 'is_active'];
 
     protected $casts = ['is_active' => 'boolean'];
 
