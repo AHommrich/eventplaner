@@ -737,5 +737,64 @@
     "title": "Account wird geprüft",
     "description": "Dein Account muss zuerst freigeschaltet werden. Sobald das erledigt ist, kannst du loslegen.",
     "logout": "Abmelden"
+  },
+  "welcome": {
+    "hero": {
+      "tagline1": "Deine Hochzeit. Dein Geburtstag.",
+      "tagline2": "Dein Event — perfekt organisiert.",
+      "description": "eveplan ist die All-in-One-App für Veranstalter: Gäste verwalten, Einladungen per QR-Code verschicken, gemeinsam Fotos sammeln — alles an einem Ort.",
+      "ctaDashboard": "Zum Dashboard →",
+      "ctaStart": "starten",
+      "ctaLogin": "Einloggen",
+      "ctaRegister": "Registrieren",
+      "pwaNote": "Browserapp auch als PWA · Mit Begleit-App für Gäste (iOS / Android)"
+    },
+    "howItWorks": {
+      "title": "So funktioniert eveplan",
+      "subtitle": "In drei Schritten von der leeren Seite zur perfekten Party-App.",
+      "step1Title": "Event anlegen",
+      "step1Text": "Du legst dein Event an, gibst Datum, Ort, evtl. Eventfarben ein und lädst ein Titelbild hoch. Die App bekommt automatisch deine Farben und weitere Einstellungen.",
+      "step2Title": "Gäste einladen",
+      "step2Text": "Trag deine Gäste ein und verschick personalisierte QR-Codes. Ein Scan aus der Begleitapp genügt — kein Passwort. Die Gäste sind sofort drin.",
+      "step3Title": "Event genießen",
+      "step3Text": "Am großen Tag läuft alles von selbst. Fotos werden gesammelt, die Spiele starten zur gewünschten Zeit und die Diashow läuft auf der Leinwand."
+    },
+    "features": {
+      "title": "Alles was du brauchst",
+      "subtitle": "Von der Einladung bis zum letzten Foto — eveplan begleitet dein Event von Anfang bis Ende.",
+      "guestsTitle": "Gästeverwaltung",
+      "guestsText": "Gäste anlegen, in Gruppen organisieren und RSVP verfolgen, immer den Überblick behalten.",
+      "qrTitle": "QR-Einladungen",
+      "qrText": "Jeder Gast bekommt einen persönlichen QR-Code. Scannen → App öffnet sich → sofort eingeloggt. Keine gastbezogenen Nutzerdaten – kein Frust.",
+      "galleryTitle": "Gemeinsame Fotogalerie",
+      "galleryText": "Alle Gäste laden Fotos in die geteilte Galerie hoch. Am Ende hast du die komplette Feier aus 100 Augenpaaren — automatisch gesammelt.",
+      "slideshowTitle": "Live-Diashow",
+      "slideshowText": "Zum Beispiel kann die Galerie als Diashow auf der Leinwand oder dem TV in Echtzeit anzeigen. Jedes neue Foto erscheint automatisch. Gäste sehen sich auf der großen Leinwand.",
+      "photoGameTitle": "Fotospiel",
+      "photoGameText": "Gäste bekommen zufällige Fotoaufgaben — \"Zwei Generationen zusammen\", \"Ein heimlicher Kuss\", \"Das Buffet vor dem Ansturm\". Sorgt für unvergessliche Momente. Ideal mit der Diashow – da gibt's garantiert was zu lachen.",
+      "drinkGameTitle": "Trinkspiel",
+      "drinkGameText": "Gäste loggen ihre Getränke und eine Live-Rangliste zeigt wer vorne liegt — mit Punktesystem. (Dauerhaftes Trinken wird natürlich nicht gefördert, aber es sorgt garantiert für den ein oder anderen Lacher.)",
+      "lookTitle": "Ganz dein Look",
+      "lookText": "Titelbild, Schrift, Farben, Dresscode und Ablaufplan — die App sieht aus wie dein Event. Jeder Gast öffnet eine App die sich genau richtig anfühlt.",
+      "infoTitle": "Infos für Gäste",
+      "infoText": "Adresse, Anfahrtskarte, Dresscode, Zeitplan — alles gebündelt in der App. Kein \"Wo war das nochmal?\" und kein 50-mal dieselbe Antwort schreiben."
+    },
+    "forWho": {
+      "title": "Für jedes große Event",
+      "description": "Ob 20 oder 200 Gäste — eveplan skaliert mit. Kein technisches Vorwissen nötig. Du brauchst nur einen Google-Account und fünf Minuten.",
+      "wedding": "💍 Hochzeit",
+      "birthday": "🎂 Geburtstag",
+      "anniversary": "🎉 Jubiläum",
+      "newyear": "🥳 Silvester",
+      "graduation": "🎓 Abschlussfeier",
+      "gardenparty": "🏡 Gartenparty"
+    },
+    "cta": {
+      "title": "Bereit loszulegen?",
+      "subtitle": "Erstelle dein erstes Event in weniger als fünf Minuten.",
+      "button": "Jetzt kostenlos starten →",
+      "note": "Mit Google-Account · Keine Kreditkarte · Sofort loslegen",
+      "footer": "© {year} eveplan · eveplan.de"
+    }
   }
 }

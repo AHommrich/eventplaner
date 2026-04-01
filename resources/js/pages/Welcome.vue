@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 </script>
 
 <template>
@@ -28,12 +31,11 @@ import { Head, Link } from '@inertiajs/vue3';
                         eveplan
                     </h1>
                     <p class="text-2xl leading-snug font-light text-gray-700 sm:text-3xl dark:text-white/80">
-                        Deine Hochzeit. Dein Geburtstag.<br class="hidden sm:block" />
-                        Dein Event — perfekt organisiert.
+                        {{ t('welcome.hero.tagline1') }}<br class="hidden sm:block" />
+                        {{ t('welcome.hero.tagline2') }}
                     </p>
                     <p class="mx-auto max-w-xl text-base leading-relaxed text-gray-500 sm:text-lg dark:text-white/50">
-                        eveplan ist die All-in-One-App für Veranstalter: Gäste verwalten, Einladungen per QR-Code verschicken, gemeinsam Fotos sammeln
-                        und das Trinkspiel starten — alles an einem Ort.
+                        {{ t('welcome.hero.description') }}
                     </p>
                 </div>
 
@@ -44,7 +46,7 @@ import { Head, Link } from '@inertiajs/vue3';
                             :href="route('dashboard')"
                             class="rounded-2xl bg-gradient-to-r from-red-500 to-emerald-500 px-8 py-4 text-lg font-semibold text-white shadow-lg shadow-red-900/40 transition-opacity hover:opacity-90"
                         >
-                            Zum Dashboard →
+                            {{ t('welcome.hero.ctaDashboard') }}
                         </Link>
                     </template>
                     <template v-else>
@@ -70,24 +72,24 @@ import { Head, Link } from '@inertiajs/vue3';
                                     fill="#fff"
                                 />
                             </svg>
-                            Kostenlos starten
+                            {{ t('welcome.hero.ctaStart') }}
                         </a>
                         <Link
                             :href="route('login')"
                             class="rounded-2xl border border-gray-300 px-7 py-4 text-lg font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:border-white/20 dark:text-white/80 dark:hover:bg-white/5"
                         >
-                            Einloggen
+                            {{ t('welcome.hero.ctaLogin') }}
                         </Link>
                         <Link
                             :href="route('register')"
                             class="rounded-2xl border border-gray-300 px-7 py-4 text-lg font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:border-white/20 dark:text-white/80 dark:hover:bg-white/5"
                         >
-                            Registrieren
+                            {{ t('welcome.hero.ctaRegister') }}
                         </Link>
                     </template>
                 </div>
 
-                <p class="text-sm text-gray-400 dark:text-white/25">Kostenlos · Läuft im Browser · Mit Begleit-App für Gäste</p>
+                <p class="text-sm text-gray-400 dark:text-white/25">{{ t('welcome.hero.pwaNote') }}</p>
             </div>
 
             <!-- Scroll hint -->
@@ -101,8 +103,10 @@ import { Head, Link } from '@inertiajs/vue3';
         <!-- Wie es funktioniert -->
         <section class="mx-auto max-w-4xl px-6 py-24">
             <div class="mb-16 text-center">
-                <h2 class="mb-4 text-3xl font-bold sm:text-4xl">So funktioniert eveplan</h2>
-                <p class="mx-auto max-w-xl text-lg text-gray-500 dark:text-white/50">In drei Schritten von der leeren Seite zur perfekten Party-App.</p>
+                <h2 class="mb-4 text-3xl font-bold sm:text-4xl">{{ t('welcome.howItWorks.title') }}</h2>
+                <p class="mx-auto max-w-xl text-lg text-gray-500 dark:text-white/50">
+                    {{ t('welcome.howItWorks.subtitle') }}
+                </p>
             </div>
 
             <div class="grid grid-cols-1 gap-8 sm:grid-cols-3">
@@ -112,11 +116,8 @@ import { Head, Link } from '@inertiajs/vue3';
                     >
                         1
                     </div>
-                    <h3 class="text-lg font-semibold">Event anlegen</h3>
-                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">
-                        Du legst dein Event an, gibst Datum, Ort und Dresscode ein und lädst ein Titelbild hoch. Die App bekommt automatisch deine
-                        Farben und Schriften.
-                    </p>
+                    <h3 class="text-lg font-semibold">{{ t('welcome.howItWorks.step1Title') }}</h3>
+                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">{{ t('welcome.howItWorks.step1Text') }}</p>
                 </div>
                 <div class="flex flex-col items-center gap-4 text-center">
                     <div
@@ -124,11 +125,8 @@ import { Head, Link } from '@inertiajs/vue3';
                     >
                         2
                     </div>
-                    <h3 class="text-lg font-semibold">Gäste einladen</h3>
-                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">
-                        Trag deine Gäste ein und verschick personalisierte QR-Codes. Ein Scan aus der Begleitapp genügt — kein Passwort. Die Gäste
-                        sind sofort drin.
-                    </p>
+                    <h3 class="text-lg font-semibold">{{ t('welcome.howItWorks.step2Title') }}</h3>
+                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">{{ t('welcome.howItWorks.step2Text') }}</p>
                 </div>
                 <div class="flex flex-col items-center gap-4 text-center">
                     <div
@@ -136,10 +134,8 @@ import { Head, Link } from '@inertiajs/vue3';
                     >
                         3
                     </div>
-                    <h3 class="text-lg font-semibold">Event genießen</h3>
-                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">
-                        Am großen Tag läuft alles von selbst. Fotos werden gesammelt, das Trinkspiel startet und die Diashow läuft auf der Leinwand.
-                    </p>
+                    <h3 class="text-lg font-semibold">{{ t('welcome.howItWorks.step3Title') }}</h3>
+                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">{{ t('welcome.howItWorks.step3Text') }}</p>
                 </div>
             </div>
         </section>
@@ -147,92 +143,79 @@ import { Head, Link } from '@inertiajs/vue3';
         <!-- Features -->
         <section class="mx-auto max-w-5xl px-6 py-16">
             <div class="mb-16 text-center">
-                <h2 class="mb-4 text-3xl font-bold sm:text-4xl">Alles was du brauchst</h2>
+                <h2 class="mb-4 text-3xl font-bold sm:text-4xl">{{ t('welcome.features.title') }}</h2>
                 <p class="mx-auto max-w-xl text-lg text-gray-500 dark:text-white/50">
-                    Von der Einladung bis zum letzten Foto — eveplan begleitet dein Event von Anfang bis Ende.
+                    {{ t('welcome.features.subtitle') }}
                 </p>
             </div>
 
+            <!-- 6 Karten: 3 Spalten -->
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                <div class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8">
+                <div
+                    class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8"
+                >
                     <div class="mb-4 text-3xl">👥</div>
-                    <h3 class="mb-2 text-lg font-semibold">Gästeverwaltung</h3>
-                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">
-                        Gäste anlegen, in Gruppen organisieren und RSVP verfolgen. Diätwünsche, Allergien und Menüwahl direkt dabei — immer den
-                        Überblick behalten.
-                    </p>
+                    <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.guestsTitle') }}</h3>
+                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">{{ t('welcome.features.guestsText') }}</p>
                 </div>
 
-                <div class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8">
+                <div
+                    class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8"
+                >
                     <div class="mb-4 text-3xl">📲</div>
-                    <h3 class="mb-2 text-lg font-semibold">QR-Einladungen</h3>
-                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">
-                        Jeder Gast bekommt einen persönlichen QR-Code. Scannen → App öffnet sich → sofort eingeloggt. Kein Passwort, kein Download,
-                        keine Hürden.
-                    </p>
+                    <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.qrTitle') }}</h3>
+                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">{{ t('welcome.features.qrText') }}</p>
                 </div>
 
-                <div class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8">
+                <div
+                    class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8"
+                >
                     <div class="mb-4 text-3xl">📸</div>
-                    <h3 class="mb-2 text-lg font-semibold">Gemeinsame Fotogalerie</h3>
-                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">
-                        Alle Gäste laden Fotos in die geteilte Galerie hoch. Am Ende hast du die komplette Feier aus 100 Augenpaaren — automatisch
-                        gesammelt.
-                    </p>
+                    <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.galleryTitle') }}</h3>
+                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">{{ t('welcome.features.galleryText') }}</p>
                 </div>
 
-                <div class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8">
+                <div
+                    class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8"
+                >
                     <div class="mb-4 text-3xl">🎞️</div>
-                    <h3 class="mb-2 text-lg font-semibold">Live-Diashow</h3>
-                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">
-                        Die Galerie läuft als Diashow auf der Leinwand oder dem TV — in Echtzeit. Jedes neue Foto erscheint automatisch. Gäste sehen
-                        sich auf der großen Leinwand.
-                    </p>
+                    <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.slideshowTitle') }}</h3>
+                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">{{ t('welcome.features.slideshowText') }}</p>
                 </div>
 
-                <div class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8">
+                <div
+                    class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8"
+                >
                     <div class="mb-4 text-3xl">🎯</div>
-                    <h3 class="mb-2 text-lg font-semibold">Fotospiel</h3>
-                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">
-                        Gäste bekommen zufällige Fotoaufgaben — "Zwei Generationen zusammen", "Ein heimlicher Kuss", "Das Buffet vor dem Ansturm".
-                        Sorgt für unvergessliche Momente.
-                    </p>
+                    <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.photoGameTitle') }}</h3>
+                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">{{ t('welcome.features.photoGameText') }}</p>
                 </div>
 
-                <div class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8">
+                <div
+                    class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8"
+                >
                     <div class="mb-4 text-3xl">🍾</div>
-                    <h3 class="mb-2 text-lg font-semibold">Getränke & Trinkspiel</h3>
-                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">
-                        Gäste loggen ihre Getränke, ein Mengenrechner sagt dir wie viel du bestellen musst und eine Live-Rangliste zeigt wer vorne
-                        liegt — mit Punktesystem.
-                    </p>
+                    <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.drinkGameTitle') }}</h3>
+                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">{{ t('welcome.features.drinkGameText') }}</p>
                 </div>
+            </div>
 
-                <div class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8">
+            <!-- letzte 2 Karten: mittig -->
+            <div class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:mx-auto lg:max-w-[calc(66.666%+10px)]">
+                <div
+                    class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8"
+                >
                     <div class="mb-4 text-3xl">🎨</div>
-                    <h3 class="mb-2 text-lg font-semibold">Ganz dein Look</h3>
-                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">
-                        Titelbild, Schrift, Farben, Dresscode und Ablaufplan — die App sieht aus wie dein Event. Jeder Gast öffnet eine App die sich
-                        genau richtig anfühlt.
-                    </p>
+                    <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.lookTitle') }}</h3>
+                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">{{ t('welcome.features.lookText') }}</p>
                 </div>
 
-                <div class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8">
-                    <div class="mb-4 text-3xl">🧮</div>
-                    <h3 class="mb-2 text-lg font-semibold">Mengenrechner</h3>
-                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">
-                        Wie viele Flaschen Sekt für 80 Gäste? eveplan rechnet es dir aus — nach Eventdauer, Gästezahl und deinem Getränkeangebot. Kein
-                        Rätselraten mehr.
-                    </p>
-                </div>
-
-                <div class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8">
+                <div
+                    class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8"
+                >
                     <div class="mb-4 text-3xl">📍</div>
-                    <h3 class="mb-2 text-lg font-semibold">Infos für Gäste</h3>
-                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">
-                        Adresse, Anfahrtskarte, Dresscode, Zeitplan — alles gebündelt in der App. Kein "Wo war das nochmal?" und kein 50-mal dieselbe
-                        Antwort schreiben.
-                    </p>
+                    <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.infoTitle') }}</h3>
+                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">{{ t('welcome.features.infoText') }}</p>
                 </div>
             </div>
         </section>
@@ -240,44 +223,61 @@ import { Head, Link } from '@inertiajs/vue3';
         <!-- Für wen -->
         <section class="mx-auto max-w-4xl px-6 py-20">
             <div class="rounded-3xl border border-gray-200 bg-gray-50/50 p-10 text-center sm:p-14 dark:border-white/10 dark:bg-white/3">
-                <h2 class="mb-6 text-3xl font-bold sm:text-4xl">Für jedes große Event</h2>
+                <h2 class="mb-6 text-3xl font-bold sm:text-4xl">{{ t('welcome.forWho.title') }}</h2>
                 <div class="mb-8 flex flex-wrap justify-center gap-3">
-                    <span class="rounded-full border border-gray-200 bg-gray-100 px-4 py-2 text-sm text-gray-600 dark:border-white/15 dark:bg-white/5 dark:text-white/70">💍 Hochzeit</span>
-                    <span class="rounded-full border border-gray-200 bg-gray-100 px-4 py-2 text-sm text-gray-600 dark:border-white/15 dark:bg-white/5 dark:text-white/70">🎂 Geburtstag</span>
-                    <span class="rounded-full border border-gray-200 bg-gray-100 px-4 py-2 text-sm text-gray-600 dark:border-white/15 dark:bg-white/5 dark:text-white/70">🎉 Jubiläum</span>
-                    <span class="rounded-full border border-gray-200 bg-gray-100 px-4 py-2 text-sm text-gray-600 dark:border-white/15 dark:bg-white/5 dark:text-white/70">🥳 Silvester</span>
-                    <span class="rounded-full border border-gray-200 bg-gray-100 px-4 py-2 text-sm text-gray-600 dark:border-white/15 dark:bg-white/5 dark:text-white/70">🎓 Abschlussfeier</span>
-                    <span class="rounded-full border border-gray-200 bg-gray-100 px-4 py-2 text-sm text-gray-600 dark:border-white/15 dark:bg-white/5 dark:text-white/70">🏡 Gartenparty</span>
+                    <span
+                        class="rounded-full border border-gray-200 bg-gray-100 px-4 py-2 text-sm text-gray-600 dark:border-white/15 dark:bg-white/5 dark:text-white/70"
+                        >{{ t('welcome.forWho.wedding') }}</span
+                    >
+                    <span
+                        class="rounded-full border border-gray-200 bg-gray-100 px-4 py-2 text-sm text-gray-600 dark:border-white/15 dark:bg-white/5 dark:text-white/70"
+                        >{{ t('welcome.forWho.birthday') }}</span
+                    >
+                    <span
+                        class="rounded-full border border-gray-200 bg-gray-100 px-4 py-2 text-sm text-gray-600 dark:border-white/15 dark:bg-white/5 dark:text-white/70"
+                        >{{ t('welcome.forWho.anniversary') }}</span
+                    >
+                    <span
+                        class="rounded-full border border-gray-200 bg-gray-100 px-4 py-2 text-sm text-gray-600 dark:border-white/15 dark:bg-white/5 dark:text-white/70"
+                        >{{ t('welcome.forWho.newyear') }}</span
+                    >
+                    <span
+                        class="rounded-full border border-gray-200 bg-gray-100 px-4 py-2 text-sm text-gray-600 dark:border-white/15 dark:bg-white/5 dark:text-white/70"
+                        >{{ t('welcome.forWho.graduation') }}</span
+                    >
+                    <span
+                        class="rounded-full border border-gray-200 bg-gray-100 px-4 py-2 text-sm text-gray-600 dark:border-white/15 dark:bg-white/5 dark:text-white/70"
+                        >{{ t('welcome.forWho.gardenparty') }}</span
+                    >
                 </div>
                 <p class="mx-auto max-w-xl text-base leading-relaxed text-gray-500 dark:text-white/50">
-                    Ob 20 oder 200 Gäste — eveplan skaliert mit. Kein technisches Vorwissen nötig. Du brauchst nur einen Google-Account und fünf
-                    Minuten.
+                    {{ t('welcome.forWho.description') }}
                 </p>
             </div>
         </section>
 
         <!-- Footer CTA -->
         <section class="border-t border-gray-200 px-6 py-20 text-center dark:border-white/10">
-            <h2 class="mb-4 text-3xl font-bold sm:text-4xl">Bereit loszulegen?</h2>
-            <p class="mb-8 text-lg text-gray-500 dark:text-white/50">Erstelle dein erstes Event in weniger als fünf Minuten.</p>
+            <h2 class="mb-4 text-3xl font-bold sm:text-4xl">{{ t('welcome.cta.title') }}</h2>
+            <p class="mb-8 text-lg text-gray-500 dark:text-white/50">{{ t('welcome.cta.subtitle') }}</p>
             <template v-if="!$page.props.auth.user">
                 <a
                     :href="route('oauth.google.redirect', {}, false)"
                     class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-red-500 to-emerald-500 px-10 py-5 text-xl font-semibold text-white shadow-lg shadow-red-900/40 transition-opacity hover:opacity-90"
                 >
-                    Jetzt kostenlos starten →
+                    {{ t('welcome.cta.button') }}
                 </a>
-                <p class="mt-4 text-sm text-gray-400 dark:text-white/25">Mit Google-Account · Keine Kreditkarte · Sofort loslegen</p>
+                <p class="mt-4 text-sm text-gray-400 dark:text-white/25">{{ t('welcome.cta.note') }}</p>
             </template>
             <template v-else>
                 <Link
                     :href="route('dashboard')"
                     class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-red-500 to-emerald-500 px-10 py-5 text-xl font-semibold text-white transition-opacity hover:opacity-90"
                 >
-                    Zum Dashboard →
+                    {{ t('welcome.hero.ctaDashboard') }}
                 </Link>
             </template>
-            <p class="mt-10 text-sm text-gray-400 dark:text-white/20">© {{ new Date().getFullYear() }} eveplan · eveplan.de</p>
+            <p class="mt-10 text-sm text-gray-400 dark:text-white/20">{{ t('welcome.cta.footer', { year: new Date().getFullYear() }) }}</p>
         </section>
     </div>
 </template>
