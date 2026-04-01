@@ -737,5 +737,64 @@
     "title": "Account pending approval",
     "description": "Your account needs to be approved before you can get started.",
     "logout": "Sign out"
+  },
+  "welcome": {
+    "hero": {
+      "tagline1": "Your wedding. Your birthday.",
+      "tagline2": "Your event — perfectly organized.",
+      "description": "eveplan is the all-in-one app for event organizers: manage guests, send invitations via QR code, collect photos together — all in one place.",
+      "ctaDashboard": "Go to Dashboard →",
+      "ctaStart": "get started",
+      "ctaLogin": "Log in",
+      "ctaRegister": "Register",
+      "pwaNote": "Web app also available as PWA · With companion app for guests (iOS / Android)"
+    },
+    "howItWorks": {
+      "title": "How eveplan works",
+      "subtitle": "From blank page to perfect party app in three steps.",
+      "step1Title": "Create your event",
+      "step1Text": "Set up your event with date, location, optional colors and a cover image. The app automatically picks up your colors and all other settings.",
+      "step2Title": "Invite your guests",
+      "step2Text": "Add your guests and send personalized QR codes. One scan from the companion app is all it takes — no password. Guests are in instantly.",
+      "step3Title": "Enjoy the event",
+      "step3Text": "On the big day everything runs on its own. Photos are collected, games start at the right time and the slideshow plays on the screen."
+    },
+    "features": {
+      "title": "Everything you need",
+      "subtitle": "From the invitation to the last photo — eveplan accompanies your event from start to finish.",
+      "guestsTitle": "Guest Management",
+      "guestsText": "Create guests, organize them in groups and track RSVPs — always stay on top of things.",
+      "qrTitle": "QR Invitations",
+      "qrText": "Every guest gets a personal QR code. Scan → app opens → instantly logged in. No personal user data stored – no hassle.",
+      "galleryTitle": "Shared Photo Gallery",
+      "galleryText": "All guests upload photos to the shared gallery. In the end you have the complete celebration captured through 100 pairs of eyes — collected automatically.",
+      "slideshowTitle": "Live Slideshow",
+      "slideshowText": "The gallery runs as a live slideshow on the big screen or TV in real time. Every new photo appears automatically. Guests see themselves on the big screen.",
+      "photoGameTitle": "Photo Game",
+      "photoGameText": "Guests receive random photo challenges — \"Two generations together\", \"A secret kiss\", \"The buffet before the rush\". Creates unforgettable moments. Perfect with the slideshow – guaranteed laughs.",
+      "drinkGameTitle": "Drink Game",
+      "drinkGameText": "Guests log their drinks and a live leaderboard shows who's in the lead — with a points system. (Excessive drinking is of course not encouraged, but it's guaranteed to get a laugh or two.)",
+      "lookTitle": "Totally your look",
+      "lookText": "Cover image, font, colors, dress code and schedule — the app looks just like your event. Every guest opens an app that feels exactly right.",
+      "infoTitle": "Info for Guests",
+      "infoText": "Address, directions, dress code, schedule — all bundled in the app. No more \"where was that again?\" and no writing the same answer 50 times."
+    },
+    "forWho": {
+      "title": "For every big event",
+      "description": "Whether 20 or 200 guests — eveplan scales with you. No technical knowledge required. All you need is a Google account and five minutes.",
+      "wedding": "💍 Wedding",
+      "birthday": "🎂 Birthday",
+      "anniversary": "🎉 Anniversary",
+      "newyear": "🥳 New Year's Eve",
+      "graduation": "🎓 Graduation",
+      "gardenparty": "🏡 Garden Party"
+    },
+    "cta": {
+      "title": "Ready to get started?",
+      "subtitle": "Create your first event in less than five minutes.",
+      "button": "Start for free →",
+      "note": "With Google Account · No credit card · Get started right away",
+      "footer": "© {year} eveplan · eveplan.de"
+    }
   }
 }
