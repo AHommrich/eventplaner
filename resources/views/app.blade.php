@@ -20,12 +20,12 @@
     </style>
 
     {{-- PWA: Name/Titel (Inertia) --}}
-    <title inertia>{{ config('app.name', 'Planer') }}</title>
-    <meta name="application-name" content="Planer">
-    <meta name="apple-mobile-web-app-title" content="Planer">
+    <title inertia>{{ config('app.name', 'eveplan') }}</title>
+    <meta name="application-name" content="eveplan">
+    <meta name="apple-mobile-web-app-title" content="eve">
 
     {{-- PWA: Manifest + Theme-Farbe (Cache-Buster am Manifest!) --}}
-    <link rel="manifest" href="/manifest.webmanifest?v=5">
+    <link rel="manifest" href="/manifest.webmanifest?v=6">
     <meta name="theme-color" content="#111827">
 
     {{-- PWA: iOS Vollbild & Statusbar --}}
@@ -33,9 +33,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
 
-    {{-- Favicons (SVG + Fallback) --}}
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="icon" href="/favicon.ico" sizes="any">
+    {{-- Favicon --}}
+    <link rel="icon" href="/logo-admin.png" type="image/png">
 
     {{-- PWA: App-Icons (PNG, wichtig für Install) --}}
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
