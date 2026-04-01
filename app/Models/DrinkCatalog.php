@@ -12,6 +12,7 @@ class DrinkCatalog extends Model
         'category',
         'type',
         'display_name',
+        'display_name_en',
         'alcohol_percent',
         'is_alcoholic',
         'negative_points',
