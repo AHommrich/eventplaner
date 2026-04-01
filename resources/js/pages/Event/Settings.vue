@@ -58,7 +58,6 @@ interface EventData {
     role_fab_icon: string | null;
     font_heading: string | null;
     drink_game_enabled: boolean;
-    drink_game_end_time: string | null;
     photo_game_enabled: boolean;
     calculator_enabled: boolean;
 }
@@ -124,7 +123,6 @@ const form = useForm({
     role_fab_icon: props.event.role_fab_icon ?? 'tertiary',
     font_heading: props.event.font_heading ?? '',
     drink_game_enabled: props.event.drink_game_enabled ?? false,
-    drink_game_end_time: props.event.drink_game_end_time ? props.event.drink_game_end_time.slice(0, 16) : '',
     photo_game_enabled: props.event.photo_game_enabled ?? false,
     calculator_enabled: props.event.calculator_enabled ?? false,
     cover: null as File | null,
@@ -1650,15 +1648,6 @@ function importStyle(e: Event) {
                                         >
                                             <span :class="['pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform', form.drink_game_enabled ? 'translate-x-5' : 'translate-x-0']" />
                                         </button>
-                                    </div>
-                                    <div v-if="form.drink_game_enabled" class="grid gap-1.5">
-                                        <Label class="text-sm">{{ t('event.drinkGameEndTime') }}</Label>
-                                        <input
-                                            v-model="form.drink_game_end_time"
-                                            type="datetime-local"
-                                            class="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                                        />
-                                        <p class="text-xs text-muted-foreground">{{ t('event.drinkGameEndTimeDesc') }}</p>
                                     </div>
                                 </div>
                             </CardContent>
