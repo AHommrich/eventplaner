@@ -20,6 +20,7 @@ class PhotoGameController extends Controller
     public function status(Request $request)
     {
         $guest = $request->user();
+        $lang  = $request->getPreferredLanguage(['de', 'en']);
         $game  = EventPhotoGame::where('event_id', $guest->event_id)->first();
 
         if (!$game) {
@@ -28,7 +29,7 @@ class PhotoGameController extends Controller
 
         $assignment = PhotoGameAssignment::where('game_id', $game->id)
             ->where('guest_id', $guest->id)
-            ->with(['task:id,description,translation_key', 'override:id,custom_text', 'photo:id,url'])
+            ->with(['task:id,description,description_en,translation_key', 'override:id,custom_text', 'photo:id,url'])
             ->first();
 
         return response()->json([
@@ -37,7 +38,7 @@ class PhotoGameController extends Controller
                 'id'              => $assignment->id,
                 'task'            => [
                     'id'              => $assignment->task_id ?? $assignment->override_id,
-                    'description'     => $this->resolveTaskDescription($assignment),
+                    'description'     => $this->resolveTaskDescription($assignment, $lang),
                     'translation_key' => $assignment->override ? null : $assignment->task?->translation_key,
                 ],
                 'submitted_at' => $assignment->submitted_at,
@@ -64,6 +65,8 @@ class PhotoGameController extends Controller
             return response()->json(['message' => 'Du hast bereits eine Aufgabe erhalten.'], 409);
         }
 
+        $lang = $request->getPreferredLanguage(['de', 'en']);
+
         // Pool on-the-fly aufbauen
         $pool = $this->buildAssignPool($guest->event_id, $game->catalog_id);
 
@@ -80,11 +83,15 @@ class PhotoGameController extends Controller
             'override_id' => $picked['override_id'],
         ]);
 
+        $description = ($lang === 'en' && !empty($picked['description_en']))
+            ? $picked['description_en']
+            : $picked['description'];
+
         return response()->json([
             'id'   => $assignment->id,
             'task' => [
                 'id'              => $picked['task_id'] ?? $picked['override_id'],
-                'description'     => $picked['description'],
+                'description'     => $description,
                 'translation_key' => $picked['translation_key'] ?? null,
             ],
         ], 201);
@@ -169,6 +176,7 @@ class PhotoGameController extends Controller
                 'task_id'         => $t->id,
                 'override_id'     => null,
                 'description'     => $t->description,
+                'description_en'  => $t->description_en,
                 'translation_key' => $t->translation_key,
             ])
             : collect();
@@ -181,6 +189,7 @@ class PhotoGameController extends Controller
                     'task_id'         => $t->id,
                     'override_id'     => null,
                     'description'     => $t->description,
+                    'description_en'  => $t->description_en,
                     'translation_key' => $t->translation_key,
                 ]);
                 $pool = $pool->concat($typeItems);
@@ -194,14 +203,16 @@ class PhotoGameController extends Controller
             if ($ov->action === 'hidden') {
                 $pool = $pool->reject(fn($t) => $t['task_id'] === $ov->task_id);
             } elseif ($ov->action === 'modified') {
+                // modified-Override: nur DE-Text überschreiben, kein EN vorhanden
                 $pool = $pool->map(fn($t) => $t['task_id'] === $ov->task_id
-                    ? array_merge($t, ['description' => $ov->custom_text])
+                    ? array_merge($t, ['description' => $ov->custom_text, 'description_en' => null])
                     : $t);
             } elseif ($ov->action === 'added') {
                 $pool->push([
                     'task_id'         => null,
                     'override_id'     => $ov->id,
                     'description'     => $ov->custom_text,
+                    'description_en'  => null,
                     'translation_key' => null,
                 ]);
             }
@@ -211,9 +222,10 @@ class PhotoGameController extends Controller
     }
 
     /** Löst die Aufgabenbeschreibung für ein Assignment auf */
-    private function resolveTaskDescription(PhotoGameAssignment $assignment): string
+    private function resolveTaskDescription(PhotoGameAssignment $assignment, string $lang = 'de'): string
     {
         if ($assignment->override_id && $assignment->override) {
+            // Override-Texte sind immer nur auf Deutsch (vom Veranstalter eingetragen)
             return $assignment->override->custom_text ?? '';
         }
         if ($assignment->task_id && $assignment->task) {
@@ -222,7 +234,13 @@ class PhotoGameController extends Controller
                 ->where('task_id', $assignment->task_id)
                 ->where('action', 'modified')
                 ->first();
-            return $mod?->custom_text ?? $assignment->task->description;
+            if ($mod) {
+                return $mod->custom_text ?? '';
+            }
+            if ($lang === 'en' && $assignment->task->description_en) {
+                return $assignment->task->description_en;
+            }
+            return $assignment->task->description;
         }
         return '';
     }
