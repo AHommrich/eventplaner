@@ -37,10 +37,10 @@
     <link rel="icon" href="/logo-admin.png" type="image/png">
 
     {{-- PWA: App-Icons (PNG, wichtig für Install) --}}
-    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <link rel="apple-touch-icon" href="/icons/icon-192-v2.png">
     {{-- optional weitere Größen --}}
-    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192.png">
-    <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192-v2.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512-v2.png">
 
     {{-- (Optional) Maskable icon hint – Android/Chrome nutzt purpose:maskable aus dem Manifest --}}
     <link rel="mask-icon" href="/icons/maskable-512.png" color="#111827">
