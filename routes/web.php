@@ -15,6 +15,7 @@ use App\Http\Controllers\DrinkController;
 use App\Http\Controllers\EventAccessController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\EventSettingsController;
+use App\Http\Controllers\EventStylePresetController;
 use App\Http\Controllers\RequestController;
 use App\Http\Controllers\ProjectorController;
 use App\Http\Controllers\PhotoGameController;
@@ -73,6 +74,10 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::post('/event/settings', [EventSettingsController::class, 'update'])->name('event.settings.update');
     Route::post('/event/settings/cover', [EventSettingsController::class, 'uploadCover'])->name('event.settings.cover');
     Route::delete('/event/settings/cover', [EventSettingsController::class, 'deleteCover'])->name('event.settings.cover.delete');
+
+    // Stil-Presets
+    Route::post('/event/settings/style-presets', [EventStylePresetController::class, 'store'])->name('event.style-presets.store');
+    Route::delete('/event/settings/style-presets/{preset}', [EventStylePresetController::class, 'destroy'])->name('event.style-presets.destroy');
 
     // Fotospiel
     Route::get('/photos/game', [PhotoGameController::class, 'index'])->name('photo-game.index');
