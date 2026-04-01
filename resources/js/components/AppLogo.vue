@@ -5,6 +5,6 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
 <template>
     <AppLogoIcon class="size-8 rounded-md" />
     <div class="ml-1 grid flex-1 text-left text-sm">
-        <span class="mb-0.5 truncate leading-tight font-semibold">eve</span>
+        <span class="mb-0.5 truncate leading-tight font-semibold">eveplan</span>
     </div>
 </template>
