@@ -56,6 +56,12 @@ import { Head, Link } from '@inertiajs/vue3';
                         >
                             Einloggen
                         </Link>
+                        <Link
+                            :href="route('register')"
+                            class="px-7 py-4 rounded-2xl border border-white/20 text-white/80 font-medium text-lg hover:bg-white/5 transition-colors"
+                        >
+                            Registrieren
+                        </Link>
                     </template>
                 </div>
 
