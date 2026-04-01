@@ -35,8 +35,8 @@ export default defineConfig({
       // Assets, die nicht durch Vite laufen (liegen in public/)
       includeAssets: [
         'favicon.svg',
-        'icons/icon-192.png',
-        'icons/icon-512.png',
+        'icons/icon-192-v2.png',
+        'icons/icon-512-v2.png',
         'icons/maskable-512.png',
       ],
       manifest: {
@@ -48,8 +48,8 @@ export default defineConfig({
         background_color: '#ffffff',
         theme_color: '#111827',
         icons: [
-          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/icons/icon-192-v2.png', sizes: '192x192', type: 'image/png' },
+          { src: '/icons/icon-512-v2.png', sizes: '512x512', type: 'image/png' },
           {
             src: '/icons/maskable-512.png',
             sizes: '512x512',
