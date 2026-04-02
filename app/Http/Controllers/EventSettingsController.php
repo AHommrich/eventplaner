@@ -34,6 +34,7 @@ class EventSettingsController extends Controller
                 'drink_game_end_time',
                 'photo_game_enabled',
                 'calculator_enabled',
+                'projector_token',
             ]),
             'stylePresets' => $event->stylePresets()
                 ->orderBy('created_at', 'desc')
