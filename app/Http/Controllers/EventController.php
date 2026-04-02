@@ -6,6 +6,7 @@ use App\Models\Event;
 use App\Models\EventRequest;
 use App\Models\PhotoAlbum;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class EventController extends Controller
@@ -51,9 +52,10 @@ class EventController extends Controller
         ]);
 
         $event = Event::create([
-            'user_id' => auth()->id(),
-            'name'    => $data['name'],
-            'date'    => $data['date'] ?? null,
+            'user_id'         => auth()->id(),
+            'name'            => $data['name'],
+            'date'            => $data['date'] ?? null,
+            'projector_token' => Str::random(32),
         ]);
 
         $this->createDefaultAlbums($event->id);
