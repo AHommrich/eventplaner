@@ -60,6 +60,7 @@ interface EventData {
     drink_game_enabled: boolean;
     photo_game_enabled: boolean;
     calculator_enabled: boolean;
+    projector_token: string | null;
 }
 
 interface StylePreset {
@@ -1694,6 +1695,32 @@ function importStyle(e: Event) {
                                         >
                                             <span :class="['pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform', form.calculator_enabled ? 'translate-x-5' : 'translate-x-0']" />
                                         </button>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <!-- Diashow-Token -->
+                        <Card>
+                            <CardContent>
+                                <div class="space-y-3 pt-4">
+                                    <div>
+                                        <Label class="text-sm font-medium">{{ t('event.projectorToken') }}</Label>
+                                        <p class="text-xs text-muted-foreground">{{ t('event.projectorTokenDesc') }}</p>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <code v-if="props.event.projector_token" class="flex-1 truncate rounded bg-muted px-3 py-1.5 text-xs font-mono">
+                                            {{ props.event.projector_token }}
+                                        </code>
+                                        <span v-else class="flex-1 text-xs text-muted-foreground italic">{{ t('event.projectorTokenNone') }}</span>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            @click="router.post(route('photos.projector-token.regenerate'), {}, { onSuccess: () => toast.success(t('event.projectorTokenRegenerated')) })"
+                                        >
+                                            {{ props.event.projector_token ? t('event.projectorTokenRegenerate') : t('event.projectorTokenGenerate') }}
+                                        </Button>
                                     </div>
                                 </div>
                             </CardContent>
