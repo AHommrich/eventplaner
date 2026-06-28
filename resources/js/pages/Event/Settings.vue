@@ -59,7 +59,6 @@ interface EventData {
     font_heading: string | null;
     drink_game_enabled: boolean;
     photo_game_enabled: boolean;
-    calculator_enabled: boolean;
     projector_token: string | null;
 }
 
@@ -125,7 +124,6 @@ const form = useForm({
     font_heading: props.event.font_heading ?? '',
     drink_game_enabled: props.event.drink_game_enabled ?? false,
     photo_game_enabled: props.event.photo_game_enabled ?? false,
-    calculator_enabled: props.event.calculator_enabled ?? false,
     cover: null as File | null,
 });
 
@@ -1671,29 +1669,6 @@ function importStyle(e: Event) {
                                             :class="['relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2', form.photo_game_enabled ? 'bg-primary' : 'bg-input']"
                                         >
                                             <span :class="['pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform', form.photo_game_enabled ? 'translate-x-5' : 'translate-x-0']" />
-                                        </button>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <!-- Mengenrechner -->
-                        <Card>
-                            <CardContent>
-                                <div class="space-y-3 pt-4">
-                                    <div class="flex items-center justify-between gap-4">
-                                        <div>
-                                            <Label class="text-sm font-medium">{{ t('event.calculatorEnabled') }}</Label>
-                                            <p class="text-xs text-muted-foreground">{{ t('event.calculatorEnabledDesc') }}</p>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            role="switch"
-                                            :aria-checked="form.calculator_enabled"
-                                            @click="form.calculator_enabled = !form.calculator_enabled"
-                                            :class="['relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2', form.calculator_enabled ? 'bg-primary' : 'bg-input']"
-                                        >
-                                            <span :class="['pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform', form.calculator_enabled ? 'translate-x-5' : 'translate-x-0']" />
                                         </button>
                                     </div>
                                 </div>
