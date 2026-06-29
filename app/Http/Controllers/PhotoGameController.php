@@ -10,6 +10,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
+/**
+ * Veranstalter-Sicht auf das Fotospiel (Admin-Endpoints, Inertia).
+ *
+ *  - `index()` → Spielstatus, Pool-Vorschau (siehe {@see \App\Services\PhotoGameTaskPool}),
+ *                Einreichungen, Override-Verwaltung
+ *  - `start()` / `end()` → Status auf active / ended setzen (Lebenszyklus)
+ *  - `updateCatalog()` → Event-Typ-Katalog auswählen (Hochzeit / Geburtstag / ...)
+ *  - `upsertOverride()` / `destroyOverride()` → hidden / modified / added Deltas pflegen
+ *  - `destroyAssignment()` → Einreichung löschen inkl. R2-Foto (Cleanup-Side-Effect)
+ */
 class PhotoGameController extends Controller
 {
     public function index()

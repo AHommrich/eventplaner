@@ -5,6 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Group;
 use Illuminate\Http\Request;
 
+/**
+ * Verwaltet Familien-/Gruppen-Einheiten innerhalb eines Events.
+ *
+ * `store()` unterstützt sowohl Inertia-Redirects als auch JSON-Antworten
+ * (für die CreatableCombobox im Frontend, die Gruppen on-the-fly anlegt).
+ * `destroy()` prüft Event-Scope und cascadet die zugehörigen Gäste über die FK.
+ */
 class GroupController extends Controller
 {
     public function store(Request $request)

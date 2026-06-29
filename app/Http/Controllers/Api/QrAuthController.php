@@ -9,6 +9,22 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Laravel\Sanctum\PersonalAccessToken;
 
+/**
+ * QR-Login für Gäste — Sanctum-Bearer-Token via Einladungs-Token aus dem QR-Code.
+ *
+ * Solo-Gast:  GET /api/auth/qr/{token} liefert den Token sofort zurück (kein Picker).
+ * Familie:    GET liefert die Mitgliederliste OHNE Tokens.
+ *             POST /api/auth/qr/{token}/select { guest_id } stellt erst dann einen
+ *             Token für den gewählten Gast aus.
+ *
+ * Tokens werden bewusst NICHT beim ersten Scan für alle Mitglieder vorab erstellt —
+ * sonst würden ungenutzte Tokens andere Familienmitglieder blockieren (`is_active`
+ * wäre true, obwohl niemand eingeloggt ist). Daher der zweistufige Flow.
+ *
+ * `is_active`-Prüfung läuft explizit über {@see PersonalAccessToken}, nicht über die
+ * `$guest->tokens()`-Relation — auf eager-geladenen Objekten scoped MorphMany dort
+ * nicht korrekt.
+ */
 class QrAuthController extends Controller
 {
     /**

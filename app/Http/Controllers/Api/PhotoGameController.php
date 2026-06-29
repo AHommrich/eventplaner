@@ -15,6 +15,17 @@ use Illuminate\Support\Str;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Imagick\Driver;
 
+/**
+ * Fotospiel-API für die React-Native-App.
+ *
+ *  - GET  /status  → Spielstatus + aktuelle Aufgabe des Gastes (mit eingereichtem Foto, falls vorhanden)
+ *  - POST /assign  → eine neue Aufgabe zuweisen; Pool aus Base-Katalog + Typ-Katalog + Overrides
+ *  - POST /submit  → Foto für die offene Aufgabe einreichen (Re-Submission erlaubt, altes Foto wird gelöscht)
+ *
+ * Pool-Aufbau ist nach {@see PhotoGameTaskPool} delegiert (Delta-Modell-Logik dort).
+ * Aufgaben-Beschreibungen unterstützen DE/EN via `Accept-Language`; Overrides sind
+ * bewusst nur DE (vom Veranstalter eingetragen, keine Übersetzungspflicht).
+ */
 class PhotoGameController extends Controller
 {
     public function __construct(private readonly PhotoGameTaskPool $pool) {}

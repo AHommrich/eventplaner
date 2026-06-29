@@ -9,6 +9,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
+/**
+ * Event-Lifecycle und Onboarding-Flow für Web-User.
+ *
+ *  - `onboarding()` / `noEvent()` → Einstiegs-Seiten für User ohne Event
+ *  - `store()`                    → nur Admin; erstellt Event + 3 Standard-Alben + projector_token
+ *  - `requestEvent()`             → Nicht-Admin reicht Event-Wunsch ein (EventRequest::pending)
+ *  - `switch()`                   → wechselt das aktive Event in der Session (siehe {@see Controller::activeEvent()})
+ *
+ * Default-Alben werden zentral via {@see self::createDefaultAlbums()} angelegt und
+ * auch von {@see RequestController::approveEventRequest()} wiederverwendet.
+ */
 class EventController extends Controller
 {
     public function onboarding()

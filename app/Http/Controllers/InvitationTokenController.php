@@ -7,6 +7,18 @@ use App\Models\Guest;
 use App\Models\InvitationToken;
 use Illuminate\Support\Str;
 
+/**
+ * Erzeugt und regeneriert Einladungs-Tokens für Gruppen und Solo-Gäste.
+ *
+ * Token = 32-stelliger Random-String, der im QR-Code der Einladung steht und vom
+ * {@see \App\Http\Controllers\Api\QrAuthController} zur Authentifizierung geprüft wird.
+ *
+ *  - `generate()`          → für jede Gruppe und jeden Solo-Gast einen Token (idempotent via updateOrCreate)
+ *  - `generateForGroup()`  → Einzel-Regenerierung einer Gruppe (alter Token wird ersetzt)
+ *  - `generateForGuest()`  → Einzel-Regenerierung eines Solo-Gastes
+ *
+ * Cross-Event-Schutz via `$this->activeEvent()->id`-Vergleich (403 sonst).
+ */
 class InvitationTokenController extends Controller
 {
     public function generate()
