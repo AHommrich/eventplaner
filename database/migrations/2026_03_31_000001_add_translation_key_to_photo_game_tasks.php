@@ -54,14 +54,14 @@ return new class extends Migration
             'Die Geschenke'                                                 => 'photoGame.tasks.geburtstag.presents',
         ];
 
+        // UPDATE...JOIN ist MySQL-spezifisch; rewrite mit Subquery, läuft auf MySQL und SQLite.
         foreach ($keys as $description => $key) {
-            DB::statement(
-                'UPDATE photo_game_tasks pt
-                 JOIN photo_game_task_catalogs ptc ON pt.catalog_id = ptc.id
-                 SET pt.translation_key = ?
-                 WHERE pt.description = ? AND ptc.event_id IS NULL',
-                [$key, $description]
-            );
+            DB::table('photo_game_tasks')
+                ->where('description', $description)
+                ->whereIn('catalog_id', function ($q) {
+                    $q->select('id')->from('photo_game_task_catalogs')->whereNull('event_id');
+                })
+                ->update(['translation_key' => $key]);
         }
     }
 
