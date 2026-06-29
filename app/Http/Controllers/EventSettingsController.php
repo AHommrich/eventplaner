@@ -8,6 +8,17 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Intervention\Image\ImageManager;
 
+/**
+ * Bearbeitung der Event-Stammdaten (Inertia-Settings-Seite).
+ *
+ *  - `show()`        → Settings-Seite mit Stil-Presets
+ *  - `update()`      → Validiert und persistiert ALLE Felder: Adresse, Farben (Palette + 9 Rollen),
+ *                      Cover (inkl. HEIC→JPEG via Imagick), Trinkspiel-/Fotospiel-Flags
+ *  - `uploadCover()` / `deleteCover()` → standalone Cover-Endpoints (R2-Cleanup beim Delete)
+ *
+ * Farb-Rollen speichern Palette-Keys (`primary` / `secondary` / `tertiary`), nicht Hex —
+ * Auflösung übernimmt {@see \App\Services\ColorRoleResolver} für die API-Response.
+ */
 class EventSettingsController extends Controller
 {
     public function show()

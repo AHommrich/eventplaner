@@ -5,6 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use Inertia\Inertia;
 
+/**
+ * Vollbild-Diashow für den Beamer-Rechner auf der Feier (public route).
+ *
+ * Authentifizierung via `projector_token` im URL — kein User-Login nötig, der Token
+ * ersetzt die Auth. Regeneration über {@see PhotoController::regenerateProjectorToken()}.
+ *
+ * Kontextuelles Label je Album-Slug (`buildProjectorPhotos`):
+ *  - `app_gallery`  → Gastname (Modus: `first` / `full` / `none` via `projector_name_mode`)
+ *  - `presentation` → optionale Foto-Beschreibung
+ *  - `photo_game`   → Aufgabentext des Assignments
+ */
 class ProjectorController extends Controller
 {
     public function show(string $token)

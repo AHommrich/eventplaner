@@ -10,6 +10,15 @@ use Illuminate\Support\Str;
 use Intervention\Image\ImageManager;
 use Inertia\Inertia;
 
+/**
+ * Veranstalter-Verwaltung der Fotos eines Events (Inertia, NICHT die Gast-API).
+ *
+ *  - `index()`                     → alle Alben mit Fotos + Projektor-URL
+ *  - `store()`                     → Upload (HEIC→JPEG via Imagick); landet je nach `album_slug` im richtigen Album
+ *  - `destroy()` / `destroyBatch()` → löschen Foto-Datensatz + R2-Objekt
+ *  - `updateProjectorAlbum()` / `updateProjectorNameMode()` → Anzeige-Konfig der Beamer-Diashow
+ *  - `regenerateProjectorToken()`  → erstellt neuen 32-Zeichen-Token (alter Beamer-Link wird ungültig)
+ */
 class PhotoController extends Controller
 {
     public function index()

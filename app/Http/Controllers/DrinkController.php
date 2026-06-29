@@ -10,6 +10,18 @@ use App\Services\DrinkScoreService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
+/**
+ * Veranstalter-Sicht auf Getränke-Katalog + Trinkspiel.
+ *
+ *  - `index()`        → Katalog-Auswahl: pro Typ N Größen, mit Punkte-Vorschau via {@see DrinkScoreService}
+ *  - `batch()`        → Add/Remove mehrerer Sizes auf einmal (UI sendet Diff)
+ *  - `store()`/`destroy()` → Einzeloperationen (Legacy / Cleanup)
+ *  - `game()`         → Trinkspiel-Auswertung mit Leaderboard pro Getränketyp und Gesamt
+ *  - `updateGameSettings()` → Trinkspiel-Endzeitpunkt
+ *
+ * Punkte werden in `drink_logs.final_points` denormalisiert gespeichert
+ * (historische Stabilität), daher hier nur SUM ohne Re-Berechnung.
+ */
 class DrinkController extends Controller
 {
     public function index()

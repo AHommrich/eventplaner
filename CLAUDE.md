@@ -204,6 +204,7 @@ Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
 
 ## Wichtige Eigenheiten
 
+- **⚠️ Tests laufen NUR gegen `laravel_test`**: separate Connection `mysql_testing` in `config/database.php` (hartkodiert auf `laravel_test`), in `phpunit.xml` als `DB_CONNECTION` aktiv. Doppel-Guard in `tests/TestCase::setUp()` wirft `RuntimeException` bei jeder anderen DB. **Hintergrund**: einmal lief RefreshDatabase versehentlich gegen `laravel` (Dev-DB) und hat alle Daten gewiped. Beim Anlegen einer neuen Test-DB darauf achten, dass der Name auf `_test` oder `_testing` endet — sonst muss der Guard erweitert werden. `composer test` ruft `pest` auf der gesicherten Connection auf.
 - **MariaDB 11**: `renameColumn()` verliert UNSIGNED → stattdessen raw `ALTER TABLE CHANGE` verwenden
 - **Email-Verifizierung**: Google OAuth markiert Email automatisch als verifiziert (SocialLoginController)
 - **Superadmin setzen**: Migration `2026_03_16_120000_seed_admin_user` setzt `andrehommrich@googlemail.com` auf role=admin

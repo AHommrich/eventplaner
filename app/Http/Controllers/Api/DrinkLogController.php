@@ -10,6 +10,18 @@ use App\Services\DrinkScoreService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Getränke-Tracking und Trinkspiel-Stats für die App.
+ *
+ *  - GET  /drinks        → Katalog des Events, gruppiert nach Typ mit den vom Veranstalter
+ *                          ausgewählten Größen; Bezeichnungen lokalisiert via Accept-Language
+ *  - POST /drinks/log    → ein Getränk eintragen; Punkte via {@see DrinkScoreService}
+ *                          (Basis + Streak-Effekt). 60 s Cooldown zwischen Logs.
+ *  - GET  /drinks/stats  → eigene Bilanz, Event-Gesamt, Top-5 pro Getränk, Gesamt-Leaderboard
+ *
+ * `final_points` werden beim Log gespeichert (denormalisiert), damit historische
+ * Punktestände beim Ändern der Score-Logik stabil bleiben.
+ */
 class DrinkLogController extends Controller
 {
     /**

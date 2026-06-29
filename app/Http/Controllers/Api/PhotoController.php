@@ -11,6 +11,17 @@ use Illuminate\Support\Str;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Imagick\Driver;
 
+/**
+ * Foto-Upload und -Liste für Gäste (App-Galerie-Album).
+ *
+ *  - POST /api/photos  → multipart 'photo'-Field; HEIC/HEIF werden serverseitig
+ *                        via Imagick zu JPEG konvertiert, dann auf R2 (S3-API) abgelegt
+ *  - GET  /api/photos  → Liste aller App-Galerie-Fotos des Events (mit Uploader-Vorname)
+ *
+ * Album-Routing: Uploads landen automatisch im Standard-Album mit Slug
+ * {@see \App\Models\PhotoAlbum::APP_GALLERY}. Andere Album-Slugs (Präsentation,
+ * Fotospiel) sind dem Veranstalter bzw. Fotospiel-Flow vorbehalten.
+ */
 class PhotoController extends Controller
 {
     public function store(Request $request)

@@ -9,6 +9,20 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Self-Service-Endpoints für den eingeloggten Gast (React-Native-App).
+ *
+ *  - GET  /me                          → eigenes Profil + Familienmitglieder mit RSVP-Status
+ *  - POST /rsvp                        → eigene Zu-/Absage als `*_pending` (Veranstalter bestätigt)
+ *  - POST /{guestId}/rsvp              → für Familienmitglied setzen; Actor muss selbst zugesagt haben
+ *  - POST /rsvp/revoke                 → Rücknahme-Antrag bei finaler Absage (declined → revocation_requested)
+ *
+ * Zustands-Maschine: alle Gast-Inputs landen in `*_pending`; nur der Veranstalter
+ * promotet auf `accepted` / `declined`. Final gesetzte Stati können vom Gast nicht
+ * mehr verändert werden — Rücknahme nur über den expliziten /revoke-Antrag.
+ *
+ * RSVP-Deadline wird in {@see self::assertDeadlineNotPassed()} geprüft.
+ */
 class GuestApiController extends Controller
 {
     /**
