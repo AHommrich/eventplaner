@@ -35,12 +35,15 @@ class SocialLoginController extends Controller
         $user = $email ? User::where('email', $email)->first() : null;
 
         if (!$user) {
-            $user = User::create([
-                'name'              => $name,
-                'email'             => $email ?? "google-".Str::uuid()."@example.local",
-                'password'          => bcrypt(Str::random(40)),
-                'email_verified_at' => $email ? now() : null,
+            $user = new User([
+                'name'     => $name,
+                'email'    => $email ?? "google-".Str::uuid()."@example.local",
+                'password' => bcrypt(Str::random(40)),
             ]);
+            // email_verified_at ist nicht in $fillable — direkt setzen, damit der
+            // Google-verifizierte Status nicht beim Mass-Assignment verloren geht.
+            $user->email_verified_at = $email ? now() : null;
+            $user->save();
         } elseif (!$user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
         }

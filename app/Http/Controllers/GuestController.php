@@ -10,6 +10,16 @@ use App\Models\Guest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
+/**
+ * CRUD + Admin-Aktionen für Gäste eines Events.
+ *
+ * Veranstalter-Sicht (Inertia): Anlegen / Editieren / Löschen, manuelles RSVP-Setzen
+ * (ohne Deadline-Check, im Gegensatz zu {@see \App\Http\Controllers\Api\GuestApiController}),
+ * Toggles für `app_access` und `drinks_access`, Reset der Getränke-Logs eines Gastes.
+ *
+ * Cross-Event-Schutz: alle modifizierenden Endpoints prüfen explizit, dass der
+ * Ziel-Gast zum aktiven Event gehört (403 sonst).
+ */
 class GuestController extends Controller
 {
     public function store(Request $request)

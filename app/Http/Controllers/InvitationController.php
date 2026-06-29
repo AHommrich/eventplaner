@@ -6,6 +6,12 @@ use App\Models\Group;
 use App\Models\Guest;
 use Inertia\Inertia;
 
+/**
+ * Einladungs-Übersicht für den Veranstalter: druckt QR-Codes und listet Token-Status pro
+ * Gruppe / Solo-Gast.
+ *
+ * Reine Lese-Sicht; Token-Generierung liegt in {@see InvitationTokenController}.
+ */
 class InvitationController extends Controller
 {
     public function index()

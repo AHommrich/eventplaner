@@ -7,9 +7,9 @@ Hier abhaken nach Push der jeweiligen Etappe — gibt dir auf einen Blick wo du 
 - [x] **Tag 1** — README + LICENSE → [tag-1-readme-license.md](showcase/tag-1-readme-license.md)
 - [x] **Tag 2** — ARCHITECTURE.md + Doc-Blocks → [tag-2-architecture-docs.md](showcase/tag-2-architecture-docs.md) (Sweep-Rest in Tag 3a–3d)
 - [x] **Tag 3a** — Pest-Setup + Critical Services → [tag-3a-pest-services.md](showcase/tag-3a-pest-services.md)
-- [ ] **Tag 3b** — Alle API-Endpunkte → [tag-3b-api-tests.md](showcase/tag-3b-api-tests.md)
-- [ ] **Tag 3c** — Web-Controller Kernfeatures → [tag-3c-web-tests.md](showcase/tag-3c-web-tests.md)
-- [ ] **Tag 3d** — Auth + Album-Routing + Middlewares → [tag-3d-auth-album-middleware.md](showcase/tag-3d-auth-album-middleware.md)
+- [x] **Tag 3b** — Alle API-Endpunkte → [tag-3b-api-tests.md](showcase/tag-3b-api-tests.md)
+- [x] **Tag 3c** — Web-Controller Kernfeatures → [tag-3c-web-tests.md](showcase/tag-3c-web-tests.md)
+- [x] **Tag 3d** — Auth + Album-Routing + Middlewares → [tag-3d-auth-album-middleware.md](showcase/tag-3d-auth-album-middleware.md)
 - [ ] **Tag 4** — Frontend nur kritisch (Vitest) → [tag-4-frontend-tests.md](showcase/tag-4-frontend-tests.md)
 - [ ] **Tag 5** — CI + Coverage + Badges → [tag-5-ci-coverage.md](showcase/tag-5-ci-coverage.md)
 
