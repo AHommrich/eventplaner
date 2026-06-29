@@ -8,6 +8,20 @@ use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
 
+/**
+ * Teilt globale Props an alle Inertia-Pages.
+ *
+ * Wichtige Shared-Keys:
+ *  - `auth.user`            — eingeloggter User oder null
+ *  - `active_event`         — Session-basiertes aktives Event (siehe {@see \App\Http\Controllers\Controller::activeEvent()})
+ *  - `accessible_events`    — alle Events, auf die der User Zugriff hat (Owner + Mitveranstalter); Sidebar zeigt Switcher bei >1
+ *  - `user_event_requests`  — offene/abgelehnte Event-Zugriffsanfragen für den Onboarding-Flow (nur Nicht-Admins)
+ *  - `ziggy`                — serialisierte Route-Definitionen für Frontend-Helper
+ *  - `sidebarOpen`          — Cookie-persistierter Sidebar-Zustand
+ *
+ * Das aktive Event wird bei jedem Request neu aufgelöst, damit veraltete Session-IDs
+ * (Event gelöscht, Zugang entzogen) automatisch korrigiert werden.
+ */
 class HandleInertiaRequests extends Middleware
 {
     /**

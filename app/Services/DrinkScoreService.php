@@ -6,6 +6,22 @@ use App\Models\DrinkCatalog;
 use App\Models\DrinkLog;
 use Illuminate\Support\Collection;
 
+/**
+ * Berechnet Punkte für getrackte Getränke des Trinkspiels.
+ *
+ * Formel alkoholisch:  round(amount_liter × alcohol_percent × 10)
+ * Shot-Multiplier:     spirit-Kategorie × {@see self::SHOT_MULTIPLIER}
+ *                      (4 cl pur wirken schneller als 4 cl im Longdrink)
+ * Binge-Penalty:       ab {@see self::BINGE_STREAK_THRESHOLD} alkoholischen
+ *                      Drinks in Folge → 50 % der Basispunkte
+ * Alkoholfrei:         flat `negative_points` (Wasser typ. −5, Softdrinks −3)
+ *
+ * Die Multiplikatoren sind empirisch gewählt, nicht klinisch — das Spiel ist
+ * Unterhaltung, kein Diagnose-Tool.
+ *
+ * Pure-Function-Design: alle Methoden sind statisch und seiten­effektfrei
+ * (außer {@see self::guestHistory()}, die DB liest). Daher unit-testbar ohne DB.
+ */
 class DrinkScoreService
 {
     /** Consecutive alcoholic drinks before binge penalty kicks in. */
