@@ -1,29 +1,36 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
         // ── 1. drink_catalog_sizes Tabelle anlegen ────────────────────────────
-        DB::statement("
-            CREATE TABLE drink_catalog_sizes (
-                id           bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-                catalog_id   bigint(20) unsigned NOT NULL,
-                amount_liter double NOT NULL,
-                is_default   tinyint(1) NOT NULL DEFAULT 0,
-                sort_order   int(11) NOT NULL DEFAULT 0,
-                created_at   timestamp NULL DEFAULT NULL,
-                updated_at   timestamp NULL DEFAULT NULL,
-                PRIMARY KEY (id),
-                UNIQUE KEY drink_catalog_sizes_catalog_id_amount_liter_unique (catalog_id, amount_liter),
-                KEY drink_catalog_sizes_catalog_id_index (catalog_id),
-                CONSTRAINT drink_catalog_sizes_catalog_id_foreign
-                    FOREIGN KEY (catalog_id) REFERENCES drink_catalog (id) ON DELETE CASCADE
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        ");
+        if (!Schema::hasTable('drink_catalog_sizes')) {
+            Schema::create('drink_catalog_sizes', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('catalog_id');
+                $table->double('amount_liter');
+                $table->boolean('is_default')->default(false);
+                $table->integer('sort_order')->default(0);
+                $table->timestamps();
+
+                $table->unique(['catalog_id', 'amount_liter'], 'drink_catalog_sizes_catalog_id_amount_liter_unique');
+                $table->index('catalog_id', 'drink_catalog_sizes_catalog_id_index');
+                $table->foreign('catalog_id')->references('id')->on('drink_catalog')->cascadeOnDelete();
+            });
+        }
+
+        // Die nachfolgenden Schritte transformieren *bestehende* Daten — auf einer
+        // frischen Test-DB ohne drink_catalog-Zeilen ist nichts zu tun.
+        if (DB::table('drink_catalog')->count() === 0) {
+            $this->normalizeSchema();
+            return;
+        }
 
         // ── 2. Größen aus drink_catalog extrahieren und in drink_catalog_sizes speichern ──
         $types = DB::table('drink_catalog')->select('type')->distinct()->pluck('type');
@@ -50,8 +57,6 @@ return new class extends Migration
         }
 
         // ── 3. drinks-Tabelle dedup: zuerst drink_logs umhängen, dann löschen ──
-        $types = DB::table('drink_catalog')->select('type')->distinct()->pluck('type');
-
         foreach ($types as $type) {
             $ids = DB::table('drink_catalog')
                 ->where('type', $type)
@@ -75,14 +80,12 @@ return new class extends Migration
                         ->first();
 
                     if ($canonicalDrink) {
-                        // Event hat schon den kanonischen Drink → Logs umhängen, dann Duplikat löschen
                         DB::table('drink_logs')
                             ->where('drink_id', $drink->id)
                             ->update(['drink_id' => $canonicalDrink->id]);
 
                         DB::table('drinks')->where('id', $drink->id)->delete();
                     } else {
-                        // Nur catalog_id auf kanonisch umstellen
                         DB::table('drinks')
                             ->where('id', $drink->id)
                             ->update(['drink_catalog_id' => $canonicalId]);
@@ -92,9 +95,7 @@ return new class extends Migration
         }
 
         // ── 4. Nicht-kanonische drink_catalog-Zeilen löschen ─────────────────
-        $types = DB::table('drink_catalog')->select('type')->distinct()->pluck('type');
         $toDelete = [];
-
         foreach ($types as $type) {
             $ids = DB::table('drink_catalog')
                 ->where('type', $type)
@@ -111,12 +112,39 @@ return new class extends Migration
         }
 
         // ── 5. display_name bereinigen (Größen-Suffix entfernen) ─────────────
-        DB::statement("UPDATE drink_catalog SET display_name = TRIM(REGEXP_REPLACE(display_name, ' [0-9]+,[0-9]+ l$', ''))");
+        // REGEXP_REPLACE ist MySQL-spezifisch — auf SQLite (Tests) ohnehin keine Daten.
+        if (DB::connection()->getDriverName() === 'mysql') {
+            DB::statement("UPDATE drink_catalog SET display_name = TRIM(REGEXP_REPLACE(display_name, ' [0-9]+,[0-9]+ l$', ''))");
+        }
 
-        // ── 6. amount_liter aus drink_catalog entfernen ───────────────────────
-        DB::statement('ALTER TABLE drink_catalog DROP INDEX drink_catalog_type_amount_liter_unique');
-        DB::statement('ALTER TABLE drink_catalog DROP COLUMN amount_liter');
-        DB::statement('ALTER TABLE drink_catalog ADD UNIQUE KEY drink_catalog_type_unique (type)');
+        $this->normalizeSchema();
+    }
+
+    /**
+     * Schema-finalisierung — Spalte `amount_liter` weg, Unique-Constraint auf `type`.
+     */
+    private function normalizeSchema(): void
+    {
+        if (Schema::hasColumn('drink_catalog', 'amount_liter')) {
+            Schema::table('drink_catalog', function (Blueprint $table) {
+                // MariaDB hat einen Composite-Index drauf — dropIndex per Name, falls vorhanden
+                try { $table->dropUnique('drink_catalog_type_amount_liter_unique'); } catch (\Throwable $e) {}
+                $table->dropColumn('amount_liter');
+            });
+        }
+
+        $hasUnique = collect(Schema::getIndexes('drink_catalog'))
+            ->contains(fn ($i) => ($i['name'] ?? null) === 'drink_catalog_type_unique');
+
+        if (!$hasUnique) {
+            try {
+                Schema::table('drink_catalog', function (Blueprint $table) {
+                    $table->unique('type', 'drink_catalog_type_unique');
+                });
+            } catch (\Throwable $e) {
+                // Index existiert bereits in anderer Form — ignorieren.
+            }
+        }
     }
 
     public function down(): void

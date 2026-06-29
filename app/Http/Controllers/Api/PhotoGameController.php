@@ -8,7 +8,7 @@ use App\Models\EventTaskOverride;
 use App\Models\Photo;
 use App\Models\PhotoAlbum;
 use App\Models\PhotoGameAssignment;
-use App\Models\PhotoGameTaskCatalog;
+use App\Services\PhotoGameTaskPool;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -17,6 +17,8 @@ use Intervention\Image\Drivers\Imagick\Driver;
 
 class PhotoGameController extends Controller
 {
+    public function __construct(private readonly PhotoGameTaskPool $pool) {}
+
     public function status(Request $request)
     {
         $guest = $request->user();
@@ -67,8 +69,8 @@ class PhotoGameController extends Controller
 
         $lang = $request->getPreferredLanguage(['de', 'en']);
 
-        // Pool on-the-fly aufbauen
-        $pool = $this->buildAssignPool($guest->event_id, $game->catalog_id);
+        // Pool on-the-fly aufbauen (Base + Typ + Overrides, siehe {@see PhotoGameTaskPool})
+        $pool = $this->pool->build($guest->event_id, $game->catalog_id);
 
         if ($pool->isEmpty()) {
             return response()->json(['message' => 'Keine Aufgaben verfügbar.'], 422);
@@ -164,61 +166,6 @@ class PhotoGameController extends Controller
             'photo_url'    => $url,
             'submitted_at' => $assignment->submitted_at,
         ]);
-    }
-
-    /** Baut den Pool für die assign()-Methode als Collection */
-    private function buildAssignPool(int $eventId, ?int $typeCatalogId): \Illuminate\Support\Collection
-    {
-        // 1. Basis-Tasks
-        $baseCatalog = PhotoGameTaskCatalog::base()->first();
-        $pool = $baseCatalog
-            ? $baseCatalog->tasks()->active()->get()->map(fn($t) => [
-                'task_id'         => $t->id,
-                'override_id'     => null,
-                'description'     => $t->description,
-                'description_en'  => $t->description_en,
-                'translation_key' => $t->translation_key,
-            ])
-            : collect();
-
-        // 2. Event-Typ-Tasks
-        if ($typeCatalogId) {
-            $typeCatalog = PhotoGameTaskCatalog::find($typeCatalogId);
-            if ($typeCatalog) {
-                $typeItems = $typeCatalog->tasks()->active()->get()->map(fn($t) => [
-                    'task_id'         => $t->id,
-                    'override_id'     => null,
-                    'description'     => $t->description,
-                    'description_en'  => $t->description_en,
-                    'translation_key' => $t->translation_key,
-                ]);
-                $pool = $pool->concat($typeItems);
-            }
-        }
-
-        // 3. Overrides anwenden
-        $overrides = EventTaskOverride::where('event_id', $eventId)->get();
-
-        foreach ($overrides as $ov) {
-            if ($ov->action === 'hidden') {
-                $pool = $pool->reject(fn($t) => $t['task_id'] === $ov->task_id);
-            } elseif ($ov->action === 'modified') {
-                // modified-Override: nur DE-Text überschreiben, kein EN vorhanden
-                $pool = $pool->map(fn($t) => $t['task_id'] === $ov->task_id
-                    ? array_merge($t, ['description' => $ov->custom_text, 'description_en' => null])
-                    : $t);
-            } elseif ($ov->action === 'added') {
-                $pool->push([
-                    'task_id'         => null,
-                    'override_id'     => $ov->id,
-                    'description'     => $ov->custom_text,
-                    'description_en'  => null,
-                    'translation_key' => null,
-                ]);
-            }
-        }
-
-        return $pool->values();
     }
 
     /** Löst die Aufgabenbeschreibung für ein Assignment auf */

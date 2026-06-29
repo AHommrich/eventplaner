@@ -26,6 +26,7 @@ class RegistrationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        // Frische User müssen erst die Email verifizieren, danach Onboarding (kein Event).
+        $response->assertRedirect(route('verification.notice', absolute: false));
     }
 }

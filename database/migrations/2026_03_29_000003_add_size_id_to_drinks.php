@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -8,13 +9,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // ── 1. size_id (nullable) zu drinks hinzufügen ───────────────────────
+        // ── 1. size_id (nullable) hinzufügen ──────────────────────────────────
         if (!Schema::hasColumn('drinks', 'size_id')) {
-            DB::statement('ALTER TABLE drinks ADD COLUMN size_id bigint(20) unsigned NULL AFTER drink_catalog_id');
+            Schema::table('drinks', function (Blueprint $table) {
+                $table->unsignedBigInteger('size_id')->nullable()->after('drink_catalog_id');
+            });
         }
 
-        // ── 2. Bestehende Zeilen expandieren (1 pro Typ → N pro Größe) ───────
-        // Nur wenn noch NULL-Zeilen existieren (idempotent)
+        $isMysql = DB::connection()->getDriverName() === 'mysql';
+
+        // ── 2. Bestehende Zeilen expandieren — nur wenn Daten vorhanden ──────
         $nullCount = DB::table('drinks')->whereNull('size_id')->count();
         if ($nullCount > 0) {
             $drinks = DB::table('drinks')->whereNull('size_id')->get();
@@ -50,38 +54,43 @@ return new class extends Migration
             }
         }
 
-        // ── 3. drink_logs umhängen ────────────────────────────────────────────
-        DB::statement("
-            UPDATE drink_logs dl
-            JOIN drinks d_old ON d_old.id = dl.drink_id
-            JOIN drinks d_new ON d_new.event_id = d_old.event_id
-                              AND d_new.drink_catalog_id = d_old.drink_catalog_id
-                              AND d_new.size_id = dl.size_id
-            SET dl.drink_id = d_new.id
-            WHERE dl.size_id IS NOT NULL
-        ");
-
-        // ── 4. FK droppen falls vorhanden, size_id NOT NULL, FK neu mit CASCADE ─
-        try {
-            DB::statement('ALTER TABLE drinks DROP FOREIGN KEY drinks_size_id_foreign');
-        } catch (\Exception $e) {
-            // noch kein FK vorhanden — ignorieren
+        // ── 3. drink_logs umhängen — UPDATE JOIN ist MySQL-spezifisch ─────────
+        if ($isMysql) {
+            DB::statement("
+                UPDATE drink_logs dl
+                JOIN drinks d_old ON d_old.id = dl.drink_id
+                JOIN drinks d_new ON d_new.event_id = d_old.event_id
+                                  AND d_new.drink_catalog_id = d_old.drink_catalog_id
+                                  AND d_new.size_id = dl.size_id
+                SET dl.drink_id = d_new.id
+                WHERE dl.size_id IS NOT NULL
+            ");
         }
-        DB::statement('ALTER TABLE drinks MODIFY COLUMN size_id bigint(20) unsigned NOT NULL');
-        DB::statement('ALTER TABLE drinks ADD CONSTRAINT drinks_size_id_foreign FOREIGN KEY (size_id) REFERENCES drink_catalog_sizes(id) ON DELETE CASCADE');
+
+        // ── 4. size_id auf NOT NULL hochziehen + Foreign Key ──────────────────
+        // FK + Indizes via DB::statement, damit try/catch greift (Schema::table batched
+        // Statements und schluckt einzelne Failures innerhalb des Closures nicht).
+        if ($isMysql) {
+            try { DB::statement('ALTER TABLE drinks DROP FOREIGN KEY drinks_size_id_foreign'); } catch (\Throwable $e) {}
+            DB::statement('ALTER TABLE drinks MODIFY COLUMN size_id bigint(20) unsigned NOT NULL');
+            DB::statement('ALTER TABLE drinks ADD CONSTRAINT drinks_size_id_foreign FOREIGN KEY (size_id) REFERENCES drink_catalog_sizes(id) ON DELETE CASCADE');
+        } else {
+            // SQLite kann FK/NOT-NULL nicht nachträglich setzen; size_id bleibt nullable im Test.
+            Schema::table('drinks', function (Blueprint $table) {
+                $table->foreign('size_id')->references('id')->on('drink_catalog_sizes')->cascadeOnDelete();
+            });
+        }
 
         // ── 5. Unique-Constraint tauschen ─────────────────────────────────────
-        try {
-            DB::statement('ALTER TABLE drinks DROP INDEX drinks_event_id_drink_catalog_id_unique');
-        } catch (\Exception $e) {
-            // kein alter Constraint — ignorieren
+        if ($isMysql) {
+            try { DB::statement('ALTER TABLE drinks DROP INDEX drinks_event_id_drink_catalog_id_unique'); } catch (\Throwable $e) {}
+            try { DB::statement('ALTER TABLE drinks DROP INDEX drinks_event_id_size_id_unique'); } catch (\Throwable $e) {}
+            DB::statement('ALTER TABLE drinks ADD UNIQUE KEY drinks_event_id_size_id_unique (event_id, size_id)');
+        } else {
+            Schema::table('drinks', function (Blueprint $table) {
+                $table->unique(['event_id', 'size_id'], 'drinks_event_id_size_id_unique');
+            });
         }
-        try {
-            DB::statement('ALTER TABLE drinks DROP INDEX drinks_event_id_size_id_unique');
-        } catch (\Exception $e) {
-            // noch nicht vorhanden — ignorieren
-        }
-        DB::statement('ALTER TABLE drinks ADD UNIQUE KEY drinks_event_id_size_id_unique (event_id, size_id)');
     }
 
     public function down(): void

@@ -7,8 +7,16 @@ use App\Models\Event;
 abstract class Controller
 {
     /**
-     * Gibt das aktive Event zurück — aus Session oder erstes zugängliches.
-     * Speichert die Wahl in der Session für folgende Requests.
+     * Liefert das aktuell gewählte Event des Users (Session-basiert).
+     *
+     * Liest `session('active_event_id')`, fällt auf das erste zugängliche Event
+     * zurück, falls die Session leer ist oder das gespeicherte Event nicht mehr
+     * zugänglich ist, und persistiert die Wahl wieder in die Session.
+     *
+     * Wird gespiegelt von {@see \App\Http\Middleware\HandleInertiaRequests}, die
+     * `active_event` global an alle Vue-Pages teilt — Controller-Methoden können
+     * sich darauf verlassen, das Event ohne zusätzliche Request-Parameter zu kennen.
+     * Null nur, wenn der User noch kein Event hat (→ Onboarding-Flow).
      */
     protected function activeEvent(): ?Event
     {
