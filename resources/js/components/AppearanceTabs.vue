@@ -7,11 +7,14 @@ import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
 const { appearance, updateAppearance } = useAppearance();
 
-const tabs = computed(() => [
-    { value: 'light',  Icon: Sun,     label: t('appearance.light') },
-    { value: 'dark',   Icon: Moon,    label: t('appearance.dark') },
-    { value: 'system', Icon: Monitor, label: t('appearance.system') },
-] as const);
+const tabs = computed(
+    () =>
+        [
+            { value: 'light', Icon: Sun, label: t('appearance.light') },
+            { value: 'dark', Icon: Moon, label: t('appearance.dark') },
+            { value: 'system', Icon: Monitor, label: t('appearance.system') },
+        ] as const,
+);
 </script>
 
 <template>

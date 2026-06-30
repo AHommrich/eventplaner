@@ -8,7 +8,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class Guest extends Model
 {
-    use HasFactory, HasApiTokens;
+    use HasApiTokens, HasFactory;
 
     protected $fillable = [
         'event_id',
@@ -24,9 +24,9 @@ class Guest extends Model
     ];
 
     protected $casts = [
-        'rsvp_set_at'    => 'datetime',
-        'app_access'     => 'boolean',
-        'drinks_access'  => 'boolean',
+        'rsvp_set_at' => 'datetime',
+        'app_access' => 'boolean',
+        'drinks_access' => 'boolean',
     ];
 
     public function event()

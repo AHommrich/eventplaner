@@ -9,17 +9,17 @@ use App\Services\PhotoGameTaskPool;
 function makeBaseCatalog(array $taskDescriptions): PhotoGameTaskCatalog
 {
     $catalog = PhotoGameTaskCatalog::create([
-        'event_id'  => null,
-        'name'      => 'Base',
-        'is_base'   => true,
+        'event_id' => null,
+        'name' => 'Base',
+        'is_base' => true,
         'is_active' => true,
     ]);
 
     foreach ($taskDescriptions as $desc) {
         PhotoGameTask::create([
-            'catalog_id'  => $catalog->id,
+            'catalog_id' => $catalog->id,
             'description' => $desc,
-            'is_active'   => true,
+            'is_active' => true,
         ]);
     }
 
@@ -29,18 +29,18 @@ function makeBaseCatalog(array $taskDescriptions): PhotoGameTaskCatalog
 function makeTypeCatalog(string $type, array $taskDescriptions): PhotoGameTaskCatalog
 {
     $catalog = PhotoGameTaskCatalog::create([
-        'event_id'   => null,
-        'name'       => ucfirst($type),
+        'event_id' => null,
+        'name' => ucfirst($type),
         'event_type' => $type,
-        'is_base'    => false,
-        'is_active'  => true,
+        'is_base' => false,
+        'is_active' => true,
     ]);
 
     foreach ($taskDescriptions as $desc) {
         PhotoGameTask::create([
-            'catalog_id'  => $catalog->id,
+            'catalog_id' => $catalog->id,
             'description' => $desc,
-            'is_active'   => true,
+            'is_active' => true,
         ]);
     }
 
@@ -51,7 +51,7 @@ it('contains base tasks when no type catalog is selected', function () {
     makeBaseCatalog(['Base A', 'Base B']);
     $event = Event::factory()->create();
 
-    $pool = (new PhotoGameTaskPool())->build($event->id, null);
+    $pool = (new PhotoGameTaskPool)->build($event->id, null);
 
     expect($pool)->toHaveCount(2);
     expect($pool->pluck('description')->all())->toEqual(['Base A', 'Base B']);
@@ -62,7 +62,7 @@ it('contains base + type tasks when catalog_id is set', function () {
     $type = makeTypeCatalog('hochzeit', ['Wedding 1', 'Wedding 2']);
     $event = Event::factory()->create();
 
-    $pool = (new PhotoGameTaskPool())->build($event->id, $type->id);
+    $pool = (new PhotoGameTaskPool)->build($event->id, $type->id);
 
     expect($pool)->toHaveCount(4);
     expect($pool->pluck('description')->all())->toEqual(['Base A', 'Base B', 'Wedding 1', 'Wedding 2']);
@@ -75,11 +75,11 @@ it('removes a task when hidden override exists', function () {
 
     EventTaskOverride::create([
         'event_id' => $event->id,
-        'task_id'  => $taskB->id,
-        'action'   => 'hidden',
+        'task_id' => $taskB->id,
+        'action' => 'hidden',
     ]);
 
-    $pool = (new PhotoGameTaskPool())->build($event->id, null);
+    $pool = (new PhotoGameTaskPool)->build($event->id, null);
 
     expect($pool)->toHaveCount(1);
     expect($pool->first()['description'])->toBe('Base A');
@@ -91,13 +91,13 @@ it('replaces description when modified override exists', function () {
     $event = Event::factory()->create();
 
     EventTaskOverride::create([
-        'event_id'    => $event->id,
-        'task_id'     => $taskA->id,
-        'action'      => 'modified',
+        'event_id' => $event->id,
+        'task_id' => $taskA->id,
+        'action' => 'modified',
         'custom_text' => 'Base A — angepasst',
     ]);
 
-    $pool = (new PhotoGameTaskPool())->build($event->id, null);
+    $pool = (new PhotoGameTaskPool)->build($event->id, null);
 
     $modified = $pool->firstWhere('task_id', $taskA->id);
     expect($modified['description'])->toBe('Base A — angepasst');
@@ -109,13 +109,13 @@ it('adds custom tasks for added overrides', function () {
     $event = Event::factory()->create();
 
     EventTaskOverride::create([
-        'event_id'    => $event->id,
-        'task_id'     => null,
-        'action'      => 'added',
+        'event_id' => $event->id,
+        'task_id' => null,
+        'action' => 'added',
         'custom_text' => 'Event-eigene Aufgabe',
     ]);
 
-    $pool = (new PhotoGameTaskPool())->build($event->id, null);
+    $pool = (new PhotoGameTaskPool)->build($event->id, null);
 
     expect($pool)->toHaveCount(2);
     $added = $pool->firstWhere('override_id', '!=', null);
@@ -133,7 +133,7 @@ it('combines all override types correctly', function () {
     EventTaskOverride::create(['event_id' => $event->id, 'task_id' => $taskB->id, 'action' => 'modified', 'custom_text' => 'B-mod']);
     EventTaskOverride::create(['event_id' => $event->id, 'task_id' => null, 'action' => 'added', 'custom_text' => 'D-added']);
 
-    $pool = (new PhotoGameTaskPool())->build($event->id, null);
+    $pool = (new PhotoGameTaskPool)->build($event->id, null);
 
     // A entfernt, B umbenannt, C unverändert, D neu → 3 Items
     expect($pool)->toHaveCount(3);
@@ -147,13 +147,13 @@ it('ignores overrides from other events', function () {
     $otherEvent = Event::factory()->create();
 
     EventTaskOverride::create([
-        'event_id'    => $otherEvent->id,
-        'task_id'     => null,
-        'action'      => 'added',
+        'event_id' => $otherEvent->id,
+        'task_id' => null,
+        'action' => 'added',
         'custom_text' => 'Foreign override',
     ]);
 
-    $pool = (new PhotoGameTaskPool())->build($event->id, null);
+    $pool = (new PhotoGameTaskPool)->build($event->id, null);
 
     expect($pool)->toHaveCount(1);
     expect($pool->first()['description'])->toBe('A');

@@ -1,5 +1,9 @@
 # Eventplaner
 
+[![Tests](https://github.com/AHommrich/eventplaner/actions/workflows/tests.yml/badge.svg?branch=develop)](https://github.com/AHommrich/eventplaner/actions/workflows/tests.yml)
+[![Lint](https://github.com/AHommrich/eventplaner/actions/workflows/lint.yml/badge.svg?branch=develop)](https://github.com/AHommrich/eventplaner/actions/workflows/lint.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Hochzeits- und Eventplaner als Progressive Web App mit React-Native-Companion: Gäste-, RSVP- und Foto-Verwaltung, Trinkspiel, Fotospiel und eine Token-geschützte Projektor-Diashow für die Feier.
 
 <!-- TODO: Screenshot — Web-Dashboard nach Login -->
@@ -99,12 +103,20 @@ Die ausführliche Architekturbeschreibung mit ER-Diagramm, Auth-Schichten und Su
 
 ## Tests
 
-```bash
-composer test   # Pest, parallel — Backend
-npm test        # Vitest — Frontend
-```
+| Stack    | Befehl                                  | Was läuft                                                              |
+| -------- | --------------------------------------- | ---------------------------------------------------------------------- |
+| Backend  | `composer test`                         | Pest gegen eine eigene `laravel_test`-DB mit Safety-Guard              |
+| Backend  | `./vendor/bin/pest --filter=DrinkScore` | Einzelne Test-Datei                                                    |
+| Frontend | `npm test`                              | Vitest, Worker-Threads parallel                                        |
+| Frontend | `npm run test:watch`                    | Hot-Reload-Tests                                                       |
+| Coverage | `./vendor/bin/pest --coverage`          | Backend-Coverage (Clover-XML + Text-Report); Vitest via `--coverage`   |
 
-Test-Aufbau, Coverage-Ziele und Strategie pro Schicht stehen in [`docs/SHOWCASE_PLAN.md`](docs/SHOWCASE_PLAN.md). <!-- TODO: Coverage-Badge folgt in Tag 5 -->
+**Abdeckung:**
+
+- 21 Backend-Test-Dateien mit 174 Cases — alle API-Endpunkte, alle Kernfeature-Web-Controller, Services mit Edge Cases, Auth-Flows, Permission-Middlewares
+- 4 Frontend-Specs für ConfirmDialog, CreatableCombobox, InfoTooltip und das i18n-Plugin (16 Cases)
+
+Test-Aufbau, Coverage-Ziele und Strategie pro Schicht stehen in [`docs/SHOWCASE_PLAN.md`](docs/SHOWCASE_PLAN.md).
 
 ---
 

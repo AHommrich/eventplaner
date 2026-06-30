@@ -35,11 +35,11 @@ abstract class TestCase extends BaseTestCase
             || str_ends_with($db, '_test')
             || str_ends_with($db, '_testing');
 
-        if (!$allowed) {
+        if (! $allowed) {
             throw new \RuntimeException(
                 "🚨 Test versucht gegen DB '{$db}' zu laufen. Nur Test-DBs sind erlaubt ".
-                "(laravel_test, :memory:, *_test, *_testing). ".
-                "Prüfe phpunit.xml DB_CONNECTION + config/database.php."
+                '(laravel_test, :memory:, *_test, *_testing). '.
+                'Prüfe phpunit.xml DB_CONNECTION + config/database.php.'
             );
         }
     }

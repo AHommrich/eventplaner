@@ -8,12 +8,18 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 
-interface Props { token: string; email: string; }
+interface Props {
+    token: string;
+    email: string;
+}
 const props = defineProps<Props>();
 const { t } = useI18n();
 
 const form = useForm({
-    token: props.token, email: props.email, password: '', password_confirmation: '',
+    token: props.token,
+    email: props.email,
+    password: '',
+    password_confirmation: '',
 });
 
 const submit = () => {
@@ -35,13 +41,30 @@ const submit = () => {
 
                 <div class="grid gap-2">
                     <Label for="password">{{ t('auth.password') }}</Label>
-                    <Input id="password" type="password" name="password" autocomplete="new-password" v-model="form.password" class="mt-1 block w-full" autofocus :placeholder="t('auth.password')" />
+                    <Input
+                        id="password"
+                        type="password"
+                        name="password"
+                        autocomplete="new-password"
+                        v-model="form.password"
+                        class="mt-1 block w-full"
+                        autofocus
+                        :placeholder="t('auth.password')"
+                    />
                     <InputError :message="form.errors.password" />
                 </div>
 
                 <div class="grid gap-2">
                     <Label for="password_confirmation">{{ t('settings.confirmPassword') }}</Label>
-                    <Input id="password_confirmation" type="password" name="password_confirmation" autocomplete="new-password" v-model="form.password_confirmation" class="mt-1 block w-full" :placeholder="t('settings.confirmPassword')" />
+                    <Input
+                        id="password_confirmation"
+                        type="password"
+                        name="password_confirmation"
+                        autocomplete="new-password"
+                        v-model="form.password_confirmation"
+                        class="mt-1 block w-full"
+                        :placeholder="t('settings.confirmPassword')"
+                    />
                     <InputError :message="form.errors.password_confirmation" />
                 </div>
 

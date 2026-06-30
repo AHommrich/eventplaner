@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
 class SocialLoginController extends Controller
@@ -24,8 +24,8 @@ class SocialLoginController extends Controller
         $googleUser = Socialite::driver('google')->user();
 
         $googleId = (string) $googleUser->getId();
-        $email    = $googleUser->getEmail();   // Google liefert i. d. R. verifizierte E-Mail
-        $name     = $googleUser->getName() ?: 'Google User';
+        $email = $googleUser->getEmail();   // Google liefert i. d. R. verifizierte E-Mail
+        $name = $googleUser->getName() ?: 'Google User';
 
         // Falls du später mehrere Provider verknüpfen willst, bau dir eine social_accounts-Tabelle.
         // Für den Start reicht "per E-Mail matchen oder neu anlegen":
@@ -34,17 +34,17 @@ class SocialLoginController extends Controller
 
         $user = $email ? User::where('email', $email)->first() : null;
 
-        if (!$user) {
+        if (! $user) {
             $user = new User([
-                'name'     => $name,
-                'email'    => $email ?? "google-".Str::uuid()."@example.local",
+                'name' => $name,
+                'email' => $email ?? 'google-'.Str::uuid().'@example.local',
                 'password' => bcrypt(Str::random(40)),
             ]);
             // email_verified_at ist nicht in $fillable — direkt setzen, damit der
             // Google-verifizierte Status nicht beim Mass-Assignment verloren geht.
             $user->email_verified_at = $email ? now() : null;
             $user->save();
-        } elseif (!$user->hasVerifiedEmail()) {
+        } elseif (! $user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
         }
 

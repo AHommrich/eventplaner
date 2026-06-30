@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class EventPhotoGame extends Model
 {
-    const STATUS_DRAFT  = 'draft';
+    const STATUS_DRAFT = 'draft';
+
     const STATUS_ACTIVE = 'active';
-    const STATUS_ENDED  = 'ended';
+
+    const STATUS_ENDED = 'ended';
 
     protected $fillable = ['event_id', 'status', 'catalog_id'];
 

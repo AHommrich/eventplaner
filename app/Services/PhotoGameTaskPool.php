@@ -47,18 +47,18 @@ class PhotoGameTaskPool
 
         foreach ($overrides as $ov) {
             $pool = match ($ov->action) {
-                'hidden'   => $pool->reject(fn ($t) => $t['task_id'] === $ov->task_id),
+                'hidden' => $pool->reject(fn ($t) => $t['task_id'] === $ov->task_id),
                 'modified' => $pool->map(fn ($t) => $t['task_id'] === $ov->task_id
                     ? array_merge($t, ['description' => $ov->custom_text, 'description_en' => null])
                     : $t),
-                'added'    => $pool->push([
-                    'task_id'         => null,
-                    'override_id'     => $ov->id,
-                    'description'     => $ov->custom_text,
-                    'description_en'  => null,
+                'added' => $pool->push([
+                    'task_id' => null,
+                    'override_id' => $ov->id,
+                    'description' => $ov->custom_text,
+                    'description_en' => null,
                     'translation_key' => null,
                 ]),
-                default    => $pool,
+                default => $pool,
             };
         }
 
@@ -66,16 +66,16 @@ class PhotoGameTaskPool
     }
 
     /**
-     * @param \App\Models\PhotoGameTask $t
+     * @param  \App\Models\PhotoGameTask  $t
      * @return array{task_id: int, override_id: null, description: string, description_en: ?string, translation_key: ?string}
      */
     private function toItem($t): array
     {
         return [
-            'task_id'         => $t->id,
-            'override_id'     => null,
-            'description'     => $t->description,
-            'description_en'  => $t->description_en,
+            'task_id' => $t->id,
+            'override_id' => null,
+            'description' => $t->description,
+            'description_en' => $t->description_en,
             'translation_key' => $t->translation_key,
         ];
     }

@@ -24,7 +24,9 @@ class InvitationTokenController extends Controller
     public function generate()
     {
         $event = $this->activeEvent();
-        if (!$event) return redirect()->back()->with('error', 'Kein aktives Event.');
+        if (! $event) {
+            return redirect()->back()->with('error', 'Kein aktives Event.');
+        }
 
         // Token pro Gruppe im Event
         $event->groups()->each(function ($group) {

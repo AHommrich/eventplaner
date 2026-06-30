@@ -11,8 +11,8 @@ function makeAppGalleryAlbum(Event $event): PhotoAlbum
 {
     return PhotoAlbum::create([
         'event_id' => $event->id,
-        'slug'     => PhotoAlbum::APP_GALLERY,
-        'name'     => 'App-Galerie',
+        'slug' => PhotoAlbum::APP_GALLERY,
+        'name' => 'App-Galerie',
     ]);
 }
 
@@ -25,15 +25,15 @@ it('lists app-gallery photos for the guest', function () {
         'event_id' => $event->id,
         'album_id' => $album->id,
         'guest_id' => $guest->id,
-        'url'      => 'https://r2.example/a.jpg',
-        'r2_key'   => 'photos/a.jpg',
+        'url' => 'https://r2.example/a.jpg',
+        'r2_key' => 'photos/a.jpg',
     ]);
     Photo::create([
         'event_id' => $event->id,
         'album_id' => $album->id,
         'guest_id' => $guest->id,
-        'url'      => 'https://r2.example/b.jpg',
-        'r2_key'   => 'photos/b.jpg',
+        'url' => 'https://r2.example/b.jpg',
+        'r2_key' => 'photos/b.jpg',
     ]);
 
     actingAsGuest($guest)->getJson('/api/photos')
@@ -83,7 +83,7 @@ it('rejects upload when app_access is disabled', function () {
     Storage::fake('s3');
     $event = Event::factory()->create();
     $guest = Guest::factory()->withoutAppAccess()->create(['event_id' => $event->id]);
-    $file  = UploadedFile::fake()->image('x.jpg');
+    $file = UploadedFile::fake()->image('x.jpg');
 
     actingAsGuest($guest)->postJson('/api/photos', ['photo' => $file])
         ->assertStatus(403)

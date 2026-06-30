@@ -12,10 +12,10 @@ it('shows the invitations index page', function () {
 });
 
 it('generates tokens for all groups and solo guests in the active event', function () {
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
     $group = Group::factory()->create(['event_id' => $event->id]);
-    $solo  = Guest::factory()->create(['event_id' => $event->id, 'group_id' => null]);
+    $solo = Guest::factory()->create(['event_id' => $event->id, 'group_id' => null]);
 
     $this->post(route('invitations.generate'))->assertRedirect();
 
@@ -24,7 +24,7 @@ it('generates tokens for all groups and solo guests in the active event', functi
 });
 
 it('regenerates a token for a specific group', function () {
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
     $group = Group::factory()->create(['event_id' => $event->id]);
 
@@ -36,7 +36,7 @@ it('regenerates a token for a specific group', function () {
 });
 
 it('regenerates a token for a solo guest', function () {
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
     $guest = Guest::factory()->create(['event_id' => $event->id]);
 
@@ -48,7 +48,7 @@ it('regenerates a token for a solo guest', function () {
 it('rejects token generation for a guest from another event', function () {
     actingAsOwner();
     $otherEvent = Event::factory()->create();
-    $foreign    = Guest::factory()->create(['event_id' => $otherEvent->id]);
+    $foreign = Guest::factory()->create(['event_id' => $otherEvent->id]);
 
     $this->post(route('invitations.generate.guest', $foreign))->assertStatus(403);
 });

@@ -31,9 +31,9 @@ class ProjectorController extends Controller
             : collect();
 
         return Inertia::render('Projector/Show', [
-            'event'  => ['name' => $event->name],
+            'event' => ['name' => $event->name],
             'photos' => $photos,
-            'token'  => $token,
+            'token' => $token,
         ]);
     }
 
@@ -66,15 +66,15 @@ class ProjectorController extends Controller
             $label = match ($album->slug) {
                 'app_gallery' => $this->resolveGuestName($photo, $nameMode),
                 'presentation' => $photo->description ?: null,
-                'photo_game'   => $photo->gameAssignment?->override?->custom_text
+                'photo_game' => $photo->gameAssignment?->override?->custom_text
                     ?? $photo->gameAssignment?->task?->description
                     ?? null,
                 default => null,
             };
 
             return [
-                'id'    => $photo->id,
-                'url'   => $photo->url,
+                'id' => $photo->id,
+                'url' => $photo->url,
                 'label' => $label ?: null,
             ];
         });
@@ -82,16 +82,20 @@ class ProjectorController extends Controller
 
     private function resolveGuestName($photo, string $nameMode, ?int $ownerId = null): ?string
     {
-        if ($nameMode === 'none') return null;
+        if ($nameMode === 'none') {
+            return null;
+        }
 
         if ($photo->guest) {
             return $nameMode === 'first'
                 ? ($photo->guest->firstname ?? null)
-                : trim(($photo->guest->firstname ?? '') . ' ' . ($photo->guest->lastname ?? ''));
+                : trim(($photo->guest->firstname ?? '').' '.($photo->guest->lastname ?? ''));
         }
 
         $uploaderName = $photo->uploaded_by ?? null;
-        if (!$uploaderName) return null;
+        if (! $uploaderName) {
+            return null;
+        }
 
         return $nameMode === 'first'
             ? explode(' ', $uploaderName)[0]

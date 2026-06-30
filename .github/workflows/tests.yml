@@ -4,15 +4,33 @@ on:
   push:
     branches:
       - develop
-      - main
+      - staging
+      - production
   pull_request:
     branches:
       - develop
-      - main
+      - staging
+      - production
 
 jobs:
   ci:
     runs-on: ubuntu-latest
+
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: laravel_test
+          MARIADB_USER: laravel
+          MARIADB_PASSWORD: secret
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
 
     steps:
       - name: Checkout
@@ -31,11 +49,22 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install PHP Dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
       - name: Install Node Dependencies
         run: npm ci
-
-      - name: Install Dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Copy Environment File
         run: cp .env.example .env
@@ -49,5 +78,13 @@ jobs:
       - name: Build Assets
         run: npm run build
 
-      - name: Tests
-        run: ./vendor/bin/phpunit
+      - name: Frontend Tests (Vitest)
+        run: npm run test:coverage
+
+      - name: Backend Tests (Pest + coverage)
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_USERNAME: laravel
+          DB_PASSWORD: secret
+        run: ./vendor/bin/pest --ci --coverage --coverage-clover=coverage/clover.xml

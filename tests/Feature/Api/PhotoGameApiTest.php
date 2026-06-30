@@ -12,15 +12,16 @@ use Illuminate\Support\Facades\Storage;
 function makeBaseCatalogWithTask(string $desc = 'Eine Aufgabe'): PhotoGameTask
 {
     $catalog = PhotoGameTaskCatalog::create([
-        'event_id'  => null,
-        'name'      => 'Base',
-        'is_base'   => true,
+        'event_id' => null,
+        'name' => 'Base',
+        'is_base' => true,
         'is_active' => true,
     ]);
+
     return PhotoGameTask::create([
-        'catalog_id'  => $catalog->id,
+        'catalog_id' => $catalog->id,
         'description' => $desc,
-        'is_active'   => true,
+        'is_active' => true,
     ]);
 }
 
@@ -28,7 +29,7 @@ function makeGameSetup(Event $event, string $status = EventPhotoGame::STATUS_ACT
 {
     return EventPhotoGame::create([
         'event_id' => $event->id,
-        'status'   => $status,
+        'status' => $status,
     ]);
 }
 

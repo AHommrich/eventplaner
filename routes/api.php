@@ -1,10 +1,10 @@
 <?php
 
 use App\Http\Controllers\Api\DrinkLogController;
-use App\Http\Controllers\Api\PhotoGameController as ApiPhotoGameController;
 use App\Http\Controllers\Api\EventInfoController;
 use App\Http\Controllers\Api\GuestApiController;
 use App\Http\Controllers\Api\PhotoController;
+use App\Http\Controllers\Api\PhotoGameController as ApiPhotoGameController;
 use App\Http\Controllers\Api\QrAuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +26,7 @@ Route::post('/auth/qr/{token}/select', [QrAuthController::class, 'select']);
 // Braucht: Authorization: Bearer {token} im Header — kein Body
 Route::delete('/auth/logout', function (Request $request) {
     $request->user()->currentAccessToken()->delete();
+
     return response()->json(['message' => 'Logged out.']);
 })->middleware('auth:sanctum');
 

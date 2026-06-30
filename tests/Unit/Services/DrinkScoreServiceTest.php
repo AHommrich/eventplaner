@@ -6,17 +6,16 @@ use App\Services\DrinkScoreService;
 /**
  * Reine Funktionstests — keine DB, DrinkCatalog wird ohne save() instanziert.
  */
-
 function catalog(array $attrs = []): DrinkCatalog
 {
     return new DrinkCatalog(array_merge([
-        'category'        => 'beer',
-        'type'            => 'pils',
-        'display_name'    => 'Pils',
+        'category' => 'beer',
+        'type' => 'pils',
+        'display_name' => 'Pils',
         'alcohol_percent' => 5.0,
-        'is_alcoholic'    => true,
+        'is_alcoholic' => true,
         'negative_points' => 0,
-        'is_active'       => true,
+        'is_active' => true,
     ], $attrs));
 }
 

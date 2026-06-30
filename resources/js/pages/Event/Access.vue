@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { type BreadcrumbItem } from '@/types';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import InfoTooltip from '@/components/InfoTooltip.vue';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { Trash2 } from 'lucide-vue-next';
 import { ref } from 'vue';
-import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
+import { toast } from 'vue-sonner';
 
-const props = defineProps<{
-    event:   { id: number; name: string };
-    owner:   { id: number; name: string; email: string };
+defineProps<{
+    event: { id: number; name: string };
+    owner: { id: number; name: string; email: string };
     members: { id: number; name: string; email: string }[];
 }>();
 
@@ -22,20 +22,33 @@ const { t } = useI18n();
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Zugang verwalten', href: '/event/access' }];
 const form = useForm({ email: '' });
 
-function invite() { form.post(route('event.access.invite'), { onSuccess: () => { form.reset(); toast.success(t('toast.accessAdded')); } }); }
+function invite() {
+    form.post(route('event.access.invite'), {
+        onSuccess: () => {
+            form.reset();
+            toast.success(t('toast.accessAdded'));
+        },
+    });
+}
 
-const confirmOpen  = ref(false);
+const confirmOpen = ref(false);
 const pendingUserId = ref<number | null>(null);
-const pendingName   = ref('');
-function askRemove(member: { id: number; name: string }) { pendingUserId.value = member.id; pendingName.value = member.name; confirmOpen.value = true; }
-function doRemove() { if (pendingUserId.value) router.delete(route('event.access.remove', pendingUserId.value), { onSuccess: () => toast.success(t('toast.accessRemoved')) }); }
+const pendingName = ref('');
+function askRemove(member: { id: number; name: string }) {
+    pendingUserId.value = member.id;
+    pendingName.value = member.name;
+    confirmOpen.value = true;
+}
+function doRemove() {
+    if (pendingUserId.value)
+        router.delete(route('event.access.remove', pendingUserId.value), { onSuccess: () => toast.success(t('toast.accessRemoved')) });
+}
 </script>
 
 <template>
     <Head :title="t('access.title')" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="m-4 space-y-4">
-
             <Card>
                 <CardHeader>
                     <CardTitle>{{ event.name }}</CardTitle>
@@ -79,7 +92,9 @@ function doRemove() { if (pendingUserId.value) router.delete(route('event.access
                                 <p class="text-sm font-medium">{{ member.name }}</p>
                                 <p class="text-xs text-muted-foreground">{{ member.email }}</p>
                             </div>
-                            <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="askRemove(member)"><Trash2 class="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="askRemove(member)"
+                                ><Trash2 class="h-4 w-4"
+                            /></Button>
                         </li>
                         <li v-if="members.length === 0" class="py-4 text-center text-sm text-muted-foreground">
                             {{ t('access.none') }}
@@ -87,7 +102,6 @@ function doRemove() { if (pendingUserId.value) router.delete(route('event.access
                     </ul>
                 </CardContent>
             </Card>
-
         </div>
 
         <ConfirmDialog

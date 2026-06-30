@@ -31,7 +31,16 @@ const submit = () => {
             <div class="grid gap-6">
                 <div class="grid gap-2">
                     <Label for="email">{{ t('settings.emailAddress') }}</Label>
-                    <Input id="email" type="email" required autofocus :tabindex="1" autocomplete="email" v-model="form.email" placeholder="email@example.com" />
+                    <Input
+                        id="email"
+                        type="email"
+                        required
+                        autofocus
+                        :tabindex="1"
+                        autocomplete="email"
+                        v-model="form.email"
+                        placeholder="email@example.com"
+                    />
                     <InputError :message="form.errors.email" />
                 </div>
 
@@ -42,7 +51,15 @@ const submit = () => {
                             {{ t('auth.forgotPassword') }}
                         </TextLink>
                     </div>
-                    <Input id="password" type="password" required :tabindex="2" autocomplete="current-password" v-model="form.password" :placeholder="t('auth.password')" />
+                    <Input
+                        id="password"
+                        type="password"
+                        required
+                        :tabindex="2"
+                        autocomplete="current-password"
+                        v-model="form.password"
+                        :placeholder="t('auth.password')"
+                    />
                     <InputError :message="form.errors.password" />
                 </div>
 
@@ -65,7 +82,7 @@ const submit = () => {
             </div>
 
             <div class="mt-4">
-                <a :href="route('oauth.google.redirect')" class="block border rounded px-3 py-2 text-center">
+                <a :href="route('oauth.google.redirect')" class="block rounded border px-3 py-2 text-center">
                     {{ t('user.loginWithGoogle') }}
                 </a>
             </div>
