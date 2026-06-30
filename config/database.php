@@ -62,9 +62,9 @@ return [
             ]) : [],
         ],
 
-        // Isolierte Test-Connection — hartkodiert auf laravel_test, damit Tests NIE
-        // gegen die Dev-DB laufen (RefreshDatabase würde sie sonst leeren).
-        // Aktiviert via DB_CONNECTION=mysql_testing in phpunit.xml.
+        // Isolated test connection — hardcoded to laravel_test so tests NEVER
+        // run against the dev DB (RefreshDatabase would otherwise wipe it).
+        // Activated via DB_CONNECTION=mysql_testing in phpunit.xml.
         'mysql_testing' => [
             'driver' => 'mysql',
             'host' => env('DB_HOST', 'db'),

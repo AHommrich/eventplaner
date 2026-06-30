@@ -23,10 +23,41 @@ class RegistrationTest extends TestCase
             'email' => 'test@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
+            'privacy_accepted' => true,
         ]);
 
         $this->assertAuthenticated();
-        // Frische User müssen erst die Email verifizieren, danach Onboarding (kein Event).
+        // fresh users must verify email first, then onboarding (no event).
         $response->assertRedirect(route('verification.notice', absolute: false));
+    }
+
+    public function test_registration_records_privacy_acceptance_timestamp()
+    {
+        $this->post('/register', [
+            'name' => 'Privacy Aware',
+            'email' => 'privacy@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'privacy_accepted' => true,
+        ]);
+
+        $user = \App\Models\User::where('email', 'privacy@example.com')->first();
+        $this->assertNotNull($user);
+        $this->assertNotNull($user->privacy_accepted_at);
+    }
+
+    public function test_registration_is_blocked_without_privacy_consent()
+    {
+        $response = $this->from('/register')->post('/register', [
+            'name' => 'No Consent',
+            'email' => 'noconsent@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            // privacy_accepted intentionally omitted
+        ]);
+
+        $this->assertGuest();
+        $response->assertSessionHasErrors('privacy_accepted');
+        $this->assertDatabaseMissing('users', ['email' => 'noconsent@example.com']);
     }
 }

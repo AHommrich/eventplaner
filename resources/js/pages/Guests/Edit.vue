@@ -65,7 +65,7 @@ function handleUpdate(form: any) {
     form.put(route('guests.update', props.guest.id), { onSuccess: () => toast.success(t('toast.guestSaved')) });
 }
 
-// App-Zugang Toggle
+// App access toggle
 const appAccessForm = useForm({ app_access: props.guest.app_access ?? true });
 function toggleAppAccess() {
     appAccessForm.patch(route('guests.app-access', props.guest.id), {
@@ -73,7 +73,7 @@ function toggleAppAccess() {
     });
 }
 
-// Getränke-Zugang Toggle
+// Drinks access toggle
 const drinksAccessForm = useForm({ drinks_access: props.guest.drinks_access ?? true });
 function toggleDrinksAccess() {
     drinksAccessForm.patch(route('guests.drinks-access', props.guest.id), {
@@ -81,7 +81,7 @@ function toggleDrinksAccess() {
     });
 }
 
-// Drink-Logs Reset
+// Drink logs reset
 const resetLogsOpen = ref(false);
 function doResetLogs() {
     router.delete(route('guests.drink-logs.reset', props.guest.id), {
@@ -89,7 +89,7 @@ function doResetLogs() {
     });
 }
 
-// RSVP Admin-Override (separat)
+// RSVP admin override (separate)
 const rsvpForm = useForm({ rsvp_status: props.guest.rsvp_status ?? '' });
 function submitRsvp() {
     rsvpForm
@@ -138,7 +138,7 @@ function setterName(guest: any): string | null {
                 @submit="handleUpdate"
             />
 
-            <!-- App-Zugang -->
+            <!-- App access -->
             <div class="mt-6 space-y-3 border-t pt-6">
                 <div class="flex items-center gap-2">
                     <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('guest.appAccess') }}</h3>
@@ -163,7 +163,7 @@ function setterName(guest: any): string | null {
                 </div>
             </div>
 
-            <!-- Getränke-Zugang -->
+            <!-- Drinks access -->
             <div class="mt-6 space-y-3 border-t pt-6">
                 <div class="flex items-center gap-2">
                     <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('guest.drinksAccess') }}</h3>
@@ -195,11 +195,11 @@ function setterName(guest: any): string | null {
                 </div>
             </div>
 
-            <!-- RSVP-Status (separat vom Formular) -->
+            <!-- RSVP status (separate from the form) -->
             <div class="mt-6 space-y-3 border-t pt-6">
                 <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('guest.rsvpStatus') }}</h3>
 
-                <!-- Aktueller Status + Wer hat ihn gesetzt -->
+                <!-- Current status + who set it -->
                 <div class="space-y-1 rounded-lg border bg-muted/30 px-4 py-3 text-sm">
                     <div class="flex items-center gap-2">
                         <span class="text-muted-foreground">{{ t('guest.rsvpStatus') }}:</span>
@@ -214,7 +214,7 @@ function setterName(guest: any): string | null {
                     <div v-if="guest.rsvp_set_at" class="text-muted-foreground">{{ t('guest.rsvpSetAt') }}: {{ formatDate(guest.rsvp_set_at) }}</div>
                 </div>
 
-                <!-- Admin-Override -->
+                <!-- Admin override -->
                 <form @submit.prevent="submitRsvp" class="flex items-center gap-2">
                     <select
                         v-model="rsvpForm.rsvp_status"
@@ -231,7 +231,7 @@ function setterName(guest: any): string | null {
                 </form>
             </div>
 
-            <!-- QR-Code -->
+            <!-- QR code -->
             <div class="mt-6 border-t pt-6">
                 <h3 class="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('guest.invitationQR') }}</h3>
                 <template v-if="qrDataUrl">

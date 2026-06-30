@@ -18,7 +18,7 @@ it('lets an admin create a new event with default albums', function () {
     expect($event)->not->toBeNull();
     expect($event->projector_token)->toHaveLength(32);
 
-    // 3 Default-Alben angelegt
+    // 3 default albums created
     expect(PhotoAlbum::where('event_id', $event->id)->count())->toBe(3);
 });
 
@@ -43,7 +43,7 @@ it('switches the active event in session', function () {
     $user = actingAsOwner();
     $other = Event::factory()->for($user, 'owner')->create();
 
-    // Non-Inertia request → normaler 302 redirect, Session-Wert ist trotzdem aktualisiert
+    // non-Inertia request → normal 302 redirect, session value is still updated
     $this->post(route('events.switch'), ['event_id' => $other->id]);
 
     expect(session('active_event_id'))->toBe($other->id);

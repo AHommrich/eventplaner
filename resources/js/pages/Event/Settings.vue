@@ -14,7 +14,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 
-// Leaflet default icon fix für Vite
+// Leaflet default icon fix for Vite
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
@@ -111,7 +111,7 @@ const form = useForm({
     color_home_text: props.event.color_home_text ?? '#ffffff',
     color_home_shadow: props.event.color_home_shadow ?? '#000000',
     home_shadow_opacity: props.event.home_shadow_opacity ?? 50,
-    // Rollen
+    // Roles
     role_screen_bg: props.event.role_screen_bg ?? 'secondary',
     role_card_bg: props.event.role_card_bg ?? 'tertiary',
     role_card_text: props.event.role_card_text ?? 'primary',
@@ -150,13 +150,13 @@ function resetField(field: AddressField) {
     if (field === 'venue_country') countryQuery.value = savedAddress.venue_country;
 }
 
-// Hint-System
+// Hint system
 const activeHint = ref<string | null>(null);
 const previewCollapsed = ref(false);
 let hintTimer: ReturnType<typeof setTimeout> | null = null;
 function showHint(section: string) {
     if (hintTimer) clearTimeout(hintTimer);
-    // Kurz auf null setzen, damit die CSS-Animation bei erneutem Klick neu startet
+    // Briefly set to null so the CSS animation restarts on subsequent clicks
     activeHint.value = null;
     requestAnimationFrame(() => {
         activeHint.value = section;
@@ -165,11 +165,11 @@ function showHint(section: string) {
         }, 2500);
     });
 }
-// Einheitliches Amber-Overlay für alle Elemente
+// Unified amber overlay for all elements
 function hintBgClass(hint: string): string {
     return activeHint.value === hint ? 'preview-hint-bg' : '';
 }
-// Für Rahmen/Border: etwas helleres Amber (0.5 statt 0.3)
+// For frames/borders: slightly lighter amber (0.5 instead of 0.3)
 function hintBorderClass(hint: string): string {
     return activeHint.value === hint ? 'preview-hint-border' : '';
 }
@@ -198,7 +198,7 @@ let removeInertiaGuard: (() => void) | null = null;
 
 onMounted(() => {
     window.addEventListener('beforeunload', handleBeforeUnload);
-    // Map lazy-init: kurz warten bis DOM gerendert
+    // Map lazy-init: wait briefly until DOM is rendered
     setTimeout(initMap, 50);
     removeInertiaGuard = router.on('before', (event) => {
         if (isDirty.value && !skipGuard.value) {
@@ -236,7 +236,7 @@ function submit() {
             toast.success(t('toast.eventSettingsSaved'));
             coverPreview.value = null;
             form.cover = null;
-            // Dirty-Baseline aktualisieren
+            // Update dirty baseline
             for (const key of Object.keys(savedAddress) as AddressField[]) {
                 savedAddress[key] = (formAny[key] ?? '') as string;
             }
@@ -386,7 +386,7 @@ watch(
     { immediate: true },
 );
 
-// --- Adressform ---
+// --- Address form ---
 const COUNTRIES = [
     'Deutschland',
     'Österreich',
@@ -491,7 +491,7 @@ const previewVenueAddress = computed(() => {
     return [form.venue_street, form.venue_city].filter(Boolean).join(', ');
 });
 
-// --- Leaflet Map-Picker ---
+// --- Leaflet map picker ---
 const mapContainer = ref<HTMLElement | null>(null);
 const reverseGeocoding = ref(false);
 let leafletMap: L.Map | null = null;
@@ -549,7 +549,7 @@ async function reverseGeocode(lat: number, lng: number) {
         form.venue_country = country;
         countryQuery.value = country;
     } catch {
-        /* silent — User kann manuell befüllen */
+        /* silent — user can fill in manually */
     } finally {
         reverseGeocoding.value = false;
     }
@@ -564,7 +564,7 @@ function clearMapCoords() {
     }
 }
 
-// --- Karten-Suche (forward geocode zum Zentrieren) ---
+// --- Map search (forward geocode to center) ---
 interface NominatimResult {
     place_id: number;
     lat: string;
@@ -621,12 +621,12 @@ function selectMapResult(result: NominatimResult) {
     const lat = parseFloat(result.lat);
     const lng = parseFloat(result.lon);
 
-    // Karte zentrieren + Zoom
+    // Center the map + zoom
     if (leafletMap) {
         leafletMap.setView([lat, lng], 17);
     }
 
-    // Pin setzen
+    // Set pin
     form.venue_lat = lat;
     form.venue_lng = lng;
     if (mapMarker) {
@@ -639,7 +639,7 @@ function selectMapResult(result: NominatimResult) {
         });
     }
 
-    // Adressfelder aus Nominatim-Ergebnis befüllen
+    // Populate address fields from the Nominatim result
     const addr = result.address;
     form.venue_street = addr.road ?? addr.pedestrian ?? addr.path ?? '';
     form.venue_house_number = addr.house_number ?? '';
@@ -655,7 +655,7 @@ function selectMapResult(result: NominatimResult) {
     mapSearchOpen.value = false;
 }
 
-// --- Geocode aus Adressfeldern ---
+// --- Geocode from address fields ---
 const geocodingFromFields = ref(false);
 
 async function geocodeFromFields() {
@@ -684,7 +684,7 @@ async function geocodeFromFields() {
 
 const hasAddressInput = computed(() => !!(form.venue_street || form.venue_city || form.venue_postal_code));
 
-// Palette + Rollen-Auflösung
+// Palette + role resolution
 const palette = computed(() => ({
     primary: form.color_primary || '#7c2d3e',
     secondary: form.color_secondary || '#e8e3de',
@@ -704,7 +704,7 @@ const cBorder = computed(() => resolve(form.role_border, 'primary'));
 const cFab = computed(() => resolve(form.role_fab, 'primary'));
 const cFabIcon = computed(() => resolve(form.role_fab_icon, 'tertiary'));
 
-// Optionen für Radio-Selektoren
+// Options for radio selectors
 const colorOptions = computed(() => [
     { key: 'primary', label: t('event.colorPrimaryLabel'), value: palette.value.primary },
     { key: 'secondary', label: t('event.colorSecondaryLabel'), value: palette.value.secondary },
@@ -724,8 +724,8 @@ const fontOptions = [
 ];
 const previewFontFamily = computed(() => fontOptions.find((f) => f.key === form.font_heading)?.family ?? 'inherit');
 
-// Tab-Bar Icons
-// Ionicons outline — exakte Pfade (viewBox 0 0 512 512, stroke-based)
+// Tab bar icons
+// Ionicons outline — exact paths (viewBox 0 0 512 512, stroke-based)
 const tabDefs = [
     {
         label: 'Home',
@@ -775,11 +775,11 @@ const tabDefs = [
     },
 ];
 
-// Hilfsfunktion für Radio-Selektor-Klasse
+// Helper for radio selector class
 const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKey) =>
     (formRole ?? fallback) === optKey ? 'border-ring bg-muted/20' : 'border-input hover:border-muted-foreground';
 
-// Stil-Presets
+// Style presets
 const presetNameInput = ref('');
 const showPresetInput = ref(false);
 
@@ -907,7 +907,7 @@ function importStyle(e: Event) {
     reader.onload = () => {
         try {
             const data = JSON.parse(reader.result as string);
-            // Direkt als Preset speichern
+            // Save directly as preset
             presetForm.name = String(data._name ?? file.name.replace(/\.json$/i, ''));
             const f = presetForm as unknown as Record<string, unknown>;
             for (const field of STYLE_FIELDS) {
@@ -930,14 +930,14 @@ function importStyle(e: Event) {
 <template>
     <Head :title="t('event.settings')" />
     <AppLayout :breadcrumbs="breadcrumbItems">
-        <!-- Split-Screen: Mobile = oben Preview (shrink-0) / unten Form (scroll); Desktop = links Form / rechts Preview -->
+        <!-- Split screen: mobile = preview on top (shrink-0) / form below (scroll); desktop = form left / preview right -->
         <div class="flex h-[calc(100dvh-4rem)] flex-col overflow-hidden lg:grid lg:h-[calc(100vh-4rem)] lg:grid-cols-2 lg:gap-6 lg:px-4 lg:pt-4">
-            <!-- Form — nach Preview auf Mobile (order-last, flex-1 scroll), links auf Desktop -->
+            <!-- Form — after preview on mobile (order-last, flex-1 scroll), on the left on desktop -->
             <div class="order-last min-h-0 flex-1 overflow-y-auto px-4 pt-2 pb-24 lg:order-first lg:px-0 lg:pt-0">
                 <div class="space-y-4">
-                    <!-- Linke Spalte: Formular -->
+                    <!-- Left column: form -->
                     <form @submit.prevent="submit" class="space-y-4">
-                        <!-- Basis -->
+                        <!-- Basics -->
                         <Card>
                             <CardHeader
                                 ><CardTitle>{{ t('event.settings') }}</CardTitle></CardHeader
@@ -969,7 +969,7 @@ function importStyle(e: Event) {
                                             :placeholder="t('event.dresscode')"
                                         />
                                     </div>
-                                    <!-- Veranstaltungsort-Name (optional) -->
+                                    <!-- Venue name (optional) -->
                                     <div class="grid gap-2">
                                         <Label
                                             >{{ t('event.venueName') }}
@@ -993,7 +993,7 @@ function importStyle(e: Event) {
                                         </div>
                                         <p class="-mt-1 text-xs text-muted-foreground">{{ t('event.venueNameHint') }}</p>
                                     </div>
-                                    <!-- Venue-Anzeige auf dem Home-Screen -->
+                                    <!-- Venue display on the home screen -->
                                     <div class="grid gap-2">
                                         <div class="flex items-center gap-2">
                                             <Label>{{ t('event.venueDisplayMode') }}</Label>
@@ -1021,9 +1021,9 @@ function importStyle(e: Event) {
                                         </div>
                                     </div>
 
-                                    <!-- Strukturierte Adresse -->
+                                    <!-- Structured address -->
                                     <div class="grid gap-3 rounded-lg border border-input p-3">
-                                        <!-- DE-Form -->
+                                        <!-- DE form -->
                                         <template v-if="isGermanyForm">
                                             <div class="grid grid-cols-[1fr_80px] gap-2">
                                                 <div class="grid gap-1.5">
@@ -1210,7 +1210,7 @@ function importStyle(e: Event) {
                                             </div>
                                         </template>
 
-                                        <!-- Land (immer sichtbar) -->
+                                        <!-- Country (always visible) -->
                                         <div ref="countryInputRef" class="grid gap-1.5">
                                             <Label class="text-xs">{{ t('event.venueCountry') }}</Label>
                                             <div class="relative">
@@ -1263,7 +1263,7 @@ function importStyle(e: Event) {
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- Map-Picker -->
+                                    <!-- Map picker -->
                                     <div class="grid gap-2">
                                         <div class="flex items-center justify-between">
                                             <Label>{{ t('event.venueMap') }}</Label>
@@ -1281,7 +1281,7 @@ function importStyle(e: Event) {
                                                 {{ t('event.venueMapReset') }}
                                             </button>
                                         </div>
-                                        <!-- Geocode aus Adressfeldern -->
+                                        <!-- Geocode from address fields -->
                                         <button
                                             v-if="hasAddressInput && !geocodingFromFields"
                                             type="button"
@@ -1304,7 +1304,7 @@ function importStyle(e: Event) {
                                             </svg>
                                             {{ t('event.venueSearchFromFields') }}
                                         </button>
-                                        <!-- Hinweis: Standort per Karte bestätigen -->
+                                        <!-- Hint: confirm location via map -->
                                         <div
                                             v-if="hasAddressInput && !form.venue_lat && !form.venue_lng"
                                             class="flex items-start gap-2 rounded-md border border-amber-400/50 bg-amber-50/50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-950/30 dark:text-amber-400"
@@ -1384,7 +1384,7 @@ function importStyle(e: Event) {
                             </CardContent>
                         </Card>
 
-                        <!-- Cover-Upload -->
+                        <!-- Cover upload -->
                         <Card>
                             <CardHeader
                                 ><CardTitle>{{ t('event.cover') }}</CardTitle></CardHeader
@@ -1466,7 +1466,7 @@ function importStyle(e: Event) {
                                 </label>
                                 <p class="text-xs text-muted-foreground">{{ t('event.coverSaveHint') }}</p>
 
-                                <!-- Home-Screen Farbe — nur wenn Cover vorhanden -->
+                                <!-- Home screen color — only when cover is present -->
                                 <div v-if="displayCoverUrl" class="grid gap-1.5 pt-1">
                                     <span class="text-xs text-muted-foreground">{{ t('event.colorHomeText') }}</span>
                                     <div class="flex items-center gap-2">
@@ -1505,11 +1505,11 @@ function importStyle(e: Event) {
                             </CardContent>
                         </Card>
 
-                        <!-- Design: Schrift + Farben -->
+                        <!-- Design: font + colors -->
                         <Card>
                             <CardContent>
                                 <div class="space-y-4 pt-4">
-                                    <!-- Schrift -->
+                                    <!-- Font -->
                                     <div class="grid gap-2">
                                         <Label>{{ t('event.fontHeading') }}</Label>
                                         <div class="grid grid-cols-3 gap-2">
@@ -1539,14 +1539,14 @@ function importStyle(e: Event) {
                                         </div>
                                     </div>
 
-                                    <!-- Farb-Palette -->
+                                    <!-- Color palette -->
                                     <div class="grid gap-3">
                                         <div class="flex items-center gap-2">
                                             <Label>{{ t('event.colorHint') }}</Label>
                                             <InfoTooltip :text="t('event.colorSystemInfo')" />
                                         </div>
                                         <p class="-mt-1 text-xs text-muted-foreground">{{ t('event.colorHintSub') }}</p>
-                                        <!-- 3 Basis-Picker -->
+                                        <!-- 3 base pickers -->
                                         <div class="grid grid-cols-3 gap-3">
                                             <div
                                                 v-for="(key, idx) in ['color_primary', 'color_secondary', 'color_tertiary'] as const"
@@ -1567,9 +1567,9 @@ function importStyle(e: Event) {
                                             </div>
                                         </div>
 
-                                        <!-- Radio-Selektoren -->
+                                        <!-- Radio selectors -->
                                         <div class="space-y-3 pt-1">
-                                            <!-- Screen-Hintergrund -->
+                                            <!-- Screen background -->
                                             <div class="grid gap-1.5">
                                                 <div class="flex items-center justify-between">
                                                     <span class="text-xs text-muted-foreground">{{ t('event.roleScreenBg') }}</span
@@ -1598,7 +1598,7 @@ function importStyle(e: Event) {
                                                     </button>
                                                 </div>
                                             </div>
-                                            <!-- Card-Hintergrund -->
+                                            <!-- Card background -->
                                             <div class="grid gap-1.5">
                                                 <div class="flex items-center justify-between">
                                                     <span class="text-xs text-muted-foreground">{{ t('event.roleCardBg') }}</span
@@ -1627,7 +1627,7 @@ function importStyle(e: Event) {
                                                     </button>
                                                 </div>
                                             </div>
-                                            <!-- Text auf Cards -->
+                                            <!-- Text on cards -->
                                             <div class="grid gap-1.5">
                                                 <div class="flex items-center justify-between">
                                                     <span class="text-xs text-muted-foreground">{{ t('event.roleCardText') }}</span
@@ -1656,7 +1656,7 @@ function importStyle(e: Event) {
                                                     </button>
                                                 </div>
                                             </div>
-                                            <!-- Button auf Cards -->
+                                            <!-- Button on cards -->
                                             <div class="grid gap-1.5">
                                                 <div class="flex items-center justify-between">
                                                     <span class="text-xs text-muted-foreground">{{ t('event.roleCardButton') }}</span
@@ -1685,7 +1685,7 @@ function importStyle(e: Event) {
                                                     </button>
                                                 </div>
                                             </div>
-                                            <!-- Text auf Card-Buttons -->
+                                            <!-- Text on card buttons -->
                                             <div class="grid gap-1.5">
                                                 <div class="flex items-center justify-between">
                                                     <span class="text-xs text-muted-foreground">{{ t('event.roleCardButtonText') }}</span
@@ -1714,7 +1714,7 @@ function importStyle(e: Event) {
                                                     </button>
                                                 </div>
                                             </div>
-                                            <!-- Navbar-Farbe -->
+                                            <!-- Navbar color -->
                                             <div class="grid gap-1.5">
                                                 <div class="flex items-center justify-between">
                                                     <span class="text-xs text-muted-foreground">{{ t('event.roleTabTint') }}</span
@@ -1743,7 +1743,7 @@ function importStyle(e: Event) {
                                                     </button>
                                                 </div>
                                             </div>
-                                            <!-- Rahmenfarbe -->
+                                            <!-- Border color -->
                                             <div class="grid gap-1.5">
                                                 <div class="flex items-center justify-between">
                                                     <span class="text-xs text-muted-foreground">{{ t('event.roleBorder') }}</span
@@ -1772,7 +1772,7 @@ function importStyle(e: Event) {
                                                     </button>
                                                 </div>
                                             </div>
-                                            <!-- FAB-Button -->
+                                            <!-- FAB button -->
                                             <div class="grid gap-1.5">
                                                 <div class="flex items-center justify-between">
                                                     <span class="text-xs text-muted-foreground">{{ t('event.roleFab') }}</span
@@ -1801,7 +1801,7 @@ function importStyle(e: Event) {
                                                     </button>
                                                 </div>
                                             </div>
-                                            <!-- Icon-Farbe im FAB -->
+                                            <!-- Icon color inside FAB -->
                                             <div class="grid gap-1.5">
                                                 <div class="flex items-center justify-between">
                                                     <span class="text-xs text-muted-foreground">{{ t('event.roleFabIcon') }}</span
@@ -1836,7 +1836,7 @@ function importStyle(e: Event) {
                             </CardContent>
                         </Card>
 
-                        <!-- Stil-Presets -->
+                        <!-- Style presets -->
                         <Card>
                             <CardContent class="pt-4">
                                 <!-- Header -->
@@ -1869,7 +1869,7 @@ function importStyle(e: Event) {
                                     </div>
                                 </div>
 
-                                <!-- Preset-Liste -->
+                                <!-- Preset list -->
                                 <div class="space-y-1.5">
                                     <div
                                         v-for="preset in stylePresets"
@@ -1918,7 +1918,7 @@ function importStyle(e: Event) {
                                     <p v-if="!stylePresets.length" class="py-1 text-xs text-muted-foreground">Noch keine Stile gespeichert.</p>
                                 </div>
 
-                                <!-- Neuen Stil speichern -->
+                                <!-- Save new style -->
                                 <div class="mt-3 border-t border-input pt-3">
                                     <div v-if="!showPresetInput">
                                         <button
@@ -1967,7 +1967,7 @@ function importStyle(e: Event) {
                             </CardContent>
                         </Card>
 
-                        <!-- Trinkspiel -->
+                        <!-- Drink game -->
                         <Card>
                             <CardContent>
                                 <div class="space-y-3 pt-4">
@@ -1998,7 +1998,7 @@ function importStyle(e: Event) {
                             </CardContent>
                         </Card>
 
-                        <!-- Fotospiel -->
+                        <!-- Photo game -->
                         <Card>
                             <CardContent>
                                 <div class="space-y-3 pt-4">
@@ -2029,7 +2029,7 @@ function importStyle(e: Event) {
                             </CardContent>
                         </Card>
 
-                        <!-- Diashow-Token -->
+                        <!-- Slideshow token -->
                         <Card>
                             <CardContent>
                                 <div class="space-y-3 pt-4">
@@ -2069,9 +2069,9 @@ function importStyle(e: Event) {
                 </div>
             </div>
 
-            <!-- Preview — oben auf Mobile (order-first), rechts auf Desktop (order-last) -->
+            <!-- Preview — top on mobile (order-first), right on desktop (order-last) -->
             <div class="order-first flex-shrink-0 lg:order-last lg:h-full lg:overflow-y-auto lg:pb-4">
-                <!-- Mobile: einklappbarer Header -->
+                <!-- Mobile: collapsible header -->
                 <button
                     type="button"
                     class="flex w-full items-center justify-between border-b px-4 py-3 lg:hidden"
@@ -2095,7 +2095,7 @@ function importStyle(e: Event) {
                 </button>
 
                 <div v-show="!previewCollapsed" class="flex flex-col items-center gap-2 pt-2 lg:pt-0">
-                    <!-- Phones: Mobile horizontal scroll, Desktop 2×2 Grid -->
+                    <!-- Phones: mobile horizontal scroll, desktop 2×2 grid -->
                     <div class="w-full overflow-x-auto lg:overflow-x-visible">
                         <div class="flex gap-4 px-4 pb-4 lg:grid lg:grid-cols-2 lg:px-0">
                             <!-- ===== SCREEN 1: HOME ===== -->
@@ -2103,7 +2103,7 @@ function importStyle(e: Event) {
                                 <div class="phone-frame-outer">
                                     <div class="phone-frame-inner">
                                         <div class="overflow-hidden rounded-[20px] border-[5px] border-gray-800 shadow-md" style="width: 120px">
-                                            <!-- Mit Cover -->
+                                            <!-- With cover -->
                                             <div
                                                 v-if="displayCoverUrl"
                                                 class="relative flex flex-col"
@@ -2135,7 +2135,7 @@ function importStyle(e: Event) {
                                                     <p class="mt-0.5 text-center text-[5.5px]" :style="{ color: form.color_home_text || '#ffffff' }">
                                                         {{ previewDate || 'Samstag, 1. Januar 2026' }}
                                                     </p>
-                                                    <!-- Venue: both → name+icon, dann address ohne Icon -->
+                                                    <!-- Venue: both → name+icon, then address without icon -->
                                                     <template v-if="form.venue_display_mode === 'both'">
                                                         <span
                                                             class="mt-0.5 flex items-center justify-center gap-0.5 text-center text-[6px]"
@@ -2162,7 +2162,7 @@ function importStyle(e: Event) {
                                                             {{ previewVenueAddress }}
                                                         </p>
                                                     </template>
-                                                    <!-- Venue: nur name -->
+                                                    <!-- Venue: name only -->
                                                     <span
                                                         v-else-if="form.venue_display_mode === 'name'"
                                                         class="mt-0.5 flex items-center justify-center gap-0.5 text-center text-[6px]"
@@ -2185,7 +2185,7 @@ function importStyle(e: Event) {
                                                             <circle cx="256" cy="192" r="48" />
                                                         </svg>
                                                     </span>
-                                                    <!-- Venue: nur adresse -->
+                                                    <!-- Venue: address only -->
                                                     <p
                                                         v-else
                                                         class="mt-0.5 text-center text-[6px]"
@@ -2268,7 +2268,7 @@ function importStyle(e: Event) {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <!-- Ohne Cover: normale App-Farben -->
+                                            <!-- Without cover: normal app colors -->
                                             <div
                                                 v-else
                                                 class="flex flex-col"
@@ -2290,7 +2290,7 @@ function importStyle(e: Event) {
                                                     <p class="mt-0.5 text-center text-[5.5px]" :style="{ color: cCardText }">
                                                         {{ previewDate || 'Samstag, 1. Januar 2026' }}
                                                     </p>
-                                                    <!-- Venue: both → name+icon, dann address ohne Icon -->
+                                                    <!-- Venue: both → name+icon, then address without icon -->
                                                     <template v-if="form.venue_display_mode === 'both'">
                                                         <span
                                                             class="mt-0.5 flex items-center justify-center gap-0.5 text-center text-[6px]"
@@ -2315,7 +2315,7 @@ function importStyle(e: Event) {
                                                         </span>
                                                         <p class="text-center text-[6px]" :style="{ color: cCardText }">{{ previewVenueAddress }}</p>
                                                     </template>
-                                                    <!-- Venue: nur name -->
+                                                    <!-- Venue: name only -->
                                                     <span
                                                         v-else-if="form.venue_display_mode === 'name'"
                                                         class="mt-0.5 flex items-center justify-center gap-0.5 text-center text-[6px]"
@@ -2338,7 +2338,7 @@ function importStyle(e: Event) {
                                                             <circle cx="256" cy="192" r="48" />
                                                         </svg>
                                                     </span>
-                                                    <!-- Venue: nur adresse -->
+                                                    <!-- Venue: address only -->
                                                     <p v-else class="mt-0.5 text-center text-[6px]" :style="{ color: cCardText }">
                                                         {{ previewVenueAddress
                                                         }}<svg
@@ -2607,7 +2607,7 @@ function importStyle(e: Event) {
                                                             style="background-color: #d4cfc8; aspect-ratio: 1"
                                                         />
                                                     </div>
-                                                    <!-- FAB mit cFab-Farbe -->
+                                                    <!-- FAB with cFab color -->
                                                     <div
                                                         class="absolute right-2 bottom-3 flex h-7 w-7 items-center justify-center rounded-full shadow-md"
                                                         :style="{ backgroundColor: cFab }"
@@ -2814,13 +2814,13 @@ function importStyle(e: Event) {
                                 </div>
                             </div>
                         </div>
-                        <!-- /flex oder grid -->
+                        <!-- /flex or grid -->
                     </div>
                     <!-- /overflow-x-auto -->
                 </div>
             </div>
         </div>
-        <!-- /split-screen -->
+        <!-- /split screen -->
 
         <!-- Floating Save Bar -->
         <Transition
@@ -2845,7 +2845,7 @@ function importStyle(e: Event) {
 </template>
 
 <style>
-/* Selbst gehostet via @fontsource — keine externen Requests (DSGVO) */
+/* Self-hosted via @fontsource — no external requests (GDPR) */
 @import '@fontsource/playfair-display/400.css';
 @import '@fontsource/playfair-display/700.css';
 @import '@fontsource/cormorant-garamond/400.css';
@@ -2862,7 +2862,7 @@ function importStyle(e: Event) {
 @import '@fontsource/josefin-sans/400.css';
 @import '@fontsource/josefin-sans/700.css';
 
-/* Phone-Preview-Größen */
+/* Phone preview sizes */
 .phone-frame-outer {
     width: 228px;
     height: 464px;
@@ -2883,7 +2883,7 @@ function importStyle(e: Event) {
     }
 }
 
-/* Einheitliches Amber-Overlay für alle Hint-Elemente */
+/* Unified amber overlay for all hint elements */
 @keyframes preview-hint-bg {
     0%,
     100% {
@@ -2896,7 +2896,7 @@ function importStyle(e: Event) {
 .preview-hint-bg {
     animation: preview-hint-bg 0.4s ease-in-out 5;
 }
-/* Rahmen: äußerer Amber-Ring */
+/* Border: outer amber ring */
 @keyframes preview-hint-border {
     0%,
     100% {
@@ -2909,7 +2909,7 @@ function importStyle(e: Event) {
 .preview-hint-border {
     animation: preview-hint-border 0.4s ease-in-out 5;
 }
-/* Text/Icons/SVGs: amber via Filter */
+/* Text/icons/SVGs: amber via filter */
 @keyframes preview-hint-filter {
     0%,
     100% {

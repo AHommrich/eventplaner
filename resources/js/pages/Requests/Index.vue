@@ -49,7 +49,7 @@ const { t } = useI18n();
 
 const breadcrumbItems: BreadcrumbItem[] = [{ title: t('requests.title'), href: '/requests' }];
 
-// --- Rücknahmen ---
+// --- Revocations ---
 const confirmOpen = ref(false);
 const pendingAction = ref<{ item: RevocationRequest; action: 'approve' | 'decline' } | null>(null);
 
@@ -67,7 +67,7 @@ function doAction() {
     });
 }
 
-// --- Event-Anfragen ---
+// --- Event requests ---
 const eventReqConfirmOpen = ref(false);
 const eventReqPendingAction = ref<{ item: EventRequestItem; action: 'approve' | 'decline' } | null>(null);
 
@@ -101,7 +101,7 @@ function setterName(item: RevocationRequest): string {
     <Head :title="t('requests.title')" />
     <AppLayout :breadcrumbs="breadcrumbItems">
         <div class="m-4 space-y-4">
-            <!-- Event-Anfragen (nur Admin) -->
+            <!-- Event requests (admin only) -->
             <Card v-if="event_requests.length > 0">
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
@@ -129,7 +129,7 @@ function setterName(item: RevocationRequest): string {
                 </CardContent>
             </Card>
 
-            <!-- Rücknahme-Anfragen -->
+            <!-- Revocation requests -->
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
@@ -169,7 +169,7 @@ function setterName(item: RevocationRequest): string {
             </Card>
         </div>
 
-        <!-- Rücknahme-Dialog -->
+        <!-- Revocation dialog -->
         <ConfirmDialog
             v-model:open="confirmOpen"
             :title="pendingAction?.action === 'approve' ? t('requests.confirmApproveTitle') : t('requests.confirmDeclineTitle')"
@@ -179,7 +179,7 @@ function setterName(item: RevocationRequest): string {
             @confirm="doAction"
         />
 
-        <!-- Event-Anfragen-Dialog -->
+        <!-- Event requests dialog -->
         <ConfirmDialog
             v-model:open="eventReqConfirmOpen"
             :title="eventReqPendingAction?.action === 'approve' ? t('requests.confirmApproveEventTitle') : t('requests.confirmDeclineEventTitle')"

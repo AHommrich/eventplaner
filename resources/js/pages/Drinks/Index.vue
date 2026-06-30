@@ -25,7 +25,7 @@ interface CatalogSize {
 }
 interface SelectedSize {
     id: number; // size_id
-    drink_id: number; // drinks.id (für remove)
+    drink_id: number; // drinks.id (for remove)
     amount_liter: number;
     is_default: boolean;
     points: number;
@@ -53,9 +53,9 @@ const eventDrinks = computed(() => page.props.event_drinks as EventDrink[]);
 const catalog = computed(() => page.props.catalog as Record<string, CatalogEntry[]>);
 const drinkGameEnabled = computed(() => (page.props as any).active_event?.drink_game_enabled === true);
 
-// ─── Katalog: Grouped view ────────────────────────────────────────────────────
+// ─── Catalog: grouped view ────────────────────────────────────────────────────
 
-// initialAddedMap: size_id → drink_id (für Löschen per Badge)
+// initialAddedMap: size_id → drink_id (for delete via badge)
 const initialAddedMap = computed(() => {
     const map: Record<number, number> = {};
     for (const entries of Object.values(catalog.value)) {
@@ -202,7 +202,7 @@ function formatSize(liter: number): string {
     <Head :title="t('drink.title')" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="m-4 space-y-4" :class="{ 'pb-24': isDirty }">
-            <!-- Aktive Getränke für dieses Event -->
+            <!-- Active drinks for this event -->
             <Card>
                 <CardHeader>
                     <CardTitle>{{ t('drink.forEvent') }}</CardTitle>
@@ -243,7 +243,7 @@ function formatSize(liter: number): string {
                 </CardContent>
             </Card>
 
-            <!-- Katalog -->
+            <!-- Catalog -->
             <Card>
                 <CardHeader>
                     <CardTitle>{{ t('drink.catalog') }}</CardTitle>
@@ -314,7 +314,7 @@ function formatSize(liter: number): string {
             </Card>
         </div>
 
-        <!-- Floating Save/Reset Bar (Katalog-Tab) -->
+        <!-- Floating save/reset bar (catalog tab) -->
         <Transition
             enter-active-class="transition ease-out duration-200"
             enter-from-class="opacity-0 translate-y-4"

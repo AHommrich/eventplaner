@@ -7,11 +7,11 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Schützt die Hauptapp — User braucht mindestens ein zugängliches Event.
+ * Protects the main app — user needs at least one accessible event.
  *
- * Zugänglich heißt: User ist Owner (`events.user_id = $user->id`) ODER Mitveranstalter
- * (`event_user` Pivot). Admins überspringen die Prüfung. Bei Verweigerung Redirect
- * auf `/no-event`, von wo aus der User ein Event anfordern kann (EventRequest).
+ * Accessible means: user is owner (`events.user_id = $user->id`) OR co-organizer
+ * (`event_user` pivot). Admins skip the check. On refusal redirect
+ * to `/no-event`, from where the user can request an event (EventRequest).
  */
 class EnsureHasEventAccess
 {

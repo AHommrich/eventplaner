@@ -13,7 +13,7 @@ class SocialLoginController extends Controller
 {
     public function redirect()
     {
-        // Wenn du Proxies o. ä. hast, nimm ->stateless()
+        // If you have proxies or similar, use ->stateless()
         // return Socialite::driver('google')->stateless()->redirect();
         return Socialite::driver('google')->redirect();
     }
@@ -24,11 +24,11 @@ class SocialLoginController extends Controller
         $googleUser = Socialite::driver('google')->user();
 
         $googleId = (string) $googleUser->getId();
-        $email = $googleUser->getEmail();   // Google liefert i. d. R. verifizierte E-Mail
+        $email = $googleUser->getEmail();   // Google usually returns a verified email
         $name = $googleUser->getName() ?: 'Google User';
 
-        // Falls du später mehrere Provider verknüpfen willst, bau dir eine social_accounts-Tabelle.
-        // Für den Start reicht "per E-Mail matchen oder neu anlegen":
+        // If you want to link multiple providers later, build a social_accounts table.
+        // For the start, "match by email or create new" is enough:
 
         DB::beginTransaction();
 
@@ -39,16 +39,20 @@ class SocialLoginController extends Controller
                 'name' => $name,
                 'email' => $email ?? 'google-'.Str::uuid().'@example.local',
                 'password' => bcrypt(Str::random(40)),
+                // Choosing "Sign in with Google" counts as accepting the privacy
+                // policy presented next to that button — record the timestamp so
+                // the consent paper trail is consistent with the email-signup path.
+                'privacy_accepted_at' => now(),
             ]);
-            // email_verified_at ist nicht in $fillable — direkt setzen, damit der
-            // Google-verifizierte Status nicht beim Mass-Assignment verloren geht.
+            // email_verified_at is not in $fillable — set it directly so the
+            // Google-verified status is not lost during mass assignment.
             $user->email_verified_at = $email ? now() : null;
             $user->save();
         } elseif (! $user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
         }
 
-        // (Optional) hier könntest du googleId/Avatar/Token speichern, wenn du ein SocialAccount-Modell nutzt.
+        // (Optional) you could store googleId/avatar/token here if you use a SocialAccount model.
 
         DB::commit();
 

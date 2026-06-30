@@ -101,7 +101,7 @@ it('replaces description when modified override exists', function () {
 
     $modified = $pool->firstWhere('task_id', $taskA->id);
     expect($modified['description'])->toBe('Base A — angepasst');
-    expect($modified['description_en'])->toBeNull(); // modified löscht EN-Text bewusst
+    expect($modified['description_en'])->toBeNull(); // modified intentionally clears EN text
 });
 
 it('adds custom tasks for added overrides', function () {
@@ -135,7 +135,7 @@ it('combines all override types correctly', function () {
 
     $pool = (new PhotoGameTaskPool)->build($event->id, null);
 
-    // A entfernt, B umbenannt, C unverändert, D neu → 3 Items
+    // A removed, B renamed, C unchanged, D new → 3 items
     expect($pool)->toHaveCount(3);
     expect($pool->pluck('description')->sort()->values()->all())
         ->toEqual(['B-mod', 'C', 'D-added']);

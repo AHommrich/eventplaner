@@ -40,7 +40,7 @@ const selectClass =
 
 const approvedUsers = computed(() => props.users);
 
-// --- Zugang verwalten (unified) ---
+// --- Manage access (unified) ---
 const addForm = useForm({ email: '', event_id: String(props.event_access?.event.id ?? '') });
 function addToEvent() {
     addForm.post(route('admin.users.addToEvent'), {
@@ -51,7 +51,7 @@ function addToEvent() {
     });
 }
 
-// Wenn Event im Dropdown wechselt → Mitgliederliste neu laden
+// When event changes in dropdown → reload members list
 watch(
     () => addForm.event_id,
     (eventId) => {
@@ -61,12 +61,12 @@ watch(
     },
 );
 
-// --- Rolle ändern ---
+// --- Change role ---
 function updateRole(user: User, role: string) {
     useForm({ role }).put(route('admin.users.update', user.id), { onSuccess: () => toast.success(t('toast.roleChanged', { role })) });
 }
 
-// --- User löschen ---
+// --- Delete user ---
 const confirmOpen = ref(false);
 const pendingUser = ref<User | null>(null);
 function askDelete(user: User) {
@@ -78,7 +78,7 @@ function doDelete() {
         useForm({}).delete(route('admin.users.destroy', pendingUser.value.id), { onSuccess: () => toast.success(t('toast.userDeleted')) });
 }
 
-// --- User aus gewähltem Event entfernen ---
+// --- Remove user from selected event ---
 const removeConfirmOpen = ref(false);
 const pendingRemoveMember = ref<Member | null>(null);
 function askRemove(member: Member) {
@@ -97,13 +97,13 @@ function doRemove() {
     <Head :title="t('admin.title')" />
     <AppLayout>
         <div class="m-4 space-y-4">
-            <!-- Event-Zugang verwalten -->
+            <!-- Manage event access -->
             <Card>
                 <CardHeader
                     ><CardTitle>{{ t('access.manageTitle') }}</CardTitle></CardHeader
                 >
                 <CardContent class="space-y-0">
-                    <!-- 1. Event-Auswahl -->
+                    <!-- 1. Event selection -->
                     <div class="pb-4">
                         <p class="mb-1.5 text-xs font-medium text-muted-foreground">{{ t('admin.selectEventLabel') }}</p>
                         <select v-model="addForm.event_id" :class="selectClass + ' w-full'">
@@ -112,7 +112,7 @@ function doRemove() {
                         </select>
                     </div>
 
-                    <!-- 2. Mitgliederliste des gewählten Events -->
+                    <!-- 2. Members list of the selected event -->
                     <template v-if="event_access">
                         <div class="border-t pt-4 pb-2">
                             <p class="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">{{ t('access.currentAccess') }}</p>
@@ -141,7 +141,7 @@ function doRemove() {
                             </ul>
                         </div>
 
-                        <!-- 3. User hinzufügen -->
+                        <!-- 3. Add user -->
                         <div class="border-t pt-4">
                             <p class="mb-1.5 text-xs font-medium text-muted-foreground">{{ t('admin.addToEvent') }}</p>
                             <form @submit.prevent="addToEvent" class="flex gap-2">
@@ -159,7 +159,7 @@ function doRemove() {
                 </CardContent>
             </Card>
 
-            <!-- Alle User -->
+            <!-- All users -->
             <Card>
                 <CardHeader
                     ><CardTitle>{{ t('admin.allUsers', { count: approvedUsers.length }) }}</CardTitle></CardHeader

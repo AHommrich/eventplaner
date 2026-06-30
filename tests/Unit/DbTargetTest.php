@@ -3,8 +3,8 @@
 use Illuminate\Support\Facades\DB;
 
 /**
- * Safety-Net: stellt sicher, dass Tests gegen die isolierte Test-DB laufen.
- * Wird Pflicht — sonst würde RefreshDatabase die Dev-DB wipen.
+ * Safety net: ensures tests run against the isolated test DB.
+ * Mandatory — otherwise RefreshDatabase would wipe the dev DB.
  */
 it('tests run against the laravel_test database, not laravel', function () {
     $name = DB::connection()->getDatabaseName();

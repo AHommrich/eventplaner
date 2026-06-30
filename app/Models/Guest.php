@@ -64,7 +64,7 @@ class Guest extends Model
         return $this->belongsTo(\App\Models\User::class, 'rsvp_set_by_user_id');
     }
 
-    /** QR-Token: Gruppen-Token wenn in Gruppe, sonst eigener Token */
+    /** QR token: group token if in a group, otherwise own token */
     public function getQrToken(): ?InvitationToken
     {
         if ($this->group_id && $this->group?->invitationToken) {

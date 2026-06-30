@@ -45,7 +45,7 @@ const albumsOpen = ref(false);
 const activeTab = ref<string>(props.albums[0]?.slug ?? 'presentation');
 const currentAlbum = computed(() => props.albums.find((a) => a.slug === activeTab.value));
 
-// --- Sortierung ---
+// --- Sorting ---
 const sortOrder = ref<'newest' | 'oldest'>('newest');
 const sortedPhotos = computed(() => {
     const photos = [...(currentAlbum.value?.photos ?? [])];
@@ -56,7 +56,7 @@ const sortedPhotos = computed(() => {
 const fileInput = ref<HTMLInputElement | null>(null);
 const form = useForm({ photo: null as File | null, album_id: null as number | null, description: null as string | null });
 
-// Beschreibungs-Dialog für Präsentation-Uploads
+// Description dialog for presentation uploads
 const uploadDescriptionOpen = ref(false);
 const uploadDescriptionText = ref('');
 
@@ -97,7 +97,7 @@ function cancelUpload() {
     uploadDescriptionOpen.value = false;
 }
 
-// --- Foto-Viewer ---
+// --- Photo viewer ---
 const selected = ref<Photo | null>(null);
 
 function openPhoto(photo: Photo) {
@@ -112,7 +112,7 @@ function navigatePhoto(dir: 1 | -1) {
     if (next) selected.value = next;
 }
 
-// --- Einzellöschen ---
+// --- Single delete ---
 const confirmDeleteOpen = ref(false);
 const pendingDeleteId = ref<number | null>(null);
 
@@ -129,7 +129,7 @@ function doDelete() {
     });
 }
 
-// --- Mehrfachauswahl ---
+// --- Multi-select ---
 const selectionMode = ref(false);
 const selectedIds = ref<Set<number>>(new Set());
 
@@ -156,7 +156,7 @@ function exitSelectionMode() {
     selectedIds.value = new Set();
 }
 
-// --- Batch-Delete ---
+// --- Batch delete ---
 const confirmBatchOpen = ref(false);
 
 function doBatchDelete() {
@@ -170,7 +170,7 @@ function doBatchDelete() {
     });
 }
 
-// --- Projektor ---
+// --- Projector ---
 const projectorAlbumId = ref<string>(String(props.projectorAlbumId ?? ''));
 const projectorNameMode = ref<string>(props.projectorNameMode ?? 'first');
 
@@ -211,7 +211,7 @@ function updateProjectorNameMode(mode: string) {
             <!-- Header -->
             <h1 class="text-xl font-semibold">{{ t('photo.title') }}</h1>
 
-            <!-- Diashow-Section (collapsible) -->
+            <!-- Slideshow section (collapsible) -->
             <div v-if="projectorUrl" class="overflow-hidden rounded-lg border">
                 <button
                     type="button"
@@ -245,7 +245,7 @@ function updateProjectorNameMode(mode: string) {
                 </div>
             </div>
 
-            <!-- Alben-Section (collapsible) -->
+            <!-- Albums section (collapsible) -->
             <div class="overflow-hidden rounded-lg border">
                 <button
                     type="button"
@@ -260,7 +260,7 @@ function updateProjectorNameMode(mode: string) {
                 </button>
 
                 <div v-show="albumsOpen" class="border-t">
-                    <!-- Album-Tabs + Aktionen in einer Zeile -->
+                    <!-- Album tabs + actions in one row -->
                     <div class="flex items-end justify-between gap-2 border-b">
                         <div class="flex gap-1">
                             <button
@@ -304,7 +304,7 @@ function updateProjectorNameMode(mode: string) {
                         </div>
                     </div>
 
-                    <!-- Tab-Beschreibung -->
+                    <!-- Tab description -->
                     <div class="space-y-2 px-4 py-3">
                         <div class="flex items-start gap-2 rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
                             <span class="mt-px shrink-0 text-base leading-none">ℹ</span>
@@ -318,7 +318,7 @@ function updateProjectorNameMode(mode: string) {
                             </div>
                         </div>
 
-                        <!-- Namensanzeige-Einstellung nur bei App-Galerie -->
+                        <!-- Name display setting only on app gallery -->
                         <div v-if="activeTab === 'app_gallery'" class="flex items-center gap-2">
                             <span class="text-xs text-muted-foreground">{{ t('photo.projectorNameMode') }}:</span>
                             <select
@@ -333,7 +333,7 @@ function updateProjectorNameMode(mode: string) {
                         </div>
                     </div>
 
-                    <!-- Foto-Grid -->
+                    <!-- Photo grid -->
                     <p v-if="sortedPhotos.length === 0" class="px-4 pb-4 text-sm text-muted-foreground">{{ t('photo.none') }}</p>
 
                     <div v-else class="grid grid-cols-2 gap-3 px-4 pb-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
@@ -360,7 +360,7 @@ function updateProjectorNameMode(mode: string) {
                                     <template v-else>{{ t('photo.uploadedByOrganizer') }}</template>
                                 </div>
                             </div>
-                            <!-- Checkbox im Auswahlmodus -->
+                            <!-- Checkbox in selection mode -->
                             <div
                                 v-if="selectionMode"
                                 class="absolute top-2 left-2 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white transition-colors"
@@ -383,7 +383,7 @@ function updateProjectorNameMode(mode: string) {
             </div>
         </div>
 
-        <!-- Foto-Viewer Dialog -->
+        <!-- Photo viewer dialog -->
         <Dialog
             :open="!!selected"
             @update:open="
@@ -430,7 +430,7 @@ function updateProjectorNameMode(mode: string) {
             </DialogContent>
         </Dialog>
 
-        <!-- Beschreibungs-Dialog für Präsentation-Upload -->
+        <!-- Description dialog for presentation upload -->
         <Dialog v-model:open="uploadDescriptionOpen">
             <DialogContent class="max-w-sm">
                 <DialogHeader>
@@ -457,7 +457,7 @@ function updateProjectorNameMode(mode: string) {
             </DialogContent>
         </Dialog>
 
-        <!-- Einzellöschen Confirm -->
+        <!-- Single delete confirm -->
         <ConfirmDialog
             v-model:open="confirmDeleteOpen"
             :title="t('photo.deleteTitle')"
@@ -467,7 +467,7 @@ function updateProjectorNameMode(mode: string) {
             @confirm="doDelete"
         />
 
-        <!-- Batch-Delete Confirm -->
+        <!-- Batch delete confirm -->
         <ConfirmDialog
             v-model:open="confirmBatchOpen"
             :title="t('photo.batchDeleteTitle')"

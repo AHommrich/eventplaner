@@ -11,22 +11,22 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * Getränke-Tracking und Trinkspiel-Stats für die App.
+ * Drink tracking and drinking-game stats for the app.
  *
- *  - GET  /drinks        → Katalog des Events, gruppiert nach Typ mit den vom Veranstalter
- *                          ausgewählten Größen; Bezeichnungen lokalisiert via Accept-Language
- *  - POST /drinks/log    → ein Getränk eintragen; Punkte via {@see DrinkScoreService}
- *                          (Basis + Streak-Effekt). 60 s Cooldown zwischen Logs.
- *  - GET  /drinks/stats  → eigene Bilanz, Event-Gesamt, Top-5 pro Getränk, Gesamt-Leaderboard
+ *  - GET  /drinks        → catalog of the event, grouped by type with the sizes
+ *                          selected by the organizer; labels localized via Accept-Language
+ *  - POST /drinks/log    → log a drink; points via {@see DrinkScoreService}
+ *                          (base + streak effect). 60 s cooldown between logs.
+ *  - GET  /drinks/stats  → own balance, event totals, top-5 per drink, overall leaderboard
  *
- * `final_points` werden beim Log gespeichert (denormalisiert), damit historische
- * Punktestände beim Ändern der Score-Logik stabil bleiben.
+ * `final_points` are stored on the log (denormalized) so historical
+ * point totals stay stable when the scoring logic changes.
  */
 class DrinkLogController extends Controller
 {
     /**
      * GET /api/drinks
-     * Verfügbare Getränke für das Event des eingeloggten Gastes.
+     * Available drinks for the event of the logged-in guest.
      */
     private const CATEGORY_ORDER = ['beer', 'wine', 'spirit', 'longdrink', 'cocktail', 'softdrink', 'water', 'coffee'];
 
@@ -55,8 +55,8 @@ class DrinkLogController extends Controller
 
     /**
      * GET /api/drinks
-     * Verfügbare Getränke für das Event des eingeloggten Gastes.
-     * Sortiert nach Kategorie (definierte Reihenfolge) + Displayname.
+     * Available drinks for the event of the logged-in guest.
+     * Sorted by category (defined order) + display name.
      */
     public function index(Request $request): JsonResponse
     {
@@ -66,7 +66,7 @@ class DrinkLogController extends Controller
         $categoryOrder = array_flip(self::CATEGORY_ORDER);
         $categoryLabels = self::CATEGORY_LABELS[$lang] ?? self::CATEGORY_LABELS['de'];
 
-        // drinks: N Zeilen pro Typ — nach catalog_id gruppieren, nur ausgewählte Größen
+        // drinks: N rows per type — group by catalog_id, only selected sizes
         $drinks = Drink::where('event_id', $guest->event_id)
             ->with(['catalog', 'size'])
             ->get()
@@ -98,13 +98,13 @@ class DrinkLogController extends Controller
 
     /**
      * POST /api/drinks/log
-     * Ein Getränk für den eingeloggten Gast eintragen.
+     * Log a drink for the logged-in guest.
      */
     public function log(Request $request): JsonResponse
     {
         $guest = $request->user();
 
-        // Cooldown prüfen
+        // check cooldown
         $lastLog = DrinkLog::where('guest_id', $guest->id)
             ->latest()
             ->first();
@@ -128,13 +128,13 @@ class DrinkLogController extends Controller
 
         $amountLiter = $drink->size?->amount_liter ?? $drink->catalog?->defaultSize()?->amount_liter ?? 0.0;
 
-        // Game-Zeitfenster prüfen
+        // check game time window
         $event = Event::find($guest->event_id);
         if ($event && $event->drink_game_end_time && now()->isAfter($event->drink_game_end_time)) {
             return response()->json(['message' => 'Das Trinkspiel ist beendet.', 'code' => 'game_ended'], 403);
         }
 
-        // Punkte berechnen
+        // calculate points
         $history = DrinkScoreService::guestHistory($guest->id);
         $basePoints = $drink->catalog ? DrinkScoreService::basePoints($drink->catalog, $amountLiter) : 0;
         $finalPoints = $drink->catalog
@@ -168,15 +168,15 @@ class DrinkLogController extends Controller
 
     /**
      * GET /api/drinks/stats
-     * Statistiken: eigene Bilanz + Event-Rangliste nach Punkten.
-     * Verwendet gespeicherte final_points aus den Logs.
+     * Stats: own balance + event ranking by points.
+     * Uses the stored final_points from the logs.
      */
     public function stats(Request $request): JsonResponse
     {
         $guest = $request->user();
         $drinks = Drink::where('event_id', $guest->event_id)->with(['catalog', 'catalog.sizes'])->get();
 
-        // Eigene Bilanz (nach final_points summiert)
+        // own balance (summed by final_points)
         $myStats = $drinks->map(function ($drink) use ($guest) {
             $defaultLiter = $drink->catalog?->defaultSize()?->amount_liter ?? 0.0;
             $logs = DrinkLog::where('guest_id', $guest->id)->where('drink_id', $drink->id)->get();
@@ -192,7 +192,7 @@ class DrinkLogController extends Controller
             ];
         })->filter(fn ($d) => $d['count'] > 0)->values();
 
-        // Event-Gesamt pro Getränk (summe final_points)
+        // event totals per drink (sum of final_points)
         $eventTotals = $drinks->map(function ($drink) {
             $defaultLiter = $drink->catalog?->defaultSize()?->amount_liter ?? 0.0;
             $total = DrinkLog::where('drink_id', $drink->id)->count();
@@ -207,7 +207,7 @@ class DrinkLogController extends Controller
             ];
         })->filter(fn ($d) => $d['total'] > 0)->values();
 
-        // Top-Trinker pro Getränk (nach final_points)
+        // top drinkers per drink (by final_points)
         $leaderboard = $drinks->map(function ($drink) {
             $defaultLiter = $drink->catalog?->defaultSize()?->amount_liter ?? 0.0;
             $top = DrinkLog::where('drink_id', $drink->id)
@@ -233,7 +233,7 @@ class DrinkLogController extends Controller
             ];
         })->filter(fn ($d) => count($d['top']) > 0)->values();
 
-        // Gesamtrangliste nach final_points
+        // overall ranking by final_points
         $drinkIds = $drinks->pluck('id')->toArray();
         $guestTotals = collect();
         if (! empty($drinkIds)) {
@@ -253,7 +253,7 @@ class DrinkLogController extends Controller
                 ]);
         }
 
-        // Streak des aktuellen Gastes
+        // streak of the current guest
         $history = DrinkScoreService::guestHistory($guest->id);
         $currentStreak = DrinkScoreService::currentStreak($history);
         $bingePenalty = $currentStreak >= DrinkScoreService::BINGE_STREAK_THRESHOLD;

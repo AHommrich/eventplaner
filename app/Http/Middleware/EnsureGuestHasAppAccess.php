@@ -6,11 +6,11 @@ use Closure;
 use Illuminate\Http\Request;
 
 /**
- * Schützt API-Routen, die nur Gästen mit `app_access = true` offenstehen.
+ * Protects API routes that are only available to guests with `app_access = true`.
  *
- * Der Veranstalter kann pro Gast den App-Zugang abschalten (Bsp.: nicht-eingeladene
- * Begleitperson). Greift erst NACH `auth:sanctum`, prüft also einen bereits
- * authentifizierten Gast — JSON-403 mit Code `app_blocked` bei Verweigerung.
+ * The organizer can disable app access per guest (e.g. uninvited
+ * plus-one). Runs only AFTER `auth:sanctum`, so it checks an already
+ * authenticated guest — JSON 403 with code `app_blocked` on refusal.
  */
 class EnsureGuestHasAppAccess
 {

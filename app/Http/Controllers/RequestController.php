@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 /**
- * Verwaltet eingehende Anfragen (Rücknahmen, Event-Anfragen, ggf. weitere Typen).
+ * Manages incoming requests (revocations, event requests, possibly other types).
  */
 class RequestController extends Controller
 {
@@ -21,10 +21,10 @@ class RequestController extends Controller
         $event = $this->activeEvent();
         $isAdmin = auth()->user()->isAdmin();
 
-        // Nicht-Admin braucht zwingend ein aktives Event
+        // non-admin strictly needs an active event
         abort_if(! $event && ! $isAdmin, 404);
 
-        // Rücknahme-Anfragen (nur wenn Event vorhanden)
+        // revocation requests (only if an event exists)
         $revocations = $event ? Guest::where('event_id', $event->id)
             ->where('rsvp_status', 'revocation_requested')
             ->with(['group', 'rsvpSetByGuest', 'rsvpSetByUser'])
@@ -46,7 +46,7 @@ class RequestController extends Controller
                     : null,
             ]) : collect();
 
-        // Event-Anfragen (nur für Admin sichtbar)
+        // event requests (only visible to admin)
         $eventRequests = [];
         if (auth()->user()->isAdmin()) {
             $eventRequests = EventRequest::where('status', 'pending')
@@ -70,7 +70,7 @@ class RequestController extends Controller
 
     /**
      * POST /requests/revocations/{guest}/approve
-     * Rücknahme freigeben → rsvp_status = null
+     * Approve revocation → rsvp_status = null
      */
     public function approveRevocation(Request $request, Guest $guest)
     {
@@ -90,7 +90,7 @@ class RequestController extends Controller
 
     /**
      * POST /requests/revocations/{guest}/decline
-     * Rücknahme ablehnen → bleibt declined
+     * Decline revocation → stays declined
      */
     public function declineRevocation(Request $request, Guest $guest)
     {
@@ -109,7 +109,7 @@ class RequestController extends Controller
 
     /**
      * POST /requests/event-requests/{eventRequest}/approve
-     * Event-Anfrage genehmigen → Event erstellen
+     * Approve event request → create event
      */
     public function approveEventRequest(Request $request, EventRequest $eventRequest)
     {
@@ -130,7 +130,7 @@ class RequestController extends Controller
 
     /**
      * POST /requests/event-requests/{eventRequest}/decline
-     * Event-Anfrage ablehnen
+     * Decline event request
      */
     public function declineEventRequest(Request $request, EventRequest $eventRequest)
     {

@@ -18,12 +18,12 @@ pest()->extend(Tests\TestCase::class)->in('Unit');
 
 /*
 |--------------------------------------------------------------------------
-| Global Feature-Setup
+| Global feature setup
 |--------------------------------------------------------------------------
-| DB-Safety-Guard läuft in {@see Tests\TestCase::setUp()} und greift bei jedem
-| Unit/Feature-Test — siehe dort.
-| Mail::fake verhindert echte Resend-Calls bei Email-Verification etc.
-| Storage::fake('r2') hält den R2/S3-Disk lokal — kein Cloud-Upload aus Tests.
+| DB safety guard runs in {@see Tests\TestCase::setUp()} and triggers on every
+| unit/feature test — see there.
+| Mail::fake prevents real Resend calls during email verification, etc.
+| Storage::fake('r2') keeps the R2/S3 disk local — no cloud uploads from tests.
 */
 
 pest()->beforeEach(function () {
@@ -38,8 +38,8 @@ pest()->beforeEach(function () {
 */
 
 /**
- * Authentifiziert einen Gast via Sanctum-Bearer-Token und setzt den Header.
- * Verwendung: actingAsGuest($guest)->get('/api/event/info')
+ * Authenticates a guest via Sanctum bearer token and sets the header.
+ * Usage: actingAsGuest($guest)->get('/api/event/info')
  */
 function actingAsGuest(\App\Models\Guest $guest): \Tests\TestCase
 {
@@ -49,8 +49,8 @@ function actingAsGuest(\App\Models\Guest $guest): \Tests\TestCase
 }
 
 /**
- * Authentifiziert einen Event-Owner und setzt sein Event als aktives Event in der Session.
- * Verwendung: $user = actingAsOwner(); $event = $user->ownedEvents->first();
+ * Authenticates an event owner and sets their event as the active event in the session.
+ * Usage: $user = actingAsOwner(); $event = $user->ownedEvents->first();
  */
 function actingAsOwner(?\App\Models\Event $event = null): \App\Models\User
 {
@@ -62,7 +62,7 @@ function actingAsOwner(?\App\Models\Event $event = null): \App\Models\User
 }
 
 /**
- * Authentifiziert einen Admin-User (role=admin).
+ * Authenticates an admin user (role=admin).
  */
 function actingAsAdmin(): \App\Models\User
 {

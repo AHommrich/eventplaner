@@ -10,18 +10,18 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Self-Service-Endpoints für den eingeloggten Gast (React-Native-App).
+ * Self-service endpoints for the logged-in guest (React Native app).
  *
- *  - GET  /me                          → eigenes Profil + Familienmitglieder mit RSVP-Status
- *  - POST /rsvp                        → eigene Zu-/Absage als `*_pending` (Veranstalter bestätigt)
- *  - POST /{guestId}/rsvp              → für Familienmitglied setzen; Actor muss selbst zugesagt haben
- *  - POST /rsvp/revoke                 → Rücknahme-Antrag bei finaler Absage (declined → revocation_requested)
+ *  - GET  /me                          → own profile + family members with RSVP status
+ *  - POST /rsvp                        → own accept/decline as `*_pending` (organizer confirms)
+ *  - POST /{guestId}/rsvp              → set for a family member; actor must have accepted themselves
+ *  - POST /rsvp/revoke                 → revocation request for a final decline (declined → revocation_requested)
  *
- * Zustands-Maschine: alle Gast-Inputs landen in `*_pending`; nur der Veranstalter
- * promotet auf `accepted` / `declined`. Final gesetzte Stati können vom Gast nicht
- * mehr verändert werden — Rücknahme nur über den expliziten /revoke-Antrag.
+ * State machine: all guest inputs land in `*_pending`; only the organizer
+ * promotes to `accepted` / `declined`. Final states can no longer be changed
+ * by the guest — revocation only via the explicit /revoke request.
  *
- * RSVP-Deadline wird in {@see self::assertDeadlineNotPassed()} geprüft.
+ * RSVP deadline is checked in {@see self::assertDeadlineNotPassed()}.
  */
 class GuestApiController extends Controller
 {
@@ -56,7 +56,7 @@ class GuestApiController extends Controller
 
     /**
      * POST /api/guest/rsvp
-     * Gast setzt eigene Antwort → pending-Zustände.
+     * Guest sets their own answer → pending states.
      */
     public function rsvp(Request $request): JsonResponse
     {
@@ -64,7 +64,7 @@ class GuestApiController extends Controller
         $guest = $request->user();
 
         $this->assertDeadlineNotPassed($guest);
-        // Gast darf nur ändern wenn nicht bereits im finalen Zustand (accepted/declined)
+        // guest may only change if not already in a final state (accepted/declined)
         abort_if(
             in_array($guest->rsvp_status, ['accepted', 'declined']),
             422,
@@ -85,8 +85,8 @@ class GuestApiController extends Controller
 
     /**
      * POST /api/guest/{guest_id}/rsvp
-     * Familienmitglied für anderen Gast setzen.
-     * Erlaubt wenn Actor selbst accepted_pending oder accepted ist.
+     * Set RSVP for another guest in the family.
+     * Allowed when the actor is themselves accepted_pending or accepted.
      */
     public function rsvpForMember(Request $request, int $guestId): JsonResponse
     {
@@ -132,7 +132,7 @@ class GuestApiController extends Controller
 
     /**
      * POST /api/guest/rsvp/revoke
-     * Gast beantragt Rücknahme einer finalen Absage (declined → declined_pending).
+     * Guest requests revocation of a final decline (declined → declined_pending).
      */
     public function revoke(Request $request): JsonResponse
     {
@@ -150,7 +150,7 @@ class GuestApiController extends Controller
             'rsvp_set_at' => now(),
         ]);
 
-        // Email an Event-Owner
+        // email to event owner
         $guest->load('event.owner');
         if ($guest->event?->owner?->email) {
             Mail::to($guest->event->owner->email)

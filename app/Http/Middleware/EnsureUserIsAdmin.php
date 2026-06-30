@@ -7,10 +7,10 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Schützt Admin-Routen (z. B. `/admin/users`) — nur User mit `role = 'admin'`.
+ * Protects admin routes (e.g. `/admin/users`) — only users with `role = 'admin'`.
  *
- * Bei Verweigerung wird **nicht** mit 403 abgewiesen, sondern zur Onboarding-Seite
- * umgeleitet (Endusern soll nicht sichtbar werden, dass eine Admin-Sektion existiert).
+ * On refusal the request is **not** rejected with 403 but redirected to the onboarding
+ * page (end users should not see that an admin section exists).
  */
 class EnsureUserIsAdmin
 {

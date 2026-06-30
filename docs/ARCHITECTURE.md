@@ -1,19 +1,19 @@
-# Architektur
+# Architecture
 
-Dieses Dokument erklärt, wie der Eventplaner aufgebaut ist — Datenmodell, Auth-Schichten, die Subsysteme rund um Fotospiel, Trinkspiel, Projektor und Farben. Ziel ist ein Reviewer, der nach 20–30 Minuten Lesen weiß, wo welche Logik liegt und warum.
+This document explains how the eventplaner is structured — data model, auth layers, and the subsystems around the photo game, drinking game, projector and color theming. The goal is for a reviewer to know after 20–30 minutes of reading where each piece of logic lives and why.
 
-Die Datei verweist auf Quellen mit relativen Pfaden ohne Zeilennummern, damit Verweise nicht verrotten.
+File references use relative paths without line numbers so they don't rot.
 
 ---
 
-## 1. Domänenmodell
+## 1. Domain model
 
-Alles hängt an einem **Event**. Ein User kann mehrere Events besitzen oder als Mitveranstalter Zugriff auf weitere haben; das jeweils aktive Event lebt in der Session (siehe §3).
+Everything hangs off an **Event**. A user can own multiple events or have co-organizer access to others; whichever event is currently "active" lives in the session (see §3).
 
 ```mermaid
 erDiagram
     User ||--o{ Event : "owner"
-    User ||--o{ EventAccess : "mitveranstalter"
+    User ||--o{ EventAccess : "co-organizer"
     Event ||--o{ EventAccess : ""
 
     Event ||--o{ Guest : ""
@@ -22,11 +22,11 @@ erDiagram
     Group ||--o{ Guest : ""
     Category ||--o{ Guest : ""
 
-    Event ||--o{ PhotoAlbum : "3 Standard-Slugs"
+    Event ||--o{ PhotoAlbum : "3 standard slugs"
     PhotoAlbum ||--o{ Photo : ""
     Guest ||--o{ Photo : "uploader"
 
-    Event ||--o{ Drink : "Katalog-Auswahl"
+    Event ||--o{ Drink : "catalog selection"
     DrinkCatalog ||--o{ DrinkCatalogSize : ""
     DrinkCatalog ||--o{ Drink : ""
     DrinkCatalogSize ||--o{ Drink : ""
@@ -44,177 +44,178 @@ erDiagram
     Guest ||--o{ InvitationToken : ""
 ```
 
-**Foto-Subsystem** — pro Event werden drei Alben mit festen Slugs angelegt: `app_gallery` (alles was die App hochlädt), `presentation` (vorab vom Veranstalter kuratiertes Material) und `photo_game` (Einreichungen aus dem Aufgaben-Spiel). Fehlende Standard-Alben werden bei Bedarf nachgeholt (Backfill).
+**Photo subsystem** — every event gets three albums with fixed slugs: `app_gallery` (everything the app uploads), `presentation` (material curated by the host in advance) and `photo_game` (submissions from the task game). Missing standard albums are backfilled on demand.
 
-**Drink-Subsystem** — siehe §9. Ein Refactor hat Typ und Größe getrennt, daher die zwei Catalog-Tabellen.
+**Drink subsystem** — see §9. A refactor split type and size, which is why there are two catalog tables.
 
-**Fotospiel-Subsystem** — siehe §4. Globale Kataloge plus Event-spezifische Overrides.
+**Photo-game subsystem** — see §4. Global catalogs plus per-event overrides.
 
 ---
 
-## 2. Auth-Schichten
+## 2. Auth layers
 
-Es gibt zwei Auth-Modelle, die nebeneinander leben:
+Two auth models coexist:
 
-| Akteur | Auth-Mechanismus | Verwaltung |
+| Actor | Auth mechanism | Storage |
 |---|---|---|
-| User (Owner / Admin) | Email + Passwort, Session-Cookies via Sanctum | `App\Models\User` mit `role`-Spalte (`admin` = Superadmin, sonst Event-Owner) |
-| Gast | Sanctum-Bearer-Token via QR-Login | `App\Models\Guest` ist `HasApiTokens`, Guard bleibt `web` |
+| User (owner / admin) | Email + password, session cookies via Sanctum | `App\Models\User` with a `role` column (`admin` = superadmin, otherwise event owner) |
+| Guest | Sanctum bearer token via QR login | `App\Models\Guest` is `HasApiTokens`, guard stays `web` |
 
-**Middleware-Aliase** sind in `bootstrap/app.php` registriert:
+**Middleware aliases** are registered in `bootstrap/app.php`:
 
-| Alias | Klasse | Zweck |
+| Alias | Class | Purpose |
 |---|---|---|
-| `admin` | `App\Http\Middleware\EnsureUserIsAdmin` | Schützt `/admin/*` (User-Verwaltung) |
-| `has_event` | `App\Http\Middleware\EnsureHasEventAccess` | Schützt die Hauptapp — User braucht mindestens ein zugängliches Event |
-| `auth:sanctum` + `EnsureGuestHasAppAccess` | `app/Http/Middleware/EnsureGuestHasAppAccess.php` | API-Routen, die ein `app_access=true` auf dem Gast erfordern |
-| `auth:sanctum` + `EnsureGuestHasDrinksAccess` | `app/Http/Middleware/EnsureGuestHasDrinksAccess.php` | Zusätzliche Schranke für Getränke-Tracking |
+| `admin` | `App\Http\Middleware\EnsureUserIsAdmin` | Protects `/admin/*` (user management) |
+| `has_event` | `App\Http\Middleware\EnsureHasEventAccess` | Protects the main app — user needs access to at least one event |
+| `auth:sanctum` + `EnsureGuestHasAppAccess` | `app/Http/Middleware/EnsureGuestHasAppAccess.php` | API routes that require `app_access=true` on the guest |
+| `auth:sanctum` + `EnsureGuestHasDrinksAccess` | `app/Http/Middleware/EnsureGuestHasDrinksAccess.php` | Additional gate for drink tracking |
 
-Der QR-Login-Flow ist zweistufig für Familien — Details in [`app/Http/Controllers/Api/QrAuthController.php`](../app/Http/Controllers/Api/QrAuthController.php).
-
----
-
-## 3. Aktives Event (Session-Pattern)
-
-Ein User kann Zugriff auf mehrere Events haben. Welches Event gerade „aktiv" ist, wird **nicht** pro Request übergeben — stattdessen liegt die Wahl in der Session.
-
-- Helper [`Controller::activeEvent()`](../app/Http/Controllers/Controller.php) liest `session('active_event_id')` und prüft, ob das Event noch zugänglich ist. Fallback ist das erste zugängliche Event.
-- [`HandleInertiaRequests::share()`](../app/Http/Middleware/HandleInertiaRequests.php) teilt `active_event` und `accessible_events` global an alle Inertia-Seiten.
-- Die Sidebar zeigt bei mehr als einem Event einen Switcher; sonst nur den Namen.
-
-So bleibt jeder Controller frei von Event-ID-Boilerplate — der gewählte Kontext kommt aus der Session.
+The QR-login flow is two-step for families — details in [`app/Http/Controllers/Api/QrAuthController.php`](../app/Http/Controllers/Api/QrAuthController.php).
 
 ---
 
-## 4. Fotospiel — Delta-Modell
+## 3. Active event (session pattern)
 
-Das Spielprinzip: Gäste bekommen über die App eine zufällige Aufgabe zugewiesen, fotografieren das Motiv und reichen das Foto ein. Aufgaben sollen **global pflegbar** sein, aber jedes Event soll trotzdem eigene Anpassungen vornehmen können — ohne pro Event die ganze Liste zu duplizieren.
+A user may have access to multiple events. Which event is currently "active" is **not** passed per request — instead the choice lives in the session.
 
-**Datenmodell**:
+- The helper [`Controller::activeEvent()`](../app/Http/Controllers/Controller.php) reads `session('active_event_id')` and verifies the event is still accessible. Fallback is the first accessible event.
+- [`HandleInertiaRequests::share()`](../app/Http/Middleware/HandleInertiaRequests.php) shares `active_event` and `accessible_events` globally with every Inertia page.
+- The sidebar renders a switcher when the user has more than one event; otherwise just the name.
 
-- `photo_game_task_catalogs` enthält die globalen Kataloge (`event_id = null`):
-  - genau ein `is_base = true` (Allgemein, immer im Pool)
-  - mehrere typ-spezifische Kataloge (`event_type = 'hochzeit' | 'geburtstag' …`)
-- `photo_game_tasks` hängen an einem Katalog
-- `event_photo_games.catalog_id` zeigt auf den gewählten Typ-Katalog des Events
-- `event_task_overrides` speichert pro Event nur Deltas:
-  - `hidden` — Task wird im Pool ausgeblendet
-  - `modified` — Description wird ersetzt
-  - `added` — neue Task, `task_id` ist `null`
-
-**Pool-Aufbau** in [`app/Http/Controllers/Api/PhotoGameController.php`](../app/Http/Controllers/Api/PhotoGameController.php) (`buildAssignPool()`):
-
-1. Base-Katalog laden
-2. Typ-Katalog anhängen, falls gesetzt
-3. Overrides anwenden (hidden entfernt, modified ersetzt, added angehängt)
-
-**Einreichungen** — `photo_game_assignments` speichern `task_id` oder `override_id` (für `added`). Re-Submission ist erlaubt: ein Gast kann ein neues Foto für dieselbe Aufgabe einreichen. Beim Löschen eines Assignments wird das R2-Foto mit aufgeräumt.
+This keeps every controller free of event-id boilerplate — the chosen context comes from the session.
 
 ---
 
-## 5. Trinkspiel — Score-Berechnung
+## 4. Photo game — delta model
 
-Gäste loggen Getränke; das Trinkspiel sortiert sie nach Punkten. [`app/Services/DrinkScoreService.php`](../app/Services/DrinkScoreService.php) trägt die gesamte Logik.
+Game mechanic: guests are assigned a random task through the app, photograph the subject, and submit the photo. Tasks should be **globally maintainable**, yet each event should still be able to add its own tweaks — without duplicating the entire list per event.
 
-**Formel alkoholisch**:
+**Data model**:
+
+- `photo_game_task_catalogs` holds the global catalogs (`event_id = null`):
+  - exactly one `is_base = true` (general, always in the pool)
+  - multiple type-specific catalogs (`event_type = 'hochzeit' | 'geburtstag' …`)
+- `photo_game_tasks` belong to a catalog
+- `event_photo_games.catalog_id` points to the type catalog chosen by the event
+- `event_task_overrides` stores only deltas per event:
+  - `hidden` — task is removed from the pool
+  - `modified` — description is replaced
+  - `added` — new task, `task_id` is `null`
+
+**Pool building** in [`app/Http/Controllers/Api/PhotoGameController.php`](../app/Http/Controllers/Api/PhotoGameController.php) (`buildAssignPool()`):
+
+1. Load the base catalog
+2. Append the type catalog if set
+3. Apply overrides (hidden removes, modified replaces, added appends)
+
+**Submissions** — `photo_game_assignments` store either `task_id` or `override_id` (for `added`). Re-submission is allowed: a guest may submit a new photo for the same task. Deleting an assignment also removes the R2 photo.
+
+---
+
+## 5. Drinking game — score calculation
+
+Guests log drinks; the drinking game ranks them by points. [`app/Services/DrinkScoreService.php`](../app/Services/DrinkScoreService.php) carries all the logic.
+
+**Alcoholic formula**:
 ```
-basis = round(amount_liter × alcohol_percent × 10)
+base = round(amount_liter × alcohol_percent × 10)
 ```
 
-**Modifikatoren**:
+**Modifiers**:
 
-- **Shot-Multiplier 2.0** — Drinks der Kategorie `spirit` werden mit `×2` versehen, weil 4 cl pur deutlich schneller wirken als 4 cl im Longdrink.
-- **Binge-Penalty 50 %** — ab drei alkoholischen Drinks in Folge zählt der Basis-Score halb. Verhindert, dass „schnelles Trinken" beliebig skaliert.
-- **Alkoholfrei flat** — Wasser −5, Softdrinks −3 (negative `negative_points`-Werte am Katalog). Belohnt das Mitdenken.
+- **Shot multiplier 2.0** — drinks in the `spirit` category get `×2` because 4 cl neat hit noticeably harder than 4 cl in a long drink.
+- **Binge penalty 50%** — after three alcoholic drinks in a row the base score counts at half. Prevents "drink fast" from scaling forever.
+- **Non-alcoholic, flat** — water −5, soft drinks −3 (negative `negative_points` values on the catalog). Rewards staying hydrated.
 
-Die Multiplikatoren sind empirisch gewählt, nicht klinisch — das Spiel ist Unterhaltung, kein Diagnose-Tool.
+The multipliers are picked empirically, not clinically — the game is entertainment, not a diagnostic tool.
 
 ---
 
-## 6. Farbsystem — Palette + Rollen
+## 6. Color system — palette + roles
 
-Jedes Event hat ein vollständig konfigurierbares Theme, das sowohl die Web-App als auch die React-Native-App speist. Die Modellierung trennt **Palette** (die drei verfügbaren Farben) von **Rollen** (welche Palette-Farbe wofür verwendet wird).
+Every event has a fully configurable theme that feeds both the web app and the React Native companion. The model separates **palette** (the three available colors) from **roles** (which palette color is used for what).
 
 **Palette**:
 
-- `color_primary`, `color_secondary`, `color_tertiary` — drei Hex-Werte
+- `color_primary`, `color_secondary`, `color_tertiary` — three hex values
 
-**Rollen** (neun Felder, jedes speichert einen Key `primary | secondary | tertiary`, **nicht** den Hex-Wert):
+**Roles** (nine fields, each storing a key `primary | secondary | tertiary`, **not** the hex value):
 
 `role_screen_bg`, `role_card_bg`, `role_card_text`, `role_card_button`, `role_card_button_text`, `role_tab_tint`, `role_border`, `role_fab`, `role_fab_icon`
 
-**Warum so**: Ändert man die Palette, folgen automatisch alle Rollen. Wer stattdessen Hex-Werte direkt in den Rollen speichert, müsste bei einem Skin-Wechsel jede einzelne Stelle nachziehen. Das Settings-Frontend ([`resources/js/pages/Event/Settings.vue`](../resources/js/pages/Event/Settings.vue)) zeigt vier simulierte Smartphone-Screens, die live auf jede Änderung reagieren.
+**Why it's set up this way**: change the palette and every role follows automatically. If hex values were stored directly in the roles, every re-skin would require touching every field. The settings frontend ([`resources/js/pages/Event/Settings.vue`](../resources/js/pages/Event/Settings.vue)) renders four simulated phone screens that react live to every change.
 
-**Cover-Overlay** — `color_home_text`, `color_home_shadow` und `home_shadow_opacity` sind optional und nur relevant, wenn ein Cover-Bild gesetzt ist.
+**Cover overlay** — `color_home_text`, `color_home_shadow` and `home_shadow_opacity` are optional and only relevant when a cover image is set.
 
-**Auflösung zur Laufzeit** — die API gibt fertige Hex-Werte zurück, damit Clients nicht selbst auflösen müssen: [`app/Http/Controllers/Api/EventInfoController.php`](../app/Http/Controllers/Api/EventInfoController.php) löst die neun Rollen-Keys gegen die Palette auf und schickt `color_screen_bg`, `color_card`, … fertig vorbereitet raus.
-
----
-
-## 7. Projektor-Subsystem
-
-Für die Feier selbst gibt es eine Vollbild-Diashow, die auf einem Beamer-Rechner geöffnet wird. Sie zieht ihre Daten aus der App und reagiert auf neue Uploads.
-
-- **Public-Route** — pro Event existiert ein `projector_token` (auto-generiert, regenerierbar). Die Route `/projector/{token}` ist ohne Login zugänglich, weil der Projektor-Rechner kein User-Konto hat.
-- **Auto-Poll** alle 10 Sekunden auf neue Fotos, **Crossfade** 5 Sekunden zwischen Bildern.
-- **Kontextuelles Label** abhängig vom Album-Slug:
-  - `app_gallery` — Gastname; Modus konfigurierbar (`first | full | none` via `projector_name_mode`)
-  - `presentation` — optionale Beschreibung am Foto
-  - `photo_game` — Aufgabentext des Assignments
-
-Frontend liegt in [`resources/js/pages/Projector/Show.vue`](../resources/js/pages/Projector/Show.vue), Backend in [`app/Http/Controllers/ProjectorController.php`](../app/Http/Controllers/ProjectorController.php).
+**Runtime resolution** — the API returns ready-made hex values so clients don't have to resolve themselves: [`app/Http/Controllers/Api/EventInfoController.php`](../app/Http/Controllers/Api/EventInfoController.php) resolves the nine role keys against the palette and emits `color_screen_bg`, `color_card`, … prepared.
 
 ---
 
-## 8. i18n — Front- und Backend
+## 7. Projector subsystem
 
-**Frontend** — vue-i18n v11. Locale-Dateien liegen unter [`resources/js/locales/de.json`](../resources/js/locales/de.json) und `en.json`. Sprache wird in `localStorage` gespeichert, Default Deutsch. Plugin-Init in [`resources/js/plugins/i18n.ts`](../resources/js/plugins/i18n.ts). Nav- und Tab-Arrays sind bewusst als `computed()` definiert, damit sie auf Sprachwechsel reagieren.
+For the actual party there's a fullscreen slideshow opened on a projector machine. It pulls its data from the app and reacts to new uploads.
 
-**Backend** — Lokalisierung passiert **inline** in den API-Controllern, die i18n-Inhalt zurückgeben. Der Request-Header wird über Laravels Standard-Helper ausgewertet:
+- **Public route** — every event has a `projector_token` (auto-generated, regeneratable). The route `/projector/{token}` is accessible without login because the projector machine has no user account.
+- **Auto-poll** every 10 seconds for new photos, **crossfade** 5 seconds between images.
+- **Contextual label** depending on the album slug:
+  - `app_gallery` — guest name; mode configurable (`first | full | none` via `projector_name_mode`)
+  - `presentation` — optional description on the photo
+  - `photo_game` — task text from the assignment
+
+Frontend lives in [`resources/js/pages/Projector/Show.vue`](../resources/js/pages/Projector/Show.vue), backend in [`app/Http/Controllers/ProjectorController.php`](../app/Http/Controllers/ProjectorController.php).
+
+---
+
+## 8. i18n — front- and backend
+
+**Frontend** — vue-i18n v11. Locale files live under [`resources/js/locales/de.json`](../resources/js/locales/de.json) and `en.json`. The language is persisted to `localStorage`, default German. Plugin initialization in [`resources/js/plugins/i18n.ts`](../resources/js/plugins/i18n.ts). Nav and tab arrays are intentionally defined as `computed()` so they react to language switches.
+
+**Backend** — localization happens **inline** in the API controllers that return i18n content. The request header is parsed with Laravel's standard helper:
 
 ```php
 $lang = $request->getPreferredLanguage(['de', 'en']);
 ```
 
-Genutzt in [`app/Http/Controllers/Api/PhotoGameController.php`](../app/Http/Controllers/Api/PhotoGameController.php) und [`app/Http/Controllers/Api/DrinkLogController.php`](../app/Http/Controllers/Api/DrinkLogController.php). Es gibt bewusst keine separate Locale-Middleware — die zwei betroffenen Endpoints rechtfertigen den globalen Mechanismus nicht.
+Used in [`app/Http/Controllers/Api/PhotoGameController.php`](../app/Http/Controllers/Api/PhotoGameController.php) and [`app/Http/Controllers/Api/DrinkLogController.php`](../app/Http/Controllers/Api/DrinkLogController.php). There's intentionally no separate locale middleware — the two endpoints involved don't justify a global mechanism.
 
 ---
 
-## 9. Drink-Catalog — Datenmodell
+## 9. Drink catalog — data model
 
-Vor dem Refactor war pro Größe (0,3 l Pils / 0,5 l Pils / …) eine eigene Katalog-Zeile nötig — Typ und Größe waren vermischt. Das machte sowohl die Auswahl im Event als auch Punkt-Berechnungen unsauber. Heute:
+Before the refactor, every size (0.3 l pils / 0.5 l pils / …) required its own catalog row — type and size were mixed. That made both the per-event selection and the point calculation messy. Today:
 
-| Tabelle | Zweck |
+| Table | Purpose |
 |---|---|
-| `drink_catalog` | eine Zeile pro Typ (Pils, Weißbier, Wasser, …) — keine Sizes mehr |
-| `drink_catalog_sizes` | `(catalog_id, amount_liter, is_default)` — pro Typ N Größen |
-| `drinks` | `(event_id, drink_catalog_id, size_id)` — Event wählt einzelne Sizes |
-| `drink_logs` | `guest_id`, `drink_id`, `size_id`, `amount_liter` (denormalisiert für historische Stabilität) |
+| `drink_catalog` | one row per type (pils, wheat beer, water, …) — no sizes anymore |
+| `drink_catalog_sizes` | `(catalog_id, amount_liter, is_default)` — N sizes per type |
+| `drinks` | `(event_id, drink_catalog_id, size_id)` — event picks individual sizes |
+| `drink_logs` | `guest_id`, `drink_id`, `size_id`, `amount_liter` (denormalized for historical stability) |
 
-Die denormalisierte `amount_liter` in `drink_logs` ist Absicht: ändert sich später die Default-Größe eines Typs, bleiben alte Punkte unverändert.
+The denormalized `amount_liter` in `drink_logs` is intentional: if the default size of a type changes later, historic points stay untouched.
 
 Models: [`app/Models/DrinkCatalog.php`](../app/Models/DrinkCatalog.php), [`app/Models/DrinkCatalogSize.php`](../app/Models/DrinkCatalogSize.php), [`app/Models/Drink.php`](../app/Models/Drink.php), [`app/Models/DrinkLog.php`](../app/Models/DrinkLog.php).
 
 ---
 
-## 10. Deploy-Pipeline
+## 10. Deploy pipeline
 
-Drei Branches, zwei Dockerfiles:
+Three branches, two Dockerfiles:
 
 ```
 develop  →  staging  →  production
 ```
 
-- `develop` läuft mit [`Dockerfile`](../Dockerfile) (artisan-serve, Port 8080) — schnelle Iteration.
-- `staging` und `production` laufen mit [`Dockerfile.prod`](../Dockerfile.prod) (nginx + php-fpm).
-- [`docker-compose.yml`](../docker-compose.yml) ist **branch-spezifisch** und wird beim Merge bewusst nicht überschrieben — sonst zerlegt sich das Setup je nach Ziel.
+- `develop` runs with [`Dockerfile`](../Dockerfile) (artisan serve, port 8080) — fast iteration.
+- `staging` and `production` run with [`Dockerfile.prod`](../Dockerfile.prod) (nginx + php-fpm).
+- [`docker-compose.yml`](../docker-compose.yml) is **branch-specific** and intentionally not overwritten on merge — otherwise the setup falls apart depending on the target.
 
-Coolify deployt automatisch beim Push, Migrations laufen beim Container-Start.
+Coolify deploys automatically on push, migrations run on container start.
 
 ---
 
-## Weiterlesen
+## Further reading
 
-- [`README.md`](../README.md) — Projekt-Pitch, Feature-Highlights, Quick Start
-- [`docs/SHOWCASE_PLAN.md`](SHOWCASE_PLAN.md) — Plan für Tests, CI, Coverage
-- [`CLAUDE.md`](../CLAUDE.md) — interne Arbeitsanweisungen für den AI-Pair-Partner
+- [`README.md`](../README.md) — project pitch, feature highlights, quick start
+- [`docs/GDPR_COMPLIANCE_PLAN.md`](GDPR_COMPLIANCE_PLAN.md) — GDPR / data-protection plan and stage breakdowns
+- [`docs/legal/sub-processors.md`](legal/sub-processors.md) — sub-processor register (Hetzner, Cloudflare R2, Resend, …)
+- [`CLAUDE.md`](../CLAUDE.md) — internal collaboration instructions for the AI pair partner (German)

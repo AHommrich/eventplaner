@@ -11,16 +11,16 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 /**
- * Veranstalter-Sicht auf Getränke-Katalog + Trinkspiel.
+ * Organizer view on the drinks catalog + drinking game.
  *
- *  - `index()`        → Katalog-Auswahl: pro Typ N Größen, mit Punkte-Vorschau via {@see DrinkScoreService}
- *  - `batch()`        → Add/Remove mehrerer Sizes auf einmal (UI sendet Diff)
- *  - `store()`/`destroy()` → Einzeloperationen (Legacy / Cleanup)
- *  - `game()`         → Trinkspiel-Auswertung mit Leaderboard pro Getränketyp und Gesamt
- *  - `updateGameSettings()` → Trinkspiel-Endzeitpunkt
+ *  - `index()`        → catalog selection: N sizes per type, with point preview via {@see DrinkScoreService}
+ *  - `batch()`        → add/remove multiple sizes at once (UI sends diff)
+ *  - `store()`/`destroy()` → single operations (legacy / cleanup)
+ *  - `game()`         → drinking-game evaluation with leaderboard per drink type and overall
+ *  - `updateGameSettings()` → drinking-game end time
  *
- * Punkte werden in `drink_logs.final_points` denormalisiert gespeichert
- * (historische Stabilität), daher hier nur SUM ohne Re-Berechnung.
+ * Points are stored denormalized in `drink_logs.final_points`
+ * (historical stability), so only SUM here without re-calculation.
  */
 class DrinkController extends Controller
 {
@@ -28,12 +28,12 @@ class DrinkController extends Controller
     {
         $event = $this->activeEvent();
 
-        // addedSizeMap: size_id → drink_id (für Löschen per Badge)
+        // addedSizeMap: size_id → drink_id (for deletion via badge)
         $addedSizeMap = $event
             ? $event->drinks()->pluck('id', 'size_id')->toArray()
             : [];
 
-        // Aktive Getränke: nach Typ gruppiert, mit ausgewählten Größen
+        // active drinks: grouped by type, with selected sizes
         $eventDrinks = $event
             ? $event->drinks()->with(['catalog', 'size'])->get()
                 ->groupBy('drink_catalog_id')
@@ -57,7 +57,7 @@ class DrinkController extends Controller
                 })->sortBy('display_name')->values()
             : collect();
 
-        // Gesamtkatalog: pro Size ein event_drink_id-Flag
+        // full catalog: one event_drink_id flag per size
         $catalog = DrinkCatalog::where('is_active', true)
             ->with('sizes')
             ->orderBy('sort_order')
@@ -137,7 +137,7 @@ class DrinkController extends Controller
             'drink_catalog_id' => 'required|integer|exists:drink_catalog,id',
         ]);
 
-        // Doppelt hinzufügen verhindern
+        // prevent adding duplicates
         $already = Drink::where('event_id', $event->id)
             ->where('drink_catalog_id', $data['drink_catalog_id'])
             ->exists();
@@ -164,14 +164,14 @@ class DrinkController extends Controller
     public function game()
     {
         $event = $this->activeEvent();
-        // drinks: N Zeilen pro Typ (eine pro Größe), nach Typ gruppieren für Statistiken
+        // drinks: N rows per type (one per size), group by type for statistics
         $drinks = $event
             ? $event->drinks()->with(['catalog', 'size'])->get()
             : collect();
 
         $drinksByType = $drinks->groupBy('drink_catalog_id');
 
-        // Gesamt pro Getränk-Typ (alle sizes summieren)
+        // totals per drink type (sum all sizes)
         $eventTotals = $drinksByType->map(function ($group) {
             $first = $group->first();
             $drinkIds = $group->pluck('id')->toArray();
@@ -189,7 +189,7 @@ class DrinkController extends Controller
             ];
         })->filter(fn ($r) => $r['total'] > 0)->values();
 
-        // Top-Trinker pro Getränk-Typ
+        // top drinkers per drink type
         $leaderboard = $drinksByType->map(function ($group) {
             $first = $group->first();
             $drinkIds = $group->pluck('id')->toArray();
@@ -218,7 +218,7 @@ class DrinkController extends Controller
             ];
         })->filter(fn ($r) => $r['top']->isNotEmpty())->values();
 
-        // Gesamtrangliste
+        // overall ranking
         $drinkIds = $drinks->pluck('id')->toArray();
         $guestTotals = collect();
 
@@ -239,7 +239,7 @@ class DrinkController extends Controller
                 ]);
         }
 
-        // event_drinks für Game-View: nach Typ gruppiert mit ausgewählten Größen
+        // event_drinks for game view: grouped by type with selected sizes
         $eventDrinkList = $drinksByType->map(function ($group) {
             $first = $group->first();
 

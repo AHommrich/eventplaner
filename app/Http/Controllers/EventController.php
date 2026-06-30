@@ -10,21 +10,21 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 /**
- * Event-Lifecycle und Onboarding-Flow für Web-User.
+ * Event lifecycle and onboarding flow for web users.
  *
- *  - `onboarding()` / `noEvent()` → Einstiegs-Seiten für User ohne Event
- *  - `store()`                    → nur Admin; erstellt Event + 3 Standard-Alben + projector_token
- *  - `requestEvent()`             → Nicht-Admin reicht Event-Wunsch ein (EventRequest::pending)
- *  - `switch()`                   → wechselt das aktive Event in der Session (siehe {@see Controller::activeEvent()})
+ *  - `onboarding()` / `noEvent()` → entry pages for users without an event
+ *  - `store()`                    → admin only; creates event + 3 default albums + projector_token
+ *  - `requestEvent()`             → non-admin submits an event wish (EventRequest::pending)
+ *  - `switch()`                   → switches the active event in the session (see {@see Controller::activeEvent()})
  *
- * Default-Alben werden zentral via {@see self::createDefaultAlbums()} angelegt und
- * auch von {@see RequestController::approveEventRequest()} wiederverwendet.
+ * Default albums are created centrally via {@see self::createDefaultAlbums()} and
+ * reused by {@see RequestController::approveEventRequest()}.
  */
 class EventController extends Controller
 {
     public function onboarding()
     {
-        // Nur Admins dürfen Events direkt erstellen
+        // only admins may create events directly
         if (! auth()->user()->isAdmin()) {
             return redirect()->route('no-event');
         }
@@ -36,7 +36,7 @@ class EventController extends Controller
     {
         $user = auth()->user();
 
-        // Hat bereits ein Event → App
+        // already has an event → App
         if ($user->isAdmin() || $user->accessibleEvents()->exists()) {
             return redirect()->route('dashboard');
         }
@@ -52,7 +52,7 @@ class EventController extends Controller
 
     public function store(Request $request)
     {
-        // Nur Admins dürfen Events direkt erstellen
+        // only admins may create events directly
         if (! auth()->user()->isAdmin()) {
             abort(403);
         }

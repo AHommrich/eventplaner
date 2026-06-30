@@ -18,7 +18,7 @@ return new class extends Migration
             });
         }
 
-        // Backfill — nur auf MySQL/MariaDB sinnvoll, Test-DB ist leer.
+        // Backfill — only makes sense on MySQL/MariaDB, test DB is empty.
         if (DB::connection()->getDriverName() === 'mysql') {
             DB::statement('
                 UPDATE drink_logs dl

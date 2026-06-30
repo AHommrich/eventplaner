@@ -13,9 +13,9 @@ return new class extends Migration
             $table->string('translation_key')->nullable()->after('description');
         });
 
-        // Stabile Keys für alle globalen Tasks setzen (event_id = null)
+        // Set stable keys for all global tasks (event_id = null)
         $keys = [
-            // Allgemein (is_base = true)
+            // general (is_base = true)
             'Jemanden beim Lachen' => 'photoGame.tasks.general.laughing',
             'Jemanden beim Tanzen' => 'photoGame.tasks.general.dancing',
             'Zwei Menschen im Gespräch' => 'photoGame.tasks.general.talking',
@@ -32,7 +32,7 @@ return new class extends Migration
             'Jemanden beim Spielen' => 'photoGame.tasks.general.playing',
             'Jemanden der gerade nicht weiß dass er fotografiert wird' => 'photoGame.tasks.general.candid',
 
-            // Hochzeit (event_type = 'hochzeit')
+            // wedding (event_type = 'hochzeit')
             'Das Brautpaar beim ersten Tanz' => 'photoGame.tasks.hochzeit.firstDance',
             'Selfie mit dem Tischnachbarn' => 'photoGame.tasks.hochzeit.tableNeighbor',
             'Die Torte' => 'photoGame.tasks.hochzeit.cake',
@@ -43,7 +43,7 @@ return new class extends Migration
             'Ein Kuss' => 'photoGame.tasks.hochzeit.kiss',
             'Die Blumendeko' => 'photoGame.tasks.hochzeit.flowerDeco',
 
-            // Geburtstag (event_type = 'geburtstag')
+            // birthday (event_type = 'geburtstag')
             'Den Geburtstagskuchen' => 'photoGame.tasks.geburtstag.birthdayCake',
             'Ein Foto mit dem Geburtstagskind' => 'photoGame.tasks.geburtstag.withChild',
             'Jemanden beim Singen' => 'photoGame.tasks.geburtstag.singing',
@@ -54,7 +54,7 @@ return new class extends Migration
             'Die Geschenke' => 'photoGame.tasks.geburtstag.presents',
         ];
 
-        // UPDATE...JOIN ist MySQL-spezifisch; rewrite mit Subquery, läuft auf MySQL und SQLite.
+        // UPDATE...JOIN is MySQL-specific; rewritten with a subquery to work on MySQL and SQLite.
         foreach ($keys as $description => $key) {
             DB::table('photo_game_tasks')
                 ->where('description', $description)
