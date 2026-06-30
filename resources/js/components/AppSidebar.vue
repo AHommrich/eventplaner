@@ -74,7 +74,7 @@ interface EventRequestItem {
 const userEventRequests = computed(() => ((page.props as any).user_event_requests ?? []) as EventRequestItem[]);
 const pendingRequest = computed(() => userEventRequests.value.find((r) => r.status === 'pending'));
 
-// Admin: immer Dropdown. User mit Events: immer Dropdown. User ohne Event: kein Dropdown (Button stattdessen).
+// Admin: always dropdown. User with events: always dropdown. User without event: no dropdown (button instead).
 const showSwitcher = computed(() => isAdmin.value || accessibleEvents.value?.length > 0);
 
 const search = ref('');
@@ -123,7 +123,7 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
                 </SidebarMenuItem>
             </SidebarMenu>
 
-            <!-- Admin ohne Events: direkter Link zu "Neues Event" -->
+            <!-- Admin without events: direct link to "New event" -->
             <SidebarMenu v-if="isAdmin && !activeEvent">
                 <SidebarMenuItem>
                     <SidebarMenuButton :tooltip="t('event.newEvent')" @click="onboardingOpen = true">
@@ -133,7 +133,7 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
                 </SidebarMenuItem>
             </SidebarMenu>
 
-            <!-- Event-Dropdown (Admin mit Events immer, User wenn mind. 1 Event) -->
+            <!-- Event dropdown (admin with events always, user if at least 1 event) -->
             <SidebarMenu v-else-if="activeEvent && showSwitcher">
                 <SidebarMenuItem>
                     <DropdownMenu>
@@ -171,13 +171,13 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
 
                             <DropdownMenuSeparator />
 
-                            <!-- Admin: Event direkt erstellen -->
+                            <!-- Admin: create event directly -->
                             <DropdownMenuItem v-if="isAdmin" @click="onboardingOpen = true" class="cursor-pointer">
                                 <Plus class="mr-2 size-4" />
                                 {{ t('event.newEvent') }}
                             </DropdownMenuItem>
 
-                            <!-- User: Event beantragen oder Pending-Status -->
+                            <!-- User: request event or pending status -->
                             <template v-else>
                                 <DropdownMenuItem v-if="!pendingRequest" @click="requestModalOpen = true" class="cursor-pointer">
                                     <CalendarPlus class="mr-2 size-4" />
@@ -193,7 +193,7 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
                 </SidebarMenuItem>
             </SidebarMenu>
 
-            <!-- User ohne Event: nur Event-Name anzeigen (kein Dropdown) -->
+            <!-- User without event: show event name only (no dropdown) -->
             <SidebarMenu v-else-if="activeEvent">
                 <SidebarMenuItem>
                     <div class="flex items-center gap-2 px-2 py-1.5">
@@ -204,7 +204,7 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
         </SidebarHeader>
 
         <SidebarContent>
-            <!-- User ohne Event: Button öffnet Modal -->
+            <!-- User without event: button opens modal -->
             <SidebarGroup v-if="!activeEvent && !isAdmin" class="px-2 py-0">
                 <SidebarGroupLabel>{{ t('nav.platform') }}</SidebarGroupLabel>
                 <SidebarMenu>
@@ -237,6 +237,12 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
                 >
                     {{ lang.toUpperCase() }}
                 </button>
+            </div>
+            <div
+                class="flex justify-center gap-3 px-2 pb-1 text-[10px] text-sidebar-foreground/40 group-data-[collapsible=icon]:hidden"
+            >
+                <a :href="route('legal.imprint')" class="hover:text-sidebar-foreground">Impressum</a>
+                <a :href="route('legal.privacy')" class="hover:text-sidebar-foreground">Datenschutz</a>
             </div>
             <NavUser />
         </SidebarFooter>

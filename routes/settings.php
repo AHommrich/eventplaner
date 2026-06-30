@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\DataExportController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -18,4 +19,9 @@ Route::middleware('auth')->group(function () {
     Route::get('settings/appearance', function () {
         return Inertia::render('settings/Appearance');
     })->name('appearance');
+
+    // GDPR right-of-access (Art. 15) + data portability (Art. 20).
+    Route::get('settings/export-data', [DataExportController::class, 'download'])
+        ->middleware('throttle:6,1')
+        ->name('settings.export-data');
 });

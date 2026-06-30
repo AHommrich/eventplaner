@@ -536,6 +536,11 @@
         "savePassword": "Passwort speichern",
         "appearance": "Erscheinungsbild",
         "appearanceDesc": "Erscheinungsbild-Einstellungen aktualisieren",
+        "privacy": {
+            "title": "Datenschutz",
+            "description": "Lade alle in der App gespeicherten Daten als JSON-Datei herunter (DSGVO Art. 15).",
+            "exportData": "Meine Daten exportieren"
+        },
         "deleteAccount": "Account löschen",
         "deleteAccountDesc": "Account und alle zugehörigen Daten löschen",
         "deleteWarning": "Achtung",
@@ -557,6 +562,9 @@
         "registerDesc": "Daten eingeben um einen Account zu erstellen",
         "createAccount": "Account erstellen",
         "hasAccount": "Bereits einen Account?",
+        "privacyConsentPrefix": "Ich habe die",
+        "privacyConsentLink": "Datenschutzerklärung",
+        "privacyConsentSuffix": "gelesen und stimme der Verarbeitung meiner Daten zur Nutzung der App zu.",
         "forgotTitle": "Passwort vergessen",
         "forgotDesc": "E-Mail eingeben um einen Reset-Link zu erhalten",
         "sendResetLink": "Reset-Link senden",

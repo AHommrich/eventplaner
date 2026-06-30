@@ -4,20 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Models\Photo;
 use App\Models\PhotoAlbum;
+use App\Services\PhotoSanitizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
-use Intervention\Image\ImageManager;
 
 /**
- * Veranstalter-Verwaltung der Fotos eines Events (Inertia, NICHT die Gast-API).
+ * Organizer management of the photos of an event (Inertia, NOT the guest API).
  *
- *  - `index()`                     → alle Alben mit Fotos + Projektor-URL
- *  - `store()`                     → Upload (HEIC→JPEG via Imagick); landet je nach `album_slug` im richtigen Album
- *  - `destroy()` / `destroyBatch()` → löschen Foto-Datensatz + R2-Objekt
- *  - `updateProjectorAlbum()` / `updateProjectorNameMode()` → Anzeige-Konfig der Beamer-Diashow
- *  - `regenerateProjectorToken()`  → erstellt neuen 32-Zeichen-Token (alter Beamer-Link wird ungültig)
+ *  - `index()`                     → all albums with photos + projector URL
+ *  - `store()`                     → upload (HEIC→JPEG via Imagick); lands in the right album based on `album_slug`
+ *  - `destroy()` / `destroyBatch()` → delete photo record + R2 object
+ *  - `updateProjectorAlbum()` / `updateProjectorNameMode()` → display config of the projector slideshow
+ *  - `regenerateProjectorToken()`  → creates a new 32-char token (old projector link becomes invalid)
  */
 class PhotoController extends Controller
 {
@@ -73,7 +73,7 @@ class PhotoController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, PhotoSanitizer $sanitizer)
     {
         $event = $this->activeEvent();
 
@@ -84,20 +84,14 @@ class PhotoController extends Controller
         ]);
 
         $file = $request->file('photo');
-        $mime = strtolower($file->getMimeType() ?? '');
 
-        if (in_array($mime, ['image/heic', 'image/heif'])) {
-            $manager = ImageManager::imagick();
-            $image = $manager->read($file->getPathname());
-            $contents = (string) $image->toJpeg(90);
-        } else {
-            $contents = file_get_contents($file->getPathname());
-        }
+        // Re-encode to JPEG without EXIF on every upload path — see PhotoSanitizer.
+        $contents = $sanitizer->toJpegWithoutExif($file->getPathname());
 
         $path = 'photos/'.Str::uuid().'.jpg';
         Storage::disk('s3')->put($path, $contents, 'public');
 
-        // Default: party album für Admin-Uploads
+        // default: party album for admin uploads
         $albumId = $request->input('album_id');
         if (! $albumId && $event) {
             $partyAlbum = $event->photoAlbums()->where('slug', PhotoAlbum::PRESENTATION)->first();

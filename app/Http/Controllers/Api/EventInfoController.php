@@ -9,15 +9,15 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * Liefert die für den Gast relevanten Stamm-Infos seines Events.
+ * Returns the core event info relevant to the guest.
  *
  * Format:
- *  - Adresse wird aus den strukturierten Venue-Feldern zusammengebaut
- *    (DE-Reihenfolge anders als International). Legacy-Fallback auf
- *    `venue_address` (Freitext).
- *  - Farben: Palette unverändert + alle 9 Rollen bereits zu Hex aufgelöst
- *    (siehe {@see ColorRoleResolver}), damit Clients nichts mappen müssen.
- *  - Datumsfelder als ISO-8601.
+ *  - Address is assembled from the structured venue fields
+ *    (DE order differs from international). Legacy fallback to
+ *    `venue_address` (free text).
+ *  - Colors: palette unchanged + all 9 roles already resolved to hex
+ *    (see {@see ColorRoleResolver}) so clients don't need to map anything.
+ *  - Date fields as ISO-8601.
  */
 class EventInfoController extends Controller
 {
@@ -47,11 +47,11 @@ class EventInfoController extends Controller
             'venue_lng' => $event->venue_lng,
             'dresscode' => $event->dresscode,
             'schedule' => $event->schedule,
-            // Palette
+            // palette
             'color_primary' => $colors['palette']['primary'],
             'color_secondary' => $colors['palette']['secondary'],
             'color_tertiary' => $colors['palette']['tertiary'],
-            // Aufgelöste Rollen
+            // resolved roles
             'color_screen_bg' => $colors['roles']['role_screen_bg'],
             'color_card' => $colors['roles']['role_card_bg'],
             'color_card_text' => $colors['roles']['role_card_text'],
@@ -61,7 +61,7 @@ class EventInfoController extends Controller
             'color_border' => $colors['roles']['role_border'],
             'color_fab' => $colors['roles']['role_fab'],
             'color_fab_icon' => $colors['roles']['role_fab_icon'],
-            // Cover-Overlay
+            // cover overlay
             'color_home_text' => $colors['cover']['home_text'],
             'color_home_shadow' => $colors['cover']['home_shadow'],
             'home_shadow_opacity' => $colors['cover']['home_shadow_opacity'],
@@ -97,7 +97,7 @@ class EventInfoController extends Controller
             return implode(', ', $parts) ?: null;
         }
 
-        // Fallback auf altes Freitextfeld
+        // fallback to legacy free-text field
         return $event->venue_address ?: null;
     }
 }

@@ -6,15 +6,15 @@ use App\Models\Event;
 use Inertia\Inertia;
 
 /**
- * Vollbild-Diashow für den Beamer-Rechner auf der Feier (public route).
+ * Fullscreen slideshow for the projector machine at the party (public route).
  *
- * Authentifizierung via `projector_token` im URL — kein User-Login nötig, der Token
- * ersetzt die Auth. Regeneration über {@see PhotoController::regenerateProjectorToken()}.
+ * Authentication via `projector_token` in the URL — no user login needed, the token
+ * replaces auth. Regeneration via {@see PhotoController::regenerateProjectorToken()}.
  *
- * Kontextuelles Label je Album-Slug (`buildProjectorPhotos`):
- *  - `app_gallery`  → Gastname (Modus: `first` / `full` / `none` via `projector_name_mode`)
- *  - `presentation` → optionale Foto-Beschreibung
- *  - `photo_game`   → Aufgabentext des Assignments
+ * Contextual label per album slug (`buildProjectorPhotos`):
+ *  - `app_gallery`  → guest name (mode: `first` / `full` / `none` via `projector_name_mode`)
+ *  - `presentation` → optional photo description
+ *  - `photo_game`   → task text of the assignment
  */
 class ProjectorController extends Controller
 {

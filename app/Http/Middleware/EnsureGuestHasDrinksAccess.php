@@ -6,11 +6,11 @@ use Closure;
 use Illuminate\Http\Request;
 
 /**
- * Zusätzliche Schranke für Getränke-Tracking-Endpoints (`/api/drinks*`).
+ * Additional barrier for drink-tracking endpoints (`/api/drinks*`).
  *
- * Liegt hinter {@see EnsureGuestHasAppAccess}: der Gast hat zwar App-Zugang, aber
- * der Veranstalter kann das Trinkspiel pro Gast einzeln deaktivieren (Bsp.:
- * Kinder, schwangere Gäste). JSON-403 mit Code `drinks_blocked` bei Verweigerung.
+ * Sits behind {@see EnsureGuestHasAppAccess}: the guest does have app access, but
+ * the organizer can disable the drinking game per guest (e.g.
+ * children, pregnant guests). JSON 403 with code `drinks_blocked` on refusal.
  */
 class EnsureGuestHasDrinksAccess
 {

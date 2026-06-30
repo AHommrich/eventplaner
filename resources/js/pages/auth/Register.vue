@@ -11,7 +11,13 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
-const form = useForm({ name: '', email: '', password: '', password_confirmation: '' });
+const form = useForm({
+    name: '',
+    email: '',
+    password: '',
+    password_confirmation: '',
+    privacy_accepted: false,
+});
 
 const submit = () => {
     form.post(route('register'), { onFinish: () => form.reset('password', 'password_confirmation') });
@@ -73,7 +79,25 @@ const submit = () => {
                     <InputError :message="form.errors.password_confirmation" />
                 </div>
 
-                <Button type="submit" class="mt-2 w-full" tabindex="5" :disabled="form.processing">
+                <label class="flex items-start gap-2 text-sm">
+                    <input
+                        type="checkbox"
+                        class="mt-1"
+                        v-model="form.privacy_accepted"
+                        required
+                        :tabindex="5"
+                    />
+                    <span class="text-muted-foreground">
+                        {{ t('auth.privacyConsentPrefix') }}
+                        <a :href="route('legal.privacy')" target="_blank" class="underline">
+                            {{ t('auth.privacyConsentLink') }}
+                        </a>
+                        {{ t('auth.privacyConsentSuffix') }}
+                    </span>
+                </label>
+                <InputError :message="form.errors.privacy_accepted" />
+
+                <Button type="submit" class="mt-2 w-full" tabindex="6" :disabled="form.processing">
                     <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
                     {{ t('auth.createAccount') }}
                 </Button>

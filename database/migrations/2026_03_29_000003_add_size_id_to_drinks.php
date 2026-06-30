@@ -9,7 +9,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // ── 1. size_id (nullable) hinzufügen ──────────────────────────────────
+        // ── 1. add size_id (nullable) ─────────────────────────────────────────
         if (! Schema::hasColumn('drinks', 'size_id')) {
             Schema::table('drinks', function (Blueprint $table) {
                 $table->unsignedBigInteger('size_id')->nullable()->after('drink_catalog_id');
@@ -18,7 +18,7 @@ return new class extends Migration
 
         $isMysql = DB::connection()->getDriverName() === 'mysql';
 
-        // ── 2. Bestehende Zeilen expandieren — nur wenn Daten vorhanden ──────
+        // ── 2. expand existing rows — only if data is present ────────────────
         $nullCount = DB::table('drinks')->whereNull('size_id')->count();
         if ($nullCount > 0) {
             $drinks = DB::table('drinks')->whereNull('size_id')->get();
@@ -54,7 +54,7 @@ return new class extends Migration
             }
         }
 
-        // ── 3. drink_logs umhängen — UPDATE JOIN ist MySQL-spezifisch ─────────
+        // ── 3. repoint drink_logs — UPDATE JOIN is MySQL-specific ────────────
         if ($isMysql) {
             DB::statement('
                 UPDATE drink_logs dl
@@ -67,9 +67,9 @@ return new class extends Migration
             ');
         }
 
-        // ── 4. size_id auf NOT NULL hochziehen + Foreign Key ──────────────────
-        // FK + Indizes via DB::statement, damit try/catch greift (Schema::table batched
-        // Statements und schluckt einzelne Failures innerhalb des Closures nicht).
+        // ── 4. promote size_id to NOT NULL + foreign key ──────────────────────
+        // FK + indexes via DB::statement so try/catch works (Schema::table batches
+        // statements and does not swallow individual failures inside the closure).
         if ($isMysql) {
             try {
                 DB::statement('ALTER TABLE drinks DROP FOREIGN KEY drinks_size_id_foreign');
@@ -78,13 +78,13 @@ return new class extends Migration
             DB::statement('ALTER TABLE drinks MODIFY COLUMN size_id bigint(20) unsigned NOT NULL');
             DB::statement('ALTER TABLE drinks ADD CONSTRAINT drinks_size_id_foreign FOREIGN KEY (size_id) REFERENCES drink_catalog_sizes(id) ON DELETE CASCADE');
         } else {
-            // SQLite kann FK/NOT-NULL nicht nachträglich setzen; size_id bleibt nullable im Test.
+            // SQLite cannot retroactively set FK / NOT-NULL; size_id stays nullable in tests.
             Schema::table('drinks', function (Blueprint $table) {
                 $table->foreign('size_id')->references('id')->on('drink_catalog_sizes')->cascadeOnDelete();
             });
         }
 
-        // ── 5. Unique-Constraint tauschen ─────────────────────────────────────
+        // ── 5. swap unique constraint ─────────────────────────────────────────
         if ($isMysql) {
             try {
                 DB::statement('ALTER TABLE drinks DROP INDEX drinks_event_id_drink_catalog_id_unique');
@@ -104,6 +104,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        // Nicht reversibel ohne Backup
+        // not reversible without a backup
     }
 };

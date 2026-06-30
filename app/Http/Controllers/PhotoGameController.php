@@ -11,14 +11,14 @@ use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 /**
- * Veranstalter-Sicht auf das Fotospiel (Admin-Endpoints, Inertia).
+ * Organizer view on the photo game (admin endpoints, Inertia).
  *
- *  - `index()` → Spielstatus, Pool-Vorschau (siehe {@see \App\Services\PhotoGameTaskPool}),
- *                Einreichungen, Override-Verwaltung
- *  - `start()` / `end()` → Status auf active / ended setzen (Lebenszyklus)
- *  - `updateCatalog()` → Event-Typ-Katalog auswählen (Hochzeit / Geburtstag / ...)
- *  - `upsertOverride()` / `destroyOverride()` → hidden / modified / added Deltas pflegen
- *  - `destroyAssignment()` → Einreichung löschen inkl. R2-Foto (Cleanup-Side-Effect)
+ *  - `index()` → game status, pool preview (see {@see \App\Services\PhotoGameTaskPool}),
+ *                submissions, override management
+ *  - `start()` / `end()` → set status to active / ended (lifecycle)
+ *  - `updateCatalog()` → select the event-type catalog (wedding / birthday / ...)
+ *  - `upsertOverride()` / `destroyOverride()` → maintain hidden / modified / added deltas
+ *  - `destroyAssignment()` → delete submission incl. R2 photo (cleanup side effect)
  */
 class PhotoGameController extends Controller
 {
@@ -29,17 +29,17 @@ class PhotoGameController extends Controller
 
         $game = $event->photoGame;
 
-        // Globale Event-Typ-Kataloge (is_base=false, event_id=null) für das Dropdown
+        // global event-type catalogs (is_base=false, event_id=null) for the dropdown
         $catalogs = PhotoGameTaskCatalog::whereNull('event_id')
             ->where('is_base', false)
             ->active()
             ->orderBy('name')
             ->get(['id', 'name', 'event_type']);
 
-        // Task-Pool aufbauen: Basis + gewählter Typ-Katalog + Overrides des Events
+        // build task pool: base + selected type catalog + overrides of the event
         $taskPool = $this->buildTaskPool($event->id, $game?->catalog_id);
 
-        // Overrides des Events für die UI (damit Frontend den Status jeder Aufgabe kennt)
+        // overrides of the event for the UI (so the frontend knows the status of each task)
         $overrides = EventTaskOverride::where('event_id', $event->id)
             ->get(['id', 'task_id', 'action', 'custom_text']);
 
@@ -72,10 +72,10 @@ class PhotoGameController extends Controller
         ]);
     }
 
-    /** Baut den merged Task-Pool für die Admin-Ansicht + API */
+    /** Builds the merged task pool for the admin view + API */
     public function buildTaskPool(int $eventId, ?int $typeCatalogId): array
     {
-        // 1. Basis-Tasks (is_base=true)
+        // 1. base tasks (is_base=true)
         $baseCatalog = PhotoGameTaskCatalog::base()->first();
         $baseTasks = $baseCatalog
             ? $baseCatalog->tasks()->active()->get()->map(fn ($t) => [
@@ -88,7 +88,7 @@ class PhotoGameController extends Controller
             ])->all()
             : [];
 
-        // 2. Event-Typ-Tasks
+        // 2. event-type tasks
         $typeTasks = [];
         if ($typeCatalogId) {
             $typeCatalog = PhotoGameTaskCatalog::find($typeCatalogId);
@@ -106,7 +106,7 @@ class PhotoGameController extends Controller
 
         $pool = array_merge($baseTasks, $typeTasks);
 
-        // 3. Overrides anwenden
+        // 3. apply overrides
         $overrides = EventTaskOverride::where('event_id', $eventId)->get();
         foreach ($overrides as $ov) {
             if ($ov->action === 'hidden') {
@@ -120,7 +120,7 @@ class PhotoGameController extends Controller
                         'override_id' => $ov->id,
                         'original_text' => $t['description'],
                         'description' => $ov->custom_text,
-                        // translation_key bleibt erhalten (für Original-Anzeige)
+                        // translation_key is preserved (for original display)
                     ])
                     : $t, $pool);
             } elseif ($ov->action === 'added') {
@@ -196,7 +196,7 @@ class PhotoGameController extends Controller
             'custom_text' => 'required_if:action,modified|required_if:action,added|nullable|string|max:500',
         ]);
 
-        // 'added' hat keine task_id — kein upsert via task_id, immer neu anlegen
+        // 'added' has no task_id — no upsert via task_id, always create new
         if ($data['action'] === 'added') {
             $override = EventTaskOverride::create([
                 'event_id' => $event->id,

@@ -59,7 +59,7 @@ function originalLabel(task: TaskInPool): string {
     return task.original_text ?? '';
 }
 
-// --- Event-Typ wechseln ---
+// --- Switch event type ---
 function setCatalog(catalogId: string) {
     router.patch(
         route('photo-game.catalog'),
@@ -91,7 +91,7 @@ function endGame() {
     );
 }
 
-// --- Aufgabe ausblenden ---
+// --- Hide task ---
 function hideTask(taskId: number) {
     router.post(
         route('photo-game.overrides.upsert'),
@@ -102,16 +102,16 @@ function hideTask(taskId: number) {
     );
 }
 
-// --- Aufgabe wiederherstellen / Override zurücksetzen ---
+// --- Restore task / reset override ---
 function deleteOverride(overrideId: number) {
     router.delete(route('photo-game.overrides.destroy', overrideId), {
         onSuccess: () => toast.success(t('photoGame.overrideDeleted')),
     });
 }
 
-// --- Aufgabe bearbeiten (modified) ---
-const editingTaskId = ref<number | null>(null); // task.id (für normal/hidden tasks aus dem Pool)
-const editingAddedId = ref<number | null>(null); // override_id (für 'added' tasks)
+// --- Edit task (modified) ---
+const editingTaskId = ref<number | null>(null); // task.id (for normal/hidden tasks from the pool)
+const editingAddedId = ref<number | null>(null); // override_id (for 'added' tasks)
 const editingText = ref('');
 
 function startEditTask(task: TaskInPool) {
@@ -172,7 +172,7 @@ function saveAddedEdit(overrideId: number) {
     });
 }
 
-// --- Eigene Aufgabe hinzufügen ---
+// --- Add own task ---
 const newTaskText = ref('');
 
 function addOwnTask() {
@@ -190,7 +190,7 @@ function addOwnTask() {
     );
 }
 
-// --- Eigene Aufgabe löschen ---
+// --- Delete own task ---
 const confirmDeleteOverrideOpen = ref(false);
 const pendingDeleteOverrideId = ref<number | null>(null);
 
@@ -204,7 +204,7 @@ function doDeleteAdded() {
     deleteOverride(pendingDeleteOverrideId.value);
 }
 
-// --- Einreichung löschen ---
+// --- Delete submission ---
 const confirmDeleteOpen = ref(false);
 const pendingDeleteId = ref<number | null>(null);
 
@@ -220,7 +220,7 @@ function doDeleteSubmission() {
     });
 }
 
-// --- Foto-Viewer ---
+// --- Photo viewer ---
 const viewerPhoto = ref<Submission | null>(null);
 
 // Active task count (hidden tasks don't count)
@@ -233,7 +233,7 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
         <div class="m-4 space-y-4">
             <h1 class="text-xl font-semibold">{{ t('photoGame.title') }}</h1>
 
-            <!-- Spiel-Einstellungen -->
+            <!-- Game settings -->
             <div class="space-y-4 rounded-lg border p-4">
                 <div class="flex items-center justify-between">
                     <h2 class="text-sm font-semibold">{{ t('photoGame.settings') }}</h2>
@@ -251,7 +251,7 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
                     </span>
                 </div>
 
-                <!-- Event-Typ-Auswahl -->
+                <!-- Event type selection -->
                 <div class="grid gap-1.5">
                     <label class="text-sm font-medium">{{ t('photoGame.eventTypeCatalog') }}</label>
                     <select
@@ -282,7 +282,7 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
                 </div>
             </div>
 
-            <!-- Aufgaben-Pool -->
+            <!-- Task pool -->
             <div class="space-y-3 rounded-lg border p-4">
                 <div>
                     <div class="flex items-center gap-2">
@@ -309,7 +309,7 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
                             'border-dashed': task.state === 'added',
                         }"
                     >
-                        <!-- Bearbeitungs-Modus für normale/modified tasks -->
+                        <!-- Edit mode for normal/modified tasks -->
                         <template v-if="editingTaskId === task.id && task.id !== null">
                             <Input
                                 v-model="editingText"
@@ -326,7 +326,7 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
                             </Button>
                         </template>
 
-                        <!-- Bearbeitungs-Modus für 'added' tasks -->
+                        <!-- Edit mode for 'added' tasks -->
                         <template v-else-if="editingAddedId === task.override_id && task.override_id !== null && task.state === 'added'">
                             <Input
                                 v-model="editingText"
@@ -343,7 +343,7 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
                             </Button>
                         </template>
 
-                        <!-- Anzeige-Modus -->
+                        <!-- Display mode -->
                         <template v-else>
                             <div class="min-w-0 flex-1">
                                 <span
@@ -354,7 +354,7 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
                                     }"
                                     >{{ task.state === 'modified' ? task.description : taskLabel(task) }}</span
                                 >
-                                <!-- Original-Text bei modified -->
+                                <!-- Original text for modified -->
                                 <p v-if="task.state === 'modified' && task.original_text" class="mt-0.5 text-xs text-muted-foreground">
                                     {{ t('photoGame.originalText') }}: {{ originalLabel(task) }}
                                 </p>
@@ -373,7 +373,7 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
                                 {{ t('photoGame.taskState.' + task.state) }}
                             </span>
 
-                            <!-- Aktions-Menü -->
+                            <!-- Actions menu -->
                             <DropdownMenu>
                                 <DropdownMenuTrigger as-child>
                                     <button
@@ -388,7 +388,7 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
                                     </button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" class="min-w-[160px]">
-                                    <!-- Normal: bearbeiten + ausblenden -->
+                                    <!-- Normal: edit + hide -->
                                     <template v-if="task.state === 'normal' && task.id !== null">
                                         <DropdownMenuItem @click="startEditTask(task)">
                                             <svg
@@ -423,7 +423,7 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
                                         </DropdownMenuItem>
                                     </template>
 
-                                    <!-- Hidden: wiederherstellen -->
+                                    <!-- Hidden: restore -->
                                     <template v-else-if="task.state === 'hidden' && task.override_id !== null">
                                         <DropdownMenuItem @click="deleteOverride(task.override_id!)">
                                             <svg
@@ -442,7 +442,7 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
                                         </DropdownMenuItem>
                                     </template>
 
-                                    <!-- Modified: bearbeiten + zurücksetzen -->
+                                    <!-- Modified: edit + reset -->
                                     <template v-else-if="task.state === 'modified' && task.override_id !== null">
                                         <DropdownMenuItem @click="startEditTask(task)">
                                             <svg
@@ -476,7 +476,7 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
                                         </DropdownMenuItem>
                                     </template>
 
-                                    <!-- Added: bearbeiten + löschen -->
+                                    <!-- Added: edit + delete -->
                                     <template v-else-if="task.state === 'added' && task.override_id !== null">
                                         <DropdownMenuItem @click="startEditAdded(task)">
                                             <svg
@@ -518,14 +518,14 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
                     </div>
                 </div>
 
-                <!-- Eigene Aufgabe hinzufügen -->
+                <!-- Add own task -->
                 <div class="flex gap-2 pt-1">
                     <Input v-model="newTaskText" :placeholder="t('photoGame.taskPlaceholder')" @keydown.enter="addOwnTask" />
                     <Button size="sm" @click="addOwnTask">{{ t('common.add') }}</Button>
                 </div>
             </div>
 
-            <!-- Einreichungen -->
+            <!-- Submissions -->
             <div class="space-y-2">
                 <h2 class="text-sm font-semibold">
                     {{ t('photoGame.submissions') }}
@@ -578,7 +578,7 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
             </div>
         </div>
 
-        <!-- Foto-Viewer -->
+        <!-- Photo viewer -->
         <div v-if="viewerPhoto" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80" @click="viewerPhoto = null">
             <div class="relative mx-4 w-full max-w-2xl" @click.stop>
                 <img v-if="viewerPhoto.photo_url" :src="viewerPhoto.photo_url" class="max-h-[80vh] w-full rounded-lg object-contain" />

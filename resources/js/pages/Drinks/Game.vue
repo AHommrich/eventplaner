@@ -95,7 +95,7 @@ const guestTotals = computed(
     <Head :title="t('game.title')" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="m-4 space-y-4">
-            <!-- Spieleinstellungen -->
+            <!-- Game settings -->
             <Card>
                 <CardHeader>
                     <CardTitle>{{ t('game.settings') }}</CardTitle>
@@ -118,7 +118,7 @@ const guestTotals = computed(
                 </CardContent>
             </Card>
 
-            <!-- Verfügbare Getränke mit Punkten -->
+            <!-- Available drinks with points -->
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
@@ -150,7 +150,7 @@ const guestTotals = computed(
                 </CardContent>
             </Card>
 
-            <!-- Gesamt-Rangliste nach Punkten -->
+            <!-- Overall leaderboard by points -->
             <Card>
                 <CardHeader>
                     <CardTitle>{{ t('game.leaderboard') }}</CardTitle>
@@ -172,7 +172,7 @@ const guestTotals = computed(
                 </CardContent>
             </Card>
 
-            <!-- Getränke-Übersicht -->
+            <!-- Drinks overview -->
             <Card>
                 <CardHeader>
                     <CardTitle>{{ t('game.drinkTotals') }}</CardTitle>
@@ -196,7 +196,7 @@ const guestTotals = computed(
                 </CardContent>
             </Card>
 
-            <!-- Top-Trinker pro Getränk -->
+            <!-- Top drinkers per drink -->
             <Card v-for="drink in leaderboard" :key="drink.drink_id">
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">

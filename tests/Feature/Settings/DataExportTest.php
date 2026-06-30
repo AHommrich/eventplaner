@@ -1,0 +1,78 @@
+<?php
+
+namespace Tests\Feature\Settings;
+
+use App\Models\Event;
+use App\Models\Guest;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class DataExportTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_unauthenticated_request_redirects_to_login(): void
+    {
+        $this->get(route('settings.export-data'))->assertRedirect(route('login'));
+    }
+
+    public function test_authenticated_user_can_download_their_data(): void
+    {
+        $user = User::factory()->create(['email' => 'owner@example.com']);
+        $event = Event::create([
+            'user_id' => $user->id,
+            'name' => 'My Wedding',
+            'slug' => 'my-wedding',
+            'date' => now()->addMonth(),
+        ]);
+        Guest::create([
+            'event_id' => $event->id,
+            'firstname' => 'Alice',
+            'lastname' => 'Doe',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('settings.export-data'));
+
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'application/json');
+
+        $payload = json_decode($response->streamedContent(), true);
+        $this->assertSame(1, $payload['export_format_version']);
+        $this->assertSame('owner@example.com', $payload['user']['email']);
+        $this->assertCount(1, $payload['events']);
+        $this->assertSame('My Wedding', $payload['events'][0]['name']);
+        $this->assertSame('Alice', $payload['events'][0]['guests'][0]['firstname']);
+    }
+
+    public function test_export_does_not_leak_password_or_other_users_data(): void
+    {
+        $alice = User::factory()->create(['email' => 'alice@example.com']);
+        $bob = User::factory()->create(['email' => 'bob@example.com']);
+        Event::create([
+            'user_id' => $bob->id,
+            'name' => 'Bob\'s Party',
+            'slug' => 'bobs-party',
+            'date' => now()->addMonth(),
+        ]);
+
+        $response = $this->actingAs($alice)->get(route('settings.export-data'));
+        $body = $response->streamedContent();
+
+        $this->assertStringNotContainsString('password', strtolower($body));
+        $this->assertStringNotContainsString('remember_token', $body);
+        $this->assertStringNotContainsString('bob@example.com', $body);
+        $this->assertStringNotContainsString("Bob's Party", $body);
+    }
+
+    public function test_export_filename_carries_user_id_and_date(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get(route('settings.export-data'));
+
+        $disposition = $response->headers->get('Content-Disposition');
+        $this->assertStringContainsString('eveplan-export-'.$user->id.'-', $disposition);
+        $this->assertStringContainsString('.json', $disposition);
+    }
+}

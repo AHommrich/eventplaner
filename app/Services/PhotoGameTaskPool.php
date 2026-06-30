@@ -7,20 +7,20 @@ use App\Models\PhotoGameTaskCatalog;
 use Illuminate\Support\Collection;
 
 /**
- * Baut den Aufgaben-Pool für das Fotospiel auf — Delta-Modell.
+ * Builds the task pool for the photo game — delta model.
  *
- *  1. Base-Katalog (`is_base = true`) liefert die Standard-Aufgaben — immer dabei.
- *  2. Typ-Katalog (`event_photo_games.catalog_id`) liefert event-typische Zusätze
- *     (z.B. „Brautpaar beim ersten Tanz" für Hochzeit) — optional.
- *  3. Event-Overrides modifizieren den so entstandenen Pool:
- *     - `hidden`   → entfernt einen Standard-Task
- *     - `modified` → ersetzt die Beschreibung eines Standard-Tasks
- *     - `added`    → ergänzt eine event-eigene Aufgabe
+ *  1. Base catalog (`is_base = true`) provides the standard tasks — always included.
+ *  2. Type catalog (`event_photo_games.catalog_id`) provides event-typical extras
+ *     (e.g. „Brautpaar beim ersten Tanz" for a wedding) — optional.
+ *  3. Event overrides modify the resulting pool:
+ *     - `hidden`   → removes a standard task
+ *     - `modified` → replaces the description of a standard task
+ *     - `added`    → adds an event-specific task
  *
- * Vorteil: Globale Standard-Aufgaben bleiben an einer Stelle pflegbar, jedes Event
- * speichert nur Deltas — keine Volltext-Duplikate pro Event.
+ * Advantage: global standard tasks stay maintainable in one place, each event
+ * only stores deltas — no full-text duplicates per event.
  *
- * Items haben das Shape:
+ * Items have the shape:
  *   ['task_id' => ?int, 'override_id' => ?int, 'description' => string,
  *    'description_en' => ?string, 'translation_key' => ?string]
  */

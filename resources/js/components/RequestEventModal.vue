@@ -35,7 +35,7 @@ function submit() {
 
 <template>
     <InputModal v-model:open="open" :title="t('onboarding.requestTitle')">
-        <!-- Anfrage läuft -->
+        <!-- Request pending -->
         <template v-if="pendingRequest">
             <div class="flex items-start gap-3 rounded-lg bg-amber-50 p-4 dark:bg-amber-950/30">
                 <Clock class="mt-0.5 size-4 shrink-0 text-amber-600" />
@@ -52,7 +52,7 @@ function submit() {
             </div>
         </template>
 
-        <!-- Anfrage abgelehnt oder neu -->
+        <!-- Request declined or new -->
         <template v-else>
             <div v-if="declinedRequest" class="flex items-start gap-3 rounded-lg bg-red-50 p-4 dark:bg-red-950/30">
                 <XCircle class="mt-0.5 size-4 shrink-0 text-red-500" />

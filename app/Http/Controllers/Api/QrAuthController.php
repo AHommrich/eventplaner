@@ -10,28 +10,28 @@ use Illuminate\Http\Request;
 use Laravel\Sanctum\PersonalAccessToken;
 
 /**
- * QR-Login für Gäste — Sanctum-Bearer-Token via Einladungs-Token aus dem QR-Code.
+ * QR login for guests — Sanctum bearer token via invitation token from the QR code.
  *
- * Solo-Gast:  GET /api/auth/qr/{token} liefert den Token sofort zurück (kein Picker).
- * Familie:    GET liefert die Mitgliederliste OHNE Tokens.
- *             POST /api/auth/qr/{token}/select { guest_id } stellt erst dann einen
- *             Token für den gewählten Gast aus.
+ * Solo guest:  GET /api/auth/qr/{token} returns the token immediately (no picker).
+ * Family:      GET returns the member list WITHOUT tokens.
+ *              POST /api/auth/qr/{token}/select { guest_id } only then issues a
+ *              token for the chosen guest.
  *
- * Tokens werden bewusst NICHT beim ersten Scan für alle Mitglieder vorab erstellt —
- * sonst würden ungenutzte Tokens andere Familienmitglieder blockieren (`is_active`
- * wäre true, obwohl niemand eingeloggt ist). Daher der zweistufige Flow.
+ * Tokens are intentionally NOT created up front for all members on the first scan —
+ * otherwise unused tokens would block other family members (`is_active`
+ * would be true even though nobody is logged in). Hence the two-step flow.
  *
- * `is_active`-Prüfung läuft explizit über {@see PersonalAccessToken}, nicht über die
- * `$guest->tokens()`-Relation — auf eager-geladenen Objekten scoped MorphMany dort
- * nicht korrekt.
+ * The `is_active` check runs explicitly via {@see PersonalAccessToken}, not via the
+ * `$guest->tokens()` relation — on eager-loaded objects MorphMany does not scope
+ * correctly there.
  */
 class QrAuthController extends Controller
 {
     /**
-     * Schritt 1: QR-Code scannen — gibt Gästeliste zurück, erstellt KEINE Tokens.
+     * Step 1: scan QR code — returns guest list, creates NO tokens.
      *
-     * Für Solo-Gäste wird der Token direkt ausgestellt (kein Picker nötig).
-     * Für Familien-Gäste muss danach /auth/qr/{token}/select aufgerufen werden.
+     * For solo guests the token is issued directly (no picker needed).
+     * For family guests, /auth/qr/{token}/select must be called afterwards.
      */
     public function login(string $token): JsonResponse
     {
@@ -56,7 +56,7 @@ class QrAuthController extends Controller
         $isGroup = $invitation->group_id !== null;
         $groupName = $isGroup ? $invitation->group->name : null;
 
-        // Solo-Gast: Token direkt ausstellen (kein Picker, kein Select-Schritt nötig)
+        // solo guest: issue token directly (no picker, no select step needed)
         if (! $isGroup) {
             $guest = $guests->first();
             $guest->tokens()->delete();
@@ -74,7 +74,7 @@ class QrAuthController extends Controller
             ]);
         }
 
-        // Familien-Gäste: nur Status zurückgeben, KEIN Token erstellen
+        // family guests: only return status, do NOT create a token
         $result = $guests->map(fn ($guest) => [
             'guest_id' => $guest->id,
             'firstname' => $guest->firstname,
@@ -93,10 +93,10 @@ class QrAuthController extends Controller
     }
 
     /**
-     * Schritt 2 (nur Familie): Gast wählt sich aus — Token wird jetzt erst erstellt.
+     * Step 2 (family only): guest picks themselves — token is only created now.
      *
      * Body: { "guest_id": 42 }
-     * Gibt token zurück wenn Gast noch nicht aktiv, sonst Fehler 409.
+     * Returns token if guest is not yet active, otherwise error 409.
      */
     public function select(string $token, Request $request): JsonResponse
     {

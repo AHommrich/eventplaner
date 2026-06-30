@@ -5,26 +5,25 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Photo;
 use App\Models\PhotoAlbum;
+use App\Services\PhotoSanitizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Intervention\Image\Drivers\Imagick\Driver;
-use Intervention\Image\ImageManager;
 
 /**
- * Foto-Upload und -Liste für Gäste (App-Galerie-Album).
+ * Photo upload and list for guests (app gallery album).
  *
- *  - POST /api/photos  → multipart 'photo'-Field; HEIC/HEIF werden serverseitig
- *                        via Imagick zu JPEG konvertiert, dann auf R2 (S3-API) abgelegt
- *  - GET  /api/photos  → Liste aller App-Galerie-Fotos des Events (mit Uploader-Vorname)
+ *  - POST /api/photos  → multipart 'photo' field; HEIC/HEIF are converted
+ *                        server-side via Imagick to JPEG and stored on R2 (S3 API)
+ *  - GET  /api/photos  → list of all app-gallery photos of the event (with uploader's first name)
  *
- * Album-Routing: Uploads landen automatisch im Standard-Album mit Slug
- * {@see \App\Models\PhotoAlbum::APP_GALLERY}. Andere Album-Slugs (Präsentation,
- * Fotospiel) sind dem Veranstalter bzw. Fotospiel-Flow vorbehalten.
+ * Album routing: uploads automatically land in the default album with slug
+ * {@see \App\Models\PhotoAlbum::APP_GALLERY}. Other album slugs (presentation,
+ * photo game) are reserved for the organizer or the photo-game flow.
  */
 class PhotoController extends Controller
 {
-    public function store(Request $request)
+    public function store(Request $request, PhotoSanitizer $sanitizer)
     {
         $request->validate([
             'photo' => ['required', 'file', 'mimes:jpeg,png,heic,heif', 'max:10240'],
@@ -32,21 +31,16 @@ class PhotoController extends Controller
 
         $guest = $request->user();
         $file = $request->file('photo');
-        $mime = strtolower($file->getClientOriginalExtension());
 
-        if (in_array($mime, ['heic', 'heif'])) {
-            $manager = new ImageManager(new Driver);
-            $imageData = $manager->read($file->getRealPath())->toJpeg(90)->toString();
-            $path = 'photos/'.Str::uuid().'.jpg';
-            Storage::disk('s3')->put($path, $imageData, 'public');
-        } else {
-            $path = 'photos/'.Str::uuid().'.'.$mime;
-            Storage::disk('s3')->put($path, file_get_contents($file), 'public');
-        }
+        // Re-encode every upload to a JPEG without EXIF — GDPR / privacy policy
+        // promises that GPS coordinates and device metadata never reach R2.
+        $imageData = $sanitizer->toJpegWithoutExif($file->getRealPath());
+        $path = 'photos/'.Str::uuid().'.jpg';
+        Storage::disk('s3')->put($path, $imageData, 'public');
 
         $url = Storage::disk('s3')->url($path);
 
-        // Gäste laden immer in app_gallery hoch
+        // guests always upload to app_gallery
         $album = PhotoAlbum::where('event_id', $guest->event_id)
             ->where('slug', PhotoAlbum::APP_GALLERY)
             ->first();
@@ -71,7 +65,7 @@ class PhotoController extends Controller
     {
         $guest = $request->user();
 
-        // Nur app_gallery für Gäste
+        // only app_gallery for guests
         $album = PhotoAlbum::where('event_id', $guest->event_id)
             ->where('slug', PhotoAlbum::APP_GALLERY)
             ->first();

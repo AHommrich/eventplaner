@@ -6,12 +6,12 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken as Middleware;
 
 class VerifyCsrfToken extends Middleware
 {
-    // WORKAROUND: staging (beta.hommrich.app) ist eine Subdomain von production (hommrich.app).
-    // Cookies mit domain=hommrich.app werden vom Browser auch an beta.hommrich.app geschickt,
-    // wodurch der XSRF-TOKEN von prod den XSRF-TOKEN von staging überschreibt → 419 auf logout.
-    // Fix: Cookie-Name pro Environment konfigurierbar via CSRF_COOKIE_NAME in Coolify ENVs.
+    // WORKAROUND: staging (beta.hommrich.app) is a subdomain of production (hommrich.app).
+    // Cookies with domain=hommrich.app are also sent by the browser to beta.hommrich.app,
+    // so the prod XSRF-TOKEN overwrites the staging XSRF-TOKEN → 419 on logout.
+    // Fix: cookie name configurable per environment via CSRF_COOKIE_NAME in Coolify ENVs.
     // Production: CSRF_COOKIE_NAME=XSRF-TOKEN, Staging: CSRF_COOKIE_NAME=BETA-XSRF-TOKEN
-    // Saubere Lösung wäre: Staging auf einer komplett anderen Domain ohne gemeinsame Parent-Domain.
+    // Cleaner solution would be: staging on a completely different domain without a shared parent domain.
     protected $cookieName = 'XSRF-TOKEN';
 
     public function __construct($app, $encrypter)

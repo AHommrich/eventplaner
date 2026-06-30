@@ -18,7 +18,7 @@ it('blocks user without any event from has_event routes', function () {
 
     $this->actingAs($user)
         ->get('/dashboard')
-        ->assertRedirect(); // wird auf /onboarding oder /no-event umgeleitet
+        ->assertRedirect(); // redirected to /onboarding or /no-event
 });
 
 it('allows admin user to access /admin/users', function () {
@@ -32,7 +32,7 @@ it('allows admin user to access /admin/users', function () {
 it('blocks non-admin user from /admin/users', function () {
     $user = User::factory()->create(['email_verified_at' => now()]); // default role = 'user'
 
-    // EnsureUserIsAdmin leitet auf /onboarding um statt 403 abzuwerfen
+    // EnsureUserIsAdmin redirects to /onboarding instead of throwing 403
     $this->actingAs($user)
         ->get('/admin/users')
         ->assertRedirect(route('onboarding'));

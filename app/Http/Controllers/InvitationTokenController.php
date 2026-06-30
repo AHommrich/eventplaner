@@ -8,16 +8,16 @@ use App\Models\InvitationToken;
 use Illuminate\Support\Str;
 
 /**
- * Erzeugt und regeneriert Einladungs-Tokens für Gruppen und Solo-Gäste.
+ * Generates and regenerates invitation tokens for groups and solo guests.
  *
- * Token = 32-stelliger Random-String, der im QR-Code der Einladung steht und vom
- * {@see \App\Http\Controllers\Api\QrAuthController} zur Authentifizierung geprüft wird.
+ * Token = 32-char random string embedded in the QR code of the invitation and
+ * checked by {@see \App\Http\Controllers\Api\QrAuthController} for authentication.
  *
- *  - `generate()`          → für jede Gruppe und jeden Solo-Gast einen Token (idempotent via updateOrCreate)
- *  - `generateForGroup()`  → Einzel-Regenerierung einer Gruppe (alter Token wird ersetzt)
- *  - `generateForGuest()`  → Einzel-Regenerierung eines Solo-Gastes
+ *  - `generate()`          → one token per group and per solo guest (idempotent via updateOrCreate)
+ *  - `generateForGroup()`  → single regeneration of a group (old token is replaced)
+ *  - `generateForGuest()`  → single regeneration of a solo guest
  *
- * Cross-Event-Schutz via `$this->activeEvent()->id`-Vergleich (403 sonst).
+ * Cross-event guard via `$this->activeEvent()->id` comparison (403 otherwise).
  */
 class InvitationTokenController extends Controller
 {
@@ -28,7 +28,7 @@ class InvitationTokenController extends Controller
             return redirect()->back()->with('error', 'Kein aktives Event.');
         }
 
-        // Token pro Gruppe im Event
+        // one token per group in the event
         $event->groups()->each(function ($group) {
             InvitationToken::updateOrCreate(
                 ['group_id' => $group->id],
@@ -36,7 +36,7 @@ class InvitationTokenController extends Controller
             );
         });
 
-        // Token pro Solo-Gast im Event
+        // one token per solo guest in the event
         $event->guests()->whereNull('group_id')->each(function ($guest) {
             InvitationToken::updateOrCreate(
                 ['guest_id' => $guest->id],

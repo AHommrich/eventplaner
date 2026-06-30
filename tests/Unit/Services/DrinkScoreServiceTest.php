@@ -4,7 +4,7 @@ use App\Models\DrinkCatalog;
 use App\Services\DrinkScoreService;
 
 /**
- * Reine Funktionstests — keine DB, DrinkCatalog wird ohne save() instanziert.
+ * Pure function tests — no DB, DrinkCatalog is instantiated without save().
  */
 function catalog(array $attrs = []): DrinkCatalog
 {
@@ -39,7 +39,7 @@ it('applies shot multiplier to spirits', function () {
 it('does not apply shot multiplier to non-spirit alcoholic drinks', function () {
     $longdrink = catalog(['category' => 'longdrink', 'alcohol_percent' => 7.0]);
     $points = DrinkScoreService::basePoints($longdrink, 0.25);
-    expect($points)->toBe(18); // round(0.25 × 7 × 10) = 18, KEIN ×2
+    expect($points)->toBe(18); // round(0.25 × 7 × 10) = 18, NO ×2
 });
 
 it('applies binge penalty after three consecutive alcoholic drinks', function () {
@@ -55,12 +55,12 @@ it('applies binge penalty after three consecutive alcoholic drinks', function ()
 it('does not apply binge penalty when interleaved with nonalcoholic drinks', function () {
     $history = collect([
         ['is_alcoholic' => true],
-        ['is_alcoholic' => false],  // unterbricht den Streak
+        ['is_alcoholic' => false],  // breaks the streak
         ['is_alcoholic' => true],
         ['is_alcoholic' => true],
     ]);
     $points = DrinkScoreService::effectivePoints(catalog(['alcohol_percent' => 5.0]), 0.5, $history);
-    expect($points)->toBe(25); // voller Basis-Score
+    expect($points)->toBe(25); // full base score
 });
 
 it('returns flat negative points for water', function () {

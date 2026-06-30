@@ -536,6 +536,11 @@
         "savePassword": "Save password",
         "appearance": "Appearance settings",
         "appearanceDesc": "Update your account's appearance settings",
+        "privacy": {
+            "title": "Privacy",
+            "description": "Download everything we store about you as a JSON file (GDPR Art. 15).",
+            "exportData": "Export my data"
+        },
         "deleteAccount": "Delete account",
         "deleteAccountDesc": "Delete your account and all of its resources",
         "deleteWarning": "Warning",
@@ -557,6 +562,9 @@
         "registerDesc": "Enter your details below to create your account",
         "createAccount": "Create account",
         "hasAccount": "Already have an account?",
+        "privacyConsentPrefix": "I have read the",
+        "privacyConsentLink": "privacy policy",
+        "privacyConsentSuffix": "and consent to my data being processed for the use of the app.",
         "forgotTitle": "Forgot password",
         "forgotDesc": "Enter your email to receive a password reset link",
         "sendResetLink": "Email password reset link",
