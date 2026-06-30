@@ -19,7 +19,7 @@ it('creates the three standard albums when an admin creates a new event', functi
 it('creates the three standard albums when an event-request is approved', function () {
     $admin = User::factory()->create(['role' => 'admin', 'email_verified_at' => now()]);
     $applicant = User::factory()->create();
-    $request   = \App\Models\EventRequest::create([
+    $request = \App\Models\EventRequest::create([
         'user_id' => $applicant->id, 'event_name' => 'Genehmigtes Event', 'status' => 'pending',
     ]);
 
@@ -47,7 +47,7 @@ it('uploads via /api/game/photo/submit land in the photo_game album', function (
     \Illuminate\Support\Facades\Storage::fake('s3');
     $event = Event::factory()->create();
     $guest = \App\Models\Guest::factory()->create(['event_id' => $event->id]);
-    $game  = \App\Models\EventPhotoGame::create(['event_id' => $event->id, 'status' => 'active']);
+    $game = \App\Models\EventPhotoGame::create(['event_id' => $event->id, 'status' => 'active']);
     $catalog = \App\Models\PhotoGameTaskCatalog::create(['event_id' => null, 'name' => 'Base', 'is_base' => true, 'is_active' => true]);
     \App\Models\PhotoGameTask::create(['catalog_id' => $catalog->id, 'description' => 'X', 'is_active' => true]);
     $gameAlbum = PhotoAlbum::create(['event_id' => $event->id, 'slug' => PhotoAlbum::PHOTO_GAME, 'name' => 'Spiel']);

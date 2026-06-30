@@ -11,16 +11,16 @@ it('returns the current guest profile via /me', function () {
     actingAsGuest($guest)->getJson('/api/guest/me')
         ->assertOk()
         ->assertJson([
-            'guest_id'  => $guest->id,
+            'guest_id' => $guest->id,
             'firstname' => 'Anna',
-            'type'      => 'solo',
+            'type' => 'solo',
         ]);
 });
 
 it('lists family members in /me for grouped guests', function () {
-    $event   = Event::factory()->create();
-    $group   = Group::factory()->create(['event_id' => $event->id, 'name' => 'Familie Test']);
-    $guest   = Guest::factory()->create(['event_id' => $event->id, 'group_id' => $group->id]);
+    $event = Event::factory()->create();
+    $group = Group::factory()->create(['event_id' => $event->id, 'name' => 'Familie Test']);
+    $guest = Guest::factory()->create(['event_id' => $event->id, 'group_id' => $group->id]);
     $partner = Guest::factory()->create(['event_id' => $event->id, 'group_id' => $group->id]);
 
     actingAsGuest($guest)->getJson('/api/guest/me')
@@ -60,9 +60,9 @@ it('blocks rsvp change once status is final', function () {
 });
 
 it('accepts a rsvp for a family member when actor has confirmed', function () {
-    $event  = Event::factory()->create();
-    $group  = Group::factory()->create(['event_id' => $event->id]);
-    $actor  = Guest::factory()->create(['event_id' => $event->id, 'group_id' => $group->id, 'rsvp_status' => 'accepted_pending']);
+    $event = Event::factory()->create();
+    $group = Group::factory()->create(['event_id' => $event->id]);
+    $actor = Guest::factory()->create(['event_id' => $event->id, 'group_id' => $group->id, 'rsvp_status' => 'accepted_pending']);
     $target = Guest::factory()->create(['event_id' => $event->id, 'group_id' => $group->id]);
 
     actingAsGuest($actor)->postJson("/api/guest/{$target->id}/rsvp", ['attending' => true])
@@ -71,11 +71,11 @@ it('accepts a rsvp for a family member when actor has confirmed', function () {
 });
 
 it('rejects rsvp for a guest from another family group', function () {
-    $event       = Event::factory()->create();
-    $group       = Group::factory()->create(['event_id' => $event->id]);
-    $otherGroup  = Group::factory()->create(['event_id' => $event->id]);
-    $actor       = Guest::factory()->create(['event_id' => $event->id, 'group_id' => $group->id, 'rsvp_status' => 'accepted_pending']);
-    $foreign     = Guest::factory()->create(['event_id' => $event->id, 'group_id' => $otherGroup->id]);
+    $event = Event::factory()->create();
+    $group = Group::factory()->create(['event_id' => $event->id]);
+    $otherGroup = Group::factory()->create(['event_id' => $event->id]);
+    $actor = Guest::factory()->create(['event_id' => $event->id, 'group_id' => $group->id, 'rsvp_status' => 'accepted_pending']);
+    $foreign = Guest::factory()->create(['event_id' => $event->id, 'group_id' => $otherGroup->id]);
 
     actingAsGuest($actor)->postJson("/api/guest/{$foreign->id}/rsvp", ['attending' => true])
         ->assertStatus(403);

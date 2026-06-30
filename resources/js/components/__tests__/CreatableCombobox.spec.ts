@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { defineComponent, h, nextTick } from 'vue';
 import axios from 'axios';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { defineComponent, h, nextTick } from 'vue';
 import CreatableCombobox from '../CreatableCombobox.vue';
 
 vi.mock('axios', () => ({
@@ -106,9 +106,7 @@ describe('CreatableCombobox', () => {
         });
 
         const wrapper = mountCombobox();
-        const onCreate = wrapper.findComponent(MultiselectStub).props('onCreate') as (
-            opt: { label: string },
-        ) => Promise<unknown>;
+        const onCreate = wrapper.findComponent(MultiselectStub).props('onCreate') as (opt: { label: string }) => Promise<unknown>;
 
         await onCreate({ label: 'Familie Neu' });
 

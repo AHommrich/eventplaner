@@ -10,7 +10,7 @@ return new class extends Migration
     public function up(): void
     {
         // ── 1. drink_catalog_sizes Tabelle anlegen ────────────────────────────
-        if (!Schema::hasTable('drink_catalog_sizes')) {
+        if (! Schema::hasTable('drink_catalog_sizes')) {
             Schema::create('drink_catalog_sizes', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('catalog_id');
@@ -29,6 +29,7 @@ return new class extends Migration
         // frischen Test-DB ohne drink_catalog-Zeilen ist nichts zu tun.
         if (DB::table('drink_catalog')->count() === 0) {
             $this->normalizeSchema();
+
             return;
         }
 
@@ -42,16 +43,16 @@ return new class extends Migration
                 ->get();
 
             $canonicalId = $rows->min('id');
-            $midIndex    = (int) floor($rows->count() / 2);
+            $midIndex = (int) floor($rows->count() / 2);
 
             foreach ($rows as $index => $row) {
                 DB::table('drink_catalog_sizes')->insert([
-                    'catalog_id'   => $canonicalId,
+                    'catalog_id' => $canonicalId,
                     'amount_liter' => $row->amount_liter,
-                    'is_default'   => ($index === $midIndex) ? 1 : 0,
-                    'sort_order'   => $index,
-                    'created_at'   => now(),
-                    'updated_at'   => now(),
+                    'is_default' => ($index === $midIndex) ? 1 : 0,
+                    'sort_order' => $index,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
         }
@@ -63,7 +64,7 @@ return new class extends Migration
                 ->orderBy('id')
                 ->pluck('id');
 
-            $canonicalId  = $ids->first();
+            $canonicalId = $ids->first();
             $duplicateIds = $ids->slice(1)->values();
 
             if ($duplicateIds->isEmpty()) {
@@ -107,7 +108,7 @@ return new class extends Migration
             }
         }
 
-        if (!empty($toDelete)) {
+        if (! empty($toDelete)) {
             DB::table('drink_catalog')->whereIn('id', $toDelete)->delete();
         }
 
@@ -128,7 +129,10 @@ return new class extends Migration
         if (Schema::hasColumn('drink_catalog', 'amount_liter')) {
             Schema::table('drink_catalog', function (Blueprint $table) {
                 // MariaDB hat einen Composite-Index drauf — dropIndex per Name, falls vorhanden
-                try { $table->dropUnique('drink_catalog_type_amount_liter_unique'); } catch (\Throwable $e) {}
+                try {
+                    $table->dropUnique('drink_catalog_type_amount_liter_unique');
+                } catch (\Throwable $e) {
+                }
                 $table->dropColumn('amount_liter');
             });
         }
@@ -136,7 +140,7 @@ return new class extends Migration
         $hasUnique = collect(Schema::getIndexes('drink_catalog'))
             ->contains(fn ($i) => ($i['name'] ?? null) === 'drink_catalog_type_unique');
 
-        if (!$hasUnique) {
+        if (! $hasUnique) {
             try {
                 Schema::table('drink_catalog', function (Blueprint $table) {
                     $table->unique('type', 'drink_catalog_type_unique');

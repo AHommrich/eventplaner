@@ -5,7 +5,7 @@ use App\Models\Photo;
 use App\Models\PhotoAlbum;
 
 it('shows the projector page for a valid token', function () {
-    $event = Event::factory()->create(['projector_token' => 'tok-' . uniqid()]);
+    $event = Event::factory()->create(['projector_token' => 'tok-'.uniqid()]);
 
     $this->get("/projector/{$event->projector_token}")
         ->assertOk();
@@ -16,15 +16,15 @@ it('returns 404 for an invalid projector token', function () {
 });
 
 it('returns photos as JSON for /projector/{token}/photos', function () {
-    $event = Event::factory()->create(['projector_token' => 'tok-' . uniqid()]);
+    $event = Event::factory()->create(['projector_token' => 'tok-'.uniqid()]);
     $album = PhotoAlbum::create(['event_id' => $event->id, 'slug' => 'app_gallery', 'name' => 'Galerie']);
     $event->update(['projector_album_id' => $album->id]);
 
     Photo::create([
         'event_id' => $event->id,
         'album_id' => $album->id,
-        'url'      => 'https://r2/x.jpg',
-        'r2_key'   => 'photos/x.jpg',
+        'url' => 'https://r2/x.jpg',
+        'r2_key' => 'photos/x.jpg',
         'uploaded_by' => 'Test',
     ]);
 
@@ -34,7 +34,7 @@ it('returns photos as JSON for /projector/{token}/photos', function () {
 });
 
 it('regenerates the projector token', function () {
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
     $oldToken = $event->projector_token;
 
@@ -44,7 +44,7 @@ it('regenerates the projector token', function () {
 });
 
 it('updates projector_name_mode', function () {
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
 
     $this->patch(route('photos.projector-name-mode'), ['name_mode' => 'full'])->assertRedirect();
@@ -53,7 +53,7 @@ it('updates projector_name_mode', function () {
 });
 
 it('updates projector_album_id', function () {
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
     $album = PhotoAlbum::create(['event_id' => $event->id, 'slug' => 'presentation', 'name' => 'Präsentation']);
 

@@ -10,7 +10,9 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const form = useForm({ password: '' });
-const submit = () => { form.post(route('password.confirm'), { onFinish: () => form.reset() }); };
+const submit = () => {
+    form.post(route('password.confirm'), { onFinish: () => form.reset() });
+};
 </script>
 
 <template>
@@ -21,7 +23,15 @@ const submit = () => { form.post(route('password.confirm'), { onFinish: () => fo
             <div class="space-y-6">
                 <div class="grid gap-2">
                     <Label htmlFor="password">{{ t('auth.password') }}</Label>
-                    <Input id="password" type="password" class="mt-1 block w-full" v-model="form.password" required autocomplete="current-password" autofocus />
+                    <Input
+                        id="password"
+                        type="password"
+                        class="mt-1 block w-full"
+                        v-model="form.password"
+                        required
+                        autocomplete="current-password"
+                        autofocus
+                    />
                     <InputError :message="form.errors.password" />
                 </div>
 

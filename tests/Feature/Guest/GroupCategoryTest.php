@@ -4,10 +4,9 @@ use App\Models\Category;
 use App\Models\Event;
 use App\Models\FoodSpecial;
 use App\Models\Group;
-use App\Models\Guest;
 
 it('creates a new group', function () {
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
 
     $this->post(route('groups.store'), ['name' => 'Familie Test'])
@@ -25,7 +24,7 @@ it('returns JSON when group creation is requested with wantsJson()', function ()
 });
 
 it('deletes a group from the active event', function () {
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
     $group = Group::factory()->create(['event_id' => $event->id]);
 
@@ -37,7 +36,7 @@ it('deletes a group from the active event', function () {
 it('rejects deleting a group of another event', function () {
     actingAsOwner();
     $otherEvent = Event::factory()->create();
-    $foreign    = Group::factory()->create(['event_id' => $otherEvent->id]);
+    $foreign = Group::factory()->create(['event_id' => $otherEvent->id]);
 
     $this->delete(route('groups.destroy', $foreign))->assertStatus(403);
 });

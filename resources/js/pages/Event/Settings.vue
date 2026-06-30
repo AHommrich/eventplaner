@@ -1,13 +1,13 @@
 <script setup lang="ts">
+import InfoTooltip from '@/components/InfoTooltip.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useFloatingBar } from '@/composables/useFloatingBar';
-import InfoTooltip from '@/components/InfoTooltip.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import heic2any from 'heic2any';
 import L from 'leaflet';
@@ -132,13 +132,13 @@ const isDirty = computed(() => form.isDirty);
 
 // Field-level dirty detection for address section
 const savedAddress = reactive<Record<string, string>>({
-    venue_name:         props.event.venue_name         ?? '',
-    venue_street:       props.event.venue_street       ?? '',
+    venue_name: props.event.venue_name ?? '',
+    venue_street: props.event.venue_street ?? '',
     venue_house_number: props.event.venue_house_number ?? '',
-    venue_postal_code:  props.event.venue_postal_code  ?? '',
-    venue_city:         props.event.venue_city         ?? '',
-    venue_state:        props.event.venue_state        ?? '',
-    venue_country:      props.event.venue_country      ?? 'Deutschland',
+    venue_postal_code: props.event.venue_postal_code ?? '',
+    venue_city: props.event.venue_city ?? '',
+    venue_state: props.event.venue_state ?? '',
+    venue_country: props.event.venue_country ?? 'Deutschland',
 });
 type AddressField = keyof typeof savedAddress;
 const formAny = form as unknown as Record<string, string | null>;
@@ -160,7 +160,9 @@ function showHint(section: string) {
     activeHint.value = null;
     requestAnimationFrame(() => {
         activeHint.value = section;
-        hintTimer = setTimeout(() => { activeHint.value = null; }, 2500);
+        hintTimer = setTimeout(() => {
+            activeHint.value = null;
+        }, 2500);
     });
 }
 // Einheitliches Amber-Overlay für alle Elemente
@@ -211,7 +213,10 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     window.removeEventListener('beforeunload', handleBeforeUnload);
-    if (leafletMap) { leafletMap.remove(); leafletMap = null; }
+    if (leafletMap) {
+        leafletMap.remove();
+        leafletMap = null;
+    }
     removeInertiaGuard?.();
     floatingBarActive.value = false;
     if (previewCountdownInterval) clearInterval(previewCountdownInterval);
@@ -244,7 +249,12 @@ function submit() {
 
 // Cover
 const coverUrl = ref<string | null>(props.event.cover_image_url);
-watch(() => props.event.cover_image_url, (val) => { coverUrl.value = val; });
+watch(
+    () => props.event.cover_image_url,
+    (val) => {
+        coverUrl.value = val;
+    },
+);
 const coverPreview = ref<string | null>(null);
 const coverRemoving = ref(false);
 
@@ -287,9 +297,7 @@ async function processCoverFile(file: File) {
             canvas.width = bitmap.width;
             canvas.height = bitmap.height;
             canvas.getContext('2d')!.drawImage(bitmap, 0, 0);
-            const blob = await new Promise<Blob>((resolve, reject) =>
-                canvas.toBlob((b) => (b ? resolve(b) : reject()), 'image/jpeg', 0.92),
-            );
+            const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject()), 'image/jpeg', 0.92));
             file = new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' });
         } catch {
             toast.error(t('toast.coverError'));
@@ -351,9 +359,15 @@ const previewCountdown = ref<string | null>(null);
 let previewCountdownInterval: ReturnType<typeof setInterval> | null = null;
 
 function updatePreviewCountdown() {
-    if (!form.date) { previewCountdown.value = null; return; }
+    if (!form.date) {
+        previewCountdown.value = null;
+        return;
+    }
     const diff = new Date(form.date).getTime() - Date.now();
-    if (diff <= 0) { previewCountdown.value = null; return; }
+    if (diff <= 0) {
+        previewCountdown.value = null;
+        return;
+    }
     const totalSec = Math.floor(diff / 1000);
     const d = Math.floor(totalSec / 86400);
     const h = Math.floor((totalSec % 86400) / 3600);
@@ -362,11 +376,15 @@ function updatePreviewCountdown() {
     previewCountdown.value = `Noch ${d}T ${h}Std ${m}Min ${s}Sek`;
 }
 
-watch(() => form.date, () => {
-    updatePreviewCountdown();
-    if (previewCountdownInterval) clearInterval(previewCountdownInterval);
-    if (form.date) previewCountdownInterval = setInterval(updatePreviewCountdown, 1000);
-}, { immediate: true });
+watch(
+    () => form.date,
+    () => {
+        updatePreviewCountdown();
+        if (previewCountdownInterval) clearInterval(previewCountdownInterval);
+        if (form.date) previewCountdownInterval = setInterval(updatePreviewCountdown, 1000);
+    },
+    { immediate: true },
+);
 
 // --- Adressform ---
 const COUNTRIES = [
@@ -474,15 +492,14 @@ const previewVenueAddress = computed(() => {
 });
 
 // --- Leaflet Map-Picker ---
-const mapContainer     = ref<HTMLElement | null>(null);
+const mapContainer = ref<HTMLElement | null>(null);
 const reverseGeocoding = ref(false);
 let leafletMap: L.Map | null = null;
 let mapMarker: L.Marker | null = null;
 
 function initMap() {
     if (!mapContainer.value || leafletMap) return;
-    const center: [number, number] = (form.venue_lat && form.venue_lng)
-        ? [form.venue_lat, form.venue_lng] : [51.1657, 10.4515];
+    const center: [number, number] = form.venue_lat && form.venue_lng ? [form.venue_lat, form.venue_lng] : [51.1657, 10.4515];
     leafletMap = L.map(mapContainer.value).setView(center, form.venue_lat ? 15 : 6);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -517,29 +534,34 @@ async function setCoords(lat: number, lng: number) {
 async function reverseGeocode(lat: number, lng: number) {
     reverseGeocoding.value = true;
     try {
-        const res  = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`,
-            { headers: { 'Accept-Language': 'de' } },
-        );
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`, {
+            headers: { 'Accept-Language': 'de' },
+        });
         const data = await res.json();
         const addr = data.address;
         if (!addr) return;
-        form.venue_street       = addr.road ?? addr.pedestrian ?? addr.path ?? '';
+        form.venue_street = addr.road ?? addr.pedestrian ?? addr.path ?? '';
         form.venue_house_number = addr.house_number ?? '';
-        form.venue_postal_code  = addr.postcode ?? '';
-        form.venue_city         = addr.city ?? addr.town ?? addr.village ?? addr.municipality ?? addr.county ?? '';
-        form.venue_state        = addr.state ?? '';
-        const country           = addr.country ?? 'Deutschland';
-        form.venue_country      = country;
-        countryQuery.value      = country;
-    } catch { /* silent — User kann manuell befüllen */ }
-    finally { reverseGeocoding.value = false; }
+        form.venue_postal_code = addr.postcode ?? '';
+        form.venue_city = addr.city ?? addr.town ?? addr.village ?? addr.municipality ?? addr.county ?? '';
+        form.venue_state = addr.state ?? '';
+        const country = addr.country ?? 'Deutschland';
+        form.venue_country = country;
+        countryQuery.value = country;
+    } catch {
+        /* silent — User kann manuell befüllen */
+    } finally {
+        reverseGeocoding.value = false;
+    }
 }
 
 function clearMapCoords() {
     form.venue_lat = null;
     form.venue_lng = null;
-    if (mapMarker && leafletMap) { leafletMap.removeLayer(mapMarker); mapMarker = null; }
+    if (mapMarker && leafletMap) {
+        leafletMap.removeLayer(mapMarker);
+        mapMarker = null;
+    }
 }
 
 // --- Karten-Suche (forward geocode zum Zentrieren) ---
@@ -552,10 +574,10 @@ interface NominatimResult {
     address: Record<string, string>;
 }
 
-const mapSearchQuery   = ref('');
+const mapSearchQuery = ref('');
 const mapSearchResults = ref<NominatimResult[]>([]);
-const mapSearching     = ref(false);
-const mapSearchOpen    = ref(false);
+const mapSearching = ref(false);
+const mapSearchOpen = ref(false);
 const mapSearchInputRef = ref<HTMLElement | null>(null);
 const mapSearchDropdownStyle = ref({ top: '0px', left: '0px', width: '0px' });
 let mapSearchDebounce: ReturnType<typeof setTimeout> | null = null;
@@ -568,7 +590,11 @@ function updateMapSearchDropdownStyle() {
 
 watch(mapSearchQuery, (val) => {
     if (mapSearchDebounce) clearTimeout(mapSearchDebounce);
-    if (!val || val.length < 2) { mapSearchResults.value = []; mapSearchOpen.value = false; return; }
+    if (!val || val.length < 2) {
+        mapSearchResults.value = [];
+        mapSearchOpen.value = false;
+        return;
+    }
     mapSearchDebounce = setTimeout(async () => {
         mapSearching.value = true;
         try {
@@ -583,8 +609,11 @@ watch(mapSearchQuery, (val) => {
             } else {
                 mapSearchOpen.value = false;
             }
-        } catch { mapSearchResults.value = []; }
-        finally { mapSearching.value = false; }
+        } catch {
+            mapSearchResults.value = [];
+        } finally {
+            mapSearching.value = false;
+        }
     }, 350);
 });
 
@@ -612,18 +641,18 @@ function selectMapResult(result: NominatimResult) {
 
     // Adressfelder aus Nominatim-Ergebnis befüllen
     const addr = result.address;
-    form.venue_street       = addr.road ?? addr.pedestrian ?? addr.path ?? '';
+    form.venue_street = addr.road ?? addr.pedestrian ?? addr.path ?? '';
     form.venue_house_number = addr.house_number ?? '';
-    form.venue_postal_code  = addr.postcode ?? '';
-    form.venue_city         = addr.city ?? addr.town ?? addr.village ?? addr.municipality ?? addr.county ?? '';
-    form.venue_state        = addr.state ?? '';
-    const country           = addr.country ?? 'Deutschland';
-    form.venue_country      = country;
-    countryQuery.value      = country;
+    form.venue_postal_code = addr.postcode ?? '';
+    form.venue_city = addr.city ?? addr.town ?? addr.village ?? addr.municipality ?? addr.county ?? '';
+    form.venue_state = addr.state ?? '';
+    const country = addr.country ?? 'Deutschland';
+    form.venue_country = country;
+    countryQuery.value = country;
 
-    mapSearchQuery.value   = '';
+    mapSearchQuery.value = '';
     mapSearchResults.value = [];
-    mapSearchOpen.value    = false;
+    mapSearchOpen.value = false;
 }
 
 // --- Geocode aus Adressfeldern ---
@@ -632,9 +661,9 @@ const geocodingFromFields = ref(false);
 async function geocodeFromFields() {
     const parts: string[] = [];
     const street = [form.venue_street, form.venue_house_number].filter(Boolean).join(' ');
-    if (street)                 parts.push(street);
+    if (street) parts.push(street);
     if (form.venue_postal_code) parts.push(form.venue_postal_code);
-    if (form.venue_city)        parts.push(form.venue_city);
+    if (form.venue_city) parts.push(form.venue_city);
     if (form.venue_country && form.venue_country !== 'Deutschland') parts.push(form.venue_country);
     if (!parts.length) return;
 
@@ -646,13 +675,14 @@ async function geocodeFromFields() {
         );
         const results: NominatimResult[] = await res.json();
         if (results.length) selectMapResult(results[0]);
-    } catch { /* ignore */ }
-    finally { geocodingFromFields.value = false; }
+    } catch {
+        /* ignore */
+    } finally {
+        geocodingFromFields.value = false;
+    }
 }
 
-const hasAddressInput = computed(() =>
-    !!(form.venue_street || form.venue_city || form.venue_postal_code),
-);
+const hasAddressInput = computed(() => !!(form.venue_street || form.venue_city || form.venue_postal_code));
 
 // Palette + Rollen-Auflösung
 const palette = computed(() => ({
@@ -711,10 +741,7 @@ const tabDefs = [
         label: 'Zusage',
         viewBox: '0 0 512 512',
         strokeWidth: 40,
-        paths: [
-            'M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z',
-            'M352 176 217.6 336 160 272',
-        ],
+        paths: ['M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z', 'M352 176 217.6 336 160 272'],
     },
     {
         label: 'Fotos',
@@ -757,44 +784,62 @@ const presetNameInput = ref('');
 const showPresetInput = ref(false);
 
 function loadPreset(preset: StylePreset) {
-    form.color_primary        = preset.color_primary        ?? form.color_primary;
-    form.color_secondary      = preset.color_secondary      ?? form.color_secondary;
-    form.color_tertiary       = preset.color_tertiary       ?? form.color_tertiary;
-    form.color_home_text      = preset.color_home_text      ?? form.color_home_text;
-    form.color_home_shadow    = preset.color_home_shadow    ?? form.color_home_shadow;
-    form.home_shadow_opacity  = preset.home_shadow_opacity  ?? form.home_shadow_opacity;
-    form.role_screen_bg       = preset.role_screen_bg       ?? form.role_screen_bg;
-    form.role_card_bg         = preset.role_card_bg         ?? form.role_card_bg;
-    form.role_card_text       = preset.role_card_text       ?? form.role_card_text;
-    form.role_card_button     = preset.role_card_button     ?? form.role_card_button;
-    form.role_card_button_text= preset.role_card_button_text?? form.role_card_button_text;
-    form.role_tab_tint        = preset.role_tab_tint        ?? form.role_tab_tint;
-    form.role_border          = preset.role_border          ?? form.role_border;
-    form.role_fab             = preset.role_fab             ?? form.role_fab;
-    form.role_fab_icon        = preset.role_fab_icon        ?? form.role_fab_icon;
-    form.font_heading         = preset.font_heading         ?? form.font_heading;
+    form.color_primary = preset.color_primary ?? form.color_primary;
+    form.color_secondary = preset.color_secondary ?? form.color_secondary;
+    form.color_tertiary = preset.color_tertiary ?? form.color_tertiary;
+    form.color_home_text = preset.color_home_text ?? form.color_home_text;
+    form.color_home_shadow = preset.color_home_shadow ?? form.color_home_shadow;
+    form.home_shadow_opacity = preset.home_shadow_opacity ?? form.home_shadow_opacity;
+    form.role_screen_bg = preset.role_screen_bg ?? form.role_screen_bg;
+    form.role_card_bg = preset.role_card_bg ?? form.role_card_bg;
+    form.role_card_text = preset.role_card_text ?? form.role_card_text;
+    form.role_card_button = preset.role_card_button ?? form.role_card_button;
+    form.role_card_button_text = preset.role_card_button_text ?? form.role_card_button_text;
+    form.role_tab_tint = preset.role_tab_tint ?? form.role_tab_tint;
+    form.role_border = preset.role_border ?? form.role_border;
+    form.role_fab = preset.role_fab ?? form.role_fab;
+    form.role_fab_icon = preset.role_fab_icon ?? form.role_fab_icon;
+    form.font_heading = preset.font_heading ?? form.font_heading;
 }
 
-const presetForm = useForm({ name: '', color_primary: '', color_secondary: '', color_tertiary: '', color_home_text: '', color_home_shadow: '', home_shadow_opacity: 50 as number, role_screen_bg: '', role_card_bg: '', role_card_text: '', role_card_button: '', role_card_button_text: '', role_tab_tint: '', role_border: '', role_fab: '', role_fab_icon: '', font_heading: '' });
+const presetForm = useForm({
+    name: '',
+    color_primary: '',
+    color_secondary: '',
+    color_tertiary: '',
+    color_home_text: '',
+    color_home_shadow: '',
+    home_shadow_opacity: 50 as number,
+    role_screen_bg: '',
+    role_card_bg: '',
+    role_card_text: '',
+    role_card_button: '',
+    role_card_button_text: '',
+    role_tab_tint: '',
+    role_border: '',
+    role_fab: '',
+    role_fab_icon: '',
+    font_heading: '',
+});
 
 function savePreset() {
-    presetForm.name              = presetNameInput.value.trim();
-    presetForm.color_primary     = form.color_primary;
-    presetForm.color_secondary   = form.color_secondary;
-    presetForm.color_tertiary    = form.color_tertiary;
-    presetForm.color_home_text   = form.color_home_text;
+    presetForm.name = presetNameInput.value.trim();
+    presetForm.color_primary = form.color_primary;
+    presetForm.color_secondary = form.color_secondary;
+    presetForm.color_tertiary = form.color_tertiary;
+    presetForm.color_home_text = form.color_home_text;
     presetForm.color_home_shadow = form.color_home_shadow;
     presetForm.home_shadow_opacity = form.home_shadow_opacity;
-    presetForm.role_screen_bg    = form.role_screen_bg;
-    presetForm.role_card_bg      = form.role_card_bg;
-    presetForm.role_card_text    = form.role_card_text;
-    presetForm.role_card_button  = form.role_card_button;
+    presetForm.role_screen_bg = form.role_screen_bg;
+    presetForm.role_card_bg = form.role_card_bg;
+    presetForm.role_card_text = form.role_card_text;
+    presetForm.role_card_button = form.role_card_button;
     presetForm.role_card_button_text = form.role_card_button_text;
-    presetForm.role_tab_tint     = form.role_tab_tint;
-    presetForm.role_border       = form.role_border;
-    presetForm.role_fab          = form.role_fab;
-    presetForm.role_fab_icon     = form.role_fab_icon;
-    presetForm.font_heading      = form.font_heading;
+    presetForm.role_tab_tint = form.role_tab_tint;
+    presetForm.role_border = form.role_border;
+    presetForm.role_fab = form.role_fab;
+    presetForm.role_fab_icon = form.role_fab_icon;
+    presetForm.font_heading = form.font_heading;
     presetForm.post(route('event.style-presets.store'), {
         preserveScroll: true,
         onSuccess: () => {
@@ -813,11 +858,21 @@ function deletePreset(id: number) {
 }
 
 const STYLE_FIELDS = [
-    'color_primary', 'color_secondary', 'color_tertiary',
-    'color_home_text', 'color_home_shadow', 'home_shadow_opacity',
-    'role_screen_bg', 'role_card_bg', 'role_card_text',
-    'role_card_button', 'role_card_button_text',
-    'role_tab_tint', 'role_border', 'role_fab', 'role_fab_icon',
+    'color_primary',
+    'color_secondary',
+    'color_tertiary',
+    'color_home_text',
+    'color_home_shadow',
+    'home_shadow_opacity',
+    'role_screen_bg',
+    'role_card_bg',
+    'role_card_text',
+    'role_card_button',
+    'role_card_button_text',
+    'role_tab_tint',
+    'role_border',
+    'role_fab',
+    'role_fab_icon',
     'font_heading',
 ] as const;
 
@@ -903,7 +958,10 @@ function importStyle(e: Event) {
                                         <Input v-model="form.rsvp_deadline" type="datetime-local" />
                                     </div>
                                     <div class="grid gap-2">
-                                        <Label>{{ t('event.dresscode') }} <span class="text-xs font-normal text-muted-foreground">({{ t('event.venueOptional') }})</span></Label>
+                                        <Label
+                                            >{{ t('event.dresscode') }}
+                                            <span class="text-xs font-normal text-muted-foreground">({{ t('event.venueOptional') }})</span></Label
+                                        >
                                         <textarea
                                             v-model="form.dresscode"
                                             rows="2"
@@ -918,8 +976,20 @@ function importStyle(e: Event) {
                                             <span class="text-xs font-normal text-muted-foreground">({{ t('event.venueNameOptional') }})</span></Label
                                         >
                                         <div class="relative">
-                                            <Input v-model="form.venue_name" :placeholder="t('event.venueNamePlaceholder')" :class="isFieldDirty('venue_name') ? 'border-amber-400 ring-2 ring-amber-400/30 pr-8' : ''" />
-                                            <button v-if="isFieldDirty('venue_name')" type="button" @click="resetField('venue_name')" class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700" title="Zurücksetzen">↺</button>
+                                            <Input
+                                                v-model="form.venue_name"
+                                                :placeholder="t('event.venueNamePlaceholder')"
+                                                :class="isFieldDirty('venue_name') ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30' : ''"
+                                            />
+                                            <button
+                                                v-if="isFieldDirty('venue_name')"
+                                                type="button"
+                                                @click="resetField('venue_name')"
+                                                class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
+                                                title="Zurücksetzen"
+                                            >
+                                                ↺
+                                            </button>
                                         </div>
                                         <p class="-mt-1 text-xs text-muted-foreground">{{ t('event.venueNameHint') }}</p>
                                     </div>
@@ -940,7 +1010,11 @@ function importStyle(e: Event) {
                                                 type="button"
                                                 @click="form.venue_display_mode = opt.key"
                                                 class="flex-1 rounded-lg border-2 px-2 py-1.5 text-center text-xs transition-colors"
-                                                :class="(form.venue_display_mode ?? 'both') === opt.key ? 'border-ring bg-muted/20' : 'border-input hover:border-muted-foreground'"
+                                                :class="
+                                                    (form.venue_display_mode ?? 'both') === opt.key
+                                                        ? 'border-ring bg-muted/20'
+                                                        : 'border-input hover:border-muted-foreground'
+                                                "
                                             >
                                                 {{ opt.label }}
                                             </button>
@@ -955,15 +1029,45 @@ function importStyle(e: Event) {
                                                 <div class="grid gap-1.5">
                                                     <Label class="text-xs">{{ t('event.venueStreet') }}</Label>
                                                     <div class="relative">
-                                                        <Input v-model="form.venue_street" :placeholder="t('event.venueStreet')" :class="isFieldDirty('venue_street') ? 'border-amber-400 ring-2 ring-amber-400/30 pr-8' : ''" />
-                                                        <button v-if="isFieldDirty('venue_street')" type="button" @click="resetField('venue_street')" class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700" title="Zurücksetzen">↺</button>
+                                                        <Input
+                                                            v-model="form.venue_street"
+                                                            :placeholder="t('event.venueStreet')"
+                                                            :class="
+                                                                isFieldDirty('venue_street') ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30' : ''
+                                                            "
+                                                        />
+                                                        <button
+                                                            v-if="isFieldDirty('venue_street')"
+                                                            type="button"
+                                                            @click="resetField('venue_street')"
+                                                            class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
+                                                            title="Zurücksetzen"
+                                                        >
+                                                            ↺
+                                                        </button>
                                                     </div>
                                                 </div>
                                                 <div class="grid gap-1.5">
                                                     <Label class="text-xs">{{ t('event.venueHouseNumber') }}</Label>
                                                     <div class="relative">
-                                                        <Input v-model="form.venue_house_number" placeholder="26" :class="isFieldDirty('venue_house_number') ? 'border-amber-400 ring-2 ring-amber-400/30 pr-8' : ''" />
-                                                        <button v-if="isFieldDirty('venue_house_number')" type="button" @click="resetField('venue_house_number')" class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700" title="Zurücksetzen">↺</button>
+                                                        <Input
+                                                            v-model="form.venue_house_number"
+                                                            placeholder="26"
+                                                            :class="
+                                                                isFieldDirty('venue_house_number')
+                                                                    ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30'
+                                                                    : ''
+                                                            "
+                                                        />
+                                                        <button
+                                                            v-if="isFieldDirty('venue_house_number')"
+                                                            type="button"
+                                                            @click="resetField('venue_house_number')"
+                                                            class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
+                                                            title="Zurücksetzen"
+                                                        >
+                                                            ↺
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -971,15 +1075,45 @@ function importStyle(e: Event) {
                                                 <div class="grid gap-1.5">
                                                     <Label class="text-xs">{{ t('event.venuePostalCode') }}</Label>
                                                     <div class="relative">
-                                                        <Input v-model="form.venue_postal_code" placeholder="56218" :class="isFieldDirty('venue_postal_code') ? 'border-amber-400 ring-2 ring-amber-400/30 pr-8' : ''" />
-                                                        <button v-if="isFieldDirty('venue_postal_code')" type="button" @click="resetField('venue_postal_code')" class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700" title="Zurücksetzen">↺</button>
+                                                        <Input
+                                                            v-model="form.venue_postal_code"
+                                                            placeholder="56218"
+                                                            :class="
+                                                                isFieldDirty('venue_postal_code')
+                                                                    ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30'
+                                                                    : ''
+                                                            "
+                                                        />
+                                                        <button
+                                                            v-if="isFieldDirty('venue_postal_code')"
+                                                            type="button"
+                                                            @click="resetField('venue_postal_code')"
+                                                            class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
+                                                            title="Zurücksetzen"
+                                                        >
+                                                            ↺
+                                                        </button>
                                                     </div>
                                                 </div>
                                                 <div class="grid gap-1.5">
                                                     <Label class="text-xs">{{ t('event.venueCity') }}</Label>
                                                     <div class="relative">
-                                                        <Input v-model="form.venue_city" :placeholder="t('event.venueCity')" :class="isFieldDirty('venue_city') ? 'border-amber-400 ring-2 ring-amber-400/30 pr-8' : ''" />
-                                                        <button v-if="isFieldDirty('venue_city')" type="button" @click="resetField('venue_city')" class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700" title="Zurücksetzen">↺</button>
+                                                        <Input
+                                                            v-model="form.venue_city"
+                                                            :placeholder="t('event.venueCity')"
+                                                            :class="
+                                                                isFieldDirty('venue_city') ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30' : ''
+                                                            "
+                                                        />
+                                                        <button
+                                                            v-if="isFieldDirty('venue_city')"
+                                                            type="button"
+                                                            @click="resetField('venue_city')"
+                                                            class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
+                                                            title="Zurücksetzen"
+                                                        >
+                                                            ↺
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -990,23 +1124,65 @@ function importStyle(e: Event) {
                                             <div class="grid gap-1.5">
                                                 <Label class="text-xs">{{ t('event.venueAddressLine1') }}</Label>
                                                 <div class="relative">
-                                                    <Input v-model="form.venue_street" :placeholder="t('event.venueAddressLine1Placeholder')" :class="isFieldDirty('venue_street') ? 'border-amber-400 ring-2 ring-amber-400/30 pr-8' : ''" />
-                                                    <button v-if="isFieldDirty('venue_street')" type="button" @click="resetField('venue_street')" class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700" title="Zurücksetzen">↺</button>
+                                                    <Input
+                                                        v-model="form.venue_street"
+                                                        :placeholder="t('event.venueAddressLine1Placeholder')"
+                                                        :class="isFieldDirty('venue_street') ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30' : ''"
+                                                    />
+                                                    <button
+                                                        v-if="isFieldDirty('venue_street')"
+                                                        type="button"
+                                                        @click="resetField('venue_street')"
+                                                        class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
+                                                        title="Zurücksetzen"
+                                                    >
+                                                        ↺
+                                                    </button>
                                                 </div>
                                             </div>
                                             <div class="grid grid-cols-[1fr_120px] gap-2">
                                                 <div class="grid gap-1.5">
                                                     <Label class="text-xs">{{ t('event.venueCity') }}</Label>
                                                     <div class="relative">
-                                                        <Input v-model="form.venue_city" :placeholder="t('event.venueCity')" :class="isFieldDirty('venue_city') ? 'border-amber-400 ring-2 ring-amber-400/30 pr-8' : ''" />
-                                                        <button v-if="isFieldDirty('venue_city')" type="button" @click="resetField('venue_city')" class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700" title="Zurücksetzen">↺</button>
+                                                        <Input
+                                                            v-model="form.venue_city"
+                                                            :placeholder="t('event.venueCity')"
+                                                            :class="
+                                                                isFieldDirty('venue_city') ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30' : ''
+                                                            "
+                                                        />
+                                                        <button
+                                                            v-if="isFieldDirty('venue_city')"
+                                                            type="button"
+                                                            @click="resetField('venue_city')"
+                                                            class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
+                                                            title="Zurücksetzen"
+                                                        >
+                                                            ↺
+                                                        </button>
                                                     </div>
                                                 </div>
                                                 <div class="grid gap-1.5">
                                                     <Label class="text-xs">{{ t('event.venuePostalCode') }}</Label>
                                                     <div class="relative">
-                                                        <Input v-model="form.venue_postal_code" placeholder="10001" :class="isFieldDirty('venue_postal_code') ? 'border-amber-400 ring-2 ring-amber-400/30 pr-8' : ''" />
-                                                        <button v-if="isFieldDirty('venue_postal_code')" type="button" @click="resetField('venue_postal_code')" class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700" title="Zurücksetzen">↺</button>
+                                                        <Input
+                                                            v-model="form.venue_postal_code"
+                                                            placeholder="10001"
+                                                            :class="
+                                                                isFieldDirty('venue_postal_code')
+                                                                    ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30'
+                                                                    : ''
+                                                            "
+                                                        />
+                                                        <button
+                                                            v-if="isFieldDirty('venue_postal_code')"
+                                                            type="button"
+                                                            @click="resetField('venue_postal_code')"
+                                                            class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
+                                                            title="Zurücksetzen"
+                                                        >
+                                                            ↺
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1016,8 +1192,20 @@ function importStyle(e: Event) {
                                                     <span class="font-normal text-muted-foreground">({{ t('event.venueOptional') }})</span></Label
                                                 >
                                                 <div class="relative">
-                                                    <Input v-model="form.venue_state" :placeholder="t('event.venueState')" :class="isFieldDirty('venue_state') ? 'border-amber-400 ring-2 ring-amber-400/30 pr-8' : ''" />
-                                                    <button v-if="isFieldDirty('venue_state')" type="button" @click="resetField('venue_state')" class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700" title="Zurücksetzen">↺</button>
+                                                    <Input
+                                                        v-model="form.venue_state"
+                                                        :placeholder="t('event.venueState')"
+                                                        :class="isFieldDirty('venue_state') ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30' : ''"
+                                                    />
+                                                    <button
+                                                        v-if="isFieldDirty('venue_state')"
+                                                        type="button"
+                                                        @click="resetField('venue_state')"
+                                                        class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
+                                                        title="Zurücksetzen"
+                                                    >
+                                                        ↺
+                                                    </button>
                                                 </div>
                                             </div>
                                         </template>
@@ -1030,7 +1218,7 @@ function importStyle(e: Event) {
                                                     v-model="countryQuery"
                                                     :placeholder="t('event.venueCountry')"
                                                     autocomplete="off"
-                                                    :class="isFieldDirty('venue_country') ? 'border-amber-400 ring-2 ring-amber-400/30 pr-8' : ''"
+                                                    :class="isFieldDirty('venue_country') ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30' : ''"
                                                     @focus="
                                                         countryOpen = true;
                                                         updateCountryDropdownStyle();
@@ -1045,7 +1233,15 @@ function importStyle(e: Event) {
                                                         }, 150)
                                                     "
                                                 />
-                                                <button v-if="isFieldDirty('venue_country')" type="button" @click="resetField('venue_country')" class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700" title="Zurücksetzen">↺</button>
+                                                <button
+                                                    v-if="isFieldDirty('venue_country')"
+                                                    type="button"
+                                                    @click="resetField('venue_country')"
+                                                    class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
+                                                    title="Zurücksetzen"
+                                                >
+                                                    ↺
+                                                </button>
                                                 <Teleport to="body">
                                                     <div
                                                         v-if="countryOpen && filteredCountries.length"
@@ -1071,10 +1267,17 @@ function importStyle(e: Event) {
                                     <div class="grid gap-2">
                                         <div class="flex items-center justify-between">
                                             <Label>{{ t('event.venueMap') }}</Label>
-                                            <span v-if="reverseGeocoding || geocodingFromFields" class="text-xs text-muted-foreground animate-pulse">{{ t('event.venueGeocoding') }}</span>
-                                            <button v-else-if="form.venue_lat && form.venue_lng"
-                                                type="button" class="text-xs text-muted-foreground hover:text-destructive"
-                                                @click="clearMapCoords">
+                                            <span
+                                                v-if="reverseGeocoding || geocodingFromFields"
+                                                class="animate-pulse text-xs text-muted-foreground"
+                                                >{{ t('event.venueGeocoding') }}</span
+                                            >
+                                            <button
+                                                v-else-if="form.venue_lat && form.venue_lng"
+                                                type="button"
+                                                class="text-xs text-muted-foreground hover:text-destructive"
+                                                @click="clearMapCoords"
+                                            >
                                                 {{ t('event.venueMapReset') }}
                                             </button>
                                         </div>
@@ -1086,17 +1289,44 @@ function importStyle(e: Event) {
                                             :disabled="geocodingFromFields"
                                             @click="geocodeFromFields"
                                         >
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                                            <svg
+                                                width="14"
+                                                height="14"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            >
+                                                <circle cx="11" cy="11" r="8" />
+                                                <path d="m21 21-4.35-4.35" />
+                                            </svg>
                                             {{ t('event.venueSearchFromFields') }}
                                         </button>
                                         <!-- Hinweis: Standort per Karte bestätigen -->
-                                        <div v-if="hasAddressInput && !form.venue_lat && !form.venue_lng"
+                                        <div
+                                            v-if="hasAddressInput && !form.venue_lat && !form.venue_lng"
                                             class="flex items-start gap-2 rounded-md border border-amber-400/50 bg-amber-50/50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-950/30 dark:text-amber-400"
                                         >
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 shrink-0"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                            <svg
+                                                width="14"
+                                                height="14"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                class="mt-0.5 shrink-0"
+                                            >
+                                                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                                                <line x1="12" y1="9" x2="12" y2="13" />
+                                                <line x1="12" y1="17" x2="12.01" y2="17" />
+                                            </svg>
                                             <span>{{ t('event.venueMapConfirmHint') }}</span>
                                         </div>
-                                        <p v-else class="text-xs text-muted-foreground -mt-1">{{ t('event.venueMapHint') }}</p>
+                                        <p v-else class="-mt-1 text-xs text-muted-foreground">{{ t('event.venueMapHint') }}</p>
                                         <!-- Map search -->
                                         <div ref="mapSearchInputRef" class="relative">
                                             <Input
@@ -1105,34 +1335,51 @@ function importStyle(e: Event) {
                                                 class="placeholder:text-foreground/50"
                                                 autocomplete="off"
                                                 @focus="mapSearchResults.length && (mapSearchOpen = true)"
-                                                @blur="setTimeout(() => { mapSearchOpen = false }, 150)"
+                                                @blur="
+                                                    setTimeout(() => {
+                                                        mapSearchOpen = false;
+                                                    }, 150)
+                                                "
                                             />
-                                            <div v-if="mapSearching" class="absolute right-2.5 top-1/2 -translate-y-1/2">
-                                                <svg class="h-4 w-4 animate-spin text-muted-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                                            <div v-if="mapSearching" class="absolute top-1/2 right-2.5 -translate-y-1/2">
+                                                <svg
+                                                    class="h-4 w-4 animate-spin text-muted-foreground"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                                                 </svg>
                                             </div>
                                             <Teleport to="body">
-                                                <div v-if="mapSearchOpen && mapSearchResults.length"
+                                                <div
+                                                    v-if="mapSearchOpen && mapSearchResults.length"
                                                     class="fixed z-[9999] max-h-60 overflow-y-auto rounded-md border bg-popover shadow-lg"
-                                                    :style="mapSearchDropdownStyle">
-                                                    <button v-for="r in mapSearchResults" :key="r.place_id"
+                                                    :style="mapSearchDropdownStyle"
+                                                >
+                                                    <button
+                                                        v-for="r in mapSearchResults"
+                                                        :key="r.place_id"
                                                         type="button"
                                                         class="flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-accent"
-                                                        @mousedown.prevent="selectMapResult(r)">
-                                                        <span class="font-medium truncate">{{ r.name || r.display_name.split(', ')[0] }}</span>
-                                                        <span class="text-xs text-muted-foreground truncate">{{ r.display_name }}</span>
+                                                        @mousedown.prevent="selectMapResult(r)"
+                                                    >
+                                                        <span class="truncate font-medium">{{ r.name || r.display_name.split(', ')[0] }}</span>
+                                                        <span class="truncate text-xs text-muted-foreground">{{ r.display_name }}</span>
                                                     </button>
                                                 </div>
                                             </Teleport>
                                         </div>
-                                        <div ref="mapContainer" class="h-56 w-full overflow-hidden rounded-lg border border-input" style="z-index:0;" />
+                                        <div
+                                            ref="mapContainer"
+                                            class="h-56 w-full overflow-hidden rounded-lg border border-input"
+                                            style="z-index: 0"
+                                        />
                                         <p v-if="form.venue_lat && form.venue_lng" class="text-xs text-muted-foreground">
                                             ✓ {{ form.venue_lat.toFixed(6) }}, {{ form.venue_lng.toFixed(6) }}
                                         </p>
                                     </div>
-
                                 </div>
                             </CardContent>
                         </Card>
@@ -1244,25 +1491,16 @@ function importStyle(e: Event) {
                                             v-model="form.color_home_shadow"
                                             class="h-9 w-10 shrink-0 cursor-pointer rounded border border-input bg-transparent p-0.5"
                                         />
-                                        <Input
-                                            v-model="form.color_home_shadow"
-                                            maxlength="7"
-                                            class="font-mono uppercase"
-                                            placeholder="#000000"
-                                        />
+                                        <Input v-model="form.color_home_shadow" maxlength="7" class="font-mono uppercase" placeholder="#000000" />
                                     </div>
                                 </div>
                                 <div v-if="displayCoverUrl" class="grid gap-2">
-                                    <Label>{{ t('event.homeShadowOpacity') }} <span class="text-xs font-normal text-muted-foreground">{{ form.home_shadow_opacity }}%</span></Label>
-                                    <input
-                                        type="range"
-                                        v-model.number="form.home_shadow_opacity"
-                                        min="0"
-                                        max="100"
-                                        step="5"
-                                        class="w-full"
-                                    />
-                                    <p class="text-xs text-muted-foreground -mt-1">{{ t('event.homeShadowOpacityHint') }}</p>
+                                    <Label
+                                        >{{ t('event.homeShadowOpacity') }}
+                                        <span class="text-xs font-normal text-muted-foreground">{{ form.home_shadow_opacity }}%</span></Label
+                                    >
+                                    <input type="range" v-model.number="form.home_shadow_opacity" min="0" max="100" step="5" class="w-full" />
+                                    <p class="-mt-1 text-xs text-muted-foreground">{{ t('event.homeShadowOpacityHint') }}</p>
                                 </div>
                             </CardContent>
                         </Card>
@@ -1307,7 +1545,7 @@ function importStyle(e: Event) {
                                             <Label>{{ t('event.colorHint') }}</Label>
                                             <InfoTooltip :text="t('event.colorSystemInfo')" />
                                         </div>
-                                        <p class="text-xs text-muted-foreground -mt-1">{{ t('event.colorHintSub') }}</p>
+                                        <p class="-mt-1 text-xs text-muted-foreground">{{ t('event.colorHintSub') }}</p>
                                         <!-- 3 Basis-Picker -->
                                         <div class="grid grid-cols-3 gap-3">
                                             <div
@@ -1333,7 +1571,16 @@ function importStyle(e: Event) {
                                         <div class="space-y-3 pt-1">
                                             <!-- Screen-Hintergrund -->
                                             <div class="grid gap-1.5">
-                                                <div class="flex items-center justify-between"><span class="text-xs text-muted-foreground">{{ t('event.roleScreenBg') }}</span><button type="button" @click="showHint('screenBg')" class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10">?</button></div>
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-xs text-muted-foreground">{{ t('event.roleScreenBg') }}</span
+                                                    ><button
+                                                        type="button"
+                                                        @click="showHint('screenBg')"
+                                                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
+                                                    >
+                                                        ?
+                                                    </button>
+                                                </div>
                                                 <div class="flex gap-2">
                                                     <button
                                                         v-for="opt in colorOptions"
@@ -1353,7 +1600,16 @@ function importStyle(e: Event) {
                                             </div>
                                             <!-- Card-Hintergrund -->
                                             <div class="grid gap-1.5">
-                                                <div class="flex items-center justify-between"><span class="text-xs text-muted-foreground">{{ t('event.roleCardBg') }}</span><button type="button" @click="showHint('cardBg')" class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10">?</button></div>
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-xs text-muted-foreground">{{ t('event.roleCardBg') }}</span
+                                                    ><button
+                                                        type="button"
+                                                        @click="showHint('cardBg')"
+                                                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
+                                                    >
+                                                        ?
+                                                    </button>
+                                                </div>
                                                 <div class="flex gap-2">
                                                     <button
                                                         v-for="opt in colorOptions"
@@ -1373,7 +1629,16 @@ function importStyle(e: Event) {
                                             </div>
                                             <!-- Text auf Cards -->
                                             <div class="grid gap-1.5">
-                                                <div class="flex items-center justify-between"><span class="text-xs text-muted-foreground">{{ t('event.roleCardText') }}</span><button type="button" @click="showHint('cardText')" class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10">?</button></div>
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-xs text-muted-foreground">{{ t('event.roleCardText') }}</span
+                                                    ><button
+                                                        type="button"
+                                                        @click="showHint('cardText')"
+                                                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
+                                                    >
+                                                        ?
+                                                    </button>
+                                                </div>
                                                 <div class="flex gap-2">
                                                     <button
                                                         v-for="opt in colorOptions"
@@ -1393,7 +1658,16 @@ function importStyle(e: Event) {
                                             </div>
                                             <!-- Button auf Cards -->
                                             <div class="grid gap-1.5">
-                                                <div class="flex items-center justify-between"><span class="text-xs text-muted-foreground">{{ t('event.roleCardButton') }}</span><button type="button" @click="showHint('cardButton')" class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10">?</button></div>
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-xs text-muted-foreground">{{ t('event.roleCardButton') }}</span
+                                                    ><button
+                                                        type="button"
+                                                        @click="showHint('cardButton')"
+                                                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
+                                                    >
+                                                        ?
+                                                    </button>
+                                                </div>
                                                 <div class="flex gap-2">
                                                     <button
                                                         v-for="opt in colorOptions"
@@ -1413,7 +1687,16 @@ function importStyle(e: Event) {
                                             </div>
                                             <!-- Text auf Card-Buttons -->
                                             <div class="grid gap-1.5">
-                                                <div class="flex items-center justify-between"><span class="text-xs text-muted-foreground">{{ t('event.roleCardButtonText') }}</span><button type="button" @click="showHint('cardButtonText')" class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10">?</button></div>
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-xs text-muted-foreground">{{ t('event.roleCardButtonText') }}</span
+                                                    ><button
+                                                        type="button"
+                                                        @click="showHint('cardButtonText')"
+                                                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
+                                                    >
+                                                        ?
+                                                    </button>
+                                                </div>
                                                 <div class="flex gap-2">
                                                     <button
                                                         v-for="opt in colorOptions"
@@ -1433,7 +1716,16 @@ function importStyle(e: Event) {
                                             </div>
                                             <!-- Navbar-Farbe -->
                                             <div class="grid gap-1.5">
-                                                <div class="flex items-center justify-between"><span class="text-xs text-muted-foreground">{{ t('event.roleTabTint') }}</span><button type="button" @click="showHint('tabTint')" class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10">?</button></div>
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-xs text-muted-foreground">{{ t('event.roleTabTint') }}</span
+                                                    ><button
+                                                        type="button"
+                                                        @click="showHint('tabTint')"
+                                                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
+                                                    >
+                                                        ?
+                                                    </button>
+                                                </div>
                                                 <div class="flex gap-2">
                                                     <button
                                                         v-for="opt in colorOptions"
@@ -1453,7 +1745,16 @@ function importStyle(e: Event) {
                                             </div>
                                             <!-- Rahmenfarbe -->
                                             <div class="grid gap-1.5">
-                                                <div class="flex items-center justify-between"><span class="text-xs text-muted-foreground">{{ t('event.roleBorder') }}</span><button type="button" @click="showHint('border')" class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10">?</button></div>
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-xs text-muted-foreground">{{ t('event.roleBorder') }}</span
+                                                    ><button
+                                                        type="button"
+                                                        @click="showHint('border')"
+                                                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
+                                                    >
+                                                        ?
+                                                    </button>
+                                                </div>
                                                 <div class="flex gap-2">
                                                     <button
                                                         v-for="opt in colorOptions"
@@ -1473,7 +1774,16 @@ function importStyle(e: Event) {
                                             </div>
                                             <!-- FAB-Button -->
                                             <div class="grid gap-1.5">
-                                                <div class="flex items-center justify-between"><span class="text-xs text-muted-foreground">{{ t('event.roleFab') }}</span><button type="button" @click="showHint('fab')" class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10">?</button></div>
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-xs text-muted-foreground">{{ t('event.roleFab') }}</span
+                                                    ><button
+                                                        type="button"
+                                                        @click="showHint('fab')"
+                                                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
+                                                    >
+                                                        ?
+                                                    </button>
+                                                </div>
                                                 <div class="flex gap-2">
                                                     <button
                                                         v-for="opt in colorOptions"
@@ -1493,7 +1803,16 @@ function importStyle(e: Event) {
                                             </div>
                                             <!-- Icon-Farbe im FAB -->
                                             <div class="grid gap-1.5">
-                                                <div class="flex items-center justify-between"><span class="text-xs text-muted-foreground">{{ t('event.roleFabIcon') }}</span><button type="button" @click="showHint('fabIcon')" class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10">?</button></div>
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-xs text-muted-foreground">{{ t('event.roleFabIcon') }}</span
+                                                    ><button
+                                                        type="button"
+                                                        @click="showHint('fabIcon')"
+                                                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
+                                                    >
+                                                        ?
+                                                    </button>
+                                                </div>
                                                 <div class="flex gap-2">
                                                     <button
                                                         v-for="opt in colorOptions"
@@ -1526,7 +1845,7 @@ function importStyle(e: Event) {
                                     <div class="flex items-center gap-1">
                                         <button
                                             type="button"
-                                            class="rounded px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                                            class="rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                                             title="Aktuellen Stil als Datei exportieren"
                                             @click="exportStyle()"
                                         >
@@ -1534,7 +1853,7 @@ function importStyle(e: Event) {
                                         </button>
                                         <button
                                             type="button"
-                                            class="rounded px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                                            class="rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                                             title="Stil aus Datei importieren & speichern"
                                             @click="importFileInput?.click()"
                                         >
@@ -1558,32 +1877,45 @@ function importStyle(e: Event) {
                                         class="flex items-center gap-2 rounded-lg border border-input bg-muted/20 px-3 py-2"
                                     >
                                         <div class="flex shrink-0 gap-0.5">
-                                            <div class="h-3.5 w-3.5 rounded-full border border-black/10" :style="{ backgroundColor: preset.color_primary ?? '#7c2d3e' }" />
-                                            <div class="h-3.5 w-3.5 rounded-full border border-black/10" :style="{ backgroundColor: preset.color_secondary ?? '#e8e3de' }" />
-                                            <div class="h-3.5 w-3.5 rounded-full border border-black/10" :style="{ backgroundColor: preset.color_tertiary ?? '#ffffff' }" />
+                                            <div
+                                                class="h-3.5 w-3.5 rounded-full border border-black/10"
+                                                :style="{ backgroundColor: preset.color_primary ?? '#7c2d3e' }"
+                                            />
+                                            <div
+                                                class="h-3.5 w-3.5 rounded-full border border-black/10"
+                                                :style="{ backgroundColor: preset.color_secondary ?? '#e8e3de' }"
+                                            />
+                                            <div
+                                                class="h-3.5 w-3.5 rounded-full border border-black/10"
+                                                :style="{ backgroundColor: preset.color_tertiary ?? '#ffffff' }"
+                                            />
                                         </div>
                                         <span class="flex-1 truncate text-sm">{{ preset.name }}</span>
                                         <button
                                             type="button"
-                                            class="shrink-0 rounded px-2 py-0.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                                            class="shrink-0 rounded px-2 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                                             title="Exportieren"
                                             @click="exportStyle(preset)"
-                                        >↓</button>
+                                        >
+                                            ↓
+                                        </button>
                                         <button
                                             type="button"
-                                            class="shrink-0 rounded border border-input px-2 py-0.5 text-xs hover:bg-muted transition-colors"
+                                            class="shrink-0 rounded border border-input px-2 py-0.5 text-xs transition-colors hover:bg-muted"
                                             @click="loadPreset(preset)"
-                                        >Laden</button>
+                                        >
+                                            Laden
+                                        </button>
                                         <button
                                             type="button"
-                                            class="shrink-0 rounded px-1.5 py-0.5 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                                            class="shrink-0 rounded px-1.5 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                                             @click="deletePreset(preset.id)"
-                                        >✕</button>
+                                        >
+                                            ✕
+                                        </button>
                                     </div>
 
-                                    <p v-if="!stylePresets.length" class="py-1 text-xs text-muted-foreground">
-                                        Noch keine Stile gespeichert.
-                                    </p>
+                                    <p v-if="!stylePresets.length" class="py-1 text-xs text-muted-foreground">Noch keine Stile gespeichert.</p>
                                 </div>
 
                                 <!-- Neuen Stil speichern -->
@@ -1591,7 +1923,7 @@ function importStyle(e: Event) {
                                     <div v-if="!showPresetInput">
                                         <button
                                             type="button"
-                                            class="w-full rounded-lg border border-dashed border-input py-2 text-xs text-muted-foreground hover:border-ring hover:text-foreground transition-colors"
+                                            class="w-full rounded-lg border border-dashed border-input py-2 text-xs text-muted-foreground transition-colors hover:border-ring hover:text-foreground"
                                             @click="showPresetInput = true"
                                         >
                                             + Aktuellen Stil speichern
@@ -1601,9 +1933,12 @@ function importStyle(e: Event) {
                                         <Input
                                             v-model="presetNameInput"
                                             placeholder="Name des Stils…"
-                                            class="flex-1 h-8 text-sm"
+                                            class="h-8 flex-1 text-sm"
                                             @keyup.enter="presetNameInput.trim() && savePreset()"
-                                            @keyup.esc="showPresetInput = false; presetNameInput = ''"
+                                            @keyup.esc="
+                                                showPresetInput = false;
+                                                presetNameInput = '';
+                                            "
                                             autofocus
                                         />
                                         <Button
@@ -1620,7 +1955,10 @@ function importStyle(e: Event) {
                                             size="sm"
                                             variant="ghost"
                                             class="h-8"
-                                            @click="showPresetInput = false; presetNameInput = ''"
+                                            @click="
+                                                showPresetInput = false;
+                                                presetNameInput = '';
+                                            "
                                         >
                                             ✕
                                         </Button>
@@ -1643,9 +1981,17 @@ function importStyle(e: Event) {
                                             role="switch"
                                             :aria-checked="form.drink_game_enabled"
                                             @click="form.drink_game_enabled = !form.drink_game_enabled"
-                                            :class="['relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2', form.drink_game_enabled ? 'bg-primary' : 'bg-input']"
+                                            :class="[
+                                                'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                                                form.drink_game_enabled ? 'bg-primary' : 'bg-input',
+                                            ]"
                                         >
-                                            <span :class="['pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform', form.drink_game_enabled ? 'translate-x-5' : 'translate-x-0']" />
+                                            <span
+                                                :class="[
+                                                    'pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform',
+                                                    form.drink_game_enabled ? 'translate-x-5' : 'translate-x-0',
+                                                ]"
+                                            />
                                         </button>
                                     </div>
                                 </div>
@@ -1666,9 +2012,17 @@ function importStyle(e: Event) {
                                             role="switch"
                                             :aria-checked="form.photo_game_enabled"
                                             @click="form.photo_game_enabled = !form.photo_game_enabled"
-                                            :class="['relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2', form.photo_game_enabled ? 'bg-primary' : 'bg-input']"
+                                            :class="[
+                                                'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                                                form.photo_game_enabled ? 'bg-primary' : 'bg-input',
+                                            ]"
                                         >
-                                            <span :class="['pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform', form.photo_game_enabled ? 'translate-x-5' : 'translate-x-0']" />
+                                            <span
+                                                :class="[
+                                                    'pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform',
+                                                    form.photo_game_enabled ? 'translate-x-5' : 'translate-x-0',
+                                                ]"
+                                            />
                                         </button>
                                     </div>
                                 </div>
@@ -1684,7 +2038,10 @@ function importStyle(e: Event) {
                                         <p class="text-xs text-muted-foreground">{{ t('event.projectorTokenDesc') }}</p>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        <code v-if="props.event.projector_token" class="flex-1 truncate rounded bg-muted px-3 py-1.5 text-xs font-mono">
+                                        <code
+                                            v-if="props.event.projector_token"
+                                            class="flex-1 truncate rounded bg-muted px-3 py-1.5 font-mono text-xs"
+                                        >
                                             {{ props.event.projector_token }}
                                         </code>
                                         <span v-else class="flex-1 text-xs text-muted-foreground italic">{{ t('event.projectorTokenNone') }}</span>
@@ -1692,9 +2049,17 @@ function importStyle(e: Event) {
                                             type="button"
                                             variant="outline"
                                             size="sm"
-                                            @click="router.post(route('photos.projector-token.regenerate'), {}, { onSuccess: () => toast.success(t('event.projectorTokenRegenerated')) })"
+                                            @click="
+                                                router.post(
+                                                    route('photos.projector-token.regenerate'),
+                                                    {},
+                                                    { onSuccess: () => toast.success(t('event.projectorTokenRegenerated')) },
+                                                )
+                                            "
                                         >
-                                            {{ props.event.projector_token ? t('event.projectorTokenRegenerate') : t('event.projectorTokenGenerate') }}
+                                            {{
+                                                props.event.projector_token ? t('event.projectorTokenRegenerate') : t('event.projectorTokenGenerate')
+                                            }}
                                         </Button>
                                     </div>
                                 </div>
@@ -1714,12 +2079,19 @@ function importStyle(e: Event) {
                 >
                     <span class="text-sm font-semibold">{{ t('event.phonePreview') }}</span>
                     <svg
-                        width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
                         class="text-muted-foreground transition-transform"
                         :class="{ 'rotate-180': !previewCollapsed }"
-                    ><path d="M18 15l-6-6-6 6"/></svg>
+                    >
+                        <path d="M18 15l-6-6-6 6" />
+                    </svg>
                 </button>
 
                 <div v-show="!previewCollapsed" class="flex flex-col items-center gap-2 pt-2 lg:pt-0">
@@ -1738,7 +2110,13 @@ function importStyle(e: Event) {
                                                 style="height: 244px; background-size: cover; background-position: center"
                                                 :style="{ backgroundImage: `url('${displayCoverUrl}')`, fontFamily: previewFontFamily }"
                                             >
-                                                <div class="absolute inset-0" :style="{ backgroundColor: form.color_home_shadow, opacity: (form.home_shadow_opacity ?? 50) / 100 }" />
+                                                <div
+                                                    class="absolute inset-0"
+                                                    :style="{
+                                                        backgroundColor: form.color_home_shadow,
+                                                        opacity: (form.home_shadow_opacity ?? 50) / 100,
+                                                    }"
+                                                />
                                                 <div
                                                     class="relative flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-white"
                                                 >
@@ -1759,24 +2137,91 @@ function importStyle(e: Event) {
                                                     </p>
                                                     <!-- Venue: both → name+icon, dann address ohne Icon -->
                                                     <template v-if="form.venue_display_mode === 'both'">
-                                                        <span class="mt-0.5 flex items-center justify-center gap-0.5 text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">
+                                                        <span
+                                                            class="mt-0.5 flex items-center justify-center gap-0.5 text-center text-[6px]"
+                                                            :style="{ color: form.color_home_text || '#ffffff' }"
+                                                        >
                                                             {{ previewVenueName }}
-                                                            <svg width="5" height="5" viewBox="0 0 512 512" fill="none" :stroke="form.color_home_text || '#ffffff'" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"><path d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"/><circle cx="256" cy="192" r="48"/></svg>
+                                                            <svg
+                                                                width="5"
+                                                                height="5"
+                                                                viewBox="0 0 512 512"
+                                                                fill="none"
+                                                                :stroke="form.color_home_text || '#ffffff'"
+                                                                stroke-width="40"
+                                                                stroke-linecap="round"
+                                                                stroke-linejoin="round"
+                                                            >
+                                                                <path
+                                                                    d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"
+                                                                />
+                                                                <circle cx="256" cy="192" r="48" />
+                                                            </svg>
                                                         </span>
-                                                        <p class="text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">{{ previewVenueAddress }}</p>
+                                                        <p class="text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">
+                                                            {{ previewVenueAddress }}
+                                                        </p>
                                                     </template>
                                                     <!-- Venue: nur name -->
-                                                    <span v-else-if="form.venue_display_mode === 'name'" class="mt-0.5 flex items-center justify-center gap-0.5 text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">
+                                                    <span
+                                                        v-else-if="form.venue_display_mode === 'name'"
+                                                        class="mt-0.5 flex items-center justify-center gap-0.5 text-center text-[6px]"
+                                                        :style="{ color: form.color_home_text || '#ffffff' }"
+                                                    >
                                                         {{ previewVenueName }}
-                                                        <svg width="5" height="5" viewBox="0 0 512 512" fill="none" :stroke="form.color_home_text || '#ffffff'" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"><path d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"/><circle cx="256" cy="192" r="48"/></svg>
+                                                        <svg
+                                                            width="5"
+                                                            height="5"
+                                                            viewBox="0 0 512 512"
+                                                            fill="none"
+                                                            :stroke="form.color_home_text || '#ffffff'"
+                                                            stroke-width="40"
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                        >
+                                                            <path
+                                                                d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"
+                                                            />
+                                                            <circle cx="256" cy="192" r="48" />
+                                                        </svg>
                                                     </span>
                                                     <!-- Venue: nur adresse -->
-                                                    <p v-else class="mt-0.5 text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff' }">
-                                                        {{ previewVenueAddress }}<svg style="display:inline;vertical-align:middle;margin-left:1px" width="5" height="5" viewBox="0 0 512 512" fill="none" :stroke="form.color_home_text || '#ffffff'" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"><path d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"/><circle cx="256" cy="192" r="48"/></svg>
+                                                    <p
+                                                        v-else
+                                                        class="mt-0.5 text-center text-[6px]"
+                                                        :style="{ color: form.color_home_text || '#ffffff' }"
+                                                    >
+                                                        {{ previewVenueAddress
+                                                        }}<svg
+                                                            style="display: inline; vertical-align: middle; margin-left: 1px"
+                                                            width="5"
+                                                            height="5"
+                                                            viewBox="0 0 512 512"
+                                                            fill="none"
+                                                            :stroke="form.color_home_text || '#ffffff'"
+                                                            stroke-width="40"
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                        >
+                                                            <path
+                                                                d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"
+                                                            />
+                                                            <circle cx="256" cy="192" r="48" />
+                                                        </svg>
                                                     </p>
                                                     <template v-if="form.dresscode">
-                                                        <p class="mt-0.5 text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff', opacity: 0.7 }">Dresscode:</p>
-                                                        <p class="text-center text-[6px]" :style="{ color: form.color_home_text || '#ffffff', opacity: 0.7 }">{{ form.dresscode }}</p>
+                                                        <p
+                                                            class="mt-0.5 text-center text-[6px]"
+                                                            :style="{ color: form.color_home_text || '#ffffff', opacity: 0.7 }"
+                                                        >
+                                                            Dresscode:
+                                                        </p>
+                                                        <p
+                                                            class="text-center text-[6px]"
+                                                            :style="{ color: form.color_home_text || '#ffffff', opacity: 0.7 }"
+                                                        >
+                                                            {{ form.dresscode }}
+                                                        </p>
                                                     </template>
                                                     <p
                                                         class="mt-1.5 text-center text-[6px] font-bold"
@@ -1847,24 +2292,79 @@ function importStyle(e: Event) {
                                                     </p>
                                                     <!-- Venue: both → name+icon, dann address ohne Icon -->
                                                     <template v-if="form.venue_display_mode === 'both'">
-                                                        <span class="mt-0.5 flex items-center justify-center gap-0.5 text-center text-[6px]" :style="{ color: cCardText }">
+                                                        <span
+                                                            class="mt-0.5 flex items-center justify-center gap-0.5 text-center text-[6px]"
+                                                            :style="{ color: cCardText }"
+                                                        >
                                                             {{ previewVenueName }}
-                                                            <svg width="5" height="5" viewBox="0 0 512 512" fill="none" :stroke="cCardText" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"><path d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"/><circle cx="256" cy="192" r="48"/></svg>
+                                                            <svg
+                                                                width="5"
+                                                                height="5"
+                                                                viewBox="0 0 512 512"
+                                                                fill="none"
+                                                                :stroke="cCardText"
+                                                                stroke-width="40"
+                                                                stroke-linecap="round"
+                                                                stroke-linejoin="round"
+                                                            >
+                                                                <path
+                                                                    d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"
+                                                                />
+                                                                <circle cx="256" cy="192" r="48" />
+                                                            </svg>
                                                         </span>
                                                         <p class="text-center text-[6px]" :style="{ color: cCardText }">{{ previewVenueAddress }}</p>
                                                     </template>
                                                     <!-- Venue: nur name -->
-                                                    <span v-else-if="form.venue_display_mode === 'name'" class="mt-0.5 flex items-center justify-center gap-0.5 text-center text-[6px]" :style="{ color: cCardText }">
+                                                    <span
+                                                        v-else-if="form.venue_display_mode === 'name'"
+                                                        class="mt-0.5 flex items-center justify-center gap-0.5 text-center text-[6px]"
+                                                        :style="{ color: cCardText }"
+                                                    >
                                                         {{ previewVenueName }}
-                                                        <svg width="5" height="5" viewBox="0 0 512 512" fill="none" :stroke="cCardText" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"><path d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"/><circle cx="256" cy="192" r="48"/></svg>
+                                                        <svg
+                                                            width="5"
+                                                            height="5"
+                                                            viewBox="0 0 512 512"
+                                                            fill="none"
+                                                            :stroke="cCardText"
+                                                            stroke-width="40"
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                        >
+                                                            <path
+                                                                d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"
+                                                            />
+                                                            <circle cx="256" cy="192" r="48" />
+                                                        </svg>
                                                     </span>
                                                     <!-- Venue: nur adresse -->
                                                     <p v-else class="mt-0.5 text-center text-[6px]" :style="{ color: cCardText }">
-                                                        {{ previewVenueAddress }}<svg style="display:inline;vertical-align:middle;margin-left:1px" width="5" height="5" viewBox="0 0 512 512" fill="none" :stroke="cCardText" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"><path d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"/><circle cx="256" cy="192" r="48"/></svg>
+                                                        {{ previewVenueAddress
+                                                        }}<svg
+                                                            style="display: inline; vertical-align: middle; margin-left: 1px"
+                                                            width="5"
+                                                            height="5"
+                                                            viewBox="0 0 512 512"
+                                                            fill="none"
+                                                            :stroke="cCardText"
+                                                            stroke-width="40"
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                        >
+                                                            <path
+                                                                d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0 0 25.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"
+                                                            />
+                                                            <circle cx="256" cy="192" r="48" />
+                                                        </svg>
                                                     </p>
                                                     <template v-if="form.dresscode">
-                                                        <p class="mt-0.5 text-center text-[6px]" :style="{ color: cCardText, opacity: 0.7 }">Dresscode:</p>
-                                                        <p class="text-center text-[6px]" :style="{ color: cCardText, opacity: 0.7 }">{{ form.dresscode }}</p>
+                                                        <p class="mt-0.5 text-center text-[6px]" :style="{ color: cCardText, opacity: 0.7 }">
+                                                            Dresscode:
+                                                        </p>
+                                                        <p class="text-center text-[6px]" :style="{ color: cCardText, opacity: 0.7 }">
+                                                            {{ form.dresscode }}
+                                                        </p>
                                                     </template>
                                                     <p class="mt-1.5 text-center text-[6px] font-bold" :style="{ color: cCardText }">
                                                         {{ previewCountdown || 'Noch 6T 11Std 22Min 30Sek' }}
@@ -1874,7 +2374,12 @@ function importStyle(e: Event) {
                                                     class="flex h-[26px] w-full items-end justify-around border-t pb-1.5"
                                                     :style="{ backgroundColor: cScreenBg, borderColor: cBorder + '33' }"
                                                 >
-                                                    <div v-for="(tab, i) in tabDefs" :key="'hn' + i" class="flex flex-col items-center gap-0.5" :class="hintFilterClass('tabTint')">
+                                                    <div
+                                                        v-for="(tab, i) in tabDefs"
+                                                        :key="'hn' + i"
+                                                        class="flex flex-col items-center gap-0.5"
+                                                        :class="hintFilterClass('tabTint')"
+                                                    >
                                                         <svg
                                                             width="9"
                                                             height="9"
@@ -1929,11 +2434,20 @@ function importStyle(e: Event) {
                                                         }"
                                                         :class="[hintBgClass('cardBg'), hintBorderClass('border')]"
                                                     >
-                                                        <p class="mb-0.5 text-[5px]" :style="{ color: cCardText + '77' }" :class="hintFilterClass('cardText')">
+                                                        <p
+                                                            class="mb-0.5 text-[5px]"
+                                                            :style="{ color: cCardText + '77' }"
+                                                            :class="hintFilterClass('cardText')"
+                                                        >
                                                             Bitte antworte bis 25. März.
                                                         </p>
                                                         <div class="flex items-center justify-between">
-                                                            <span class="text-[7px] font-semibold" :style="{ color: cCardText }" :class="hintFilterClass('cardText')">Max Mustermann</span>
+                                                            <span
+                                                                class="text-[7px] font-semibold"
+                                                                :style="{ color: cCardText }"
+                                                                :class="hintFilterClass('cardText')"
+                                                                >Max Mustermann</span
+                                                            >
                                                             <span
                                                                 class="rounded-full px-1 py-0.5 text-[4px] font-semibold text-white"
                                                                 style="background-color: #4a7c59"
@@ -1966,8 +2480,18 @@ function importStyle(e: Event) {
                                                         }"
                                                         :class="[hintBgClass('cardBg'), hintBorderClass('border')]"
                                                     >
-                                                        <p class="text-[7px] font-semibold" :style="{ color: cCardText }" :class="hintFilterClass('cardText')">Deine Gruppe</p>
-                                                        <p class="mb-1 text-[5px]" :style="{ color: cCardText + '77' }" :class="hintFilterClass('cardText')">
+                                                        <p
+                                                            class="text-[7px] font-semibold"
+                                                            :style="{ color: cCardText }"
+                                                            :class="hintFilterClass('cardText')"
+                                                        >
+                                                            Deine Gruppe
+                                                        </p>
+                                                        <p
+                                                            class="mb-1 text-[5px]"
+                                                            :style="{ color: cCardText + '77' }"
+                                                            :class="hintFilterClass('cardText')"
+                                                        >
                                                             Du kannst für deine Gruppe antworten.
                                                         </p>
                                                         <div
@@ -1982,19 +2506,43 @@ function importStyle(e: Event) {
                                                             :class="hintBorderClass('border')"
                                                         >
                                                             <div class="flex items-center justify-between">
-                                                                <span class="text-[6px] font-semibold" :style="{ color: cCardText }" :class="hintFilterClass('cardText')">{{
-                                                                    member.name
-                                                                }}</span>
+                                                                <span
+                                                                    class="text-[6px] font-semibold"
+                                                                    :style="{ color: cCardText }"
+                                                                    :class="hintFilterClass('cardText')"
+                                                                    >{{ member.name }}</span
+                                                                >
                                                                 <div class="flex items-center gap-0.5">
                                                                     <span
                                                                         class="rounded-full px-1 py-0.5 text-[4px] font-semibold"
-                                                                        :style="{ backgroundColor: member.red ? '#b45a3c' : '#4a7c59', color: '#ffffff' }"
+                                                                        :style="{
+                                                                            backgroundColor: member.red ? '#b45a3c' : '#4a7c59',
+                                                                            color: '#ffffff',
+                                                                        }"
                                                                         >{{ member.status }}</span
                                                                     >
-                                                                    <svg width="6" height="6" viewBox="0 0 24 24" fill="none" :stroke="cCardText + '88'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" :class="hintFilterClass('cardText')"><path d="M6 9l6 6 6-6"/></svg>
+                                                                    <svg
+                                                                        width="6"
+                                                                        height="6"
+                                                                        viewBox="0 0 24 24"
+                                                                        fill="none"
+                                                                        :stroke="cCardText + '88'"
+                                                                        stroke-width="2.5"
+                                                                        stroke-linecap="round"
+                                                                        stroke-linejoin="round"
+                                                                        :class="hintFilterClass('cardText')"
+                                                                    >
+                                                                        <path d="M6 9l6 6 6-6" />
+                                                                    </svg>
                                                                 </div>
                                                             </div>
-                                                            <p class="text-[4px]" :style="{ color: cCardText + '66' }" :class="hintFilterClass('cardText')">Von dir gesetzt</p>
+                                                            <p
+                                                                class="text-[4px]"
+                                                                :style="{ color: cCardText + '66' }"
+                                                                :class="hintFilterClass('cardText')"
+                                                            >
+                                                                Von dir gesetzt
+                                                            </p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -2002,7 +2550,12 @@ function importStyle(e: Event) {
                                                     class="flex h-[26px] w-full items-end justify-around border-t pb-1.5"
                                                     :style="{ backgroundColor: cScreenBg, borderColor: cBorder + '33' }"
                                                 >
-                                                    <div v-for="(tab, i) in tabDefs" :key="'z' + i" class="flex flex-col items-center gap-0.5" :class="hintFilterClass('tabTint')">
+                                                    <div
+                                                        v-for="(tab, i) in tabDefs"
+                                                        :key="'z' + i"
+                                                        class="flex flex-col items-center gap-0.5"
+                                                        :class="hintFilterClass('tabTint')"
+                                                    >
                                                         <svg
                                                             width="9"
                                                             height="9"
@@ -2082,7 +2635,12 @@ function importStyle(e: Event) {
                                                     class="flex h-[26px] w-full items-end justify-around border-t pb-1.5"
                                                     :style="{ backgroundColor: cScreenBg, borderColor: cBorder + '33' }"
                                                 >
-                                                    <div v-for="(tab, i) in tabDefs" :key="'f' + i" class="flex flex-col items-center gap-0.5" :class="hintFilterClass('tabTint')">
+                                                    <div
+                                                        v-for="(tab, i) in tabDefs"
+                                                        :key="'f' + i"
+                                                        class="flex flex-col items-center gap-0.5"
+                                                        :class="hintFilterClass('tabTint')"
+                                                    >
                                                         <svg
                                                             width="9"
                                                             height="9"
@@ -2137,7 +2695,11 @@ function importStyle(e: Event) {
                                                         :class="[hintBgClass('cardBg'), hintBorderClass('border')]"
                                                     >
                                                         <div class="px-2 pt-2 pb-1.5">
-                                                            <p class="text-[5px]" :style="{ color: cCardText + '88', fontFamily: previewFontFamily }" :class="hintFilterClass('cardText')">
+                                                            <p
+                                                                class="text-[5px]"
+                                                                :style="{ color: cCardText + '88', fontFamily: previewFontFamily }"
+                                                                :class="hintFilterClass('cardText')"
+                                                            >
                                                                 Eingeloggt als
                                                             </p>
                                                             <p
@@ -2147,11 +2709,19 @@ function importStyle(e: Event) {
                                                             >
                                                                 Max Mustermann
                                                             </p>
-                                                            <p class="text-[5px]" :style="{ color: cCardText + '88', fontFamily: previewFontFamily }" :class="hintFilterClass('cardText')">
+                                                            <p
+                                                                class="text-[5px]"
+                                                                :style="{ color: cCardText + '88', fontFamily: previewFontFamily }"
+                                                                :class="hintFilterClass('cardText')"
+                                                            >
                                                                 Familie Mustermann
                                                             </p>
                                                         </div>
-                                                        <div class="mx-2 border-t" :style="{ borderColor: cBorder + '33' }" :class="hintBgClass('border')"></div>
+                                                        <div
+                                                            class="mx-2 border-t"
+                                                            :style="{ borderColor: cBorder + '33' }"
+                                                            :class="hintBgClass('border')"
+                                                        ></div>
                                                         <div class="px-2 py-1.5">
                                                             <p
                                                                 class="mb-1 text-[5px]"
@@ -2160,7 +2730,11 @@ function importStyle(e: Event) {
                                                             >
                                                                 Sprache
                                                             </p>
-                                                            <div class="flex rounded-lg border" :style="{ borderColor: cBorder + '55' }" :class="hintBorderClass('border')">
+                                                            <div
+                                                                class="flex rounded-lg border"
+                                                                :style="{ borderColor: cBorder + '55' }"
+                                                                :class="hintBorderClass('border')"
+                                                            >
                                                                 <div
                                                                     class="flex-1 rounded-l-lg py-0.5 text-center text-[5px] font-semibold"
                                                                     :style="{
@@ -2169,7 +2743,9 @@ function importStyle(e: Event) {
                                                                         fontFamily: previewFontFamily,
                                                                     }"
                                                                     :class="hintBgClass('cardButton')"
-                                                                ><span :class="hintFilterClass('cardButtonText')">Deutsch</span></div>
+                                                                >
+                                                                    <span :class="hintFilterClass('cardButtonText')">Deutsch</span>
+                                                                </div>
                                                                 <div
                                                                     class="flex-1 py-0.5 text-center text-[5px]"
                                                                     :style="{
@@ -2182,7 +2758,11 @@ function importStyle(e: Event) {
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="mx-2 border-t" :style="{ borderColor: cBorder + '33' }" :class="hintBgClass('border')"></div>
+                                                        <div
+                                                            class="mx-2 border-t"
+                                                            :style="{ borderColor: cBorder + '33' }"
+                                                            :class="hintBgClass('border')"
+                                                        ></div>
                                                         <div
                                                             class="mx-2 my-1.5 rounded-lg py-1 text-center text-[6px] font-semibold"
                                                             :style="{
@@ -2191,14 +2771,21 @@ function importStyle(e: Event) {
                                                                 fontFamily: previewFontFamily,
                                                             }"
                                                             :class="hintBgClass('cardButton')"
-                                                        ><span :class="hintFilterClass('cardButtonText')">Ausloggen</span></div>
+                                                        >
+                                                            <span :class="hintFilterClass('cardButtonText')">Ausloggen</span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <div
                                                     class="flex h-[26px] w-full items-end justify-around border-t pb-1.5"
                                                     :style="{ backgroundColor: cScreenBg, borderColor: cBorder + '33' }"
                                                 >
-                                                    <div v-for="(tab, i) in tabDefs" :key="'e' + i" class="flex flex-col items-center gap-0.5" :class="hintFilterClass('tabTint')">
+                                                    <div
+                                                        v-for="(tab, i) in tabDefs"
+                                                        :key="'e' + i"
+                                                        class="flex flex-col items-center gap-0.5"
+                                                        :class="hintFilterClass('tabTint')"
+                                                    >
                                                         <svg
                                                             width="9"
                                                             height="9"
@@ -2276,33 +2863,61 @@ function importStyle(e: Event) {
 @import '@fontsource/josefin-sans/700.css';
 
 /* Phone-Preview-Größen */
-.phone-frame-outer { width: 228px; height: 464px; overflow: hidden; flex-shrink: 0; }
-.phone-frame-inner { transform: scale(1.9); transform-origin: top left; }
+.phone-frame-outer {
+    width: 228px;
+    height: 464px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.phone-frame-inner {
+    transform: scale(1.9);
+    transform-origin: top left;
+}
 @media (max-width: 1023px) {
-    .phone-frame-outer { width: 171px; height: 348px; }
-    .phone-frame-inner { transform: scale(1.425); }
+    .phone-frame-outer {
+        width: 171px;
+        height: 348px;
+    }
+    .phone-frame-inner {
+        transform: scale(1.425);
+    }
 }
 
 /* Einheitliches Amber-Overlay für alle Hint-Elemente */
 @keyframes preview-hint-bg {
-    0%, 100% { box-shadow: inset 0 0 0 1000px rgba(251, 191, 36, 0); }
-    50% { box-shadow: inset 0 0 0 1000px rgba(251, 191, 36, 0.3); }
+    0%,
+    100% {
+        box-shadow: inset 0 0 0 1000px rgba(251, 191, 36, 0);
+    }
+    50% {
+        box-shadow: inset 0 0 0 1000px rgba(251, 191, 36, 0.3);
+    }
 }
 .preview-hint-bg {
     animation: preview-hint-bg 0.4s ease-in-out 5;
 }
 /* Rahmen: äußerer Amber-Ring */
 @keyframes preview-hint-border {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
-    50% { box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.9); }
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(251, 191, 36, 0);
+    }
+    50% {
+        box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.9);
+    }
 }
 .preview-hint-border {
     animation: preview-hint-border 0.4s ease-in-out 5;
 }
 /* Text/Icons/SVGs: amber via Filter */
 @keyframes preview-hint-filter {
-    0%, 100% { filter: none; }
-    50% { filter: sepia(1) saturate(15) hue-rotate(-5deg); }
+    0%,
+    100% {
+        filter: none;
+    }
+    50% {
+        filter: sepia(1) saturate(15) hue-rotate(-5deg);
+    }
 }
 .preview-hint-filter {
     animation: preview-hint-filter 0.4s ease-in-out 5;

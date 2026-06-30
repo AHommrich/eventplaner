@@ -2,11 +2,11 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useForm, type InertiaForm } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import CreatableCombobox from './CreatableCombobox.vue';
 import CreatableMultiCombobox from './CreatableMultiCombobox.vue';
-import { computed, ref } from 'vue';
-import { useForm, type InertiaForm } from '@inertiajs/vue3';
-import { useI18n } from 'vue-i18n';
 
 type GuestFormData = {
     firstname: string;
@@ -27,9 +27,9 @@ const emit = defineEmits<{
 }>();
 
 const form = useForm<GuestFormData>({
-    firstname:     props.initialForm?.firstname     ?? '',
-    lastname:      props.initialForm?.lastname      ?? '',
-    group_id:      (props.initialForm?.group_id as number | null | undefined) ?? null,
+    firstname: props.initialForm?.firstname ?? '',
+    lastname: props.initialForm?.lastname ?? '',
+    group_id: (props.initialForm?.group_id as number | null | undefined) ?? null,
     food_specials: props.initialForm?.food_specials ?? [],
 });
 
@@ -40,7 +40,7 @@ const localGroups = ref<{ id: number; name: string; guests: { id: number; firstn
 const allGroups = computed(() => [...props.groups, ...localGroups.value]);
 
 const duplicateGroupNames = computed(() => {
-    const names = allGroups.value.map(g => g.name);
+    const names = allGroups.value.map((g) => g.name);
     return new Set(names.filter((n, i) => names.indexOf(n) !== i));
 });
 
@@ -52,12 +52,13 @@ function onGroupCreated(created: { id: number; name: string }) {
     });
 }
 
-function submit() { emit('submit', form); }
+function submit() {
+    emit('submit', form);
+}
 </script>
 
 <template>
     <form @submit.prevent="submit" class="grid gap-4 sm:grid-cols-2">
-
         <div class="grid gap-1.5">
             <Label>{{ t('guest.firstName') }}</Label>
             <Input v-model="form.firstname" :placeholder="t('guest.firstName')" />
@@ -74,12 +75,15 @@ function submit() { emit('submit', form); }
             <Label>{{ t('guest.group') }}</Label>
             <CreatableCombobox
                 v-model="form.group_id"
-                :options="allGroups.map(g => ({
-                    id: g.id,
-                    label: duplicateGroupNames.has(g.name) && g.guests?.length
-                        ? `${g.name} · ${g.guests.map(m => m.firstname).join(', ')}`
-                        : g.name
-                }))"
+                :options="
+                    allGroups.map((g) => ({
+                        id: g.id,
+                        label:
+                            duplicateGroupNames.has(g.name) && g.guests?.length
+                                ? `${g.name} · ${g.guests.map((m) => m.firstname).join(', ')}`
+                                : g.name,
+                    }))
+                "
                 :placeholder="t('guest.groupSearchPlaceholder')"
                 create-route="groups.store"
                 create-field="name"
@@ -92,7 +96,15 @@ function submit() { emit('submit', form); }
             <Label>{{ t('guest.foodSpecials') }}</Label>
             <CreatableMultiCombobox
                 v-model="form.food_specials"
-                :options="foodSpecials.map(f => ({ id: f.id, label: f.translation_key && te('foodSpecial.catalog.' + f.translation_key) ? t('foodSpecial.catalog.' + f.translation_key) : f.name }))"
+                :options="
+                    foodSpecials.map((f) => ({
+                        id: f.id,
+                        label:
+                            f.translation_key && te('foodSpecial.catalog.' + f.translation_key)
+                                ? t('foodSpecial.catalog.' + f.translation_key)
+                                : f.name,
+                    }))
+                "
                 :placeholder="t('guest.foodSpecialSearchPlaceholder')"
                 create-route="foodspecials.store"
                 create-field="name"
@@ -100,7 +112,7 @@ function submit() { emit('submit', form); }
             <p v-if="form.errors.food_specials" class="text-xs text-destructive">{{ form.errors.food_specials }}</p>
         </div>
 
-        <div class="sm:col-span-2 flex justify-end">
+        <div class="flex justify-end sm:col-span-2">
             <Button type="submit" :disabled="form.processing">
                 {{ submitLabel ?? t('common.save') }}
             </Button>

@@ -17,9 +17,11 @@ use App\Models\Event;
  */
 class ColorRoleResolver
 {
-    public const DEFAULT_PRIMARY   = '#7c2d3e';
+    public const DEFAULT_PRIMARY = '#7c2d3e';
+
     public const DEFAULT_SECONDARY = '#e8e3de';
-    public const DEFAULT_TERTIARY  = '#ffffff';
+
+    public const DEFAULT_TERTIARY = '#ffffff';
 
     /**
      * Default-Fallback je Rolle (Key der Palette, NICHT Hex).
@@ -27,15 +29,15 @@ class ColorRoleResolver
      * @var array<string, string>
      */
     private const ROLE_DEFAULTS = [
-        'role_screen_bg'        => 'secondary',
-        'role_card_bg'          => 'tertiary',
-        'role_card_text'        => 'primary',
-        'role_card_button'      => 'primary',
+        'role_screen_bg' => 'secondary',
+        'role_card_bg' => 'tertiary',
+        'role_card_text' => 'primary',
+        'role_card_button' => 'primary',
         'role_card_button_text' => 'tertiary',
-        'role_tab_tint'         => 'primary',
-        'role_border'           => 'primary',
-        'role_fab'              => 'primary',
-        'role_fab_icon'         => 'tertiary',
+        'role_tab_tint' => 'primary',
+        'role_border' => 'primary',
+        'role_fab' => 'primary',
+        'role_fab_icon' => 'tertiary',
     ];
 
     /**
@@ -48,9 +50,9 @@ class ColorRoleResolver
     public function resolve(Event $event): array
     {
         $palette = [
-            'primary'   => $event->color_primary   ?? self::DEFAULT_PRIMARY,
+            'primary' => $event->color_primary ?? self::DEFAULT_PRIMARY,
             'secondary' => $event->color_secondary ?? self::DEFAULT_SECONDARY,
-            'tertiary'  => $event->color_tertiary  ?? self::DEFAULT_TERTIARY,
+            'tertiary' => $event->color_tertiary ?? self::DEFAULT_TERTIARY,
         ];
 
         $roles = [];
@@ -62,10 +64,10 @@ class ColorRoleResolver
 
         return [
             'palette' => $palette,
-            'roles'   => $roles,
-            'cover'   => [
-                'home_text'           => $event->color_home_text,
-                'home_shadow'         => $event->color_home_shadow ?? '#000000',
+            'roles' => $roles,
+            'cover' => [
+                'home_text' => $event->color_home_text,
+                'home_shadow' => $event->color_home_shadow ?? '#000000',
                 'home_shadow_opacity' => $event->home_shadow_opacity ?? 50,
             ],
         ];

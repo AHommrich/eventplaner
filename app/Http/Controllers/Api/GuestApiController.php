@@ -43,13 +43,13 @@ class GuestApiController extends Controller
         }
 
         return response()->json([
-            'guest_id'      => $guest->id,
-            'firstname'     => $guest->firstname,
-            'lastname'      => $guest->lastname,
-            'type'          => $guest->group_id ? 'family' : 'solo',
-            'family_name'   => $guest->group?->name,
-            'rsvp_status'   => $guest->rsvp_status,
-            'rsvp_set_by'   => $this->formatSetter($guest),
+            'guest_id' => $guest->id,
+            'firstname' => $guest->firstname,
+            'lastname' => $guest->lastname,
+            'type' => $guest->group_id ? 'family' : 'solo',
+            'family_name' => $guest->group?->name,
+            'rsvp_status' => $guest->rsvp_status,
+            'rsvp_set_by' => $this->formatSetter($guest),
             'group_members' => $groupMembers,
         ]);
     }
@@ -74,10 +74,10 @@ class GuestApiController extends Controller
         $request->validate(['attending' => 'required|boolean']);
 
         $guest->update([
-            'rsvp_status'          => $request->boolean('attending') ? 'accepted_pending' : 'declined_pending',
+            'rsvp_status' => $request->boolean('attending') ? 'accepted_pending' : 'declined_pending',
             'rsvp_set_by_guest_id' => $guest->id,
-            'rsvp_set_by_user_id'  => null,
-            'rsvp_set_at'          => now(),
+            'rsvp_set_by_user_id' => null,
+            'rsvp_set_at' => now(),
         ]);
 
         return response()->json(['rsvp_status' => $guest->rsvp_status]);
@@ -94,7 +94,7 @@ class GuestApiController extends Controller
         $actor = $request->user();
 
         abort_if(
-            !in_array($actor->rsvp_status, ['accepted_pending', 'accepted']),
+            ! in_array($actor->rsvp_status, ['accepted_pending', 'accepted']),
             403,
             'Du musst selbst zugesagt haben, um andere Familienmitglieder anzumelden.'
         );
@@ -118,14 +118,14 @@ class GuestApiController extends Controller
         $request->validate(['attending' => 'required|boolean']);
 
         $target->update([
-            'rsvp_status'          => $request->boolean('attending') ? 'accepted_pending' : 'declined_pending',
+            'rsvp_status' => $request->boolean('attending') ? 'accepted_pending' : 'declined_pending',
             'rsvp_set_by_guest_id' => $actor->id,
-            'rsvp_set_by_user_id'  => null,
-            'rsvp_set_at'          => now(),
+            'rsvp_set_by_user_id' => null,
+            'rsvp_set_at' => now(),
         ]);
 
         return response()->json([
-            'guest_id'    => $target->id,
+            'guest_id' => $target->id,
             'rsvp_status' => $target->rsvp_status,
         ]);
     }
@@ -140,7 +140,7 @@ class GuestApiController extends Controller
         $guest = $request->user();
 
         abort_if(
-            !in_array($guest->rsvp_status, ['declined', 'declined_pending']),
+            ! in_array($guest->rsvp_status, ['declined', 'declined_pending']),
             422,
             'Nur abgesagte Gäste können eine Rücknahme beantragen.'
         );
@@ -165,9 +165,9 @@ class GuestApiController extends Controller
     private function formatGuest(\App\Models\Guest $g): array
     {
         return [
-            'guest_id'    => $g->id,
-            'firstname'   => $g->firstname,
-            'lastname'    => $g->lastname,
+            'guest_id' => $g->id,
+            'firstname' => $g->firstname,
+            'lastname' => $g->lastname,
             'rsvp_status' => $g->rsvp_status,
             'rsvp_set_by' => $this->formatSetter($g),
         ];
@@ -177,12 +177,15 @@ class GuestApiController extends Controller
     {
         if ($g->rsvp_set_by_guest_id) {
             $setter = $g->rsvpSetByGuest;
+
             return $setter ? ['guest_id' => $setter->id, 'firstname' => $setter->firstname, 'lastname' => $setter->lastname] : null;
         }
         if ($g->rsvp_set_by_user_id) {
             $setter = $g->rsvpSetByUser;
+
             return $setter ? ['user_id' => $setter->id, 'name' => $setter->name] : null;
         }
+
         return null;
     }
 

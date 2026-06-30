@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import { ref, onMounted, onUnmounted, computed } from 'vue';
 import axios from 'axios';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 
-interface ProjectorPhoto { id: number; url: string; label: string | null; }
+interface ProjectorPhoto {
+    id: number;
+    url: string;
+    label: string | null;
+}
 
 const props = defineProps<{
     event: { name: string };
@@ -50,7 +54,9 @@ onMounted(() => {
         slideInterval = setInterval(nextSlide, 5000);
     }
     pollInterval = setInterval(pollPhotos, 10000);
-    setTimeout(() => { infoVisible.value = false; }, 4000);
+    setTimeout(() => {
+        infoVisible.value = false;
+    }, 4000);
 });
 
 onUnmounted(() => {
@@ -61,43 +67,40 @@ onUnmounted(() => {
 
 <template>
     <Head :title="event.name + ' – Projektor'" />
-    <div class="fixed inset-0 bg-black flex items-center justify-center overflow-hidden">
-
+    <div class="fixed inset-0 flex items-center justify-center overflow-hidden bg-black">
         <Transition name="crossfade">
             <img
                 v-if="currentPhoto && visible"
                 :key="currentPhoto.id"
                 :src="currentPhoto.url"
                 :alt="event.name"
-                class="absolute inset-0 w-full h-full object-contain"
+                class="absolute inset-0 h-full w-full object-contain"
             />
         </Transition>
 
-        <div v-if="allPhotos.length === 0" class="text-white/40 text-2xl select-none">
-            Noch keine Fotos vorhanden
-        </div>
+        <div v-if="allPhotos.length === 0" class="text-2xl text-white/40 select-none">Noch keine Fotos vorhanden</div>
 
         <!-- Kontext-Label (Gastname / Beschreibung / Aufgabe) -->
         <Transition name="crossfade">
             <div
                 v-if="currentPhoto?.label && visible"
                 :key="'label-' + currentPhoto.id"
-                class="absolute bottom-16 left-0 right-0 flex justify-center px-8 pointer-events-none"
+                class="pointer-events-none absolute right-0 bottom-16 left-0 flex justify-center px-8"
             >
-                <span class="bg-black/60 backdrop-blur-sm text-white text-xl font-medium px-6 py-2 rounded-full max-w-2xl text-center truncate">
+                <span class="max-w-2xl truncate rounded-full bg-black/60 px-6 py-2 text-center text-xl font-medium text-white backdrop-blur-sm">
                     {{ currentPhoto.label }}
                 </span>
             </div>
         </Transition>
 
         <!-- Foto-Counter -->
-        <div v-if="allPhotos.length > 0" class="absolute top-4 right-6 text-white/30 text-xs select-none">
+        <div v-if="allPhotos.length > 0" class="absolute top-4 right-6 text-xs text-white/30 select-none">
             {{ currentIndex + 1 }} / {{ allPhotos.length }}
         </div>
 
         <!-- Info-Overlay (blendet sich nach 4s aus) -->
         <Transition name="fade-slow">
-            <div v-if="infoVisible" class="absolute top-4 left-6 text-white/50 text-xs select-none space-y-0.5">
+            <div v-if="infoVisible" class="absolute top-4 left-6 space-y-0.5 text-xs text-white/50 select-none">
                 <p>Automatischer Wechsel alle 5 Sekunden</p>
                 <p>Neue Fotos werden alle 10 Sekunden geladen</p>
             </div>

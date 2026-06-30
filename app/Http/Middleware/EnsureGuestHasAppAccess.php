@@ -18,7 +18,7 @@ class EnsureGuestHasAppAccess
     {
         $guest = $request->user();
 
-        if ($guest && !$guest->app_access) {
+        if ($guest && ! $guest->app_access) {
             return response()->json(['message' => 'Der App-Zugang wurde für diesen Gast deaktiviert.', 'code' => 'app_blocked'], 403);
         }
 

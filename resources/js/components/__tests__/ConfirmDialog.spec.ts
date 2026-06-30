@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { defineComponent, h } from 'vue';
 import ConfirmDialog from '../ConfirmDialog.vue';
 
@@ -29,12 +29,7 @@ const stubs = {
     Button: defineComponent({
         props: ['variant'],
         setup(props, { slots, attrs }) {
-            return () =>
-                h(
-                    'button',
-                    { 'data-variant': props.variant, ...attrs },
-                    slots.default?.(),
-                );
+            return () => h('button', { 'data-variant': props.variant, ...attrs }, slots.default?.());
         },
     }),
 };

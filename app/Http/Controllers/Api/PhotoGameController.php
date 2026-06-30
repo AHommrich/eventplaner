@@ -12,8 +12,8 @@ use App\Services\PhotoGameTaskPool;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Imagick\Driver;
+use Intervention\Image\ImageManager;
 
 /**
  * Fotospiel-API für die React-Native-App.
@@ -33,10 +33,10 @@ class PhotoGameController extends Controller
     public function status(Request $request)
     {
         $guest = $request->user();
-        $lang  = $request->getPreferredLanguage(['de', 'en']);
-        $game  = EventPhotoGame::where('event_id', $guest->event_id)->first();
+        $lang = $request->getPreferredLanguage(['de', 'en']);
+        $game = EventPhotoGame::where('event_id', $guest->event_id)->first();
 
-        if (!$game) {
+        if (! $game) {
             return response()->json(['status' => 'draft', 'assignment' => null]);
         }
 
@@ -46,16 +46,16 @@ class PhotoGameController extends Controller
             ->first();
 
         return response()->json([
-            'status'     => $game->status,
+            'status' => $game->status,
             'assignment' => $assignment ? [
-                'id'              => $assignment->id,
-                'task'            => [
-                    'id'              => $assignment->task_id ?? $assignment->override_id,
-                    'description'     => $this->resolveTaskDescription($assignment, $lang),
+                'id' => $assignment->id,
+                'task' => [
+                    'id' => $assignment->task_id ?? $assignment->override_id,
+                    'description' => $this->resolveTaskDescription($assignment, $lang),
                     'translation_key' => $assignment->override ? null : $assignment->task?->translation_key,
                 ],
                 'submitted_at' => $assignment->submitted_at,
-                'photo_url'    => $assignment->photo?->url,
+                'photo_url' => $assignment->photo?->url,
             ] : null,
         ]);
     }
@@ -63,9 +63,9 @@ class PhotoGameController extends Controller
     public function assign(Request $request)
     {
         $guest = $request->user();
-        $game  = EventPhotoGame::where('event_id', $guest->event_id)->first();
+        $game = EventPhotoGame::where('event_id', $guest->event_id)->first();
 
-        if (!$game || $game->status !== EventPhotoGame::STATUS_ACTIVE) {
+        if (! $game || $game->status !== EventPhotoGame::STATUS_ACTIVE) {
             return response()->json(['message' => 'Das Spiel ist nicht aktiv.'], 422);
         }
 
@@ -90,21 +90,21 @@ class PhotoGameController extends Controller
         $picked = $pool->random();
 
         $assignment = PhotoGameAssignment::create([
-            'game_id'     => $game->id,
-            'guest_id'    => $guest->id,
-            'task_id'     => $picked['task_id'],
+            'game_id' => $game->id,
+            'guest_id' => $guest->id,
+            'task_id' => $picked['task_id'],
             'override_id' => $picked['override_id'],
         ]);
 
-        $description = ($lang === 'en' && !empty($picked['description_en']))
+        $description = ($lang === 'en' && ! empty($picked['description_en']))
             ? $picked['description_en']
             : $picked['description'];
 
         return response()->json([
-            'id'   => $assignment->id,
+            'id' => $assignment->id,
             'task' => [
-                'id'              => $picked['task_id'] ?? $picked['override_id'],
-                'description'     => $description,
+                'id' => $picked['task_id'] ?? $picked['override_id'],
+                'description' => $description,
                 'translation_key' => $picked['translation_key'] ?? null,
             ],
         ], 201);
@@ -117,9 +117,9 @@ class PhotoGameController extends Controller
         ]);
 
         $guest = $request->user();
-        $game  = EventPhotoGame::where('event_id', $guest->event_id)->first();
+        $game = EventPhotoGame::where('event_id', $guest->event_id)->first();
 
-        if (!$game || $game->status !== EventPhotoGame::STATUS_ACTIVE) {
+        if (! $game || $game->status !== EventPhotoGame::STATUS_ACTIVE) {
             return response()->json(['message' => 'Das Spiel ist nicht aktiv.'], 422);
         }
 
@@ -127,7 +127,7 @@ class PhotoGameController extends Controller
             ->where('guest_id', $guest->id)
             ->first();
 
-        if (!$assignment) {
+        if (! $assignment) {
             return response()->json(['message' => 'Du hast noch keine Aufgabe erhalten.'], 422);
         }
 
@@ -145,12 +145,12 @@ class PhotoGameController extends Controller
         $mime = strtolower($file->getClientOriginalExtension());
 
         if (in_array($mime, ['heic', 'heif'])) {
-            $manager   = new ImageManager(new Driver());
+            $manager = new ImageManager(new Driver);
             $imageData = $manager->read($file->getRealPath())->toJpeg(90)->toString();
-            $path      = 'photos/' . Str::uuid() . '.jpg';
+            $path = 'photos/'.Str::uuid().'.jpg';
             Storage::disk('s3')->put($path, $imageData, 'public');
         } else {
-            $path = 'photos/' . Str::uuid() . '.' . $mime;
+            $path = 'photos/'.Str::uuid().'.'.$mime;
             Storage::disk('s3')->put($path, file_get_contents($file), 'public');
         }
 
@@ -164,17 +164,17 @@ class PhotoGameController extends Controller
             'event_id' => $guest->event_id,
             'album_id' => $album?->id,
             'guest_id' => $guest->id,
-            'url'      => $url,
-            'r2_key'   => $path,
+            'url' => $url,
+            'r2_key' => $path,
         ]);
 
         $assignment->update([
-            'photo_id'     => $photo->id,
+            'photo_id' => $photo->id,
             'submitted_at' => now(),
         ]);
 
         return response()->json([
-            'photo_url'    => $url,
+            'photo_url' => $url,
             'submitted_at' => $assignment->submitted_at,
         ]);
     }
@@ -198,8 +198,10 @@ class PhotoGameController extends Controller
             if ($lang === 'en' && $assignment->task->description_en) {
                 return $assignment->task->description_en;
             }
+
             return $assignment->task->description;
         }
+
         return '';
     }
 }

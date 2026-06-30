@@ -11,14 +11,14 @@ it('shows the event settings page', function () {
 });
 
 it('updates basic event fields (name, date, dresscode, schedule)', function () {
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
 
     $this->post(route('event.settings.update'), [
-        'name'      => 'Brandneuer Name',
-        'date'      => '2027-08-15',
+        'name' => 'Brandneuer Name',
+        'date' => '2027-08-15',
         'dresscode' => 'Smart Casual',
-        'schedule'  => '14:00 Trauung • 16:00 Sektempfang',
+        'schedule' => '14:00 Trauung • 16:00 Sektempfang',
     ])->assertRedirect(route('event.settings'));
 
     $fresh = $event->fresh();
@@ -27,17 +27,17 @@ it('updates basic event fields (name, date, dresscode, schedule)', function () {
 });
 
 it('updates all color palette and role fields', function () {
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
 
     $this->post(route('event.settings.update'), [
-        'name'              => 'Test',
-        'color_primary'     => '#112233',
-        'color_secondary'   => '#445566',
-        'color_tertiary'    => '#778899',
-        'role_screen_bg'    => 'secondary',
-        'role_card_bg'      => 'tertiary',
-        'role_card_text'    => 'primary',
+        'name' => 'Test',
+        'color_primary' => '#112233',
+        'color_secondary' => '#445566',
+        'color_tertiary' => '#778899',
+        'role_screen_bg' => 'secondary',
+        'role_card_bg' => 'tertiary',
+        'role_card_text' => 'primary',
     ])->assertRedirect();
 
     $fresh = $event->fresh();
@@ -50,18 +50,18 @@ it('rejects invalid hex colors', function () {
     actingAsOwner();
 
     $this->post(route('event.settings.update'), [
-        'name'          => 'Test',
+        'name' => 'Test',
         'color_primary' => 'not-a-hex',
     ])->assertSessionHasErrors(['color_primary']);
 });
 
 it('uploads a cover image to R2', function () {
     Storage::fake('s3');
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
 
     $this->post(route('event.settings.update'), [
-        'name'  => 'Test',
+        'name' => 'Test',
         'cover' => UploadedFile::fake()->image('cover.jpg', 800, 600),
     ])->assertRedirect();
 

@@ -1,57 +1,75 @@
 /* Instrument Sans — self-hosted, kein externer Drittanbieter */
 @font-face {
-  font-family: 'Instrument Sans';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/instrument-sans/instrument-sans-latin-ext-400-normal.woff2') format('woff2'),
-       url('/fonts/instrument-sans/instrument-sans-latin-ext-400-normal.woff') format('woff');
-  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+    font-family: 'Instrument Sans';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src:
+        url('/fonts/instrument-sans/instrument-sans-latin-ext-400-normal.woff2') format('woff2'),
+        url('/fonts/instrument-sans/instrument-sans-latin-ext-400-normal.woff') format('woff');
+    unicode-range:
+        U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+        U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
-  font-family: 'Instrument Sans';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/instrument-sans/instrument-sans-latin-400-normal.woff2') format('woff2'),
-       url('/fonts/instrument-sans/instrument-sans-latin-400-normal.woff') format('woff');
-  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+    font-family: 'Instrument Sans';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src:
+        url('/fonts/instrument-sans/instrument-sans-latin-400-normal.woff2') format('woff2'),
+        url('/fonts/instrument-sans/instrument-sans-latin-400-normal.woff') format('woff');
+    unicode-range:
+        U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+        U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: 'Instrument Sans';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url('/fonts/instrument-sans/instrument-sans-latin-ext-500-normal.woff2') format('woff2'),
-       url('/fonts/instrument-sans/instrument-sans-latin-ext-500-normal.woff') format('woff');
-  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+    font-family: 'Instrument Sans';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src:
+        url('/fonts/instrument-sans/instrument-sans-latin-ext-500-normal.woff2') format('woff2'),
+        url('/fonts/instrument-sans/instrument-sans-latin-ext-500-normal.woff') format('woff');
+    unicode-range:
+        U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+        U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
-  font-family: 'Instrument Sans';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url('/fonts/instrument-sans/instrument-sans-latin-500-normal.woff2') format('woff2'),
-       url('/fonts/instrument-sans/instrument-sans-latin-500-normal.woff') format('woff');
-  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+    font-family: 'Instrument Sans';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src:
+        url('/fonts/instrument-sans/instrument-sans-latin-500-normal.woff2') format('woff2'),
+        url('/fonts/instrument-sans/instrument-sans-latin-500-normal.woff') format('woff');
+    unicode-range:
+        U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+        U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: 'Instrument Sans';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url('/fonts/instrument-sans/instrument-sans-latin-ext-600-normal.woff2') format('woff2'),
-       url('/fonts/instrument-sans/instrument-sans-latin-ext-600-normal.woff') format('woff');
-  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+    font-family: 'Instrument Sans';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src:
+        url('/fonts/instrument-sans/instrument-sans-latin-ext-600-normal.woff2') format('woff2'),
+        url('/fonts/instrument-sans/instrument-sans-latin-ext-600-normal.woff') format('woff');
+    unicode-range:
+        U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+        U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
-  font-family: 'Instrument Sans';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url('/fonts/instrument-sans/instrument-sans-latin-600-normal.woff2') format('woff2'),
-       url('/fonts/instrument-sans/instrument-sans-latin-600-normal.woff') format('woff');
-  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+    font-family: 'Instrument Sans';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src:
+        url('/fonts/instrument-sans/instrument-sans-latin-600-normal.woff2') format('woff2'),
+        url('/fonts/instrument-sans/instrument-sans-latin-600-normal.woff') format('woff');
+    unicode-range:
+        U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+        U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @import 'tailwindcss';
@@ -228,109 +246,109 @@
    .multiselect-dropdown-Element (das kein Kind von .multiselect-custom ist)
    die richtigen Werte bekommt.                                               */
 :root {
-  --ms-font-size: 0.875rem;
-  --ms-line-height: 1.25rem;
-  --ms-min-height: 2.25rem;
-  --ms-bg: transparent;
-  --ms-bg-disabled: transparent;
-  --ms-border-color: hsl(0 0% 92.8%);
-  --ms-border-width: 1px;
-  --ms-border-color-active: hsl(0 0% 3.9%);
-  --ms-radius: calc(0.5rem - 2px);
-  --ms-py: 0.375rem;
-  --ms-px: 0.75rem;
-  --ms-ring-width: 3px;
-  --ms-ring-color: hsl(0 0% 3.9% / 0.5);
-  --ms-placeholder-color: hsl(0 0% 45.1%);
-  --ms-max-height: 12rem;
+    --ms-font-size: 0.875rem;
+    --ms-line-height: 1.25rem;
+    --ms-min-height: 2.25rem;
+    --ms-bg: transparent;
+    --ms-bg-disabled: transparent;
+    --ms-border-color: hsl(0 0% 92.8%);
+    --ms-border-width: 1px;
+    --ms-border-color-active: hsl(0 0% 3.9%);
+    --ms-radius: calc(0.5rem - 2px);
+    --ms-py: 0.375rem;
+    --ms-px: 0.75rem;
+    --ms-ring-width: 3px;
+    --ms-ring-color: hsl(0 0% 3.9% / 0.5);
+    --ms-placeholder-color: hsl(0 0% 45.1%);
+    --ms-max-height: 12rem;
 
-  /* Dropdown */
-  --ms-dropdown-bg: hsl(0 0% 100%);
-  --ms-dropdown-border-color: hsl(0 0% 92.8%);
-  --ms-dropdown-border-width: 1px;
-  --ms-dropdown-radius: calc(0.5rem - 2px);
+    /* Dropdown */
+    --ms-dropdown-bg: hsl(0 0% 100%);
+    --ms-dropdown-border-color: hsl(0 0% 92.8%);
+    --ms-dropdown-border-width: 1px;
+    --ms-dropdown-radius: calc(0.5rem - 2px);
 
-  /* Options */
-  --ms-option-font-size: 0.875rem;
-  --ms-option-bg-selected: hsl(0 0% 96.1%);
-  --ms-option-color-selected: hsl(0 0% 9%);
-  --ms-option-bg-selected-pointed: hsl(0 0% 96.1%);
-  --ms-option-color-selected-pointed: hsl(0 0% 9%);
-  --ms-option-bg-pointed: hsl(0 0% 96.1%);
-  --ms-option-color-pointed: hsl(0 0% 9%);
-  --ms-option-py: 0.375rem;
-  --ms-option-px: 0.5rem;
+    /* Options */
+    --ms-option-font-size: 0.875rem;
+    --ms-option-bg-selected: hsl(0 0% 96.1%);
+    --ms-option-color-selected: hsl(0 0% 9%);
+    --ms-option-bg-selected-pointed: hsl(0 0% 96.1%);
+    --ms-option-color-selected-pointed: hsl(0 0% 9%);
+    --ms-option-bg-pointed: hsl(0 0% 96.1%);
+    --ms-option-color-pointed: hsl(0 0% 9%);
+    --ms-option-py: 0.375rem;
+    --ms-option-px: 0.5rem;
 
-  /* Tags (multi) */
-  --ms-tag-bg: hsl(0 0% 9% / 0.1);
-  --ms-tag-color: hsl(0 0% 9%);
-  --ms-tag-radius: 9999px;
-  --ms-tag-font-size: 0.75rem;
-  --ms-tag-font-weight: 500;
-  --ms-tag-py: 0.125rem;
-  --ms-tag-px: 0.5rem;
-  --ms-tag-mx: 0.25rem;
-  --ms-tag-my: 0.1875rem;
-  --ms-tag-remove-radius: 9999px;
+    /* Tags (multi) */
+    --ms-tag-bg: hsl(0 0% 9% / 0.1);
+    --ms-tag-color: hsl(0 0% 9%);
+    --ms-tag-radius: 9999px;
+    --ms-tag-font-size: 0.75rem;
+    --ms-tag-font-weight: 500;
+    --ms-tag-py: 0.125rem;
+    --ms-tag-px: 0.5rem;
+    --ms-tag-mx: 0.25rem;
+    --ms-tag-my: 0.1875rem;
+    --ms-tag-remove-radius: 9999px;
 }
 
 .dark {
-  --ms-bg: hsl(0 0% 14.9% / 0.3);
-  --ms-border-color: hsl(0 0% 14.9%);
-  --ms-border-color-active: hsl(0 0% 83.1%);
-  --ms-ring-color: hsl(0 0% 83.1% / 0.5);
-  --ms-placeholder-color: hsl(0 0% 63.9%);
+    --ms-bg: hsl(0 0% 14.9% / 0.3);
+    --ms-border-color: hsl(0 0% 14.9%);
+    --ms-border-color-active: hsl(0 0% 83.1%);
+    --ms-ring-color: hsl(0 0% 83.1% / 0.5);
+    --ms-placeholder-color: hsl(0 0% 63.9%);
 
-  --ms-dropdown-bg: hsl(0 0% 3.9%);
-  --ms-dropdown-border-color: hsl(0 0% 14.9%);
+    --ms-dropdown-bg: hsl(0 0% 3.9%);
+    --ms-dropdown-border-color: hsl(0 0% 14.9%);
 
-  --ms-option-bg-selected: hsl(0 0% 14.9%);
-  --ms-option-color-selected: hsl(0 0% 98%);
-  --ms-option-bg-selected-pointed: hsl(0 0% 14.9%);
-  --ms-option-color-selected-pointed: hsl(0 0% 98%);
-  --ms-option-bg-pointed: hsl(0 0% 14.9%);
-  --ms-option-color-pointed: hsl(0 0% 98%);
+    --ms-option-bg-selected: hsl(0 0% 14.9%);
+    --ms-option-color-selected: hsl(0 0% 98%);
+    --ms-option-bg-selected-pointed: hsl(0 0% 14.9%);
+    --ms-option-color-selected-pointed: hsl(0 0% 98%);
+    --ms-option-bg-pointed: hsl(0 0% 14.9%);
+    --ms-option-color-pointed: hsl(0 0% 98%);
 
-  --ms-tag-bg: hsl(0 0% 98% / 0.15);
-  --ms-tag-color: hsl(0 0% 98%);
+    --ms-tag-bg: hsl(0 0% 98% / 0.15);
+    --ms-tag-color: hsl(0 0% 98%);
 }
 
 /* Exakte Höhe + gleicher Hintergrund wie shadcn Input */
 .multiselect-custom,
 .multiselect-custom .multiselect-wrapper {
-  min-height: 2.25rem !important;
+    min-height: 2.25rem !important;
 }
 
 .multiselect-custom {
-  background-color: transparent !important;
-  overflow: visible !important;
+    background-color: transparent !important;
+    overflow: visible !important;
 }
 
 .dark .multiselect-custom {
-  background-color: hsl(0 0% 14.9% / 0.3) !important;
+    background-color: hsl(0 0% 14.9% / 0.3) !important;
 }
 
 /* Offen: Input-Ring oben/seitlich sichtbar, unten verdeckt durch Dropdown */
 .multiselect-custom.is-open {
-  border-bottom-left-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
 }
 
 /* Dropdown: Ring nur unten/seitlich via clip-path → wirkt wie ein gemeinsamer Ring */
 .multiselect-custom.is-open .multiselect-dropdown {
-  border-top: 0 !important;
-  border-top-left-radius: 0 !important;
-  border-top-right-radius: 0 !important;
-  border-color: hsl(0 0% 3.9%) !important;
-  box-shadow: 0 0 0 3px hsl(0 0% 3.9% / 0.5) !important;
-  clip-path: inset(0 -4px -4px -4px) !important;
+    border-top: 0 !important;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    border-color: hsl(0 0% 3.9%) !important;
+    box-shadow: 0 0 0 3px hsl(0 0% 3.9% / 0.5) !important;
+    clip-path: inset(0 -4px -4px -4px) !important;
 }
 
 .dark .multiselect-custom.is-open .multiselect-dropdown {
-  border-color: hsl(0 0% 83.1%) !important;
-  box-shadow: 0 0 0 3px hsl(0 0% 83.1% / 0.5) !important;
+    border-color: hsl(0 0% 83.1%) !important;
+    box-shadow: 0 0 0 3px hsl(0 0% 83.1% / 0.5) !important;
 }
 
 .multiselect-dropdown {
-  z-index: 200 !important;
+    z-index: 200 !important;
 }

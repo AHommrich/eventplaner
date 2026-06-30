@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
 import InputModal from '@/components/InputModal.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Head, useForm, router } from '@inertiajs/vue3';
-import { ref, onMounted } from 'vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { Head, router, useForm } from '@inertiajs/vue3';
+import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -19,7 +19,9 @@ function onClose() {
     router.back();
 }
 
-onMounted(() => { open.value = true; });
+onMounted(() => {
+    open.value = true;
+});
 </script>
 
 <template>
@@ -29,7 +31,11 @@ onMounted(() => { open.value = true; });
             v-model:open="open"
             :title="t('onboarding.create')"
             :description="t('onboarding.descriptionAdmin')"
-            @update:open="(v) => { if (!v) onClose(); }"
+            @update:open="
+                (v) => {
+                    if (!v) onClose();
+                }
+            "
         >
             <form @submit.prevent="createEvent" class="space-y-3">
                 <div>

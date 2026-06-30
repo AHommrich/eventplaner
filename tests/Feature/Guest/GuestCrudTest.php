@@ -9,25 +9,25 @@ use App\Models\Group;
 use App\Models\Guest;
 
 it('creates a new guest in the active event', function () {
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
 
     $this->post(route('guests.store'), [
         'firstname' => 'Lena',
-        'lastname'  => 'Mustermann',
+        'lastname' => 'Mustermann',
     ])->assertRedirect();
 
     expect(Guest::where('event_id', $event->id)->where('firstname', 'Lena')->exists())->toBeTrue();
 });
 
 it('creates a guest under a group and uses group name as lastname fallback', function () {
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
     $group = Group::factory()->create(['event_id' => $event->id, 'name' => 'Müller']);
 
     $this->post(route('guests.store'), [
         'firstname' => 'Anna',
-        'group_id'  => $group->id,
+        'group_id' => $group->id,
     ])->assertRedirect();
 
     $guest = Guest::where('event_id', $event->id)->where('firstname', 'Anna')->first();
@@ -36,20 +36,20 @@ it('creates a guest under a group and uses group name as lastname fallback', fun
 });
 
 it('updates an existing guest', function () {
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
     $guest = Guest::factory()->create(['event_id' => $event->id, 'firstname' => 'Old']);
 
     $this->put(route('guests.update', $guest), [
         'firstname' => 'New Name',
-        'group_id'  => null,
+        'group_id' => null,
     ])->assertRedirect();
 
     expect($guest->fresh()->firstname)->toBe('New Name');
 });
 
 it('deletes a guest', function () {
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
     $guest = Guest::factory()->create(['event_id' => $event->id]);
 
@@ -59,7 +59,7 @@ it('deletes a guest', function () {
 });
 
 it('lets the owner set rsvp for a guest', function () {
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
     $guest = Guest::factory()->create(['event_id' => $event->id]);
 
@@ -72,7 +72,7 @@ it('lets the owner set rsvp for a guest', function () {
 });
 
 it('toggles app_access for a guest', function () {
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
     $guest = Guest::factory()->create(['event_id' => $event->id, 'app_access' => true]);
 
@@ -83,7 +83,7 @@ it('toggles app_access for a guest', function () {
 });
 
 it('toggles drinks_access for a guest', function () {
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
     $guest = Guest::factory()->create(['event_id' => $event->id, 'drinks_access' => true]);
 
@@ -94,7 +94,7 @@ it('toggles drinks_access for a guest', function () {
 });
 
 it('rejects rsvp/access changes for guests from other events', function () {
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $otherEvent = Event::factory()->create();
     $foreign = Guest::factory()->create(['event_id' => $otherEvent->id]);
 
@@ -103,7 +103,7 @@ it('rejects rsvp/access changes for guests from other events', function () {
 });
 
 it('resets drink logs for a guest', function () {
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
     $guest = Guest::factory()->create(['event_id' => $event->id]);
 

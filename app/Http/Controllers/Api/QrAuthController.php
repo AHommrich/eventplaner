@@ -39,7 +39,7 @@ class QrAuthController extends Controller
             ->where('token', $token)
             ->first();
 
-        if (!$invitation) {
+        if (! $invitation) {
             return response()->json(['message' => 'Ungültiger Einladungslink.'], 404);
         }
 
@@ -49,46 +49,46 @@ class QrAuthController extends Controller
             return response()->json(['message' => 'Keine Gäste für diesen Token gefunden.'], 404);
         }
 
-        if ($guests->every(fn($g) => !$g->app_access)) {
+        if ($guests->every(fn ($g) => ! $g->app_access)) {
             return response()->json(['message' => 'Der App-Zugang wurde für diesen Gast deaktiviert.'], 403);
         }
 
-        $isGroup   = $invitation->group_id !== null;
+        $isGroup = $invitation->group_id !== null;
         $groupName = $isGroup ? $invitation->group->name : null;
 
         // Solo-Gast: Token direkt ausstellen (kein Picker, kein Select-Schritt nötig)
-        if (!$isGroup) {
+        if (! $isGroup) {
             $guest = $guests->first();
             $guest->tokens()->delete();
             $sanctumToken = $guest->createToken('guest-login', ['role:guest']);
 
             return response()->json([
-                'type'   => 'solo',
+                'type' => 'solo',
                 'guests' => [[
-                    'guest_id'  => $guest->id,
+                    'guest_id' => $guest->id,
                     'firstname' => $guest->firstname,
-                    'lastname'  => $guest->lastname,
-                    'token'     => $sanctumToken->plainTextToken,
+                    'lastname' => $guest->lastname,
+                    'token' => $sanctumToken->plainTextToken,
                     'is_active' => false,
                 ]],
             ]);
         }
 
         // Familien-Gäste: nur Status zurückgeben, KEIN Token erstellen
-        $result = $guests->map(fn($guest) => [
-            'guest_id'  => $guest->id,
+        $result = $guests->map(fn ($guest) => [
+            'guest_id' => $guest->id,
             'firstname' => $guest->firstname,
-            'lastname'  => $guest->lastname,
-            'token'     => null,
+            'lastname' => $guest->lastname,
+            'token' => null,
             'is_active' => PersonalAccessToken::where('tokenable_type', Guest::class)
                 ->where('tokenable_id', $guest->id)
                 ->exists(),
         ]);
 
         return response()->json([
-            'type'        => 'family',
+            'type' => 'family',
             'family_name' => $groupName,
-            'guests'      => $result,
+            'guests' => $result,
         ]);
     }
 
@@ -105,18 +105,18 @@ class QrAuthController extends Controller
             ->whereNotNull('group_id')
             ->first();
 
-        if (!$invitation) {
+        if (! $invitation) {
             return response()->json(['message' => 'Ungültiger Einladungslink.'], 404);
         }
 
         $guestId = $request->input('guest_id');
-        $guest   = $invitation->group->guests->firstWhere('id', $guestId);
+        $guest = $invitation->group->guests->firstWhere('id', $guestId);
 
-        if (!$guest) {
+        if (! $guest) {
             return response()->json(['message' => 'Gast gehört nicht zu dieser Gruppe.'], 403);
         }
 
-        if (!$guest->app_access) {
+        if (! $guest->app_access) {
             return response()->json(['message' => 'Der App-Zugang wurde für diesen Gast deaktiviert.'], 403);
         }
 
@@ -131,10 +131,10 @@ class QrAuthController extends Controller
         $sanctumToken = $guest->createToken('guest-login', ['role:guest']);
 
         return response()->json([
-            'guest_id'  => $guest->id,
+            'guest_id' => $guest->id,
             'firstname' => $guest->firstname,
-            'lastname'  => $guest->lastname,
-            'token'     => $sanctumToken->plainTextToken,
+            'lastname' => $guest->lastname,
+            'token' => $sanctumToken->plainTextToken,
         ]);
     }
 }

@@ -11,15 +11,16 @@ function makeDrink(Event $event, array $catalogAttrs = [], float $amount = 0.5):
 {
     $catalog = DrinkCatalog::factory()->create($catalogAttrs);
     $size = DrinkCatalogSize::create([
-        'catalog_id'   => $catalog->id,
+        'catalog_id' => $catalog->id,
         'amount_liter' => $amount,
-        'is_default'   => true,
-        'sort_order'   => 0,
+        'is_default' => true,
+        'sort_order' => 0,
     ]);
+
     return Drink::create([
-        'event_id'         => $event->id,
+        'event_id' => $event->id,
         'drink_catalog_id' => $catalog->id,
-        'size_id'          => $size->id,
+        'size_id' => $size->id,
     ]);
 }
 
@@ -62,9 +63,9 @@ it('uses DrinkScoreService to compute base_points (0.5l beer × 5% × 10 = 25)',
 });
 
 it('returns 403 when drink belongs to a different event', function () {
-    $event       = Event::factory()->create();
-    $otherEvent  = Event::factory()->create();
-    $guest       = Guest::factory()->create(['event_id' => $event->id]);
+    $event = Event::factory()->create();
+    $otherEvent = Event::factory()->create();
+    $guest = Guest::factory()->create(['event_id' => $event->id]);
     $foreignDrink = makeDrink($otherEvent);
 
     actingAsGuest($guest)->postJson('/api/drinks/log', ['drink_id' => $foreignDrink->id])
@@ -77,11 +78,11 @@ it('returns stats including totals and leaderboard', function () {
     $drink = makeDrink($event);
 
     DrinkLog::create([
-        'guest_id'     => $guest->id,
-        'drink_id'     => $drink->id,
-        'size_id'      => $drink->size_id,
+        'guest_id' => $guest->id,
+        'drink_id' => $drink->id,
+        'size_id' => $drink->size_id,
         'amount_liter' => 0.5,
-        'base_points'  => 25,
+        'base_points' => 25,
         'final_points' => 25,
     ]);
 

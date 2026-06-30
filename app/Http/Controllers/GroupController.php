@@ -22,7 +22,7 @@ class GroupController extends Controller
 
         $group = Group::create([
             'event_id' => $event?->id,
-            'name'     => $request->name,
+            'name' => $request->name,
         ]);
 
         if ($request->wantsJson()) {
