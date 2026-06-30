@@ -33,18 +33,18 @@ class Event extends Model
     ];
 
     protected $casts = [
-        'drink_game_enabled'   => 'boolean',
-        'drink_game_end_time'  => 'datetime',
-        'photo_game_enabled'   => 'boolean',
-        'venue_lat'            => 'float',
-        'venue_lng'            => 'float',
+        'drink_game_enabled' => 'boolean',
+        'drink_game_end_time' => 'datetime',
+        'photo_game_enabled' => 'boolean',
+        'venue_lat' => 'float',
+        'venue_lng' => 'float',
     ];
 
     protected static function booted(): void
     {
         static::creating(function (Event $event) {
             if (empty($event->slug)) {
-                $event->slug = Str::slug($event->name) . '-' . Str::random(6);
+                $event->slug = Str::slug($event->name).'-'.Str::random(6);
             }
         });
     }

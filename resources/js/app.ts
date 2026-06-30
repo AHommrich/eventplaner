@@ -1,6 +1,5 @@
 import '../css/app.css';
 
-
 import { createInertiaApp } from '@inertiajs/vue3';
 import axios from 'axios';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
@@ -10,13 +9,11 @@ import { ZiggyVue } from 'ziggy-js';
 import { initializeTheme } from './composables/useAppearance';
 import { i18n } from './plugins/i18n';
 
-
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
-  import('virtual:pwa-register').then(({ registerSW }) => {
-    registerSW({ immediate: true })
-  })
+    import('virtual:pwa-register').then(({ registerSW }) => {
+        registerSW({ immediate: true });
+    });
 }
-
 
 const appName = import.meta.env.VITE_APP_NAME || 'eveplan';
 

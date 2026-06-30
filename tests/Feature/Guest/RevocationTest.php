@@ -7,7 +7,7 @@ use App\Models\PhotoAlbum;
 use App\Models\User;
 
 it('approves a guest revocation request', function () {
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
     $guest = Guest::factory()->create(['event_id' => $event->id, 'rsvp_status' => 'revocation_requested']);
 
@@ -17,7 +17,7 @@ it('approves a guest revocation request', function () {
 });
 
 it('declines a guest revocation request (stays declined)', function () {
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
     $guest = Guest::factory()->create(['event_id' => $event->id, 'rsvp_status' => 'revocation_requested']);
 
@@ -29,7 +29,7 @@ it('declines a guest revocation request (stays declined)', function () {
 it('approves an event-join request and creates the event with default albums', function () {
     $admin = User::factory()->create(['role' => 'admin', 'email_verified_at' => now()]);
     $applicant = User::factory()->create();
-    $request   = EventRequest::create(['user_id' => $applicant->id, 'event_name' => 'Sommerfest', 'status' => 'pending']);
+    $request = EventRequest::create(['user_id' => $applicant->id, 'event_name' => 'Sommerfest', 'status' => 'pending']);
 
     $this->actingAs($admin)
         ->post(route('requests.event-requests.approve', $request))
@@ -44,7 +44,7 @@ it('approves an event-join request and creates the event with default albums', f
 it('declines an event-join request', function () {
     $admin = User::factory()->create(['role' => 'admin', 'email_verified_at' => now()]);
     $applicant = User::factory()->create();
-    $request   = EventRequest::create(['user_id' => $applicant->id, 'event_name' => 'X', 'status' => 'pending']);
+    $request = EventRequest::create(['user_id' => $applicant->id, 'event_name' => 'X', 'status' => 'pending']);
 
     $this->actingAs($admin)
         ->post(route('requests.event-requests.decline', $request))

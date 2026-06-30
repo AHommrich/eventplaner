@@ -9,8 +9,8 @@ it('shows the event access page with current members', function () {
 });
 
 it('invites another user to the event by email', function () {
-    $user    = actingAsOwner();
-    $event   = $user->ownedEvents()->first();
+    $user = actingAsOwner();
+    $event = $user->ownedEvents()->first();
     $invitee = User::factory()->create(['email' => 'invitee@test.de']);
 
     $this->post(route('event.access.invite'), ['email' => 'invitee@test.de'])
@@ -20,9 +20,9 @@ it('invites another user to the event by email', function () {
 });
 
 it('removes a user from the event', function () {
-    $user    = actingAsOwner();
-    $event   = $user->ownedEvents()->first();
-    $other   = User::factory()->create();
+    $user = actingAsOwner();
+    $event = $user->ownedEvents()->first();
+    $other = User::factory()->create();
     $event->users()->attach($other->id);
 
     $this->delete(route('event.access.remove', $other))->assertRedirect();
@@ -31,7 +31,7 @@ it('removes a user from the event', function () {
 });
 
 it('rejects removing the event owner', function () {
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
 
     $this->delete(route('event.access.remove', $user))
         ->assertRedirect()

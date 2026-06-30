@@ -17,8 +17,8 @@ class EventFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'name'    => fake()->words(2, true) . ' Event',
-            'date'    => fake()->dateTimeBetween('+1 month', '+1 year'),
+            'name' => fake()->words(2, true).' Event',
+            'date' => fake()->dateTimeBetween('+1 month', '+1 year'),
         ];
     }
 }

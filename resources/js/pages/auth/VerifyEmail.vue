@@ -10,7 +10,9 @@ defineProps<{ status?: string }>();
 
 const { t } = useI18n();
 const form = useForm({});
-const submit = () => { form.post(route('verification.send')); };
+const submit = () => {
+    form.post(route('verification.send'));
+};
 </script>
 
 <template>

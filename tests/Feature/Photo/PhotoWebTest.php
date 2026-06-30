@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Event;
 use App\Models\Photo;
 use App\Models\PhotoAlbum;
 use Illuminate\Support\Facades\Storage;
@@ -13,7 +12,7 @@ it('shows the photos page', function () {
 
 it('deletes a single photo and removes it from R2', function () {
     Storage::fake('s3');
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
     $album = PhotoAlbum::create(['event_id' => $event->id, 'slug' => 'app_gallery', 'name' => 'Galerie']);
 
@@ -31,7 +30,7 @@ it('deletes a single photo and removes it from R2', function () {
 
 it('batch-deletes multiple photos', function () {
     Storage::fake('s3');
-    $user  = actingAsOwner();
+    $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
     $album = PhotoAlbum::create(['event_id' => $event->id, 'slug' => 'app_gallery', 'name' => 'Galerie']);
 

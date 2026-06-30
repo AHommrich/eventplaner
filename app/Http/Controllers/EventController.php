@@ -25,7 +25,7 @@ class EventController extends Controller
     public function onboarding()
     {
         // Nur Admins dürfen Events direkt erstellen
-        if (!auth()->user()->isAdmin()) {
+        if (! auth()->user()->isAdmin()) {
             return redirect()->route('no-event');
         }
 
@@ -53,7 +53,7 @@ class EventController extends Controller
     public function store(Request $request)
     {
         // Nur Admins dürfen Events direkt erstellen
-        if (!auth()->user()->isAdmin()) {
+        if (! auth()->user()->isAdmin()) {
             abort(403);
         }
 
@@ -63,9 +63,9 @@ class EventController extends Controller
         ]);
 
         $event = Event::create([
-            'user_id'         => auth()->id(),
-            'name'            => $data['name'],
-            'date'            => $data['date'] ?? null,
+            'user_id' => auth()->id(),
+            'name' => $data['name'],
+            'date' => $data['date'] ?? null,
             'projector_token' => Str::random(32),
         ]);
 
@@ -89,9 +89,9 @@ class EventController extends Controller
         ]);
 
         EventRequest::create([
-            'user_id'    => $user->id,
+            'user_id' => $user->id,
             'event_name' => $data['event_name'],
-            'status'     => 'pending',
+            'status' => 'pending',
         ]);
 
         return redirect()->route('no-event');
@@ -101,11 +101,11 @@ class EventController extends Controller
     {
         $data = $request->validate(['event_id' => 'required|integer']);
 
-        $user   = auth()->user();
+        $user = auth()->user();
         $events = $user->accessibleEvents()->get();
-        $event  = $events->firstWhere('id', $data['event_id']);
+        $event = $events->firstWhere('id', $data['event_id']);
 
-        if (!$event) {
+        if (! $event) {
             return redirect()->back()->with('error', 'Event nicht gefunden.');
         }
 

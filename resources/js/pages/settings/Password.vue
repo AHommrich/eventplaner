@@ -14,9 +14,7 @@ import { type BreadcrumbItem } from '@/types';
 
 const { t } = useI18n();
 
-const breadcrumbItems: BreadcrumbItem[] = [
-    { title: t('settings.password'), href: '/settings/password' },
-];
+const breadcrumbItems: BreadcrumbItem[] = [{ title: t('settings.password'), href: '/settings/password' }];
 
 const passwordInput = ref<HTMLInputElement | null>(null);
 const currentPasswordInput = ref<HTMLInputElement | null>(null);
@@ -56,25 +54,53 @@ const updatePassword = () => {
                 <form @submit.prevent="updatePassword" class="space-y-6">
                     <div class="grid gap-2">
                         <Label for="current_password">{{ t('settings.currentPassword') }}</Label>
-                        <Input id="current_password" ref="currentPasswordInput" v-model="form.current_password" type="password" class="mt-1 block w-full" autocomplete="current-password" :placeholder="t('settings.currentPassword')" />
+                        <Input
+                            id="current_password"
+                            ref="currentPasswordInput"
+                            v-model="form.current_password"
+                            type="password"
+                            class="mt-1 block w-full"
+                            autocomplete="current-password"
+                            :placeholder="t('settings.currentPassword')"
+                        />
                         <InputError :message="form.errors.current_password" />
                     </div>
 
                     <div class="grid gap-2">
                         <Label for="password">{{ t('settings.newPassword') }}</Label>
-                        <Input id="password" ref="passwordInput" v-model="form.password" type="password" class="mt-1 block w-full" autocomplete="new-password" :placeholder="t('settings.newPassword')" />
+                        <Input
+                            id="password"
+                            ref="passwordInput"
+                            v-model="form.password"
+                            type="password"
+                            class="mt-1 block w-full"
+                            autocomplete="new-password"
+                            :placeholder="t('settings.newPassword')"
+                        />
                         <InputError :message="form.errors.password" />
                     </div>
 
                     <div class="grid gap-2">
                         <Label for="password_confirmation">{{ t('settings.confirmPassword') }}</Label>
-                        <Input id="password_confirmation" v-model="form.password_confirmation" type="password" class="mt-1 block w-full" autocomplete="new-password" :placeholder="t('settings.confirmPassword')" />
+                        <Input
+                            id="password_confirmation"
+                            v-model="form.password_confirmation"
+                            type="password"
+                            class="mt-1 block w-full"
+                            autocomplete="new-password"
+                            :placeholder="t('settings.confirmPassword')"
+                        />
                         <InputError :message="form.errors.password_confirmation" />
                     </div>
 
                     <div class="flex items-center gap-4">
                         <Button :disabled="form.processing">{{ t('settings.savePassword') }}</Button>
-                        <Transition enter-active-class="transition ease-in-out" enter-from-class="opacity-0" leave-active-class="transition ease-in-out" leave-to-class="opacity-0">
+                        <Transition
+                            enter-active-class="transition ease-in-out"
+                            enter-from-class="opacity-0"
+                            leave-active-class="transition ease-in-out"
+                            leave-to-class="opacity-0"
+                        >
                             <p v-show="form.recentlySuccessful" class="text-sm text-neutral-600">{{ t('settings.saved') }}</p>
                         </Transition>
                     </div>

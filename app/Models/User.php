@@ -29,8 +29,8 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
-            'is_approved'       => 'boolean',
+            'password' => 'hashed',
+            'is_approved' => 'boolean',
         ];
     }
 
@@ -62,6 +62,6 @@ class User extends Authenticatable implements MustVerifyEmail
         }
 
         return Event::where('user_id', $this->id)
-            ->orWhereHas('users', fn($q) => $q->where('users.id', $this->id));
+            ->orWhereHas('users', fn ($q) => $q->where('users.id', $this->id));
     }
 }

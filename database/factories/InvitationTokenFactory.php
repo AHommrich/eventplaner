@@ -14,7 +14,7 @@ class InvitationTokenFactory extends Factory
     public function definition(): array
     {
         return [
-            'token'    => Str::random(32),
+            'token' => Str::random(32),
             'group_id' => null,
             'guest_id' => null,
         ];

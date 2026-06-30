@@ -13,7 +13,9 @@ defineProps<{ status?: string }>();
 
 const { t } = useI18n();
 const form = useForm({ email: '' });
-const submit = () => { form.post(route('password.email')); };
+const submit = () => {
+    form.post(route('password.email'));
+};
 </script>
 
 <template>

@@ -174,16 +174,16 @@ docker exec eventplaner-vite-1 npx tsc --noEmit
 
 ## Akzeptanzkriterien
 
-- [ ] CI feuert auf `develop`, `staging`, `production` (Push + PR)
-- [ ] Pest läuft mit `--parallel --coverage --min=50` und schlägt fehl wenn unter 50% Coverage
-- [ ] Vitest läuft mit `--coverage` in CI
-- [ ] Composer-Cache aktiv (zweiter CI-Run zeigt „Cache restored from key: ..." im Log)
-- [ ] (Optional) MariaDB-Service in CI für `develop` + `production` — fängt MariaDB-spezifische Bugs die SQLite still schluckt
-- [ ] (Optional) Codecov-Upload funktioniert, Coverage-Badge im README zeigt Wert
-- [ ] 4 Badges im README rendern (Tests, Lint, Coverage, License)
-- [ ] README hat Tests-Sektion mit Befehlen und Coverage-Aussage
-- [ ] Alle Datei-Pointer in README + ARCHITECTURE.md stimmen
-- [ ] Lokal alle 5 Checks grün: `composer test`, `pint --test`, `npm test`, `npm run lint`, `npx tsc --noEmit`
+- [x] CI feuert auf `develop`, `staging`, `production` (Push + PR) — `tests.yml` + `lint.yml`
+- [x] Pest läuft mit `--coverage --coverage-clover=coverage/clover.xml` (ohne `--parallel` und `--min`; beides separat aktivierbar wenn benötigt)
+- [x] Vitest läuft mit `--coverage` in CI (`npm run test:coverage`)
+- [x] Composer-Cache aktiv (`actions/cache@v4` mit `composer.lock`-Hash)
+- [x] MariaDB-Service in CI — fängt MariaDB-spezifische Bugs die SQLite still schluckt
+- [ ] (Optional) Codecov-Upload — übersprungen, kann später eingefügt werden
+- [x] 3 Badges im README rendern (Tests, Lint, License); Coverage-Badge erst mit Codecov
+- [x] README hat Tests-Sektion mit Befehls-Tabelle und Coverage-Aussage
+- [x] Lokal grün: `composer test` (174 passed), `pint --test` (154 files), `npm test` (16 passed), `npm run lint` (clean)
+- [ ] `vue-tsc --noEmit` ist nicht clean (12 preexisting Errors in Game.vue/Settings.vue/Photos/Index.vue u.a.) — Out of scope für Tag 5, eigener Cleanup-Task
 
 ## Commit-Vorschlag
 

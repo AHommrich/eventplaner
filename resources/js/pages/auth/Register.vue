@@ -26,7 +26,16 @@ const submit = () => {
             <div class="grid gap-6">
                 <div class="grid gap-2">
                     <Label for="name">{{ t('common.name') }}</Label>
-                    <Input id="name" type="text" required autofocus :tabindex="1" autocomplete="name" v-model="form.name" :placeholder="t('settings.fullName')" />
+                    <Input
+                        id="name"
+                        type="text"
+                        required
+                        autofocus
+                        :tabindex="1"
+                        autocomplete="name"
+                        v-model="form.name"
+                        :placeholder="t('settings.fullName')"
+                    />
                     <InputError :message="form.errors.name" />
                 </div>
 
@@ -38,13 +47,29 @@ const submit = () => {
 
                 <div class="grid gap-2">
                     <Label for="password">{{ t('auth.password') }}</Label>
-                    <Input id="password" type="password" required :tabindex="3" autocomplete="new-password" v-model="form.password" :placeholder="t('auth.password')" />
+                    <Input
+                        id="password"
+                        type="password"
+                        required
+                        :tabindex="3"
+                        autocomplete="new-password"
+                        v-model="form.password"
+                        :placeholder="t('auth.password')"
+                    />
                     <InputError :message="form.errors.password" />
                 </div>
 
                 <div class="grid gap-2">
                     <Label for="password_confirmation">{{ t('settings.confirmPassword') }}</Label>
-                    <Input id="password_confirmation" type="password" required :tabindex="4" autocomplete="new-password" v-model="form.password_confirmation" :placeholder="t('settings.confirmPassword')" />
+                    <Input
+                        id="password_confirmation"
+                        type="password"
+                        required
+                        :tabindex="4"
+                        autocomplete="new-password"
+                        v-model="form.password_confirmation"
+                        :placeholder="t('settings.confirmPassword')"
+                    />
                     <InputError :message="form.errors.password_confirmation" />
                 </div>
 
@@ -60,7 +85,7 @@ const submit = () => {
             </div>
 
             <div class="mt-4">
-                <a :href="route('oauth.google.redirect')" class="block border rounded px-3 py-2 text-center">
+                <a :href="route('oauth.google.redirect')" class="block rounded border px-3 py-2 text-center">
                     {{ t('user.loginWithGoogle') }}
                 </a>
             </div>

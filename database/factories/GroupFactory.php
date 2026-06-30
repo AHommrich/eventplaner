@@ -15,7 +15,7 @@ class GroupFactory extends Factory
     {
         return [
             'event_id' => Event::factory(),
-            'name'     => 'Familie ' . fake()->lastName(),
+            'name' => 'Familie '.fake()->lastName(),
         ];
     }
 }

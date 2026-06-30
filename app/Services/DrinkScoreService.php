@@ -39,12 +39,11 @@ class DrinkScoreService
      *   → Shots (spirit) erhalten zusätzlich ×SHOT_MULTIPLIER
      * Alkoholfrei: negative_points (Flat-Wert)
      *
-     * @param DrinkCatalog $catalog
-     * @param float        $amountLiter  Ausschankgröße in Litern (von der gewählten Größe)
+     * @param  float  $amountLiter  Ausschankgröße in Litern (von der gewählten Größe)
      */
     public static function basePoints(DrinkCatalog $catalog, float $amountLiter): int
     {
-        if (!$catalog->is_alcoholic) {
+        if (! $catalog->is_alcoholic) {
             return $catalog->negative_points ?? 0;
         }
 
@@ -62,16 +61,15 @@ class DrinkScoreService
      * Nicht-alkoholische Getränke bleiben immer beim Flat-Wert.
      * Bei alkoholischen Getränken: wenn Streak >= THRESHOLD → 50% der Basispunkte.
      *
-     * @param DrinkCatalog $catalog
-     * @param float        $amountLiter  Ausschankgröße in Litern
-     * @param Collection   $history      Geordnete Log-History des Gastes (neueste zuerst),
-     *                                   jeder Eintrag muss 'is_alcoholic' enthalten
+     * @param  float  $amountLiter  Ausschankgröße in Litern
+     * @param  Collection  $history  Geordnete Log-History des Gastes (neueste zuerst),
+     *                               jeder Eintrag muss 'is_alcoholic' enthalten
      */
     public static function effectivePoints(DrinkCatalog $catalog, float $amountLiter, Collection $history): int
     {
         $base = self::basePoints($catalog, $amountLiter);
 
-        if (!$catalog->is_alcoholic) {
+        if (! $catalog->is_alcoholic) {
             return $base;
         }
 
@@ -88,8 +86,8 @@ class DrinkScoreService
      * Berechnet den aktuellen Streak (aufeinanderfolgende alkoholische Getränke
      * vom Ende der History).
      *
-     * @param Collection $history  Geordnete Log-History (neueste zuerst),
-     *                             jeder Eintrag muss 'is_alcoholic' enthalten
+     * @param  Collection  $history  Geordnete Log-History (neueste zuerst),
+     *                               jeder Eintrag muss 'is_alcoholic' enthalten
      */
     public static function currentStreak(Collection $history): int
     {
@@ -101,6 +99,7 @@ class DrinkScoreService
                 break;
             }
         }
+
         return $streak;
     }
 
@@ -116,6 +115,6 @@ class DrinkScoreService
             ->select('drink_logs.id', 'drink_catalog.is_alcoholic')
             ->orderByDesc('drink_logs.created_at')
             ->get()
-            ->map(fn($row) => ['is_alcoholic' => (bool) $row->is_alcoholic]);
+            ->map(fn ($row) => ['is_alcoholic' => (bool) $row->is_alcoholic]);
     }
 }

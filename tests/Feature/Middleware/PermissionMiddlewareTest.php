@@ -4,7 +4,7 @@ use App\Models\Event;
 use App\Models\User;
 
 it('allows user with event access to has_event routes', function () {
-    $user  = User::factory()->create(['email_verified_at' => now()]);
+    $user = User::factory()->create(['email_verified_at' => now()]);
     $event = Event::factory()->for($user, 'owner')->create();
 
     $this->actingAs($user)

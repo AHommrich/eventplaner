@@ -18,7 +18,7 @@ class EnsureGuestHasDrinksAccess
     {
         $guest = $request->user();
 
-        if ($guest && !$guest->drinks_access) {
+        if ($guest && ! $guest->drinks_access) {
             return response()->json(['message' => 'Dein Zugang zum Getränke-Tracking wurde deaktiviert.', 'code' => 'drinks_blocked'], 403);
         }
 

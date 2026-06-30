@@ -12,22 +12,22 @@ class EventAccessController extends Controller
     {
         $event = $this->activeEvent();
 
-        if (!$event) {
+        if (! $event) {
             return redirect()->route('dashboard');
         }
 
         // Nur Owner und Superadmin dürfen Zugang verwalten
         $user = auth()->user();
-        if (!$user->isAdmin() && $event->user_id !== $user->id) {
+        if (! $user->isAdmin() && $event->user_id !== $user->id) {
             abort(403);
         }
 
         $members = $event->users()->get(['users.id', 'users.name', 'users.email']);
-        $owner   = $event->owner;
+        $owner = $event->owner;
 
         return Inertia::render('Event/Access', [
-            'event'   => ['id' => $event->id, 'name' => $event->name],
-            'owner'   => ['id' => $owner->id, 'name' => $owner->name, 'email' => $owner->email],
+            'event' => ['id' => $event->id, 'name' => $event->name],
+            'owner' => ['id' => $owner->id, 'name' => $owner->name, 'email' => $owner->email],
             'members' => $members,
         ]);
     }
@@ -35,10 +35,12 @@ class EventAccessController extends Controller
     public function invite(Request $request)
     {
         $event = $this->activeEvent();
-        if (!$event) return redirect()->back()->with('error', 'Kein aktives Event.');
+        if (! $event) {
+            return redirect()->back()->with('error', 'Kein aktives Event.');
+        }
 
         $user = auth()->user();
-        if (!$user->isAdmin() && $event->user_id !== $user->id) {
+        if (! $user->isAdmin() && $event->user_id !== $user->id) {
             abort(403);
         }
 
@@ -60,10 +62,12 @@ class EventAccessController extends Controller
     public function remove(Request $request, User $user)
     {
         $event = $this->activeEvent();
-        if (!$event) return redirect()->back()->with('error', 'Kein aktives Event.');
+        if (! $event) {
+            return redirect()->back()->with('error', 'Kein aktives Event.');
+        }
 
         $authUser = auth()->user();
-        if (!$authUser->isAdmin() && $event->user_id !== $authUser->id) {
+        if (! $authUser->isAdmin() && $event->user_id !== $authUser->id) {
             abort(403);
         }
 

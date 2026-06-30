@@ -7,8 +7,8 @@ use App\Models\PhotoAlbum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Intervention\Image\ImageManager;
 use Inertia\Inertia;
+use Intervention\Image\ImageManager;
 
 /**
  * Veranstalter-Verwaltung der Fotos eines Events (Inertia, NICHT die Gast-API).
@@ -25,9 +25,9 @@ class PhotoController extends Controller
     {
         $event = $this->activeEvent();
 
-        if (!$event) {
+        if (! $event) {
             return Inertia::render('Photos/Index', [
-                'albums'       => [],
+                'albums' => [],
                 'projectorUrl' => null,
                 'projectorAlbumId' => null,
             ]);
@@ -40,24 +40,24 @@ class PhotoController extends Controller
                 $q->with('guest')->latest();
             }])
             ->get()
-            ->map(fn($album) => [
-                'id'         => $album->id,
-                'slug'       => $album->slug,
-                'name'       => $album->name,
+            ->map(fn ($album) => [
+                'id' => $album->id,
+                'slug' => $album->slug,
+                'name' => $album->name,
                 'sort_order' => $album->sort_order,
-                'photos'     => $album->photos->map(fn($photo) => [
-                    'id'           => $photo->id,
-                    'url'          => $photo->url,
-                    'guest_name'   => $photo->guest
-                        ? trim(($photo->guest->firstname ?? '') . ' ' . ($photo->guest->lastname ?? ''))
+                'photos' => $album->photos->map(fn ($photo) => [
+                    'id' => $photo->id,
+                    'url' => $photo->url,
+                    'guest_name' => $photo->guest
+                        ? trim(($photo->guest->firstname ?? '').' '.($photo->guest->lastname ?? ''))
                         : ($photo->uploaded_by ?? null),
                     'organizer_role' => $photo->guest === null && $photo->uploaded_by !== null
                         ? ($photo->uploader_user_id !== null && $photo->uploader_user_id !== $ownerId
                             ? 'co_organizer'
                             : 'owner')
                         : null,
-                    'description'  => $photo->description,
-                    'created_at'   => $photo->created_at->format('d.m.Y H:i'),
+                    'description' => $photo->description,
+                    'created_at' => $photo->created_at->format('d.m.Y H:i'),
                 ]),
             ]);
 
@@ -66,10 +66,10 @@ class PhotoController extends Controller
             : null;
 
         return Inertia::render('Photos/Index', [
-            'albums'              => $albums,
-            'projectorUrl'        => $projectorUrl,
-            'projectorAlbumId'    => $event->projector_album_id,
-            'projectorNameMode'   => $event->projector_name_mode ?? 'first',
+            'albums' => $albums,
+            'projectorUrl' => $projectorUrl,
+            'projectorAlbumId' => $event->projector_album_id,
+            'projectorNameMode' => $event->projector_name_mode ?? 'first',
         ]);
     }
 
@@ -78,8 +78,8 @@ class PhotoController extends Controller
         $event = $this->activeEvent();
 
         $request->validate([
-            'photo'       => ['required', 'file', 'mimes:jpeg,jpg,png,heic,heif', 'max:10240'],
-            'album_id'    => ['nullable', 'integer', 'exists:photo_albums,id'],
+            'photo' => ['required', 'file', 'mimes:jpeg,jpg,png,heic,heif', 'max:10240'],
+            'album_id' => ['nullable', 'integer', 'exists:photo_albums,id'],
             'description' => ['nullable', 'string', 'max:500'],
         ]);
 
@@ -87,32 +87,32 @@ class PhotoController extends Controller
         $mime = strtolower($file->getMimeType() ?? '');
 
         if (in_array($mime, ['image/heic', 'image/heif'])) {
-            $manager  = ImageManager::imagick();
-            $image    = $manager->read($file->getPathname());
+            $manager = ImageManager::imagick();
+            $image = $manager->read($file->getPathname());
             $contents = (string) $image->toJpeg(90);
         } else {
             $contents = file_get_contents($file->getPathname());
         }
 
-        $path = 'photos/' . Str::uuid() . '.jpg';
+        $path = 'photos/'.Str::uuid().'.jpg';
         Storage::disk('s3')->put($path, $contents, 'public');
 
         // Default: party album für Admin-Uploads
         $albumId = $request->input('album_id');
-        if (!$albumId && $event) {
+        if (! $albumId && $event) {
             $partyAlbum = $event->photoAlbums()->where('slug', PhotoAlbum::PRESENTATION)->first();
             $albumId = $partyAlbum?->id;
         }
 
         Photo::create([
-            'event_id'         => $event?->id,
-            'album_id'         => $albumId,
-            'guest_id'         => null,
-            'uploaded_by'      => $request->user()->name,
+            'event_id' => $event?->id,
+            'album_id' => $albumId,
+            'guest_id' => null,
+            'uploaded_by' => $request->user()->name,
             'uploader_user_id' => $request->user()->id,
-            'url'              => Storage::disk('s3')->url($path),
-            'r2_key'           => $path,
-            'description'      => $request->input('description') ?: null,
+            'url' => Storage::disk('s3')->url($path),
+            'r2_key' => $path,
+            'description' => $request->input('description') ?: null,
         ]);
 
         return back();
@@ -130,7 +130,7 @@ class PhotoController extends Controller
     public function destroyBatch(Request $request)
     {
         $request->validate([
-            'ids'   => ['required', 'array'],
+            'ids' => ['required', 'array'],
             'ids.*' => ['integer', 'exists:photos,id'],
         ]);
 

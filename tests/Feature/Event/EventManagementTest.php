@@ -40,8 +40,8 @@ it('creates an event-join request for regular users', function () {
 });
 
 it('switches the active event in session', function () {
-    $user   = actingAsOwner();
-    $other  = Event::factory()->for($user, 'owner')->create();
+    $user = actingAsOwner();
+    $other = Event::factory()->for($user, 'owner')->create();
 
     // Non-Inertia request → normaler 302 redirect, Session-Wert ist trotzdem aktualisiert
     $this->post(route('events.switch'), ['event_id' => $other->id]);

@@ -41,10 +41,14 @@ class HandleInertiaRequests extends Middleware
     private function resolveActiveEvent(Request $request): ?array
     {
         $user = $request->user();
-        if (!$user) return null;
+        if (! $user) {
+            return null;
+        }
 
         $events = $user->accessibleEvents()->get();
-        if ($events->isEmpty()) return null;
+        if ($events->isEmpty()) {
+            return null;
+        }
 
         $sessionId = $request->session()->get('active_event_id');
         $event = $sessionId ? $events->firstWhere('id', $sessionId) : null;
@@ -53,18 +57,20 @@ class HandleInertiaRequests extends Middleware
         $request->session()->put('active_event_id', $event->id);
 
         return [
-            'id'                  => $event->id,
-            'name'                => $event->name,
-            'user_id'             => $event->user_id,
-            'drink_game_enabled'  => (bool) $event->drink_game_enabled,
-            'photo_game_enabled'  => (bool) $event->photo_game_enabled,
+            'id' => $event->id,
+            'name' => $event->name,
+            'user_id' => $event->user_id,
+            'drink_game_enabled' => (bool) $event->drink_game_enabled,
+            'photo_game_enabled' => (bool) $event->photo_game_enabled,
         ];
     }
 
     private function resolveAccessibleEvents(Request $request): array
     {
         $user = $request->user();
-        if (!$user) return [];
+        if (! $user) {
+            return [];
+        }
 
         return $user->accessibleEvents()->get(['id', 'name'])->toArray();
     }
@@ -72,7 +78,9 @@ class HandleInertiaRequests extends Middleware
     private function resolveUserEventRequests(Request $request): array
     {
         $user = $request->user();
-        if (!$user || $user->isAdmin()) return [];
+        if (! $user || $user->isAdmin()) {
+            return [];
+        }
 
         return \App\Models\EventRequest::where('user_id', $user->id)
             ->whereIn('status', ['pending', 'declined'])
@@ -104,8 +112,8 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
-            'active_event'        => $this->resolveActiveEvent($request),
-            'accessible_events'   => $this->resolveAccessibleEvents($request),
+            'active_event' => $this->resolveActiveEvent($request),
+            'accessible_events' => $this->resolveAccessibleEvents($request),
             'user_event_requests' => $this->resolveUserEventRequests($request),
             'ziggy' => [
                 ...(new Ziggy)->toArray(),

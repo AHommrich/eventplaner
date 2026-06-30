@@ -22,7 +22,7 @@ class RequestController extends Controller
         $isAdmin = auth()->user()->isAdmin();
 
         // Nicht-Admin braucht zwingend ein aktives Event
-        abort_if(!$event && !$isAdmin, 404);
+        abort_if(! $event && ! $isAdmin, 404);
 
         // Rücknahme-Anfragen (nur wenn Event vorhanden)
         $revocations = $event ? Guest::where('event_id', $event->id)
@@ -31,17 +31,17 @@ class RequestController extends Controller
             ->orderBy('rsvp_set_at', 'desc')
             ->get()
             ->map(fn (Guest $g) => [
-                'id'           => $g->id,
-                'type'         => 'revocation',
-                'firstname'    => $g->firstname,
-                'lastname'     => $g->lastname,
-                'group_name'   => $g->group?->name,
-                'rsvp_status'  => $g->rsvp_status,
-                'rsvp_set_at'  => $g->rsvp_set_at?->toIso8601String(),
+                'id' => $g->id,
+                'type' => 'revocation',
+                'firstname' => $g->firstname,
+                'lastname' => $g->lastname,
+                'group_name' => $g->group?->name,
+                'rsvp_status' => $g->rsvp_status,
+                'rsvp_set_at' => $g->rsvp_set_at?->toIso8601String(),
                 'set_by_guest' => $g->rsvpSetByGuest
                     ? ['id' => $g->rsvpSetByGuest->id, 'firstname' => $g->rsvpSetByGuest->firstname, 'lastname' => $g->rsvpSetByGuest->lastname]
                     : null,
-                'set_by_user'  => $g->rsvpSetByUser
+                'set_by_user' => $g->rsvpSetByUser
                     ? ['id' => $g->rsvpSetByUser->id, 'name' => $g->rsvpSetByUser->name]
                     : null,
             ]) : collect();
@@ -54,8 +54,8 @@ class RequestController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->get()
                 ->map(fn (EventRequest $er) => [
-                    'id'         => $er->id,
-                    'user_name'  => $er->user->name,
+                    'id' => $er->id,
+                    'user_name' => $er->user->name,
                     'user_email' => $er->user->email,
                     'event_name' => $er->event_name,
                     'created_at' => $er->created_at->toIso8601String(),
@@ -63,7 +63,7 @@ class RequestController extends Controller
         }
 
         return Inertia::render('Requests/Index', [
-            'revocations'   => $revocations,
+            'revocations' => $revocations,
             'event_requests' => $eventRequests,
         ]);
     }
@@ -79,10 +79,10 @@ class RequestController extends Controller
         abort_if($guest->rsvp_status !== 'revocation_requested', 422);
 
         $guest->update([
-            'rsvp_status'          => null,
+            'rsvp_status' => null,
             'rsvp_set_by_guest_id' => null,
-            'rsvp_set_by_user_id'  => $request->user()->id,
-            'rsvp_set_at'          => now(),
+            'rsvp_set_by_user_id' => $request->user()->id,
+            'rsvp_set_at' => now(),
         ]);
 
         return redirect()->route('requests.index');
@@ -99,9 +99,9 @@ class RequestController extends Controller
         abort_if($guest->rsvp_status !== 'revocation_requested', 422);
 
         $guest->update([
-            'rsvp_status'          => 'declined',
-            'rsvp_set_by_user_id'  => $request->user()->id,
-            'rsvp_set_at'          => now(),
+            'rsvp_status' => 'declined',
+            'rsvp_set_by_user_id' => $request->user()->id,
+            'rsvp_set_at' => now(),
         ]);
 
         return redirect()->route('requests.index');
@@ -118,7 +118,7 @@ class RequestController extends Controller
 
         $event = Event::create([
             'user_id' => $eventRequest->user_id,
-            'name'    => $eventRequest->event_name,
+            'name' => $eventRequest->event_name,
         ]);
 
         EventController::createDefaultAlbums($event->id);

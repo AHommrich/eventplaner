@@ -9,19 +9,19 @@ return new class extends Migration
 {
     /** Standard-Katalog: [German name => translation_key] */
     private array $catalog = [
-        'Vegetarisch'         => 'vegetarian',
-        'Vegan'               => 'vegan',
-        'Glutenfrei'          => 'gluten_free',
-        'Laktosefrei'         => 'lactose_free',
-        'Nussallergie'        => 'nut_allergy',
-        'Kein Schweinefleisch'=> 'no_pork',
-        'Frutarier'           => 'fruitarian',
+        'Vegetarisch' => 'vegetarian',
+        'Vegan' => 'vegan',
+        'Glutenfrei' => 'gluten_free',
+        'Laktosefrei' => 'lactose_free',
+        'Nussallergie' => 'nut_allergy',
+        'Kein Schweinefleisch' => 'no_pork',
+        'Frutarier' => 'fruitarian',
         'Fruktose Intolerant' => 'fructose_intolerant',
-        'Halal'               => 'halal',
-        'Koscher'             => 'kosher',
-        'Kein Fisch'          => 'no_fish',
-        'Diabetiker'          => 'diabetic',
-        'Kein Alkohol'        => 'no_alcohol',
+        'Halal' => 'halal',
+        'Koscher' => 'kosher',
+        'Kein Fisch' => 'no_fish',
+        'Diabetiker' => 'diabetic',
+        'Kein Alkohol' => 'no_alcohol',
         'Schalentierallergie' => 'shellfish_allergy',
     ];
 
@@ -44,10 +44,10 @@ return new class extends Migration
             } else {
                 // Neuen Standard-Eintrag anlegen
                 DB::table('food_specials')->insert([
-                    'name'            => $name,
+                    'name' => $name,
                     'translation_key' => $key,
-                    'created_at'      => $now,
-                    'updated_at'      => $now,
+                    'created_at' => $now,
+                    'updated_at' => $now,
                 ]);
             }
         }

@@ -44,7 +44,8 @@ pest()->beforeEach(function () {
 function actingAsGuest(\App\Models\Guest $guest): \Tests\TestCase
 {
     $token = $guest->createToken('test')->plainTextToken;
-    return test()->withHeader('Authorization', 'Bearer ' . $token);
+
+    return test()->withHeader('Authorization', 'Bearer '.$token);
 }
 
 /**
@@ -56,6 +57,7 @@ function actingAsOwner(?\App\Models\Event $event = null): \App\Models\User
     $user = \App\Models\User::factory()->create(['email_verified_at' => now()]);
     $event ??= \App\Models\Event::factory()->for($user, 'owner')->create();
     test()->actingAs($user)->withSession(['active_event_id' => $event->id]);
+
     return $user;
 }
 
@@ -66,6 +68,7 @@ function actingAsAdmin(): \App\Models\User
 {
     $admin = \App\Models\User::factory()->create(['role' => 'admin', 'email_verified_at' => now()]);
     test()->actingAs($admin);
+
     return $admin;
 }
 

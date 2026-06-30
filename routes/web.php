@@ -1,26 +1,28 @@
 <?php
 
-use Inertia\Inertia;
-use App\Http\Controllers\GuestController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\GroupController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\TableController;
-use App\Http\Controllers\FoodSpecialController;
-use App\Http\Controllers\InvitationController;
-use App\Http\Controllers\PhotoController;
-use App\Http\Controllers\InvitationTokenController;
-use App\Http\Controllers\EventController;
 use App\Http\Controllers\DrinkController;
 use App\Http\Controllers\EventAccessController;
-use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventSettingsController;
 use App\Http\Controllers\EventStylePresetController;
-use App\Http\Controllers\RequestController;
-use App\Http\Controllers\ProjectorController;
+use App\Http\Controllers\FoodSpecialController;
+use App\Http\Controllers\GroupController;
+use App\Http\Controllers\GuestController;
+use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\InvitationTokenController;
+use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\PhotoGameController;
+use App\Http\Controllers\ProjectorController;
+use App\Http\Controllers\RequestController;
+use App\Http\Controllers\TableController;
+use Inertia\Inertia;
 
-Route::get('/', function () { return Inertia::render('Welcome'); })->name('home');
+Route::get('/', function () {
+    return Inertia::render('Welcome');
+})->name('home');
 
 // Projektor — öffentlich, kein Login nötig
 Route::get('/projector/{token}', [ProjectorController::class, 'show'])->name('projector.show');

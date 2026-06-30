@@ -24,7 +24,7 @@ class EventSettingsController extends Controller
     public function show()
     {
         $event = $this->activeEvent();
-        abort_if(!$event, 404);
+        abort_if(! $event, 404);
 
         return Inertia::render('Event/Settings', [
             'event' => $event->only([
@@ -62,46 +62,46 @@ class EventSettingsController extends Controller
     public function update(Request $request)
     {
         $event = $this->activeEvent();
-        abort_if(!$event, 404);
+        abort_if(! $event, 404);
 
         $data = $request->validate([
-            'name'            => 'required|string|max:255',
-            'date'            => 'nullable|date',
-            'rsvp_deadline'   => 'nullable|date',
-            'venue_name'         => 'nullable|string|max:255',
-            'venue_lat'          => 'nullable|numeric|between:-90,90',
-            'venue_lng'          => 'nullable|numeric|between:-180,180',
-            'venue_street'       => 'nullable|string|max:255',
+            'name' => 'required|string|max:255',
+            'date' => 'nullable|date',
+            'rsvp_deadline' => 'nullable|date',
+            'venue_name' => 'nullable|string|max:255',
+            'venue_lat' => 'nullable|numeric|between:-90,90',
+            'venue_lng' => 'nullable|numeric|between:-180,180',
+            'venue_street' => 'nullable|string|max:255',
             'venue_house_number' => 'nullable|string|max:20',
-            'venue_postal_code'  => 'nullable|string|max:20',
-            'venue_city'         => 'nullable|string|max:255',
-            'venue_state'        => 'nullable|string|max:255',
-            'venue_country'      => 'nullable|string|max:100',
+            'venue_postal_code' => 'nullable|string|max:20',
+            'venue_city' => 'nullable|string|max:255',
+            'venue_state' => 'nullable|string|max:255',
+            'venue_country' => 'nullable|string|max:100',
             'venue_display_mode' => ['nullable', \Illuminate\Validation\Rule::in(['address', 'name', 'both'])],
-            'dresscode'       => 'nullable|string|max:1000',
-            'schedule'        => 'nullable|string|max:5000',
-            'color_primary'   => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'dresscode' => 'nullable|string|max:1000',
+            'schedule' => 'nullable|string|max:5000',
+            'color_primary' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'color_secondary' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'color_tertiary'  => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'color_tertiary' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'color_home_text' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'color_home_shadow'   => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'color_home_shadow' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'home_shadow_opacity' => 'nullable|integer|min:0|max:100',
-            'role_screen_bg'       => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
-            'role_card_bg'         => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
-            'role_card_text'       => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
-            'role_card_button'     => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
-            'role_card_button_text'=> ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
-            'role_tab_tint'        => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
-            'role_border'          => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
-            'role_fab'             => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
-            'role_fab_icon'        => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
-            'font_heading'         => ['nullable', \Illuminate\Validation\Rule::in([
+            'role_screen_bg' => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
+            'role_card_bg' => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
+            'role_card_text' => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
+            'role_card_button' => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
+            'role_card_button_text' => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
+            'role_tab_tint' => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
+            'role_border' => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
+            'role_fab' => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
+            'role_fab_icon' => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
+            'font_heading' => ['nullable', \Illuminate\Validation\Rule::in([
                 'playfair', 'cormorant', 'cinzel', 'dancing',
                 'great_vibes', 'raleway', 'lora', 'josefin',
             ])],
-            'drink_game_enabled'  => 'boolean',
+            'drink_game_enabled' => 'boolean',
             'drink_game_end_time' => 'nullable|date',
-            'photo_game_enabled'  => 'boolean',
+            'photo_game_enabled' => 'boolean',
             'cover' => 'nullable|file|mimes:jpeg,jpg,png,heic,heif|max:10240',
         ]);
 
@@ -112,9 +112,9 @@ class EventSettingsController extends Controller
             $mime = strtolower($file->getMimeType() ?? '');
 
             if (in_array($mime, ['image/heic', 'image/heif'])) {
-                $manager  = ImageManager::imagick();
-                $image    = $manager->read($file->getPathname());
-                $encoded  = $image->toJpeg(90);
+                $manager = ImageManager::imagick();
+                $image = $manager->read($file->getPathname());
+                $encoded = $image->toJpeg(90);
                 $contents = (string) $encoded;
             } else {
                 $contents = file_get_contents($file->getPathname());
@@ -124,12 +124,12 @@ class EventSettingsController extends Controller
                 Storage::disk('s3')->delete($event->cover_image_r2_key);
             }
 
-            $key = 'covers/' . Str::uuid() . '.jpg';
+            $key = 'covers/'.Str::uuid().'.jpg';
             Storage::disk('s3')->put($key, $contents, 'public');
             $url = Storage::disk('s3')->url($key);
 
             $event->update([
-                'cover_image_url'    => $url,
+                'cover_image_url' => $url,
                 'cover_image_r2_key' => $key,
             ]);
         }
@@ -144,14 +144,14 @@ class EventSettingsController extends Controller
         ]);
 
         $event = $this->activeEvent();
-        abort_if(!$event, 404);
+        abort_if(! $event, 404);
 
         $file = $request->file('cover');
         $mime = strtolower($file->getMimeType() ?? '');
 
         if (in_array($mime, ['image/heic', 'image/heif'])) {
             $manager = ImageManager::imagick();
-            $image   = $manager->read($file->getPathname());
+            $image = $manager->read($file->getPathname());
             $encoded = $image->toJpeg(90);
             $contents = (string) $encoded;
         } else {
@@ -163,12 +163,12 @@ class EventSettingsController extends Controller
             Storage::disk('s3')->delete($event->cover_image_r2_key);
         }
 
-        $key = 'covers/' . Str::uuid() . '.jpg';
+        $key = 'covers/'.Str::uuid().'.jpg';
         Storage::disk('s3')->put($key, $contents, 'public');
         $url = Storage::disk('s3')->url($key);
 
         $event->update([
-            'cover_image_url'   => $url,
+            'cover_image_url' => $url,
             'cover_image_r2_key' => $key,
         ]);
 
@@ -188,11 +188,11 @@ class EventSettingsController extends Controller
     private function relativeLuminance(string $hex): float
     {
         $hex = ltrim($hex, '#');
-        $r   = hexdec(substr($hex, 0, 2)) / 255;
-        $g   = hexdec(substr($hex, 2, 2)) / 255;
-        $b   = hexdec(substr($hex, 4, 2)) / 255;
+        $r = hexdec(substr($hex, 0, 2)) / 255;
+        $g = hexdec(substr($hex, 2, 2)) / 255;
+        $b = hexdec(substr($hex, 4, 2)) / 255;
 
-        $linearize = fn(float $c) => $c <= 0.04045
+        $linearize = fn (float $c) => $c <= 0.04045
             ? $c / 12.92
             : (($c + 0.055) / 1.055) ** 2.4;
 
@@ -204,7 +204,7 @@ class EventSettingsController extends Controller
     public function deleteCover(): \Illuminate\Http\JsonResponse
     {
         $event = $this->activeEvent();
-        abort_if(!$event, 404);
+        abort_if(! $event, 404);
 
         if ($event->cover_image_r2_key) {
             Storage::disk('s3')->delete($event->cover_image_r2_key);

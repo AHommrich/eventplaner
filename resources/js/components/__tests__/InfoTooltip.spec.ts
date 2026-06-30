@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { defineComponent, h } from 'vue';
 import InfoTooltip from '../InfoTooltip.vue';
 
@@ -65,8 +65,6 @@ describe('InfoTooltip', () => {
             props: { text: 'Diese Erklärung sollte sichtbar sein.' },
             global: { stubs },
         });
-        expect(wrapper.find('[data-test="tooltip-content"]').text()).toBe(
-            'Diese Erklärung sollte sichtbar sein.',
-        );
+        expect(wrapper.find('[data-test="tooltip-content"]').text()).toBe('Diese Erklärung sollte sichtbar sein.');
     });
 });
