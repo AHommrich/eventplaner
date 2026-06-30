@@ -10,7 +10,7 @@ Hier abhaken nach Push der jeweiligen Etappe — gibt dir auf einen Blick wo du 
 - [x] **Tag 3b** — Alle API-Endpunkte → [tag-3b-api-tests.md](showcase/tag-3b-api-tests.md)
 - [x] **Tag 3c** — Web-Controller Kernfeatures → [tag-3c-web-tests.md](showcase/tag-3c-web-tests.md)
 - [x] **Tag 3d** — Auth + Album-Routing + Middlewares → [tag-3d-auth-album-middleware.md](showcase/tag-3d-auth-album-middleware.md)
-- [ ] **Tag 4** — Frontend nur kritisch (Vitest) → [tag-4-frontend-tests.md](showcase/tag-4-frontend-tests.md)
+- [x] **Tag 4** — Frontend nur kritisch (Vitest) → [tag-4-frontend-tests.md](showcase/tag-4-frontend-tests.md)
 - [ ] **Tag 5** — CI + Coverage + Badges → [tag-5-ci-coverage.md](showcase/tag-5-ci-coverage.md)
 
 Jede Etappe ist **self-contained** — du kannst einzeln einsteigen, die Akzeptanzkriterien am Ende jeder Datei abhaken, committen, fertig.
