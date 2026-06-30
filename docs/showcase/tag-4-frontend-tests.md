@@ -142,12 +142,12 @@ docker exec eventplaner-vite-1 npm run test:coverage
 
 ## Akzeptanzkriterien
 
-- [ ] `npm test` läuft alle 15 Cases grün
-- [ ] `npm run test:coverage` generiert HTML-Coverage-Report
-- [ ] ESC-Propagation-Test in CreatableCombobox feuert nachweislich (bei `stopPropagation` missing → Test failt)
-- [ ] i18n-Test prüft sowohl Default als auch Persistierung in localStorage
-- [ ] Kein einziger `it.skip` / `test.skip` in den 4 Spec-Files
-- [ ] Vitest läuft im Docker-Vite-Container, nicht lokal (lokales `npm run build` ist bekanntermaßen kaputt — siehe CLAUDE.md)
+- [x] `npm test` läuft alle Cases grün (16/16)
+- [x] `npm run test:coverage` generiert HTML-Coverage-Report (`coverage/`, in `.gitignore`)
+- [x] ESC-Propagation-Test in CreatableCombobox feuert nachweislich (`spyOn(event, 'stopPropagation')` auf nativem KeyboardEvent)
+- [x] i18n-Test prüft sowohl Default als auch Persistierung in localStorage
+- [x] Kein einziger `it.skip` / `test.skip` in den 4 Spec-Files
+- [x] Vitest läuft im Docker-Vite-Container, nicht lokal (lokales `npm run build` ist bekanntermaßen kaputt — siehe CLAUDE.md)
 
 ## Commit-Vorschlag
 
