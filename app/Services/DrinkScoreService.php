@@ -7,20 +7,20 @@ use App\Models\DrinkLog;
 use Illuminate\Support\Collection;
 
 /**
- * Berechnet Punkte für getrackte Getränke des Trinkspiels.
+ * Calculates points for tracked drinks of the drinking game.
  *
- * Formel alkoholisch:  round(amount_liter × alcohol_percent × 10)
- * Shot-Multiplier:     spirit-Kategorie × {@see self::SHOT_MULTIPLIER}
- *                      (4 cl pur wirken schneller als 4 cl im Longdrink)
- * Binge-Penalty:       ab {@see self::BINGE_STREAK_THRESHOLD} alkoholischen
- *                      Drinks in Folge → 50 % der Basispunkte
- * Alkoholfrei:         flat `negative_points` (Wasser typ. −5, Softdrinks −3)
+ * Alcoholic formula:   round(amount_liter × alcohol_percent × 10)
+ * Shot multiplier:     spirit category × {@see self::SHOT_MULTIPLIER}
+ *                      (4 cl neat hits harder than 4 cl in a long drink)
+ * Binge penalty:       from {@see self::BINGE_STREAK_THRESHOLD} alcoholic
+ *                      drinks in a row → 50 % of base points
+ * Non-alcoholic:       flat `negative_points` (water typically −5, softdrinks −3)
  *
- * Die Multiplikatoren sind empirisch gewählt, nicht klinisch — das Spiel ist
- * Unterhaltung, kein Diagnose-Tool.
+ * The multipliers are chosen empirically, not clinically — the game is
+ * entertainment, not a diagnostic tool.
  *
- * Pure-Function-Design: alle Methoden sind statisch und seiten­effektfrei
- * (außer {@see self::guestHistory()}, die DB liest). Daher unit-testbar ohne DB.
+ * Pure-function design: all methods are static and side-effect-free
+ * (except {@see self::guestHistory()}, which reads the DB). Hence unit-testable without DB.
  */
 class DrinkScoreService
 {
@@ -30,16 +30,16 @@ class DrinkScoreService
     /** Cooldown in seconds between drink logs per guest. */
     public const COOLDOWN_SECONDS = 60;
 
-    /** Multiplikator für Shots (category = spirit) — Shots treffen schneller. */
+    /** Multiplier for shots (category = spirit) — shots hit faster. */
     public const SHOT_MULTIPLIER = 2.0;
 
     /**
-     * Basispunkte für ein Getränk (ohne Streak-Penalty).
-     * Alkoholisch: round((amount_liter * alcohol_percent) * 10)
-     *   → Shots (spirit) erhalten zusätzlich ×SHOT_MULTIPLIER
-     * Alkoholfrei: negative_points (Flat-Wert)
+     * Base points for a drink (without streak penalty).
+     * Alcoholic: round((amount_liter * alcohol_percent) * 10)
+     *   → shots (spirit) additionally receive ×SHOT_MULTIPLIER
+     * Non-alcoholic: negative_points (flat value)
      *
-     * @param  float  $amountLiter  Ausschankgröße in Litern (von der gewählten Größe)
+     * @param  float  $amountLiter  Serving size in liters (from the selected size)
      */
     public static function basePoints(DrinkCatalog $catalog, float $amountLiter): int
     {
@@ -57,13 +57,13 @@ class DrinkScoreService
     }
 
     /**
-     * Effektive Punkte nach Streak-Penalty.
-     * Nicht-alkoholische Getränke bleiben immer beim Flat-Wert.
-     * Bei alkoholischen Getränken: wenn Streak >= THRESHOLD → 50% der Basispunkte.
+     * Effective points after streak penalty.
+     * Non-alcoholic drinks always stay at the flat value.
+     * For alcoholic drinks: if streak >= THRESHOLD → 50% of base points.
      *
-     * @param  float  $amountLiter  Ausschankgröße in Litern
-     * @param  Collection  $history  Geordnete Log-History des Gastes (neueste zuerst),
-     *                               jeder Eintrag muss 'is_alcoholic' enthalten
+     * @param  float  $amountLiter  Serving size in liters
+     * @param  Collection  $history  Ordered log history of the guest (newest first),
+     *                               each entry must contain 'is_alcoholic'
      */
     public static function effectivePoints(DrinkCatalog $catalog, float $amountLiter, Collection $history): int
     {
@@ -83,11 +83,11 @@ class DrinkScoreService
     }
 
     /**
-     * Berechnet den aktuellen Streak (aufeinanderfolgende alkoholische Getränke
-     * vom Ende der History).
+     * Calculates the current streak (consecutive alcoholic drinks
+     * from the end of the history).
      *
-     * @param  Collection  $history  Geordnete Log-History (neueste zuerst),
-     *                               jeder Eintrag muss 'is_alcoholic' enthalten
+     * @param  Collection  $history  Ordered log history (newest first),
+     *                               each entry must contain 'is_alcoholic'
      */
     public static function currentStreak(Collection $history): int
     {
@@ -104,8 +104,8 @@ class DrinkScoreService
     }
 
     /**
-     * Lädt die Log-History eines Gastes für Streak-Berechnung.
-     * Gibt eine Collection zurück (neueste zuerst) mit 'is_alcoholic' pro Eintrag.
+     * Loads the log history of a guest for streak calculation.
+     * Returns a collection (newest first) with 'is_alcoholic' per entry.
      */
     public static function guestHistory(int $guestId): Collection
     {

@@ -29,6 +29,9 @@ return Application::configure(basePath: dirname(__DIR__))
             AddLinkHeadersForPreloadedAssets::class,
         ]);
 
+        // Add HSTS/CSP/XFO/etc. to every response globally.
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+
         $middleware->trustProxies(
             at: '*',
             headers: Request::HEADER_X_FORWARDED_FOR

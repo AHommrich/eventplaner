@@ -11,14 +11,14 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 /**
- * CRUD + Admin-Aktionen für Gäste eines Events.
+ * CRUD + admin actions for the guests of an event.
  *
- * Veranstalter-Sicht (Inertia): Anlegen / Editieren / Löschen, manuelles RSVP-Setzen
- * (ohne Deadline-Check, im Gegensatz zu {@see \App\Http\Controllers\Api\GuestApiController}),
- * Toggles für `app_access` und `drinks_access`, Reset der Getränke-Logs eines Gastes.
+ * Organizer view (Inertia): create / edit / delete, manual RSVP setting
+ * (without deadline check, in contrast to {@see \App\Http\Controllers\Api\GuestApiController}),
+ * toggles for `app_access` and `drinks_access`, reset of a guest's drink logs.
  *
- * Cross-Event-Schutz: alle modifizierenden Endpoints prüfen explizit, dass der
- * Ziel-Gast zum aktiven Event gehört (403 sonst).
+ * Cross-event guard: all mutating endpoints explicitly verify that the
+ * target guest belongs to the active event (403 otherwise).
  */
 class GuestController extends Controller
 {
@@ -119,7 +119,7 @@ class GuestController extends Controller
 
     /**
      * POST /guests/{guest}/rsvp
-     * Admin/Event-Owner setzt RSVP manuell — ignoriert Deadline.
+     * Admin / event owner sets RSVP manually — ignores deadline.
      */
     public function adminRsvp(Request $request, Guest $guest)
     {

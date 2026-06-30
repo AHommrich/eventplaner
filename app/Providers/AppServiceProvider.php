@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Photo;
+use App\Observers\PhotoObserver;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -26,5 +28,7 @@ class AppServiceProvider extends ServiceProvider
                 URL::forceRootUrl(config('app.url'));
             }
         }
+
+        Photo::observe(PhotoObserver::class);
     }
 }

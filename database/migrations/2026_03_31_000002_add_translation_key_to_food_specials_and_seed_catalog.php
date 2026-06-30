@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /** Standard-Katalog: [German name => translation_key] */
+    /** Default catalog: [German name => translation_key] */
     private array $catalog = [
         'Vegetarisch' => 'vegetarian',
         'Vegan' => 'vegan',
@@ -37,12 +37,12 @@ return new class extends Migration
             $existing = DB::table('food_specials')->where('name', $name)->first();
 
             if ($existing) {
-                // Bestehenden Eintrag mit Key versehen
+                // attach key to the existing entry
                 DB::table('food_specials')
                     ->where('id', $existing->id)
                     ->update(['translation_key' => $key, 'updated_at' => $now]);
             } else {
-                // Neuen Standard-Eintrag anlegen
+                // create new default entry
                 DB::table('food_specials')->insert([
                     'name' => $name,
                     'translation_key' => $key,

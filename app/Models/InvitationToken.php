@@ -21,7 +21,7 @@ class InvitationToken extends Model
         return $this->belongsTo(Guest::class);
     }
 
-    /** Alle Gäste die zu diesem Token gehören (Gruppe oder Einzelperson) */
+    /** All guests belonging to this token (group or single person) */
     public function guests()
     {
         if ($this->group_id) {

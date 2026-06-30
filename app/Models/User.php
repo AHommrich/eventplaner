@@ -18,6 +18,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'role',
         'is_approved',
+        'privacy_accepted_at',
     ];
 
     protected $hidden = [
@@ -31,6 +32,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_approved' => 'boolean',
+            'privacy_accepted_at' => 'datetime',
         ];
     }
 
@@ -54,7 +56,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsToMany(Event::class);
     }
 
-    /** Alle Events auf die der User Zugriff hat (eigene + geteilte) */
+    /** All events the user has access to (own + shared) */
     public function accessibleEvents()
     {
         if ($this->isAdmin()) {

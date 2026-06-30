@@ -80,7 +80,7 @@ onUnmounted(() => {
 
         <div v-if="allPhotos.length === 0" class="text-2xl text-white/40 select-none">Noch keine Fotos vorhanden</div>
 
-        <!-- Kontext-Label (Gastname / Beschreibung / Aufgabe) -->
+        <!-- Context label (guest name / description / task) -->
         <Transition name="crossfade">
             <div
                 v-if="currentPhoto?.label && visible"
@@ -93,12 +93,12 @@ onUnmounted(() => {
             </div>
         </Transition>
 
-        <!-- Foto-Counter -->
+        <!-- Photo counter -->
         <div v-if="allPhotos.length > 0" class="absolute top-4 right-6 text-xs text-white/30 select-none">
             {{ currentIndex + 1 }} / {{ allPhotos.length }}
         </div>
 
-        <!-- Info-Overlay (blendet sich nach 4s aus) -->
+        <!-- Info overlay (fades out after 4s) -->
         <Transition name="fade-slow">
             <div v-if="infoVisible" class="absolute top-4 left-6 space-y-0.5 text-xs text-white/50 select-none">
                 <p>Automatischer Wechsel alle 5 Sekunden</p>

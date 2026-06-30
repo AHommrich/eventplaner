@@ -8,16 +8,16 @@ use Illuminate\Support\Facades\DB;
 abstract class TestCase extends BaseTestCase
 {
     /**
-     * Safety-Guard: Tests dürfen NIE gegen die Dev-DB laufen.
+     * Safety guard: tests must NEVER run against the dev DB.
      *
-     * RefreshDatabase würde `migrate:fresh` auf der aktiven Connection ausführen
-     * und damit die echte Dev-DB leeren — das ist genau einmal passiert und darf
-     * NIE wieder vorkommen.
+     * RefreshDatabase would run `migrate:fresh` on the active connection
+     * and wipe the real dev DB — this happened exactly once and must
+     * NEVER happen again.
      *
-     * Erlaubt sind:
-     *   - `laravel_test`        (MariaDB-Test-DB im selben Container)
-     *   - `:memory:`            (SQLite-In-Memory falls je gewünscht)
-     *   - Datenbankname endet auf `_test` / `_testing`
+     * Allowed are:
+     *   - `laravel_test`        (MariaDB test DB in the same container)
+     *   - `:memory:`            (SQLite in-memory, if ever desired)
+     *   - database name ending in `_test` / `_testing`
      */
     private const ALLOWED_DB_NAMES = ['laravel_test', ':memory:'];
 

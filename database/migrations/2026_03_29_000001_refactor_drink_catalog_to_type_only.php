@@ -9,7 +9,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // ── 1. drink_catalog_sizes Tabelle anlegen ────────────────────────────
+        // ── 1. create drink_catalog_sizes table ───────────────────────────────
         if (! Schema::hasTable('drink_catalog_sizes')) {
             Schema::create('drink_catalog_sizes', function (Blueprint $table) {
                 $table->id();
@@ -25,15 +25,15 @@ return new class extends Migration
             });
         }
 
-        // Die nachfolgenden Schritte transformieren *bestehende* Daten — auf einer
-        // frischen Test-DB ohne drink_catalog-Zeilen ist nichts zu tun.
+        // The steps below transform *existing* data — on a fresh test DB
+        // without drink_catalog rows there is nothing to do.
         if (DB::table('drink_catalog')->count() === 0) {
             $this->normalizeSchema();
 
             return;
         }
 
-        // ── 2. Größen aus drink_catalog extrahieren und in drink_catalog_sizes speichern ──
+        // ── 2. extract sizes from drink_catalog and store in drink_catalog_sizes ──
         $types = DB::table('drink_catalog')->select('type')->distinct()->pluck('type');
 
         foreach ($types as $type) {
@@ -57,7 +57,7 @@ return new class extends Migration
             }
         }
 
-        // ── 3. drinks-Tabelle dedup: zuerst drink_logs umhängen, dann löschen ──
+        // ── 3. dedupe drinks table: first repoint drink_logs, then delete ──────
         foreach ($types as $type) {
             $ids = DB::table('drink_catalog')
                 ->where('type', $type)
@@ -95,7 +95,7 @@ return new class extends Migration
             }
         }
 
-        // ── 4. Nicht-kanonische drink_catalog-Zeilen löschen ─────────────────
+        // ── 4. delete non-canonical drink_catalog rows ───────────────────────
         $toDelete = [];
         foreach ($types as $type) {
             $ids = DB::table('drink_catalog')
@@ -112,8 +112,8 @@ return new class extends Migration
             DB::table('drink_catalog')->whereIn('id', $toDelete)->delete();
         }
 
-        // ── 5. display_name bereinigen (Größen-Suffix entfernen) ─────────────
-        // REGEXP_REPLACE ist MySQL-spezifisch — auf SQLite (Tests) ohnehin keine Daten.
+        // ── 5. clean up display_name (strip size suffix) ─────────────────────
+        // REGEXP_REPLACE is MySQL-specific — on SQLite (tests) there is no data anyway.
         if (DB::connection()->getDriverName() === 'mysql') {
             DB::statement("UPDATE drink_catalog SET display_name = TRIM(REGEXP_REPLACE(display_name, ' [0-9]+,[0-9]+ l$', ''))");
         }
@@ -122,13 +122,13 @@ return new class extends Migration
     }
 
     /**
-     * Schema-finalisierung — Spalte `amount_liter` weg, Unique-Constraint auf `type`.
+     * Schema finalization — drop `amount_liter` column, unique constraint on `type`.
      */
     private function normalizeSchema(): void
     {
         if (Schema::hasColumn('drink_catalog', 'amount_liter')) {
             Schema::table('drink_catalog', function (Blueprint $table) {
-                // MariaDB hat einen Composite-Index drauf — dropIndex per Name, falls vorhanden
+                // MariaDB has a composite index on it — dropIndex by name if present
                 try {
                     $table->dropUnique('drink_catalog_type_amount_liter_unique');
                 } catch (\Throwable $e) {
@@ -146,14 +146,14 @@ return new class extends Migration
                     $table->unique('type', 'drink_catalog_type_unique');
                 });
             } catch (\Throwable $e) {
-                // Index existiert bereits in anderer Form — ignorieren.
+                // index already exists in a different form — ignore.
             }
         }
     }
 
     public function down(): void
     {
-        // Nicht reversibel ohne Backup — diese Migration ist eine Daten-Strukturänderung.
-        // Zum Rollback: Datenbank aus Backup wiederherstellen.
+        // Not reversible without a backup — this migration is a data structure change.
+        // To roll back: restore the database from a backup.
     }
 };

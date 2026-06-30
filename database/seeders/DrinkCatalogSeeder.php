@@ -12,7 +12,7 @@ class DrinkCatalogSeeder extends Seeder
     {
         $templates = [
 
-            // ─── BIER ────────────────────────────────────────────────────────────
+            // ─── BEER ────────────────────────────────────────────────────────────
             ['category' => 'beer', 'type' => 'pils',       'base_name' => 'Pils',               'alcohol_percent' => 4.9, 'is_alcoholic' => true,  'sizes' => [0.25, 0.33, 0.5],  'search_terms' => ['Bier', 'Pils', 'Lager'],                          'sort_order_base' => 10],
             ['category' => 'beer', 'type' => 'weizen',     'base_name' => 'Weizen',             'alcohol_percent' => 5.1, 'is_alcoholic' => true,  'sizes' => [0.25, 0.33, 0.5],  'search_terms' => ['Bier', 'Weizen', 'Weißbier', 'Hefeweizen'],       'sort_order_base' => 20],
             ['category' => 'beer', 'type' => 'helles',     'base_name' => 'Helles',             'alcohol_percent' => 4.8, 'is_alcoholic' => true,  'sizes' => [0.25, 0.33, 0.5],  'search_terms' => ['Bier', 'Helles', 'Lagerbier', 'Bayern'],           'sort_order_base' => 30],
@@ -25,7 +25,7 @@ class DrinkCatalogSeeder extends Seeder
             ['category' => 'beer', 'type' => 'craft_beer', 'base_name' => 'Craft Beer',         'alcohol_percent' => 5.5, 'is_alcoholic' => true,  'sizes' => [0.33, 0.5],         'search_terms' => ['Bier', 'Craft Beer', 'Craftbeer', 'IPA'],          'sort_order_base' => 100],
             ['category' => 'beer', 'type' => 'beer_free',  'base_name' => 'Alkoholfreies Bier', 'alcohol_percent' => 0.0, 'is_alcoholic' => false, 'negative_points' => -3, 'sizes' => [0.33, 0.5], 'search_terms' => ['Bier', 'alkoholfrei', 'AF'],  'sort_order_base' => 110],
 
-            // ─── WEIN ────────────────────────────────────────────────────────────
+            // ─── WINE ────────────────────────────────────────────────────────────
             ['category' => 'wine', 'type' => 'white_wine',  'base_name' => 'Weißwein',   'alcohol_percent' => 12.0, 'is_alcoholic' => true, 'sizes' => [0.1, 0.2],  'search_terms' => ['Wein', 'Weißwein', 'weiß'],                          'sort_order_base' => 10],
             ['category' => 'wine', 'type' => 'red_wine',    'base_name' => 'Rotwein',    'alcohol_percent' => 13.0, 'is_alcoholic' => true, 'sizes' => [0.1, 0.2],  'search_terms' => ['Wein', 'Rotwein', 'rot'],                            'sort_order_base' => 20],
             ['category' => 'wine', 'type' => 'rose',        'base_name' => 'Rosé',       'alcohol_percent' => 11.5, 'is_alcoholic' => true, 'sizes' => [0.1, 0.2],  'search_terms' => ['Wein', 'Rosé', 'Rosewein', 'rosa'],                  'sort_order_base' => 30],
@@ -35,7 +35,7 @@ class DrinkCatalogSeeder extends Seeder
             ['category' => 'wine', 'type' => 'gluehwein',   'base_name' => 'Glühwein',   'alcohol_percent' => 9.0, 'is_alcoholic' => true, 'sizes' => [0.2, 0.3],  'search_terms' => ['Glühwein', 'Wein', 'warm', 'Weihnachten'],          'sort_order_base' => 70],
             ['category' => 'wine', 'type' => 'champagne',   'base_name' => 'Champagner', 'alcohol_percent' => 12.0, 'is_alcoholic' => true, 'sizes' => [0.1, 0.2],  'search_terms' => ['Champagner', 'Champagne', 'Schaumwein', 'Frankreich'], 'sort_order_base' => 80],
 
-            // ─── SPIRITUOSEN (SHOTS) ──────────────────────────────────────────────
+            // ─── SPIRITS (SHOTS) ──────────────────────────────────────────────────
             ['category' => 'spirit', 'type' => 'vodka',    'base_name' => 'Wodka',       'alcohol_percent' => 40.0, 'is_alcoholic' => true, 'sizes' => [0.02, 0.04], 'search_terms' => ['Wodka', 'Vodka', 'Shot', 'Schnaps'],         'sort_order_base' => 10],
             ['category' => 'spirit', 'type' => 'jaeger',   'base_name' => 'Jägermeister', 'alcohol_percent' => 35.0, 'is_alcoholic' => true, 'sizes' => [0.02, 0.04], 'search_terms' => ['Jägermeister', 'Jäger', 'Shot', 'Kräuter'],  'sort_order_base' => 20],
             ['category' => 'spirit', 'type' => 'korn',     'base_name' => 'Korn',        'alcohol_percent' => 32.0, 'is_alcoholic' => true, 'sizes' => [0.02, 0.04], 'search_terms' => ['Korn', 'Schnaps', 'Shot'],                    'sort_order_base' => 30],
@@ -76,7 +76,7 @@ class DrinkCatalogSeeder extends Seeder
             ['category' => 'cocktail', 'type' => 'margarita',            'base_name' => 'Margarita',           'alcohol_percent' => 13.0, 'is_alcoholic' => true, 'sizes' => [0.2, 0.3], 'search_terms' => ['Margarita', 'Tequila', 'Limette', 'Cocktail'],         'sort_order_base' => 50],
             ['category' => 'cocktail', 'type' => 'long_island_iced_tea', 'base_name' => 'Long Island Iced Tea', 'alcohol_percent' => 18.0, 'is_alcoholic' => true, 'sizes' => [0.2, 0.3], 'search_terms' => ['Long Island', 'LIIT', 'Cocktail'],                    'sort_order_base' => 60],
 
-            // ─── WASSER ───────────────────────────────────────────────────────────
+            // ─── WATER ────────────────────────────────────────────────────────────
             ['category' => 'water', 'type' => 'still_water',    'base_name' => 'Stilles Wasser', 'alcohol_percent' => 0.0, 'is_alcoholic' => false, 'negative_points' => -5, 'sizes' => [0.2, 0.33, 0.5], 'search_terms' => ['Wasser', 'still', 'Mineralwasser'],             'sort_order_base' => 10],
             ['category' => 'water', 'type' => 'medium_water',   'base_name' => 'Medium',         'alcohol_percent' => 0.0, 'is_alcoholic' => false, 'negative_points' => -5, 'sizes' => [0.2, 0.33, 0.5], 'search_terms' => ['Wasser', 'Medium', 'leicht sprudelnd'],         'sort_order_base' => 20],
             ['category' => 'water', 'type' => 'sparkling_water', 'base_name' => 'Sprudelwasser',  'alcohol_percent' => 0.0, 'is_alcoholic' => false, 'negative_points' => -5, 'sizes' => [0.2, 0.33, 0.5], 'search_terms' => ['Wasser', 'Sprudel', 'Mineralwasser', 'sprudelnd'], 'sort_order_base' => 30],
@@ -93,7 +93,7 @@ class DrinkCatalogSeeder extends Seeder
             ['category' => 'softdrink', 'type' => 'energy_drink', 'base_name' => 'Energy Drink', 'alcohol_percent' => 0.0, 'is_alcoholic' => false, 'negative_points' => -3, 'sizes' => [0.2, 0.33, 0.5], 'search_terms' => ['Energy Drink', 'Energydrink', 'Koffein'],         'sort_order_base' => 90],
             ['category' => 'softdrink', 'type' => 'club_mate',   'base_name' => 'Club Mate',   'alcohol_percent' => 0.0, 'is_alcoholic' => false, 'negative_points' => -3, 'sizes' => [0.2, 0.33, 0.5], 'search_terms' => ['Club Mate', 'Mate', 'Koffein', 'Softdrink'],      'sort_order_base' => 100],
 
-            // ─── KAFFEE & TEE ─────────────────────────────────────────────────────
+            // ─── COFFEE & TEA ─────────────────────────────────────────────────────
             ['category' => 'coffee', 'type' => 'coffee',     'base_name' => 'Kaffee',         'alcohol_percent' => 0.0, 'is_alcoholic' => false, 'negative_points' => -3, 'sizes' => [0.2],       'search_terms' => ['Kaffee', 'Coffee', 'Filterkaffee'],            'sort_order_base' => 10],
             ['category' => 'coffee', 'type' => 'cappuccino', 'base_name' => 'Cappuccino',     'alcohol_percent' => 0.0, 'is_alcoholic' => false, 'negative_points' => -3, 'sizes' => [0.2, 0.3], 'search_terms' => ['Cappuccino', 'Kaffee', 'Milch', 'Schaum'],    'sort_order_base' => 20],
             ['category' => 'coffee', 'type' => 'latte',      'base_name' => 'Latte Macchiato', 'alcohol_percent' => 0.0, 'is_alcoholic' => false, 'negative_points' => -3, 'sizes' => [0.2, 0.3], 'search_terms' => ['Latte Macchiato', 'Latte', 'Kaffee', 'Milch'], 'sort_order_base' => 30],
@@ -140,7 +140,7 @@ class DrinkCatalogSeeder extends Seeder
             'espresso' => 'Espresso',           'tea' => 'Tea',
         ];
 
-        // ── Schritt 1: Typen upserten (1 Zeile pro Getränk) ─────────────────────
+        // ── Step 1: upsert types (1 row per drink) ──────────────────────────────
         $typeRows = [];
         foreach ($templates as $tpl) {
             $typeRows[] = [
@@ -165,7 +165,7 @@ class DrinkCatalogSeeder extends Seeder
             update: ['display_name', 'display_name_en', 'category', 'alcohol_percent', 'is_alcoholic', 'negative_points', 'is_active', 'sort_order', 'search_terms', 'updated_at'],
         );
 
-        // ── Schritt 2: Größen pro Typ upserten ──────────────────────────────────
+        // ── Step 2: upsert sizes per type ───────────────────────────────────────
         foreach ($templates as $tpl) {
             $catalog = DrinkCatalog::where('type', $tpl['type'])->first();
             if (! $catalog) {
@@ -174,7 +174,7 @@ class DrinkCatalogSeeder extends Seeder
 
             $sizes = $tpl['sizes'];
             $count = count($sizes);
-            $defaultIdx = (int) floor($count / 2); // mittlere Größe als Default
+            $defaultIdx = (int) floor($count / 2); // middle size as default
 
             $sizeRows = [];
             foreach ($sizes as $idx => $liter) {
@@ -195,7 +195,7 @@ class DrinkCatalogSeeder extends Seeder
             );
         }
 
-        // ── Nicht mehr im Katalog enthaltene Typen deaktivieren ─────────────────
+        // ── deactivate types no longer in the catalog ───────────────────────────
         $activeTypes = collect($templates)->pluck('type')->toArray();
         DrinkCatalog::whereNotIn('type', $activeTypes)->update(['is_active' => false]);
     }

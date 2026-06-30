@@ -6,18 +6,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
-use Intervention\Image\ImageManager;
+use App\Services\PhotoSanitizer;
 
 /**
- * Bearbeitung der Event-Stammdaten (Inertia-Settings-Seite).
+ * Editing of event master data (Inertia settings page).
  *
- *  - `show()`        → Settings-Seite mit Stil-Presets
- *  - `update()`      → Validiert und persistiert ALLE Felder: Adresse, Farben (Palette + 9 Rollen),
- *                      Cover (inkl. HEIC→JPEG via Imagick), Trinkspiel-/Fotospiel-Flags
- *  - `uploadCover()` / `deleteCover()` → standalone Cover-Endpoints (R2-Cleanup beim Delete)
+ *  - `show()`        → settings page with style presets
+ *  - `update()`      → validates and persists ALL fields: address, colors (palette + 9 roles),
+ *                      cover (incl. HEIC→JPEG via Imagick), drink-game / photo-game flags
+ *  - `uploadCover()` / `deleteCover()` → standalone cover endpoints (R2 cleanup on delete)
  *
- * Farb-Rollen speichern Palette-Keys (`primary` / `secondary` / `tertiary`), nicht Hex —
- * Auflösung übernimmt {@see \App\Services\ColorRoleResolver} für die API-Response.
+ * Color roles store palette keys (`primary` / `secondary` / `tertiary`), not hex —
+ * resolution is handled by {@see \App\Services\ColorRoleResolver} for the API response.
  */
 class EventSettingsController extends Controller
 {
@@ -59,7 +59,7 @@ class EventSettingsController extends Controller
         ]);
     }
 
-    public function update(Request $request)
+    public function update(Request $request, PhotoSanitizer $sanitizer)
     {
         $event = $this->activeEvent();
         abort_if(! $event, 404);
@@ -109,16 +109,9 @@ class EventSettingsController extends Controller
 
         if ($request->hasFile('cover')) {
             $file = $request->file('cover');
-            $mime = strtolower($file->getMimeType() ?? '');
 
-            if (in_array($mime, ['image/heic', 'image/heif'])) {
-                $manager = ImageManager::imagick();
-                $image = $manager->read($file->getPathname());
-                $encoded = $image->toJpeg(90);
-                $contents = (string) $encoded;
-            } else {
-                $contents = file_get_contents($file->getPathname());
-            }
+            // Re-encode to JPEG without EXIF — see PhotoSanitizer.
+            $contents = $sanitizer->toJpegWithoutExif($file->getPathname());
 
             if ($event->cover_image_r2_key) {
                 Storage::disk('s3')->delete($event->cover_image_r2_key);
@@ -137,7 +130,7 @@ class EventSettingsController extends Controller
         return redirect()->route('event.settings')->with('success', 'Einstellungen gespeichert.');
     }
 
-    public function uploadCover(Request $request)
+    public function uploadCover(Request $request, PhotoSanitizer $sanitizer)
     {
         $request->validate([
             'cover' => 'required|file|mimes:jpeg,jpg,png,heic,heif|max:10240',
@@ -147,18 +140,11 @@ class EventSettingsController extends Controller
         abort_if(! $event, 404);
 
         $file = $request->file('cover');
-        $mime = strtolower($file->getMimeType() ?? '');
 
-        if (in_array($mime, ['image/heic', 'image/heif'])) {
-            $manager = ImageManager::imagick();
-            $image = $manager->read($file->getPathname());
-            $encoded = $image->toJpeg(90);
-            $contents = (string) $encoded;
-        } else {
-            $contents = file_get_contents($file->getPathname());
-        }
+        // Re-encode to JPEG without EXIF — see PhotoSanitizer.
+        $contents = $sanitizer->toJpegWithoutExif($file->getPathname());
 
-        // Altes Cover löschen
+        // delete old cover
         if ($event->cover_image_r2_key) {
             Storage::disk('s3')->delete($event->cover_image_r2_key);
         }
@@ -175,7 +161,7 @@ class EventSettingsController extends Controller
         return response()->json(['cover_image_url' => $url]);
     }
 
-    /** WCAG-Kontrastverhältnis zwischen zwei Hex-Farben (#rrggbb) */
+    /** WCAG contrast ratio between two hex colors (#rrggbb) */
     private function contrastRatio(string $hex1, string $hex2): float
     {
         $l1 = $this->relativeLuminance($hex1);

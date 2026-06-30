@@ -103,6 +103,13 @@ const submit = () => {
                 </form>
             </div>
 
+            <section class="space-y-2">
+                <HeadingSmall :title="t('settings.privacy.title')" :description="t('settings.privacy.description')" />
+                <Button as-child variant="outline">
+                    <a :href="route('settings.export-data')">{{ t('settings.privacy.exportData') }}</a>
+                </Button>
+            </section>
+
             <DeleteUser />
         </SettingsLayout>
     </AppLayout>

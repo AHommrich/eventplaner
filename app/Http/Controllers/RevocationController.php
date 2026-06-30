@@ -10,7 +10,7 @@ class RevocationController extends Controller
 {
     /**
      * GET /revocations
-     * Zeigt alle Gäste mit declined_pending für das aktive Event.
+     * Shows all guests with declined_pending for the active event.
      */
     public function index(Request $request)
     {
@@ -43,7 +43,7 @@ class RevocationController extends Controller
 
     /**
      * POST /revocations/{guest}/approve
-     * Gibt die Revocation-Anfrage frei → rsvp_status = null.
+     * Approves the revocation request → rsvp_status = null.
      */
     public function approve(Request $request, Guest $guest)
     {
@@ -63,7 +63,7 @@ class RevocationController extends Controller
 
     /**
      * POST /revocations/{guest}/decline
-     * Lehnt die Anfrage ab → rsvp_status bleibt declined.
+     * Declines the request → rsvp_status stays declined.
      */
     public function decline(Request $request, Guest $guest)
     {

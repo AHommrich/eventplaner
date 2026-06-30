@@ -60,6 +60,6 @@ it('only shows drinks for the active event', function () {
     Drink::create(['event_id' => $otherEvent->id, 'drink_catalog_id' => $catalog->id, 'size_id' => $size->id]);
 
     $response = $this->get(route('drinks.index'))->assertOk();
-    // event_drinks Prop nur mit einer Zeile (dem aktiven Event)
+    // event_drinks prop with only one row (the active event)
     expect($response->getOriginalContent()->getData()['page']['props']['event_drinks'])->toHaveCount(1);
 });

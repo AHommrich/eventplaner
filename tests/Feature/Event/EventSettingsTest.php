@@ -71,12 +71,12 @@ it('uploads a cover image to R2', function () {
 });
 
 it('rejects update without event access (no active event)', function () {
-    actingAsOwner(); // hat Event, switcht aber bewusst weg
-    session(['active_event_id' => 999999]); // nicht-existierend
+    actingAsOwner(); // has an event but switches away deliberately
+    session(['active_event_id' => 999999]); // non-existent
 
-    // Es gibt KEIN Event mehr im accessibleEvents → has_event redirected zur no-event-Seite
-    // Direkter Aufruf zur Settings-Route mit invalid Session: activeEvent() liefert null
-    // EventSettingsController->update sollte 404 abortieren
+    // There is NO event left in accessibleEvents → has_event redirects to the no-event page
+    // Direct call to the settings route with an invalid session: activeEvent() returns null
+    // EventSettingsController->update should abort with 404
     $this->post(route('event.settings.update'), ['name' => 'X'])
         ->assertStatus(404);
-})->skip('Edge-Case schwer reproduzierbar — has_event-Middleware leitet vorher um');
+})->skip('Edge case hard to reproduce — has_event middleware redirects earlier');

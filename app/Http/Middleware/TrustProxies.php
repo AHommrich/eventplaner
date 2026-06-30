@@ -7,10 +7,10 @@ use Illuminate\Http\Request;
 
 class TrustProxies extends Middleware
 {
-    // Alle Proxies (oder trage hier explizit deine Proxy-IP(s) ein)
+    // all proxies (or enter your specific proxy IP(s) here)
     protected $proxies = '*';
 
-    // Alle X-Forwarded-* Header akzeptieren
+    // accept all X-Forwarded-* headers
     protected $headers =
         Request::HEADER_X_FORWARDED_FOR |
         Request::HEADER_X_FORWARDED_HOST |

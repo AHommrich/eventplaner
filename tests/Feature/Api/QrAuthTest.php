@@ -49,7 +49,7 @@ it('returns a token only for the chosen family member after select', function ()
     expect($response->json('guest_id'))->toBe($guests[0]->id);
     expect($response->json('token'))->toBeString()->not->toBeEmpty();
 
-    // Sicherstellen: nur der gewählte Gast hat einen Token
+    // make sure only the chosen guest has a token
     expect(PersonalAccessToken::where('tokenable_type', Guest::class)->where('tokenable_id', $guests[0]->id)->count())->toBe(1);
     expect(PersonalAccessToken::where('tokenable_type', Guest::class)->where('tokenable_id', $guests[1]->id)->count())->toBe(0);
 });
@@ -58,7 +58,7 @@ it('returns 409 when the chosen family member is already logged in', function ()
     $event = Event::factory()->create();
     $group = Group::factory()->create(['event_id' => $event->id]);
     $guest = Guest::factory()->create(['event_id' => $event->id, 'group_id' => $group->id]);
-    $guest->createToken('first-login'); // schon eingeloggt
+    $guest->createToken('first-login'); // already logged in
     $token = InvitationToken::factory()->create(['group_id' => $group->id]);
 
     $this->postJson("/api/auth/qr/{$token->token}/select", ['guest_id' => $guest->id])

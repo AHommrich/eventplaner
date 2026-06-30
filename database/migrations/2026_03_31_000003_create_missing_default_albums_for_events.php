@@ -40,6 +40,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        // Nicht rückgängig machen — Alben sind sicher zu behalten
+        // Do not revert — albums are safe to keep
     }
 };

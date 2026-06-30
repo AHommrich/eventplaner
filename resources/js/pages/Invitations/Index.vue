@@ -101,7 +101,7 @@ function downloadPng(url: string, name: string) {
                 </div>
             </div>
 
-            <!-- Gruppen -->
+            <!-- Groups -->
             <section v-if="groups.length">
                 <div class="mb-3 flex items-center gap-2">
                     <h2 class="text-sm font-medium tracking-wide text-muted-foreground uppercase">{{ t('invitation.groups') }}</h2>
@@ -138,7 +138,7 @@ function downloadPng(url: string, name: string) {
                 </div>
             </section>
 
-            <!-- Solo-Gäste -->
+            <!-- Solo guests -->
             <section v-if="soloGuests.length">
                 <div class="mb-3 flex items-center gap-2">
                     <h2 class="text-sm font-medium tracking-wide text-muted-foreground uppercase">{{ t('invitation.solo') }}</h2>

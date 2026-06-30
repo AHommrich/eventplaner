@@ -41,7 +41,7 @@ it('resolves all nine roles to hex colors from palette', function () {
 });
 
 it('falls back to role default when role field is null', function () {
-    // Keine Rollen gesetzt — alle fallen auf ihre Defaults zurück.
+    // no roles set — all fall back to their defaults.
     $event = makeEvent();
 
     $resolved = (new ColorRoleResolver)->resolve($event);
@@ -59,12 +59,12 @@ it('falls back to default when role key is invalid', function () {
 
     $resolved = (new ColorRoleResolver)->resolve($event);
 
-    // Ungültiger Key → fällt auf den Default (secondary) zurück, nicht auf null.
+    // invalid key → falls back to the default (secondary), not to null.
     expect($resolved['roles']['role_screen_bg'])->toBe('#00bb00');
 });
 
 it('uses palette defaults when palette fields are null', function () {
-    $event = new Event; // alles null
+    $event = new Event; // everything null
 
     $resolved = (new ColorRoleResolver)->resolve($event);
 
@@ -76,13 +76,13 @@ it('uses palette defaults when palette fields are null', function () {
 });
 
 it('returns null cover home_text when no cover overlay is configured', function () {
-    $event = makeEvent(); // color_home_text nicht gesetzt
+    $event = makeEvent(); // color_home_text not set
 
     $resolved = (new ColorRoleResolver)->resolve($event);
 
     expect($resolved['cover']['home_text'])->toBeNull();
-    expect($resolved['cover']['home_shadow'])->toBe('#000000'); // Default
-    expect($resolved['cover']['home_shadow_opacity'])->toBe(50); // Default
+    expect($resolved['cover']['home_shadow'])->toBe('#000000'); // default
+    expect($resolved['cover']['home_shadow_opacity'])->toBe(50); // default
 });
 
 it('returns set cover overlay fields when they exist', function () {

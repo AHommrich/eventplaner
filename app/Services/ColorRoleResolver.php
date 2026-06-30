@@ -5,15 +5,15 @@ namespace App\Services;
 use App\Models\Event;
 
 /**
- * Löst das Palette-+-Rollen-Farbsystem eines Events zu fertigen Hex-Werten auf.
+ * Resolves the palette + roles color system of an event into ready-to-use hex values.
  *
- * Datenmodell:
- *  - 3 Palette-Felder am Event   — `color_primary` / `color_secondary` / `color_tertiary` (Hex)
- *  - 9 Rollen-Felder am Event    — speichern Keys (`primary` | `secondary` | `tertiary`),
- *                                  NICHT Hex-Werte. So folgt bei einem Palette-Wechsel
- *                                  jede Rolle automatisch nach.
+ * Data model:
+ *  - 3 palette fields on the event — `color_primary` / `color_secondary` / `color_tertiary` (hex)
+ *  - 9 role fields on the event    — store keys (`primary` | `secondary` | `tertiary`),
+ *                                    NOT hex values. So on a palette change
+ *                                    every role follows automatically.
  *
- * Diese Klasse macht das Mapping nur einmal und liefert API-fertige Hex-Strings.
+ * This class does the mapping once and returns API-ready hex strings.
  */
 class ColorRoleResolver
 {
@@ -24,7 +24,7 @@ class ColorRoleResolver
     public const DEFAULT_TERTIARY = '#ffffff';
 
     /**
-     * Default-Fallback je Rolle (Key der Palette, NICHT Hex).
+     * Default fallback per role (palette key, NOT hex).
      *
      * @var array<string, string>
      */
@@ -58,7 +58,7 @@ class ColorRoleResolver
         $roles = [];
         foreach (self::ROLE_DEFAULTS as $field => $defaultKey) {
             $key = $event->$field ?? $defaultKey;
-            // Defensive: ungültiger Key fällt auf das Default zurück, nicht auf null.
+            // defensive: an invalid key falls back to the default, not to null.
             $roles[$field] = $palette[$key] ?? $palette[$defaultKey];
         }
 

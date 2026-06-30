@@ -10,7 +10,7 @@ const { t } = useI18n();
     <div class="min-h-screen bg-white text-gray-900 dark:bg-[#0d0d14] dark:text-white">
         <!-- Hero -->
         <section class="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 text-center">
-            <!-- Gradient Glow -->
+            <!-- Gradient glow -->
             <div class="pointer-events-none absolute inset-0">
                 <div
                     class="absolute top-1/3 left-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600/20 blur-[130px]"
@@ -100,7 +100,7 @@ const { t } = useI18n();
             </div>
         </section>
 
-        <!-- Wie es funktioniert -->
+        <!-- How it works -->
         <section class="mx-auto max-w-4xl px-6 py-24">
             <div class="mb-16 text-center">
                 <h2 class="mb-4 text-3xl font-bold sm:text-4xl">{{ t('welcome.howItWorks.title') }}</h2>
@@ -149,7 +149,7 @@ const { t } = useI18n();
                 </p>
             </div>
 
-            <!-- 6 Karten: 3 Spalten -->
+            <!-- 6 cards: 3 columns -->
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 <div
                     class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8"
@@ -200,7 +200,7 @@ const { t } = useI18n();
                 </div>
             </div>
 
-            <!-- letzte 2 Karten: mittig -->
+            <!-- Last 2 cards: centered -->
             <div class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:mx-auto lg:max-w-[calc(66.666%+10px)]">
                 <div
                     class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8"
@@ -220,7 +220,7 @@ const { t } = useI18n();
             </div>
         </section>
 
-        <!-- Für wen -->
+        <!-- For whom -->
         <section class="mx-auto max-w-4xl px-6 py-20">
             <div class="rounded-3xl border border-gray-200 bg-gray-50/50 p-10 text-center sm:p-14 dark:border-white/10 dark:bg-white/3">
                 <h2 class="mb-6 text-3xl font-bold sm:text-4xl">{{ t('welcome.forWho.title') }}</h2>
@@ -278,6 +278,10 @@ const { t } = useI18n();
                 </Link>
             </template>
             <p class="mt-10 text-sm text-gray-400 dark:text-white/20">{{ t('welcome.cta.footer', { year: new Date().getFullYear() }) }}</p>
+            <div class="mt-6 flex flex-wrap justify-center gap-4 text-sm text-gray-400 dark:text-white/30">
+                <Link :href="route('legal.imprint')" class="hover:underline">Impressum</Link>
+                <Link :href="route('legal.privacy')" class="hover:underline">Datenschutz</Link>
+            </div>
         </section>
     </div>
 </template>

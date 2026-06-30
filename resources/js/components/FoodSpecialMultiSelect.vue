@@ -12,10 +12,10 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue']);
 
-// Lokale Kopie des Werts
+// Local copy of the value
 const internalValue = ref<number[]>([...props.modelValue]);
 
-// Synchronisiere internalValue → parent (nur bei Änderung durch den User)
+// Sync internalValue → parent (only on user change)
 watch(internalValue, (val) => {
     emit('update:modelValue', val);
 });

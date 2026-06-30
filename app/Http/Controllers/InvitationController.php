@@ -7,10 +7,10 @@ use App\Models\Guest;
 use Inertia\Inertia;
 
 /**
- * Einladungs-Übersicht für den Veranstalter: druckt QR-Codes und listet Token-Status pro
- * Gruppe / Solo-Gast.
+ * Invitation overview for the organizer: prints QR codes and lists token status
+ * per group / solo guest.
  *
- * Reine Lese-Sicht; Token-Generierung liegt in {@see InvitationTokenController}.
+ * Pure read view; token generation lives in {@see InvitationTokenController}.
  */
 class InvitationController extends Controller
 {

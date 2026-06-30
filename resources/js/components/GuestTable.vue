@@ -37,7 +37,7 @@ const rsvpClass: Record<string, string> = {
     revocation_requested: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
 };
 
-// --- Gruppierung ---
+// --- Grouping ---
 const grouped = computed(() => {
     const groups: { id: number | null; name: string; guests: any[] }[] = [];
     const map = new Map<number | null, (typeof groups)[0]>();
@@ -58,10 +58,10 @@ const grouped = computed(() => {
     });
 });
 
-// --- Suche & Collapse ---
+// --- Search & collapse ---
 const search = ref('');
 
-// expanded = Set von Gruppen-Keys die aufgeklappt sind (Standard: alle zu)
+// expanded = set of group keys that are expanded (default: all collapsed)
 const expanded = reactive(new Set<string>());
 
 function groupKey(id: number | null) {
@@ -78,7 +78,7 @@ const filteredGrouped = computed(() => {
     const q = search.value.trim().toLowerCase();
     if (!q) return grouped.value;
 
-    // Bei Suche: alle Gruppen mit Treffern aufklappen
+    // On search: expand all groups with matches
     return grouped.value
         .map((group) => {
             const filtered = group.guests.filter((g) => `${g.firstname} ${g.lastname}`.toLowerCase().includes(q));
@@ -126,7 +126,7 @@ function doDelete() {
             </p>
 
             <div v-for="group in filteredGrouped" :key="group.id ?? 'null'" class="space-y-0">
-                <!-- Gruppen-Header (klickbar) -->
+                <!-- Group header (clickable) -->
                 <button
                     type="button"
                     class="flex w-full items-center justify-between py-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase transition-colors hover:text-foreground"
@@ -139,7 +139,7 @@ function doDelete() {
                     <ChevronDown class="h-3.5 w-3.5 transition-transform duration-200" :class="{ 'rotate-180': expanded.has(groupKey(group.id)) }" />
                 </button>
 
-                <!-- Gäste-Tabelle (ausgeklappt) -->
+                <!-- Guests table (expanded) -->
                 <div v-if="expanded.has(groupKey(group.id))" class="overflow-x-auto rounded-md border">
                     <table class="w-full text-sm">
                         <thead class="border-b">

@@ -16,7 +16,7 @@ class EventAccessController extends Controller
             return redirect()->route('dashboard');
         }
 
-        // Nur Owner und Superadmin dürfen Zugang verwalten
+        // only owner and superadmin may manage access
         $user = auth()->user();
         if (! $user->isAdmin() && $event->user_id !== $user->id) {
             abort(403);
