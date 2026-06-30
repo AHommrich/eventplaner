@@ -137,12 +137,12 @@ grep -E "^\.env" .gitignore
 
 ## Akzeptanzkriterien
 
-- [ ] `README.md` (Großschreibung!) existiert, ist >150 Zeilen mit allen Sektionen oben
-- [ ] `LICENSE` existiert mit MIT-Text und korrektem Copyright-Jahr
-- [ ] Mindestens 3 Screenshot-Slots im README (mit Bild oder TODO-Platzhalter)
-- [ ] Keine Hetzner-IPs, keine `hommrich.app`-Domain im README
-- [ ] Alle 10 Datei-Pointer im Feature-Block stimmen (`ls`-prüfen)
-- [ ] `git ls-files | grep -i readme` zeigt nur noch `README.md`, nicht mehr `readme.md`
+- [x] `README.md` (Großschreibung!) existiert, ist >150 Zeilen mit allen Sektionen oben
+- [x] `LICENSE` existiert mit MIT-Text und korrektem Copyright-Jahr
+- [x] Mindestens 3 Screenshot-Slots im README (mit Bild oder TODO-Platzhalter)
+- [x] Keine Hetzner-IPs, keine `hommrich.app`-Domain im README
+- [x] Alle 10 Datei-Pointer im Feature-Block stimmen (`ls`-prüfen)
+- [x] `git ls-files | grep -i readme` zeigt nur noch `README.md`, nicht mehr `readme.md`
 
 ## Commit-Vorschlag
 
