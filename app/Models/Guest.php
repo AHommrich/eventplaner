@@ -8,7 +8,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class Guest extends Model
 {
-    use HasFactory, HasApiTokens;
+    use HasApiTokens, HasFactory;
 
     protected $fillable = [
         'event_id',
@@ -24,9 +24,9 @@ class Guest extends Model
     ];
 
     protected $casts = [
-        'rsvp_set_at'    => 'datetime',
-        'app_access'     => 'boolean',
-        'drinks_access'  => 'boolean',
+        'rsvp_set_at' => 'datetime',
+        'app_access' => 'boolean',
+        'drinks_access' => 'boolean',
     ];
 
     public function event()
@@ -64,7 +64,7 @@ class Guest extends Model
         return $this->belongsTo(\App\Models\User::class, 'rsvp_set_by_user_id');
     }
 
-    /** QR-Token: Gruppen-Token wenn in Gruppe, sonst eigener Token */
+    /** QR token: group token if in a group, otherwise own token */
     public function getQrToken(): ?InvitationToken
     {
         if ($this->group_id && $this->group?->invitationToken) {

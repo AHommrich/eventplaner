@@ -19,7 +19,7 @@ const props = withDefaults(defineProps<SidebarMenuButtonProps & {
 const { isMobile, state } = useSidebar()
 
 const delegatedProps = computed(() => {
-  const { tooltip, ...delegated } = props
+  const { tooltip: _tooltip, ...delegated } = props
   return delegated
 })
 </script>

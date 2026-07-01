@@ -2,14 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Str;
 use App\Models\DrinkLog;
 use App\Models\FoodSpecial;
 use App\Models\Group;
 use App\Models\Guest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
+/**
+ * CRUD + admin actions for the guests of an event.
+ *
+ * Organizer view (Inertia): create / edit / delete, manual RSVP setting
+ * (without deadline check, in contrast to {@see \App\Http\Controllers\Api\GuestApiController}),
+ * toggles for `app_access` and `drinks_access`, reset of a guest's drink logs.
+ *
+ * Cross-event guard: all mutating endpoints explicitly verify that the
+ * target guest belongs to the active event (403 otherwise).
+ */
 class GuestController extends Controller
 {
     public function store(Request $request)
@@ -17,23 +27,25 @@ class GuestController extends Controller
         $event = $this->activeEvent();
 
         $data = $request->validate([
-            'firstname'       => 'required|string|max:255',
-            'lastname'        => 'nullable|string|max:255',
-            'group_id'        => 'nullable|exists:groups,id',
-            'food_specials'   => 'nullable|array',
+            'firstname' => 'required|string|max:255',
+            'lastname' => 'nullable|string|max:255',
+            'group_id' => 'nullable|exists:groups,id',
+            'food_specials' => 'nullable|array',
             'food_specials.*' => 'exists:food_specials,id',
         ]);
 
-        if (!empty($data['group_id']) && empty($data['lastname'])) {
+        if (! empty($data['group_id']) && empty($data['lastname'])) {
             $group = Group::find($data['group_id']);
-            if ($group) $data['lastname'] = $group->name;
+            if ($group) {
+                $data['lastname'] = $group->name;
+            }
         }
 
         $guest = Guest::create([
-            'event_id'  => $event?->id,
+            'event_id' => $event?->id,
             'firstname' => $data['firstname'],
-            'lastname'  => $data['lastname'] ?? '',
-            'group_id'  => $data['group_id'] ?? null,
+            'lastname' => $data['lastname'] ?? '',
+            'group_id' => $data['group_id'] ?? null,
         ]);
 
         $guest->foodSpecials()->sync($data['food_specials'] ?? []);
@@ -44,6 +56,7 @@ class GuestController extends Controller
     public function destroy(Guest $guest)
     {
         $guest->delete();
+
         return redirect()->back()->with('success', 'Gast wurde gelöscht.');
     }
 
@@ -68,12 +81,12 @@ class GuestController extends Controller
             : null;
 
         $qrToken = $guest->getQrToken();
-        $qrUrl   = $qrToken ? url('/api/auth/qr/' . $qrToken->token) : null;
+        $qrUrl = $qrToken ? url('/api/auth/qr/'.$qrToken->token) : null;
 
         return Inertia::render('Guests/Edit', [
-            'guest'         => $guestData,
-            'qr_url'        => $qrUrl,
-            'groups'        => $event ? $event->groups()->with(['guests' => fn($q) => $q->select('id', 'group_id', 'firstname')])->orderBy('name')->get(['id', 'name']) : collect(),
+            'guest' => $guestData,
+            'qr_url' => $qrUrl,
+            'groups' => $event ? $event->groups()->with(['guests' => fn ($q) => $q->select('id', 'group_id', 'firstname')])->orderBy('name')->get(['id', 'name']) : collect(),
             'food_specials' => FoodSpecial::orderBy('name')->get(['id', 'name', 'translation_key']),
         ]);
     }
@@ -81,17 +94,17 @@ class GuestController extends Controller
     public function update(Request $request, Guest $guest)
     {
         $data = $request->validate([
-            'firstname'       => 'required|string|max:255',
-            'lastname'        => 'nullable|string|max:255',
-            'group_id'        => 'nullable|exists:groups,id',
-            'food_specials'   => 'nullable|array',
+            'firstname' => 'required|string|max:255',
+            'lastname' => 'nullable|string|max:255',
+            'group_id' => 'nullable|exists:groups,id',
+            'food_specials' => 'nullable|array',
             'food_specials.*' => 'exists:food_specials,id',
         ]);
 
         $guest->update([
             'firstname' => $data['firstname'],
-            'lastname'  => $data['lastname'] ?? '',
-            'group_id'  => $data['group_id'],
+            'lastname' => $data['lastname'] ?? '',
+            'group_id' => $data['group_id'],
         ]);
 
         $guest->foodSpecials()->sync($data['food_specials'] ?? []);
@@ -106,7 +119,7 @@ class GuestController extends Controller
 
     /**
      * POST /guests/{guest}/rsvp
-     * Admin/Event-Owner setzt RSVP manuell — ignoriert Deadline.
+     * Admin / event owner sets RSVP manually — ignores deadline.
      */
     public function adminRsvp(Request $request, Guest $guest)
     {
@@ -118,10 +131,10 @@ class GuestController extends Controller
         ]);
 
         $guest->update([
-            'rsvp_status'          => $data['rsvp_status'] ?? null,
+            'rsvp_status' => $data['rsvp_status'] ?? null,
             'rsvp_set_by_guest_id' => null,
-            'rsvp_set_by_user_id'  => $request->user()->id,
-            'rsvp_set_at'          => now(),
+            'rsvp_set_by_user_id' => $request->user()->id,
+            'rsvp_set_at' => now(),
         ]);
 
         return redirect()->route('guests.edit', $guest->id);

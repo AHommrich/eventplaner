@@ -2,9 +2,9 @@
 import InputModal from '@/components/InputModal.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useOnboardingModal } from '@/composables/useOnboardingModal';
 import { useForm } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
-import { useOnboardingModal } from '@/composables/useOnboardingModal';
 
 const { open } = useOnboardingModal();
 const { t } = useI18n();
@@ -12,7 +12,10 @@ const { t } = useI18n();
 const form = useForm({ name: '', date: '' });
 function createEvent() {
     form.post(route('events.store'), {
-        onSuccess: () => { open.value = false; form.reset(); },
+        onSuccess: () => {
+            open.value = false;
+            form.reset();
+        },
     });
 }
 </script>

@@ -8,6 +8,20 @@ use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
 
+/**
+ * Shares global props with all Inertia pages.
+ *
+ * Important shared keys:
+ *  - `auth.user`            — logged-in user or null
+ *  - `active_event`         — session-based active event (see {@see \App\Http\Controllers\Controller::activeEvent()})
+ *  - `accessible_events`    — all events the user has access to (owner + co-organizer); sidebar shows switcher when >1
+ *  - `user_event_requests`  — pending/declined event access requests for the onboarding flow (non-admins only)
+ *  - `ziggy`                — serialized route definitions for the frontend helper
+ *  - `sidebarOpen`          — cookie-persisted sidebar state
+ *
+ * The active event is resolved on every request so that stale session IDs
+ * (event deleted, access revoked) are corrected automatically.
+ */
 class HandleInertiaRequests extends Middleware
 {
     /**
@@ -27,10 +41,14 @@ class HandleInertiaRequests extends Middleware
     private function resolveActiveEvent(Request $request): ?array
     {
         $user = $request->user();
-        if (!$user) return null;
+        if (! $user) {
+            return null;
+        }
 
         $events = $user->accessibleEvents()->get();
-        if ($events->isEmpty()) return null;
+        if ($events->isEmpty()) {
+            return null;
+        }
 
         $sessionId = $request->session()->get('active_event_id');
         $event = $sessionId ? $events->firstWhere('id', $sessionId) : null;
@@ -39,19 +57,20 @@ class HandleInertiaRequests extends Middleware
         $request->session()->put('active_event_id', $event->id);
 
         return [
-            'id'                  => $event->id,
-            'name'                => $event->name,
-            'user_id'             => $event->user_id,
-            'drink_game_enabled'  => (bool) $event->drink_game_enabled,
-            'photo_game_enabled'  => (bool) $event->photo_game_enabled,
-            'calculator_enabled'  => (bool) $event->calculator_enabled,
+            'id' => $event->id,
+            'name' => $event->name,
+            'user_id' => $event->user_id,
+            'drink_game_enabled' => (bool) $event->drink_game_enabled,
+            'photo_game_enabled' => (bool) $event->photo_game_enabled,
         ];
     }
 
     private function resolveAccessibleEvents(Request $request): array
     {
         $user = $request->user();
-        if (!$user) return [];
+        if (! $user) {
+            return [];
+        }
 
         return $user->accessibleEvents()->get(['id', 'name'])->toArray();
     }
@@ -59,7 +78,9 @@ class HandleInertiaRequests extends Middleware
     private function resolveUserEventRequests(Request $request): array
     {
         $user = $request->user();
-        if (!$user || $user->isAdmin()) return [];
+        if (! $user || $user->isAdmin()) {
+            return [];
+        }
 
         return \App\Models\EventRequest::where('user_id', $user->id)
             ->whereIn('status', ['pending', 'declined'])
@@ -91,8 +112,8 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
-            'active_event'        => $this->resolveActiveEvent($request),
-            'accessible_events'   => $this->resolveAccessibleEvents($request),
+            'active_event' => $this->resolveActiveEvent($request),
+            'accessible_events' => $this->resolveAccessibleEvents($request),
             'user_event_requests' => $this->resolveUserEventRequests($request),
             'ziggy' => [
                 ...(new Ziggy)->toArray(),

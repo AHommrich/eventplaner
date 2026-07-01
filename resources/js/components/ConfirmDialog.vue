@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
-import {
-    Dialog, DialogContent, DialogHeader, DialogTitle,
-    DialogDescription, DialogFooter, DialogClose,
-} from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useI18n } from 'vue-i18n';
 
 defineProps<{
@@ -35,7 +32,10 @@ const { t } = useI18n();
                 </DialogClose>
                 <Button
                     :variant="destructive ? 'destructive' : 'default'"
-                    @click="emit('confirm'); emit('update:open', false)"
+                    @click="
+                        emit('confirm');
+                        emit('update:open', false);
+                    "
                 >
                     {{ confirmLabel ?? t('confirm.confirm') }}
                 </Button>

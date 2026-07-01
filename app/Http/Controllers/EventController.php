@@ -9,12 +9,23 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
+/**
+ * Event lifecycle and onboarding flow for web users.
+ *
+ *  - `onboarding()` / `noEvent()` → entry pages for users without an event
+ *  - `store()`                    → admin only; creates event + 3 default albums + projector_token
+ *  - `requestEvent()`             → non-admin submits an event wish (EventRequest::pending)
+ *  - `switch()`                   → switches the active event in the session (see {@see Controller::activeEvent()})
+ *
+ * Default albums are created centrally via {@see self::createDefaultAlbums()} and
+ * reused by {@see RequestController::approveEventRequest()}.
+ */
 class EventController extends Controller
 {
     public function onboarding()
     {
-        // Nur Admins dürfen Events direkt erstellen
-        if (!auth()->user()->isAdmin()) {
+        // only admins may create events directly
+        if (! auth()->user()->isAdmin()) {
             return redirect()->route('no-event');
         }
 
@@ -25,7 +36,7 @@ class EventController extends Controller
     {
         $user = auth()->user();
 
-        // Hat bereits ein Event → App
+        // already has an event → App
         if ($user->isAdmin() || $user->accessibleEvents()->exists()) {
             return redirect()->route('dashboard');
         }
@@ -41,8 +52,8 @@ class EventController extends Controller
 
     public function store(Request $request)
     {
-        // Nur Admins dürfen Events direkt erstellen
-        if (!auth()->user()->isAdmin()) {
+        // only admins may create events directly
+        if (! auth()->user()->isAdmin()) {
             abort(403);
         }
 
@@ -52,9 +63,9 @@ class EventController extends Controller
         ]);
 
         $event = Event::create([
-            'user_id'         => auth()->id(),
-            'name'            => $data['name'],
-            'date'            => $data['date'] ?? null,
+            'user_id' => auth()->id(),
+            'name' => $data['name'],
+            'date' => $data['date'] ?? null,
             'projector_token' => Str::random(32),
         ]);
 
@@ -78,9 +89,9 @@ class EventController extends Controller
         ]);
 
         EventRequest::create([
-            'user_id'    => $user->id,
+            'user_id' => $user->id,
             'event_name' => $data['event_name'],
-            'status'     => 'pending',
+            'status' => 'pending',
         ]);
 
         return redirect()->route('no-event');
@@ -90,11 +101,11 @@ class EventController extends Controller
     {
         $data = $request->validate(['event_id' => 'required|integer']);
 
-        $user   = auth()->user();
+        $user = auth()->user();
         $events = $user->accessibleEvents()->get();
-        $event  = $events->firstWhere('id', $data['event_id']);
+        $event = $events->firstWhere('id', $data['event_id']);
 
-        if (!$event) {
+        if (! $event) {
             return redirect()->back()->with('error', 'Event nicht gefunden.');
         }
 

@@ -21,9 +21,7 @@ defineProps<Props>();
 
 const { t } = useI18n();
 
-const breadcrumbItems: BreadcrumbItem[] = [
-    { title: t('settings.profile'), href: '/settings/profile' },
-];
+const breadcrumbItems: BreadcrumbItem[] = [{ title: t('settings.profile'), href: '/settings/profile' }];
 
 const page = usePage();
 const user = page.props.auth.user as User;
@@ -49,13 +47,28 @@ const submit = () => {
                 <form @submit.prevent="submit" class="space-y-6">
                     <div class="grid gap-2">
                         <Label for="name">{{ t('common.name') }}</Label>
-                        <Input id="name" class="mt-1 block w-full" v-model="form.name" required autocomplete="name" :placeholder="t('settings.fullName')" />
+                        <Input
+                            id="name"
+                            class="mt-1 block w-full"
+                            v-model="form.name"
+                            required
+                            autocomplete="name"
+                            :placeholder="t('settings.fullName')"
+                        />
                         <InputError class="mt-2" :message="form.errors.name" />
                     </div>
 
                     <div class="grid gap-2">
                         <Label for="email">{{ t('settings.emailAddress') }}</Label>
-                        <Input id="email" type="email" class="mt-1 block w-full" v-model="form.email" required autocomplete="username" :placeholder="t('settings.emailAddress')" />
+                        <Input
+                            id="email"
+                            type="email"
+                            class="mt-1 block w-full"
+                            v-model="form.email"
+                            required
+                            autocomplete="username"
+                            :placeholder="t('settings.emailAddress')"
+                        />
                         <InputError class="mt-2" :message="form.errors.email" />
                     </div>
 
@@ -78,12 +91,24 @@ const submit = () => {
 
                     <div class="flex items-center gap-4">
                         <Button :disabled="form.processing">{{ t('common.save') }}</Button>
-                        <Transition enter-active-class="transition ease-in-out" enter-from-class="opacity-0" leave-active-class="transition ease-in-out" leave-to-class="opacity-0">
+                        <Transition
+                            enter-active-class="transition ease-in-out"
+                            enter-from-class="opacity-0"
+                            leave-active-class="transition ease-in-out"
+                            leave-to-class="opacity-0"
+                        >
                             <p v-show="form.recentlySuccessful" class="text-sm text-neutral-600">{{ t('settings.saved') }}</p>
                         </Transition>
                     </div>
                 </form>
             </div>
+
+            <section class="space-y-2">
+                <HeadingSmall :title="t('settings.privacy.title')" :description="t('settings.privacy.description')" />
+                <Button as-child variant="outline">
+                    <a :href="route('settings.export-data')">{{ t('settings.privacy.exportData') }}</a>
+                </Button>
+            </section>
 
             <DeleteUser />
         </SettingsLayout>

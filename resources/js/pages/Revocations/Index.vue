@@ -1,16 +1,23 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
-import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
+import { toast } from 'vue-sonner';
 
-interface SetByGuest { id: number; firstname: string; lastname: string; }
-interface SetByUser  { id: number; name: string; }
+interface SetByGuest {
+    id: number;
+    firstname: string;
+    lastname: string;
+}
+interface SetByUser {
+    id: number;
+    name: string;
+}
 
 interface RevocationGuest {
     id: number;
@@ -22,15 +29,13 @@ interface RevocationGuest {
     set_by_user: SetByUser | null;
 }
 
-const props = defineProps<{ guests: RevocationGuest[] }>();
+defineProps<{ guests: RevocationGuest[] }>();
 
 const { t } = useI18n();
 
-const breadcrumbItems: BreadcrumbItem[] = [
-    { title: t('revocation.title'), href: '/revocations' },
-];
+const breadcrumbItems: BreadcrumbItem[] = [{ title: t('revocation.title'), href: '/revocations' }];
 
-const confirmOpen   = ref(false);
+const confirmOpen = ref(false);
 const pendingAction = ref<{ guest: RevocationGuest; action: 'approve' | 'decline' } | null>(null);
 
 function ask(guest: RevocationGuest, action: 'approve' | 'decline') {
@@ -54,7 +59,7 @@ function formatDate(iso: string | null): string {
 
 function setterName(g: RevocationGuest): string {
     if (g.set_by_guest) return `${g.set_by_guest.firstname} ${g.set_by_guest.lastname}`;
-    if (g.set_by_user)  return g.set_by_user.name;
+    if (g.set_by_user) return g.set_by_user.name;
     return '—';
 }
 </script>
@@ -80,8 +85,8 @@ function setterName(g: RevocationGuest): string {
                                 <p class="font-medium">{{ g.firstname }} {{ g.lastname }}</p>
                                 <p v-if="g.group_name" class="text-sm text-muted-foreground">{{ g.group_name }}</p>
                                 <p class="text-xs text-muted-foreground">
-                                    {{ t('revocation.requestedAt') }}: {{ formatDate(g.rsvp_set_at) }}
-                                    · {{ t('revocation.setBy') }}: {{ setterName(g) }}
+                                    {{ t('revocation.requestedAt') }}: {{ formatDate(g.rsvp_set_at) }} · {{ t('revocation.setBy') }}:
+                                    {{ setterName(g) }}
                                 </p>
                             </div>
                             <div class="flex shrink-0 gap-2">

@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class DrinkCatalog extends Model
 {
+    use HasFactory;
+
     protected $table = 'drink_catalog';
 
     protected $fillable = [
@@ -23,10 +26,10 @@ class DrinkCatalog extends Model
 
     protected $casts = [
         'alcohol_percent' => 'float',
-        'is_alcoholic'    => 'boolean',
-        'is_active'       => 'boolean',
+        'is_alcoholic' => 'boolean',
+        'is_active' => 'boolean',
         'negative_points' => 'integer',
-        'search_terms'    => 'array',
+        'search_terms' => 'array',
     ];
 
     public function sizes()

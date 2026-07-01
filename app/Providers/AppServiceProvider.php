@@ -2,9 +2,10 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
+use App\Models\Photo;
+use App\Observers\PhotoObserver;
 use Illuminate\Support\Facades\URL;
-
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,12 +21,14 @@ class AppServiceProvider extends ServiceProvider
      * Bootstrap any application services.
      */
     public function boot(): void
-{
-   if (app()->isProduction()) {
-        URL::forceScheme('https');
-        if (config('app.url')) {
-            URL::forceRootUrl(config('app.url'));
+    {
+        if (app()->isProduction()) {
+            URL::forceScheme('https');
+            if (config('app.url')) {
+                URL::forceRootUrl(config('app.url'));
+            }
         }
+
+        Photo::observe(PhotoObserver::class);
     }
-}
 }

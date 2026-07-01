@@ -22,8 +22,9 @@
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_STORE" value="array"/>
-        <env name="DB_CONNECTION" value="sqlite"/>
-        <env name="DB_DATABASE" value=":memory:"/>
+        <!-- mysql_testing ist eine separate Connection mit hartkodiertem `laravel_test` DB-Namen
+             (siehe config/database.php). Schützt die Dev-DB vor RefreshDatabase::migrate:fresh. -->
+        <env name="DB_CONNECTION" value="mysql_testing" force="true"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>

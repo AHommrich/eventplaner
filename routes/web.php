@@ -1,32 +1,39 @@
 <?php
 
-use Inertia\Inertia;
-use App\Http\Controllers\GuestController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\GroupController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\TableController;
-use App\Http\Controllers\FoodSpecialController;
-use App\Http\Controllers\InvitationController;
-use App\Http\Controllers\PhotoController;
-use App\Http\Controllers\InvitationTokenController;
-use App\Http\Controllers\EventController;
 use App\Http\Controllers\DrinkController;
 use App\Http\Controllers\EventAccessController;
-use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventSettingsController;
 use App\Http\Controllers\EventStylePresetController;
-use App\Http\Controllers\RequestController;
-use App\Http\Controllers\ProjectorController;
+use App\Http\Controllers\FoodSpecialController;
+use App\Http\Controllers\GroupController;
+use App\Http\Controllers\GuestController;
+use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\InvitationTokenController;
+use App\Http\Controllers\LegalController;
+use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\PhotoGameController;
+use App\Http\Controllers\ProjectorController;
+use App\Http\Controllers\RequestController;
+use App\Http\Controllers\TableController;
+use Inertia\Inertia;
 
-Route::get('/', function () { return Inertia::render('Welcome'); })->name('home');
+Route::get('/', function () {
+    return Inertia::render('Welcome');
+})->name('home');
 
-// Projektor — öffentlich, kein Login nötig
+// Public legal pages — no auth, no DB.
+Route::get('/impressum', [LegalController::class, 'imprint'])->name('legal.imprint');
+Route::get('/datenschutz', [LegalController::class, 'privacy'])->name('legal.privacy');
+
+// Projector — public, no login required
 Route::get('/projector/{token}', [ProjectorController::class, 'show'])->name('projector.show');
 Route::get('/projector/{token}/photos', [ProjectorController::class, 'photos'])->name('projector.photos');
 
-// Onboarding + Event-Management für eingeloggte User
+// Onboarding + event management for logged-in users
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/onboarding', [EventController::class, 'onboarding'])->name('onboarding');
     Route::get('/no-event', [EventController::class, 'noEvent'])->name('no-event');
@@ -35,7 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/events/switch', [EventController::class, 'switch'])->name('events.switch');
 });
 
-// Hauptapp — zugänglich für alle User mit mind. einem Event
+// Main app — accessible to all users with at least one event
 Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('guests', [TableController::class, 'index'])->name('guests.index');
@@ -55,7 +62,7 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::delete('/groups/{group}', [GroupController::class, 'destroy'])->name('groups.destroy');
     Route::post('/foodspecials', [FoodSpecialController::class, 'store'])->name('foodspecials.store');
 
-    // Event-Zugang (für Owner und Superadmin)
+    // event access (for owner and superadmin)
     Route::get('/event/access', [EventAccessController::class, 'index'])->name('event.access');
     Route::post('/event/access/invite', [EventAccessController::class, 'invite'])->name('event.access.invite');
     Route::delete('/event/access/{user}', [EventAccessController::class, 'remove'])->name('event.access.remove');
@@ -67,20 +74,18 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::delete('/drinks/{drink}', [DrinkController::class, 'destroy'])->name('drinks.destroy');
     Route::get('/drinks/game', [DrinkController::class, 'game'])->name('drinks.game');
     Route::patch('/drinks/game', [DrinkController::class, 'updateGameSettings'])->name('drinks.game.update');
-    Route::get('/drinks/calculator', [DrinkController::class, 'calculator'])->name('drinks.calculator');
-    Route::patch('/drinks/calculator', [DrinkController::class, 'saveCalculator'])->name('drinks.calculator.save');
 
-    // Event-Einstellungen
+    // event settings
     Route::get('/event/settings', [EventSettingsController::class, 'show'])->name('event.settings');
     Route::post('/event/settings', [EventSettingsController::class, 'update'])->name('event.settings.update');
     Route::post('/event/settings/cover', [EventSettingsController::class, 'uploadCover'])->name('event.settings.cover');
     Route::delete('/event/settings/cover', [EventSettingsController::class, 'deleteCover'])->name('event.settings.cover.delete');
 
-    // Stil-Presets
+    // style presets
     Route::post('/event/settings/style-presets', [EventStylePresetController::class, 'store'])->name('event.style-presets.store');
     Route::delete('/event/settings/style-presets/{preset}', [EventStylePresetController::class, 'destroy'])->name('event.style-presets.destroy');
 
-    // Fotospiel
+    // photo game
     Route::get('/photos/game', [PhotoGameController::class, 'index'])->name('photo-game.index');
     Route::post('/photos/game/start', [PhotoGameController::class, 'start'])->name('photo-game.start');
     Route::post('/photos/game/end', [PhotoGameController::class, 'end'])->name('photo-game.end');
@@ -89,7 +94,7 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::post('/photos/game/overrides', [PhotoGameController::class, 'upsertOverride'])->name('photo-game.overrides.upsert');
     Route::delete('/photos/game/overrides/{override}', [PhotoGameController::class, 'destroyOverride'])->name('photo-game.overrides.destroy');
 
-    // Anfragen-Management
+    // request management
     Route::get('/requests', [RequestController::class, 'index'])->name('requests.index');
     Route::post('/requests/revocations/{guest}/approve', [RequestController::class, 'approveRevocation'])->name('requests.revocations.approve');
     Route::post('/requests/revocations/{guest}/decline', [RequestController::class, 'declineRevocation'])->name('requests.revocations.decline');
@@ -107,7 +112,7 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::delete('/guests/{guest}/drink-logs', [GuestController::class, 'resetDrinkLogs'])->name('guests.drink-logs.reset');
 });
 
-// Globale User-Verwaltung — nur Superadmin
+// Global user management — superadmin only
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/admin/users', [UserController::class, 'index'])->name('admin.users.index');
     Route::put('/admin/users/{user}', [UserController::class, 'update'])->name('admin.users.update');

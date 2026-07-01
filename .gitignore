@@ -1,5 +1,6 @@
 /.phpunit.cache
 /bootstrap/ssr
+/coverage
 /node_modules
 /public/build
 /public/hot
@@ -27,3 +28,9 @@ yarn-error.log
 /.zed
 .composer/
 .config/
+
+# local scratch / legacy SQLite files kept locally, must not go into git
+/dbcheck.php
+/hochzeits_einladung.json
+/laravel
+/laravel_test_*

@@ -12,29 +12,29 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $selectedId  = $request->query('event_id');
+        $selectedId = $request->query('event_id');
         $targetEvent = $selectedId ? Event::find($selectedId) : $this->activeEvent();
 
         $eventAccess = null;
         if ($targetEvent) {
             $owner = $targetEvent->owner;
             $eventAccess = [
-                'event'   => ['id' => $targetEvent->id, 'name' => $targetEvent->name],
-                'owner'   => $owner ? ['id' => $owner->id, 'name' => $owner->name, 'email' => $owner->email] : null,
+                'event' => ['id' => $targetEvent->id, 'name' => $targetEvent->name],
+                'owner' => $owner ? ['id' => $owner->id, 'name' => $owner->name, 'email' => $owner->email] : null,
                 'members' => $targetEvent->users()->get(['users.id', 'users.name', 'users.email'])->toArray(),
             ];
         }
 
         return Inertia::render('Admin/Users', [
-            'users'        => User::orderBy('name')->get(['id', 'name', 'email', 'role', 'created_at']),
-            'events'       => Event::orderBy('name')->get(['id', 'name']),
+            'users' => User::orderBy('name')->get(['id', 'name', 'email', 'role', 'created_at']),
+            'events' => Event::orderBy('name')->get(['id', 'name']),
             'event_access' => $eventAccess,
         ]);
     }
 
     public function removeFromEvent(Request $request, User $user)
     {
-        $data  = $request->validate(['event_id' => 'required|exists:events,id']);
+        $data = $request->validate(['event_id' => 'required|exists:events,id']);
         $event = Event::find($data['event_id']);
 
         if ($user->id === $event->user_id) {
@@ -71,11 +71,11 @@ class UserController extends Controller
     public function addToEvent(Request $request)
     {
         $data = $request->validate([
-            'email'    => 'required|email|exists:users,email',
+            'email' => 'required|email|exists:users,email',
             'event_id' => 'required|exists:events,id',
         ]);
 
-        $user  = User::where('email', $data['email'])->first();
+        $user = User::where('email', $data['email'])->first();
         $event = Event::find($data['event_id']);
 
         $event->users()->syncWithoutDetaching([$user->id]);
