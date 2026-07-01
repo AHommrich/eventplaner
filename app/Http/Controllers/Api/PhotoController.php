@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
  * Photo upload and list for guests (app gallery album).
  *
  *  - POST /api/photos  → multipart 'photo' field; HEIC/HEIF are converted
- *                        server-side via Imagick to JPEG and stored on R2 (S3 API)
+ *                        server-side via Imagick to JPEG and stored on Hetzner Object Storage (S3 API)
  *  - GET  /api/photos  → list of all app-gallery photos of the event (with uploader's first name)
  *
  * Album routing: uploads automatically land in the default album with slug
@@ -33,7 +33,7 @@ class PhotoController extends Controller
         $file = $request->file('photo');
 
         // Re-encode every upload to a JPEG without EXIF — GDPR / privacy policy
-        // promises that GPS coordinates and device metadata never reach R2.
+        // promises that GPS coordinates and device metadata never leave the app server.
         $imageData = $sanitizer->toJpegWithoutExif($file->getRealPath());
         $path = 'photos/'.Str::uuid().'.jpg';
         Storage::disk('s3')->put($path, $imageData, 'public');

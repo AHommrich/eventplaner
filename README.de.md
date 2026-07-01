@@ -60,7 +60,7 @@ Sortiert von „technisch interessant" zu „UX-Polish". Jeder Punkt verlinkt au
 | Web-Frontend | Vue 3 + TypeScript + Tailwind CSS 4 + Reka UI |
 | Mobile | React Native (Expo) — separates Repo |
 | Build | Vite 6 + `vite-plugin-pwa` |
-| Storage | Cloudflare R2 (Fotos) |
+| Storage | Hetzner Object Storage (Fotos, Nürnberg) |
 | Mail | Resend |
 | Deploy | Docker + Coolify |
 
@@ -134,7 +134,7 @@ Das Projekt wird aus Deutschland betrieben und ist dokumentiert DSGVO-ready:
 - Impressum unter `/impressum` (§5 DDG)
 - Datenschutzerklärung unter `/datenschutz` (Art. 13 DSGVO), Signup-Consent verpflichtend
 - Data-Export-Endpoint für das Auskunftsrecht (Art. 15)
-- Kaskadierendes Löschen von Fotos in Cloudflare R2 bei Account-/Event-Löschung (Art. 17)
+- Kaskadierendes Löschen von Fotos in Hetzner Object Storage bei Account-/Event-Löschung (Art. 17)
 - Geplante Retention-Cleanups für abgelaufene Invitation-Tokens und abgesagte Gäste (Art. 5)
 - Sub-Prozessor-Register in [`docs/legal/sub-processors.md`](docs/legal/sub-processors.md)
 

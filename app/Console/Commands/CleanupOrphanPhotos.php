@@ -7,8 +7,10 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Backstop sweep: lists every object under the photo prefix in the R2 bucket
- * and deletes anything not referenced by a `photos.r2_key` row anymore.
+ * Backstop sweep: lists every object under the photo prefix in the object-storage
+ * bucket (Hetzner Object Storage since 2026-07-01) and deletes anything not
+ * referenced by a `photos.r2_key` row anymore. The column name `r2_key` is
+ * historical and now holds Hetzner object keys.
  *
  * The Eloquent-level observer handles the happy path; this command catches any
  * drift caused by past raw SQL deletes, failed observers, or aborted requests
@@ -20,7 +22,7 @@ class CleanupOrphanPhotos extends Command
                             {--prefix=photos/ : Bucket prefix to walk}
                             {--dry-run : Report what would be deleted without touching anything}';
 
-    protected $description = 'Delete R2 blobs whose photos.r2_key reference has gone away.';
+    protected $description = 'Delete object-storage blobs whose photos.r2_key reference has gone away.';
 
     public function handle(): int
     {

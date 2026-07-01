@@ -9,7 +9,7 @@ use Intervention\Image\ImageManager;
 /**
  * Re-encodes uploaded photos through Intervention/Image so EXIF metadata
  * (including GPS coordinates, device model, original timestamps) is stripped
- * before the file lands on R2.
+ * before the file leaves the app server and lands on Hetzner Object Storage.
  *
  * Intervention/Image rebuilds the image from raw pixel data — the resulting
  * JPEG byte stream carries no EXIF, IPTC, or XMP segments. This satisfies the

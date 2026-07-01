@@ -15,7 +15,7 @@ use Inertia\Inertia;
  *
  *  - `index()`                     → all albums with photos + projector URL
  *  - `store()`                     → upload (HEIC→JPEG via Imagick); lands in the right album based on `album_slug`
- *  - `destroy()` / `destroyBatch()` → delete photo record + R2 object
+ *  - `destroy()` / `destroyBatch()` → delete photo record + object-storage blob
  *  - `updateProjectorAlbum()` / `updateProjectorNameMode()` → display config of the projector slideshow
  *  - `regenerateProjectorToken()`  → creates a new 32-char token (old projector link becomes invalid)
  */
