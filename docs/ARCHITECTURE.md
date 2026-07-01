@@ -108,7 +108,7 @@ Game mechanic: guests are assigned a random task through the app, photograph the
 2. Append the type catalog if set
 3. Apply overrides (hidden removes, modified replaces, added appends)
 
-**Submissions** — `photo_game_assignments` store either `task_id` or `override_id` (for `added`). Re-submission is allowed: a guest may submit a new photo for the same task. Deleting an assignment also removes the R2 photo.
+**Submissions** — `photo_game_assignments` store either `task_id` or `override_id` (for `added`). Re-submission is allowed: a guest may submit a new photo for the same task. Deleting an assignment also removes the object-storage photo.
 
 ---
 
@@ -217,5 +217,5 @@ Coolify deploys automatically on push, migrations run on container start.
 
 - [`README.md`](../README.md) — project pitch, feature highlights, quick start
 - [`docs/GDPR_COMPLIANCE_PLAN.md`](GDPR_COMPLIANCE_PLAN.md) — GDPR / data-protection plan and stage breakdowns
-- [`docs/legal/sub-processors.md`](legal/sub-processors.md) — sub-processor register (Hetzner, Cloudflare R2, Resend, …)
+- [`docs/legal/sub-processors.md`](legal/sub-processors.md) — sub-processor register (Hetzner, Resend, …)
 - [`CLAUDE.md`](../CLAUDE.md) — internal collaboration instructions for the AI pair partner (German)

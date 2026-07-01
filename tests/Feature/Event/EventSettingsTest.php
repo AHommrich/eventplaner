@@ -55,7 +55,7 @@ it('rejects invalid hex colors', function () {
     ])->assertSessionHasErrors(['color_primary']);
 });
 
-it('uploads a cover image to R2', function () {
+it('uploads a cover image to object storage', function () {
     Storage::fake('s3');
     $user = actingAsOwner();
     $event = $user->ownedEvents()->first();

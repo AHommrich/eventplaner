@@ -88,7 +88,7 @@ it('deletes a task override', function () {
     expect(EventTaskOverride::find($override->id))->toBeNull();
 });
 
-it('deletes an assignment and removes its photo from R2', function () {
+it('deletes an assignment and removes its photo from object storage', function () {
     Storage::fake('s3');
     $user = actingAsOwner();
     $event = $user->ownedEvents()->first();

@@ -60,7 +60,7 @@ Sorted from "technically interesting" to "UX polish". Each item links to the cen
 | Web frontend | Vue 3 + TypeScript + Tailwind CSS 4 + Reka UI |
 | Mobile | React Native (Expo) — separate repository |
 | Build | Vite 6 + `vite-plugin-pwa` |
-| Storage | Cloudflare R2 (photos) |
+| Storage | Hetzner Object Storage (photos, Nürnberg) |
 | Mail | Resend |
 | Deploy | Docker + Coolify |
 
@@ -134,7 +134,7 @@ The project is operated from Germany and is documented to be GDPR-ready:
 - Imprint at `/impressum` (§5 DDG)
 - Privacy policy at `/datenschutz` (Art. 13 GDPR), with mandatory signup consent
 - Data export endpoint for the right of access (Art. 15)
-- Cascade deletion of photos in Cloudflare R2 on account/event removal (Art. 17)
+- Cascade deletion of photos in Hetzner Object Storage on account/event removal (Art. 17)
 - Scheduled retention cleanup for expired invitation tokens and declined guests (Art. 5)
 - Sub-processor register in [`docs/legal/sub-processors.md`](docs/legal/sub-processors.md)
 

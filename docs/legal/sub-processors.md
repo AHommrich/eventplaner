@@ -1,6 +1,6 @@
 # Sub-Processor Register
 
-_Last reviewed: 2026-06-30_
+_Last reviewed: 2026-07-01 (Cloudflare R2 → Hetzner Object Storage migration completed)_
 
 This register lists every third party that processes personal data on behalf of eveplan. It is the authoritative source the user-facing privacy policy (`/datenschutz`) quotes from. **Any new sub-processor must be added here before the integration ships to production** — otherwise the published privacy policy becomes a lie.
 
@@ -11,30 +11,21 @@ GDPR Art. 28 requires a written data-processing agreement with each processor. A
 ## Active processors
 
 ### Hetzner Online GmbH
-- **Purpose:** Application server + managed MariaDB hosting
-- **Data categories:** Everything — user accounts, events, guests, sessions, log files
+- **Purpose:** Application server + managed MariaDB hosting + Object Storage for uploaded photos (S3-compatible API)
+- **Data categories:** Everything — user accounts, events, guests, sessions, log files, and photo binaries + object keys. EXIF, IPTC and XMP metadata are stripped server-side via `App\Services\PhotoSanitizer` before any bytes leave the app server. Verified by `tests/Feature/Photo/ExifStrippingTest.php`.
 - **Provider address:** Industriestr. 25, 91710 Gunzenhausen, Germany
 - **Customer number:** K0847634225
-- **Location of processing:** Germany (Falkenstein) — confirmed EU-only by §3 of the AVV
-- **Data Processing Agreement:** Hetzner AVV v1.2, **signed 2026-06-30**
+- **Location of processing:** Germany — VPS in Falkenstein, Object Storage in Nürnberg (bucket `eveplan-photos-prod` at `nbg1.your-objectstorage.com`). Confirmed EU-only by §3 of the AVV.
+- **Data Processing Agreement:** Hetzner AVV v1.2, **signed 2026-06-30**. Covers all Hetzner services on the account, including Object Storage.
   - Local filing: `~/Downloads/dpa-2026-06-30.pdf` (move to `~/legal/eventplaner/dpa-hetzner-2026-06-30.pdf`)
-- **Authorised sub-sub-processors per Annex 3 of the AVV:** Hetzner Finland Oy (EU). The US (Hetzner US LLC, NTT, QTS) and Singapore (Hetzner SG, NTT SG1) entries do not apply because our server is in an EU location — Annex 3 footnote: *„Soweit Sie sich für einen Serverstandort in der EU entschieden haben, werden Ihre Serverdaten ausschließlich innerhalb der EU verarbeitet."*
+- **Authorised sub-sub-processors per Annex 3 of the AVV:** Hetzner Finland Oy (EU). The US (Hetzner US LLC, NTT, QTS) and Singapore (Hetzner SG, NTT SG1) entries do not apply because our services are in EU locations — Annex 3 footnote: *„Soweit Sie sich für einen Serverstandort in der EU entschieden haben, werden Ihre Serverdaten ausschließlich innerhalb der EU verarbeitet."*
 - **Provider privacy notice:** https://www.hetzner.com/de/legal/privacy-policy
-
-### Cloudflare R2 (Cloudflare, Inc.)
-- **Purpose:** Object storage for uploaded photos (configured as the `s3` disk in `config/filesystems.php`, pointing at the R2 endpoint `bfc3bc81c7d1b7de90f621cea2bf15f5.r2.cloudflarestorage.com`)
-- **Data categories:** Photo binary + object key. **EXIF metadata is stripped server-side** on every upload via `App\Services\PhotoSanitizer`: Intervention/Image re-encodes the file to a JPEG, dropping EXIF, IPTC and XMP segments before the bytes ever leave the app server. Verified by `tests/Feature/Photo/ExifStrippingTest.php`.
-- **Account:** Andrehommrich@googlemail.com's Account
-- **Location of processing:** R2 region currently `auto` (config/`.env`: `AWS_DEFAULT_REGION=auto`). For full EU residency consider pinning a specific EU jurisdiction at bucket level — Cloudflare R2 supports jurisdictional buckets ("EU").
-- **Data Processing Agreement:** Cloudflare DPA v6.4 (effective 2026-04-03)
-  - Cloudflare incorporates the DPA automatically into the Self-Serve Subscription Agreement — see dashboard → Manage Account → Configurations → "Data processing addendum". No separate signature step exists for Self-Serve customers.
-  - Local filing: `~/Downloads/CLOUDFLARE DATA PROCESSING ADDENDUM _ Cloudflare.pdf` (snapshot saved 2026-06-30) — move to `~/legal/eventplaner/dpa-cloudflare-2026-06-30.pdf`
-- **Provider privacy notice / source of DPA:** https://www.cloudflare.com/cloudflare-customer-dpa/
 
 ### Resend (Plus Five Five, Inc., d/b/a Resend)
 - **Purpose:** Transactional email — verification, password reset, invitations
 - **Data categories:** Recipient email address, name (as embedded in mail body), template content
-- **Location of processing:** United States. Transfers from EEA/UK to the US covered by **EU SCCs + UK SCCs** as defined in Section 6.2 of the DPA.
+- **Sending domain:** `eveplan.de`, verified via DKIM/SPF (see Resend dashboard).
+- **Location of processing:** Ireland (`eu-west-1`). Email content and metadata stay within the EU while the EU sending region is used. Corporate-level Resend infrastructure is in the US, but no user data crosses the Atlantic during normal sending. Fallback to US SCCs stays in the Resend DPA in case Resend ever routes fail-over traffic outside the EU.
 - **Data Processing Agreement:** Resend DPA, last updated 2025-12-31
   - Resend states that the DPA "becomes legally binding upon Customer entering into the Agreement" — no separate signature step required for Self-Serve customers.
   - Local filing: `~/Downloads/Data Processing Addendum · Resend.pdf` (snapshot saved 2026-06-30) — move to `~/legal/eventplaner/dpa-resend-2026-06-30.pdf`
@@ -58,7 +49,10 @@ GDPR Art. 28 requires a written data-processing agreement with each processor. A
 
 ## Inactive / removed processors
 
-_None yet._
+### Cloudflare R2 (removed 2026-07-01)
+- **Removal reason:** Consolidation onto a single EU-based provider (Hetzner). Photos migrated to Hetzner Object Storage in Nürnberg. See [`hetzner-object-storage-migration.md`](hetzner-object-storage-migration.md) for the migration record.
+- **Data returned/deleted:** All ~36 objects copied 1:1 to Hetzner Object Storage; original R2 bucket deleted after 24h stabilisation window. Cloudflare account itself kept only if used for other services (DNS/proxy) — otherwise cancelled.
+- **DPA on file:** Cloudflare DPA v6.4 remains in the vault at `~/legal/eventplaner/dpa-cloudflare-2026-06-30.pdf` as historical record.
 
 When a processor is removed (e.g. switching mail providers), keep the historical entry here with the removal date — it helps answer "did you ever share my data with X" requests after the fact.
 
@@ -88,5 +82,5 @@ Where personal data can end up in logs (IP addresses in nginx access logs, reque
 
 ## Known gaps (tracked for follow-up)
 
-- **R2 jurisdiction.** The bucket currently uses `AWS_DEFAULT_REGION=auto`. For strict EU residency, recreate the bucket in a Cloudflare R2 EU jurisdiction (see [`r2-eu-jurisdiction-migration.md`](r2-eu-jurisdiction-migration.md)) and switch the env. Until then we rely on Cloudflare's standard DPA SCCs for any potential transfer outside the EU.
 - **Nginx access log off-switch.** Documented under "Log retention" above — flip `access_log off;` in `Dockerfile.prod` on the next deploy touch to make the reset-on-deploy behaviour a proper policy rather than an accidental one.
+- **Photo backup bucket + rclone cron.** Weekly sync of `eveplan-photos-prod` to a `eveplan-photos-prod-backup` bucket for accidental-deletion protection. Setup outstanding.
