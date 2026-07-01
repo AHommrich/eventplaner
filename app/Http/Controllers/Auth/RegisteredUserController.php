@@ -34,12 +34,16 @@ class RegisteredUserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            // GDPR Art. 13 transparency: the user must actively confirm having
+            // read the privacy policy before we can create the account.
+            'privacy_accepted' => ['accepted'],
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'privacy_accepted_at' => now(),
         ]);
 
         event(new Registered($user));

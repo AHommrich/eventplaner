@@ -10,8 +10,8 @@ import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
 
 const sidebarNavItems = computed<NavItem[]>(() => [
-    { title: t('settings.profile'),    href: '/settings/profile' },
-    { title: t('settings.password'),   href: '/settings/password' },
+    { title: t('settings.profile'), href: '/settings/profile' },
+    { title: t('settings.password'), href: '/settings/password' },
     { title: t('settings.appearance'), href: '/settings/appearance' },
 ]);
 

@@ -10,26 +10,36 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
+/**
+ * Organizer view on the photo game (admin endpoints, Inertia).
+ *
+ *  - `index()` → game status, pool preview (see {@see \App\Services\PhotoGameTaskPool}),
+ *                submissions, override management
+ *  - `start()` / `end()` → set status to active / ended (lifecycle)
+ *  - `updateCatalog()` → select the event-type catalog (wedding / birthday / ...)
+ *  - `upsertOverride()` / `destroyOverride()` → maintain hidden / modified / added deltas
+ *  - `destroyAssignment()` → delete submission incl. R2 photo (cleanup side effect)
+ */
 class PhotoGameController extends Controller
 {
     public function index()
     {
         $event = $this->activeEvent();
-        abort_if(!$event, 404);
+        abort_if(! $event, 404);
 
         $game = $event->photoGame;
 
-        // Globale Event-Typ-Kataloge (is_base=false, event_id=null) für das Dropdown
+        // global event-type catalogs (is_base=false, event_id=null) for the dropdown
         $catalogs = PhotoGameTaskCatalog::whereNull('event_id')
             ->where('is_base', false)
             ->active()
             ->orderBy('name')
             ->get(['id', 'name', 'event_type']);
 
-        // Task-Pool aufbauen: Basis + gewählter Typ-Katalog + Overrides des Events
+        // build task pool: base + selected type catalog + overrides of the event
         $taskPool = $this->buildTaskPool($event->id, $game?->catalog_id);
 
-        // Overrides des Events für die UI (damit Frontend den Status jeder Aufgabe kennt)
+        // overrides of the event for the UI (so the frontend knows the status of each task)
         $overrides = EventTaskOverride::where('event_id', $event->id)
             ->get(['id', 'task_id', 'action', 'custom_text']);
 
@@ -40,87 +50,87 @@ class PhotoGameController extends Controller
                 ->whereNotNull('submitted_at')
                 ->latest('submitted_at')
                 ->get()
-                ->map(fn($a) => [
-                    'id'          => $a->id,
-                    'guest_name'  => trim(($a->guest?->firstname ?? '') . ' ' . ($a->guest?->lastname ?? '')),
-                    'task'        => $a->override?->custom_text ?? $a->task?->description,
-                    'photo_url'   => $a->photo?->url,
-                    'submitted_at'=> $a->submitted_at,
+                ->map(fn ($a) => [
+                    'id' => $a->id,
+                    'guest_name' => trim(($a->guest?->firstname ?? '').' '.($a->guest?->lastname ?? '')),
+                    'task' => $a->override?->custom_text ?? $a->task?->description,
+                    'photo_url' => $a->photo?->url,
+                    'submitted_at' => $a->submitted_at,
                 ]);
         }
 
         return Inertia::render('PhotoGame/Index', [
-            'game'      => $game ? [
-                'id'         => $game->id,
-                'status'     => $game->status,
+            'game' => $game ? [
+                'id' => $game->id,
+                'status' => $game->status,
                 'catalog_id' => $game->catalog_id,
             ] : null,
-            'catalogs'  => $catalogs,
+            'catalogs' => $catalogs,
             'task_pool' => $taskPool,
             'overrides' => $overrides,
             'submissions' => $submissions,
         ]);
     }
 
-    /** Baut den merged Task-Pool für die Admin-Ansicht + API */
+    /** Builds the merged task pool for the admin view + API */
     public function buildTaskPool(int $eventId, ?int $typeCatalogId): array
     {
-        // 1. Basis-Tasks (is_base=true)
+        // 1. base tasks (is_base=true)
         $baseCatalog = PhotoGameTaskCatalog::base()->first();
         $baseTasks = $baseCatalog
-            ? $baseCatalog->tasks()->active()->get()->map(fn($t) => [
-                'id'              => $t->id,
-                'description'     => $t->description,
+            ? $baseCatalog->tasks()->active()->get()->map(fn ($t) => [
+                'id' => $t->id,
+                'description' => $t->description,
                 'translation_key' => $t->translation_key,
-                'override_id'     => null,
-                'state'           => 'normal',
-                'original_text'   => null,
+                'override_id' => null,
+                'state' => 'normal',
+                'original_text' => null,
             ])->all()
             : [];
 
-        // 2. Event-Typ-Tasks
+        // 2. event-type tasks
         $typeTasks = [];
         if ($typeCatalogId) {
             $typeCatalog = PhotoGameTaskCatalog::find($typeCatalogId);
             $typeTasks = $typeCatalog
-                ? $typeCatalog->tasks()->active()->get()->map(fn($t) => [
-                    'id'              => $t->id,
-                    'description'     => $t->description,
+                ? $typeCatalog->tasks()->active()->get()->map(fn ($t) => [
+                    'id' => $t->id,
+                    'description' => $t->description,
                     'translation_key' => $t->translation_key,
-                    'override_id'     => null,
-                    'state'           => 'normal',
-                    'original_text'   => null,
+                    'override_id' => null,
+                    'state' => 'normal',
+                    'original_text' => null,
                 ])->all()
                 : [];
         }
 
         $pool = array_merge($baseTasks, $typeTasks);
 
-        // 3. Overrides anwenden
+        // 3. apply overrides
         $overrides = EventTaskOverride::where('event_id', $eventId)->get();
         foreach ($overrides as $ov) {
             if ($ov->action === 'hidden') {
-                $pool = array_map(fn($t) => $t['id'] === $ov->task_id
+                $pool = array_map(fn ($t) => $t['id'] === $ov->task_id
                     ? array_merge($t, ['state' => 'hidden', 'override_id' => $ov->id])
                     : $t, $pool);
             } elseif ($ov->action === 'modified') {
-                $pool = array_map(fn($t) => $t['id'] === $ov->task_id
+                $pool = array_map(fn ($t) => $t['id'] === $ov->task_id
                     ? array_merge($t, [
-                        'state'           => 'modified',
-                        'override_id'     => $ov->id,
-                        'original_text'   => $t['description'],
-                        'description'     => $ov->custom_text,
-                        // translation_key bleibt erhalten (für Original-Anzeige)
+                        'state' => 'modified',
+                        'override_id' => $ov->id,
+                        'original_text' => $t['description'],
+                        'description' => $ov->custom_text,
+                        // translation_key is preserved (for original display)
                     ])
                     : $t, $pool);
             } elseif ($ov->action === 'added') {
                 $pool[] = [
-                    'id'              => null,
-                    'description'     => $ov->custom_text,
+                    'id' => null,
+                    'description' => $ov->custom_text,
                     'translation_key' => null,
-                    'override_id'     => $ov->id,
-                    'state'           => 'added',
-                    'original_text'   => null,
+                    'override_id' => $ov->id,
+                    'state' => 'added',
+                    'original_text' => null,
                 ];
             }
         }
@@ -131,11 +141,11 @@ class PhotoGameController extends Controller
     public function start()
     {
         $event = $this->activeEvent();
-        abort_if(!$event, 404);
+        abort_if(! $event, 404);
 
         $game = $event->photoGame ?? EventPhotoGame::create([
             'event_id' => $event->id,
-            'status'   => EventPhotoGame::STATUS_DRAFT,
+            'status' => EventPhotoGame::STATUS_DRAFT,
         ]);
 
         $game->update(['status' => EventPhotoGame::STATUS_ACTIVE]);
@@ -146,10 +156,10 @@ class PhotoGameController extends Controller
     public function end()
     {
         $event = $this->activeEvent();
-        abort_if(!$event, 404);
+        abort_if(! $event, 404);
 
         $game = $event->photoGame;
-        abort_if(!$game, 404);
+        abort_if(! $game, 404);
 
         $game->update(['status' => EventPhotoGame::STATUS_ENDED]);
 
@@ -159,7 +169,7 @@ class PhotoGameController extends Controller
     public function updateCatalog(Request $request)
     {
         $event = $this->activeEvent();
-        abort_if(!$event, 404);
+        abort_if(! $event, 404);
 
         $data = $request->validate([
             'catalog_id' => 'nullable|exists:photo_game_task_catalogs,id',
@@ -167,7 +177,7 @@ class PhotoGameController extends Controller
 
         $game = $event->photoGame ?? EventPhotoGame::create([
             'event_id' => $event->id,
-            'status'   => EventPhotoGame::STATUS_DRAFT,
+            'status' => EventPhotoGame::STATUS_DRAFT,
         ]);
 
         $game->update(['catalog_id' => $data['catalog_id'] ?? null]);
@@ -178,20 +188,20 @@ class PhotoGameController extends Controller
     public function upsertOverride(Request $request)
     {
         $event = $this->activeEvent();
-        abort_if(!$event, 404);
+        abort_if(! $event, 404);
 
         $data = $request->validate([
-            'task_id'     => 'nullable|exists:photo_game_tasks,id',
-            'action'      => 'required|in:hidden,modified,added',
+            'task_id' => 'nullable|exists:photo_game_tasks,id',
+            'action' => 'required|in:hidden,modified,added',
             'custom_text' => 'required_if:action,modified|required_if:action,added|nullable|string|max:500',
         ]);
 
-        // 'added' hat keine task_id — kein upsert via task_id, immer neu anlegen
+        // 'added' has no task_id — no upsert via task_id, always create new
         if ($data['action'] === 'added') {
             $override = EventTaskOverride::create([
-                'event_id'    => $event->id,
-                'task_id'     => null,
-                'action'      => 'added',
+                'event_id' => $event->id,
+                'task_id' => null,
+                'action' => 'added',
                 'custom_text' => $data['custom_text'],
             ]);
         } else {
@@ -207,7 +217,7 @@ class PhotoGameController extends Controller
     public function destroyOverride(EventTaskOverride $override)
     {
         $event = $this->activeEvent();
-        abort_if(!$event, 404);
+        abort_if(! $event, 404);
         abort_if($override->event_id !== $event->id, 403);
 
         $override->delete();
@@ -218,7 +228,7 @@ class PhotoGameController extends Controller
     public function destroyAssignment(PhotoGameAssignment $assignment)
     {
         $event = $this->activeEvent();
-        abort_if(!$event, 404);
+        abort_if(! $event, 404);
         abort_if($assignment->game->event_id !== $event->id, 403);
 
         if ($assignment->photo_id) {

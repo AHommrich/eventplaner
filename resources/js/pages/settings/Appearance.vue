@@ -11,9 +11,7 @@ import SettingsLayout from '@/layouts/settings/Layout.vue';
 
 const { t } = useI18n();
 
-const breadcrumbItems: BreadcrumbItem[] = [
-    { title: t('settings.appearance'), href: '/settings/appearance' },
-];
+const breadcrumbItems: BreadcrumbItem[] = [{ title: t('settings.appearance'), href: '/settings/appearance' }];
 </script>
 
 <template>

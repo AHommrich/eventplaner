@@ -2,11 +2,11 @@
 import InputModal from '@/components/InputModal.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useEventRequestModal } from '@/composables/useEventRequestModal';
 import { useForm, usePage } from '@inertiajs/vue3';
+import { Clock, XCircle } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useEventRequestModal } from '@/composables/useEventRequestModal';
-import { Clock, XCircle } from 'lucide-vue-next';
 
 const { open } = useEventRequestModal();
 const { t } = useI18n();
@@ -19,24 +19,23 @@ interface EventRequestItem {
     created_at: string;
 }
 
-const userRequests = computed(() =>
-    ((page.props as any).user_event_requests ?? []) as EventRequestItem[]
-);
-const pendingRequest  = computed(() => userRequests.value.find(r => r.status === 'pending'));
-const declinedRequest = computed(() => !pendingRequest.value ? userRequests.value.find(r => r.status === 'declined') : null);
+const userRequests = computed(() => ((page.props as any).user_event_requests ?? []) as EventRequestItem[]);
+const pendingRequest = computed(() => userRequests.value.find((r) => r.status === 'pending'));
+const declinedRequest = computed(() => (!pendingRequest.value ? userRequests.value.find((r) => r.status === 'declined') : null));
 
 const form = useForm({ event_name: '' });
 function submit() {
     form.post(route('events.request'), {
-        onSuccess: () => { form.reset(); },
+        onSuccess: () => {
+            form.reset();
+        },
     });
 }
 </script>
 
 <template>
     <InputModal v-model:open="open" :title="t('onboarding.requestTitle')">
-
-        <!-- Anfrage läuft -->
+        <!-- Request pending -->
         <template v-if="pendingRequest">
             <div class="flex items-start gap-3 rounded-lg bg-amber-50 p-4 dark:bg-amber-950/30">
                 <Clock class="mt-0.5 size-4 shrink-0 text-amber-600" />
@@ -53,7 +52,7 @@ function submit() {
             </div>
         </template>
 
-        <!-- Anfrage abgelehnt oder neu -->
+        <!-- Request declined or new -->
         <template v-else>
             <div v-if="declinedRequest" class="flex items-start gap-3 rounded-lg bg-red-50 p-4 dark:bg-red-950/30">
                 <XCircle class="mt-0.5 size-4 shrink-0 text-red-500" />
@@ -81,6 +80,5 @@ function submit() {
                 </div>
             </form>
         </template>
-
     </InputModal>
 </template>

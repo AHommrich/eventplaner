@@ -8,22 +8,34 @@ use App\Models\EventTaskOverride;
 use App\Models\Photo;
 use App\Models\PhotoAlbum;
 use App\Models\PhotoGameAssignment;
-use App\Models\PhotoGameTaskCatalog;
+use App\Services\PhotoGameTaskPool;
+use App\Services\PhotoSanitizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Imagick\Driver;
 
+/**
+ * Photo-game API for the React Native app.
+ *
+ *  - GET  /status  → game status + current task of the guest (with submitted photo, if any)
+ *  - POST /assign  → assign a new task; pool from base catalog + type catalog + overrides
+ *  - POST /submit  → submit a photo for the open task (re-submission allowed, old photo deleted)
+ *
+ * Pool construction is delegated to {@see PhotoGameTaskPool} (delta-model logic there).
+ * Task descriptions support DE/EN via `Accept-Language`; overrides are
+ * intentionally DE only (entered by the organizer, no translation obligation).
+ */
 class PhotoGameController extends Controller
 {
+    public function __construct(private readonly PhotoGameTaskPool $pool) {}
+
     public function status(Request $request)
     {
         $guest = $request->user();
-        $lang  = $request->getPreferredLanguage(['de', 'en']);
-        $game  = EventPhotoGame::where('event_id', $guest->event_id)->first();
+        $lang = $request->getPreferredLanguage(['de', 'en']);
+        $game = EventPhotoGame::where('event_id', $guest->event_id)->first();
 
-        if (!$game) {
+        if (! $game) {
             return response()->json(['status' => 'draft', 'assignment' => null]);
         }
 
@@ -33,16 +45,16 @@ class PhotoGameController extends Controller
             ->first();
 
         return response()->json([
-            'status'     => $game->status,
+            'status' => $game->status,
             'assignment' => $assignment ? [
-                'id'              => $assignment->id,
-                'task'            => [
-                    'id'              => $assignment->task_id ?? $assignment->override_id,
-                    'description'     => $this->resolveTaskDescription($assignment, $lang),
+                'id' => $assignment->id,
+                'task' => [
+                    'id' => $assignment->task_id ?? $assignment->override_id,
+                    'description' => $this->resolveTaskDescription($assignment, $lang),
                     'translation_key' => $assignment->override ? null : $assignment->task?->translation_key,
                 ],
                 'submitted_at' => $assignment->submitted_at,
-                'photo_url'    => $assignment->photo?->url,
+                'photo_url' => $assignment->photo?->url,
             ] : null,
         ]);
     }
@@ -50,13 +62,13 @@ class PhotoGameController extends Controller
     public function assign(Request $request)
     {
         $guest = $request->user();
-        $game  = EventPhotoGame::where('event_id', $guest->event_id)->first();
+        $game = EventPhotoGame::where('event_id', $guest->event_id)->first();
 
-        if (!$game || $game->status !== EventPhotoGame::STATUS_ACTIVE) {
+        if (! $game || $game->status !== EventPhotoGame::STATUS_ACTIVE) {
             return response()->json(['message' => 'Das Spiel ist nicht aktiv.'], 422);
         }
 
-        // Bereits ein Assignment vorhanden?
+        // assignment already exists?
         $existing = PhotoGameAssignment::where('game_id', $game->id)
             ->where('guest_id', $guest->id)
             ->first();
@@ -67,8 +79,8 @@ class PhotoGameController extends Controller
 
         $lang = $request->getPreferredLanguage(['de', 'en']);
 
-        // Pool on-the-fly aufbauen
-        $pool = $this->buildAssignPool($guest->event_id, $game->catalog_id);
+        // build pool on-the-fly (base + type + overrides, see {@see PhotoGameTaskPool})
+        $pool = $this->pool->build($guest->event_id, $game->catalog_id);
 
         if ($pool->isEmpty()) {
             return response()->json(['message' => 'Keine Aufgaben verfügbar.'], 422);
@@ -77,36 +89,36 @@ class PhotoGameController extends Controller
         $picked = $pool->random();
 
         $assignment = PhotoGameAssignment::create([
-            'game_id'     => $game->id,
-            'guest_id'    => $guest->id,
-            'task_id'     => $picked['task_id'],
+            'game_id' => $game->id,
+            'guest_id' => $guest->id,
+            'task_id' => $picked['task_id'],
             'override_id' => $picked['override_id'],
         ]);
 
-        $description = ($lang === 'en' && !empty($picked['description_en']))
+        $description = ($lang === 'en' && ! empty($picked['description_en']))
             ? $picked['description_en']
             : $picked['description'];
 
         return response()->json([
-            'id'   => $assignment->id,
+            'id' => $assignment->id,
             'task' => [
-                'id'              => $picked['task_id'] ?? $picked['override_id'],
-                'description'     => $description,
+                'id' => $picked['task_id'] ?? $picked['override_id'],
+                'description' => $description,
                 'translation_key' => $picked['translation_key'] ?? null,
             ],
         ], 201);
     }
 
-    public function submit(Request $request)
+    public function submit(Request $request, PhotoSanitizer $sanitizer)
     {
         $request->validate([
             'photo' => ['required', 'file', 'mimes:jpeg,png,heic,heif', 'max:10240'],
         ]);
 
         $guest = $request->user();
-        $game  = EventPhotoGame::where('event_id', $guest->event_id)->first();
+        $game = EventPhotoGame::where('event_id', $guest->event_id)->first();
 
-        if (!$game || $game->status !== EventPhotoGame::STATUS_ACTIVE) {
+        if (! $game || $game->status !== EventPhotoGame::STATUS_ACTIVE) {
             return response()->json(['message' => 'Das Spiel ist nicht aktiv.'], 422);
         }
 
@@ -114,11 +126,11 @@ class PhotoGameController extends Controller
             ->where('guest_id', $guest->id)
             ->first();
 
-        if (!$assignment) {
+        if (! $assignment) {
             return response()->json(['message' => 'Du hast noch keine Aufgabe erhalten.'], 422);
         }
 
-        // Altes Foto löschen (Re-Submission)
+        // delete old photo (re-submission)
         if ($assignment->photo_id) {
             $oldPhoto = $assignment->photo;
             if ($oldPhoto) {
@@ -127,19 +139,11 @@ class PhotoGameController extends Controller
             }
         }
 
-        // Foto hochladen
+        // upload photo: re-encode to JPEG without EXIF via PhotoSanitizer.
         $file = $request->file('photo');
-        $mime = strtolower($file->getClientOriginalExtension());
-
-        if (in_array($mime, ['heic', 'heif'])) {
-            $manager   = new ImageManager(new Driver());
-            $imageData = $manager->read($file->getRealPath())->toJpeg(90)->toString();
-            $path      = 'photos/' . Str::uuid() . '.jpg';
-            Storage::disk('s3')->put($path, $imageData, 'public');
-        } else {
-            $path = 'photos/' . Str::uuid() . '.' . $mime;
-            Storage::disk('s3')->put($path, file_get_contents($file), 'public');
-        }
+        $imageData = $sanitizer->toJpegWithoutExif($file->getRealPath());
+        $path = 'photos/'.Str::uuid().'.jpg';
+        Storage::disk('s3')->put($path, $imageData, 'public');
 
         $url = Storage::disk('s3')->url($path);
 
@@ -151,85 +155,30 @@ class PhotoGameController extends Controller
             'event_id' => $guest->event_id,
             'album_id' => $album?->id,
             'guest_id' => $guest->id,
-            'url'      => $url,
-            'r2_key'   => $path,
+            'url' => $url,
+            'r2_key' => $path,
         ]);
 
         $assignment->update([
-            'photo_id'     => $photo->id,
+            'photo_id' => $photo->id,
             'submitted_at' => now(),
         ]);
 
         return response()->json([
-            'photo_url'    => $url,
+            'photo_url' => $url,
             'submitted_at' => $assignment->submitted_at,
         ]);
     }
 
-    /** Baut den Pool für die assign()-Methode als Collection */
-    private function buildAssignPool(int $eventId, ?int $typeCatalogId): \Illuminate\Support\Collection
-    {
-        // 1. Basis-Tasks
-        $baseCatalog = PhotoGameTaskCatalog::base()->first();
-        $pool = $baseCatalog
-            ? $baseCatalog->tasks()->active()->get()->map(fn($t) => [
-                'task_id'         => $t->id,
-                'override_id'     => null,
-                'description'     => $t->description,
-                'description_en'  => $t->description_en,
-                'translation_key' => $t->translation_key,
-            ])
-            : collect();
-
-        // 2. Event-Typ-Tasks
-        if ($typeCatalogId) {
-            $typeCatalog = PhotoGameTaskCatalog::find($typeCatalogId);
-            if ($typeCatalog) {
-                $typeItems = $typeCatalog->tasks()->active()->get()->map(fn($t) => [
-                    'task_id'         => $t->id,
-                    'override_id'     => null,
-                    'description'     => $t->description,
-                    'description_en'  => $t->description_en,
-                    'translation_key' => $t->translation_key,
-                ]);
-                $pool = $pool->concat($typeItems);
-            }
-        }
-
-        // 3. Overrides anwenden
-        $overrides = EventTaskOverride::where('event_id', $eventId)->get();
-
-        foreach ($overrides as $ov) {
-            if ($ov->action === 'hidden') {
-                $pool = $pool->reject(fn($t) => $t['task_id'] === $ov->task_id);
-            } elseif ($ov->action === 'modified') {
-                // modified-Override: nur DE-Text überschreiben, kein EN vorhanden
-                $pool = $pool->map(fn($t) => $t['task_id'] === $ov->task_id
-                    ? array_merge($t, ['description' => $ov->custom_text, 'description_en' => null])
-                    : $t);
-            } elseif ($ov->action === 'added') {
-                $pool->push([
-                    'task_id'         => null,
-                    'override_id'     => $ov->id,
-                    'description'     => $ov->custom_text,
-                    'description_en'  => null,
-                    'translation_key' => null,
-                ]);
-            }
-        }
-
-        return $pool->values();
-    }
-
-    /** Löst die Aufgabenbeschreibung für ein Assignment auf */
+    /** Resolves the task description for an assignment */
     private function resolveTaskDescription(PhotoGameAssignment $assignment, string $lang = 'de'): string
     {
         if ($assignment->override_id && $assignment->override) {
-            // Override-Texte sind immer nur auf Deutsch (vom Veranstalter eingetragen)
+            // override texts are always German only (entered by the organizer)
             return $assignment->override->custom_text ?? '';
         }
         if ($assignment->task_id && $assignment->task) {
-            // Prüfen ob ein 'modified'-Override existiert
+            // check whether a 'modified' override exists
             $mod = EventTaskOverride::where('event_id', $assignment->game->event_id ?? 0)
                 ->where('task_id', $assignment->task_id)
                 ->where('action', 'modified')
@@ -240,8 +189,10 @@ class PhotoGameController extends Controller
             if ($lang === 'en' && $assignment->task->description_en) {
                 return $assignment->task->description_en;
             }
+
             return $assignment->task->description;
         }
+
         return '';
     }
 }

@@ -62,6 +62,24 @@ return [
             ]) : [],
         ],
 
+        // Isolated test connection — hardcoded to laravel_test so tests NEVER
+        // run against the dev DB (RefreshDatabase would otherwise wipe it).
+        // Activated via DB_CONNECTION=mysql_testing in phpunit.xml.
+        'mysql_testing' => [
+            'driver' => 'mysql',
+            'host' => env('DB_HOST', 'db'),
+            'port' => env('DB_PORT', 3306),
+            'database' => 'laravel_test',
+            'username' => env('DB_USERNAME', 'laravel'),
+            'password' => env('DB_PASSWORD', 'secret'),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),

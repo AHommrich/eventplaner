@@ -1,17 +1,24 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import InfoTooltip from '@/components/InfoTooltip.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
-import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
+import { toast } from 'vue-sonner';
 
-interface SetByGuest { id: number; firstname: string; lastname: string; }
-interface SetByUser  { id: number; name: string; }
+interface SetByGuest {
+    id: number;
+    firstname: string;
+    lastname: string;
+}
+interface SetByUser {
+    id: number;
+    name: string;
+}
 
 interface RevocationRequest {
     id: number;
@@ -33,19 +40,17 @@ interface EventRequestItem {
     created_at: string;
 }
 
-const props = defineProps<{
+defineProps<{
     revocations: RevocationRequest[];
     event_requests: EventRequestItem[];
 }>();
 
 const { t } = useI18n();
 
-const breadcrumbItems: BreadcrumbItem[] = [
-    { title: t('requests.title'), href: '/requests' },
-];
+const breadcrumbItems: BreadcrumbItem[] = [{ title: t('requests.title'), href: '/requests' }];
 
-// --- Rücknahmen ---
-const confirmOpen   = ref(false);
+// --- Revocations ---
+const confirmOpen = ref(false);
 const pendingAction = ref<{ item: RevocationRequest; action: 'approve' | 'decline' } | null>(null);
 
 function ask(item: RevocationRequest, action: 'approve' | 'decline') {
@@ -62,8 +67,8 @@ function doAction() {
     });
 }
 
-// --- Event-Anfragen ---
-const eventReqConfirmOpen   = ref(false);
+// --- Event requests ---
+const eventReqConfirmOpen = ref(false);
 const eventReqPendingAction = ref<{ item: EventRequestItem; action: 'approve' | 'decline' } | null>(null);
 
 function askEventReq(item: EventRequestItem, action: 'approve' | 'decline') {
@@ -87,7 +92,7 @@ function formatDate(iso: string | null): string {
 
 function setterName(item: RevocationRequest): string {
     if (item.set_by_guest) return `${item.set_by_guest.firstname} ${item.set_by_guest.lastname}`;
-    if (item.set_by_user)  return item.set_by_user.name;
+    if (item.set_by_user) return item.set_by_user.name;
     return '—';
 }
 </script>
@@ -96,13 +101,14 @@ function setterName(item: RevocationRequest): string {
     <Head :title="t('requests.title')" />
     <AppLayout :breadcrumbs="breadcrumbItems">
         <div class="m-4 space-y-4">
-
-            <!-- Event-Anfragen (nur Admin) -->
+            <!-- Event requests (admin only) -->
             <Card v-if="event_requests.length > 0">
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         {{ t('requests.eventRequestsTitle') }}
-                        <span class="inline-flex size-5 items-center justify-center rounded-full bg-amber-500 text-[11px] font-bold text-white">{{ event_requests.length }}</span>
+                        <span class="inline-flex size-5 items-center justify-center rounded-full bg-amber-500 text-[11px] font-bold text-white">{{
+                            event_requests.length
+                        }}</span>
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -123,12 +129,16 @@ function setterName(item: RevocationRequest): string {
                 </CardContent>
             </Card>
 
-            <!-- Rücknahme-Anfragen -->
+            <!-- Revocation requests -->
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         {{ t('requests.revocationsTitle') }}
-                        <span v-if="revocations.length > 0" class="inline-flex size-5 items-center justify-center rounded-full bg-amber-500 text-[11px] font-bold text-white">{{ revocations.length }}</span>
+                        <span
+                            v-if="revocations.length > 0"
+                            class="inline-flex size-5 items-center justify-center rounded-full bg-amber-500 text-[11px] font-bold text-white"
+                            >{{ revocations.length }}</span
+                        >
                         <InfoTooltip :text="t('requests.revocationsInfo')" />
                     </CardTitle>
                 </CardHeader>
@@ -145,8 +155,8 @@ function setterName(item: RevocationRequest): string {
                                 <p class="font-medium">{{ item.firstname }} {{ item.lastname }}</p>
                                 <p v-if="item.group_name" class="text-sm text-muted-foreground">{{ item.group_name }}</p>
                                 <p class="text-xs text-muted-foreground">
-                                    {{ t('requests.requestedAt') }}: {{ formatDate(item.rsvp_set_at) }}
-                                    · {{ t('requests.setBy') }}: {{ setterName(item) }}
+                                    {{ t('requests.requestedAt') }}: {{ formatDate(item.rsvp_set_at) }} · {{ t('requests.setBy') }}:
+                                    {{ setterName(item) }}
                                 </p>
                             </div>
                             <div class="flex shrink-0 gap-2">
@@ -157,10 +167,9 @@ function setterName(item: RevocationRequest): string {
                     </div>
                 </CardContent>
             </Card>
-
         </div>
 
-        <!-- Rücknahme-Dialog -->
+        <!-- Revocation dialog -->
         <ConfirmDialog
             v-model:open="confirmOpen"
             :title="pendingAction?.action === 'approve' ? t('requests.confirmApproveTitle') : t('requests.confirmDeclineTitle')"
@@ -170,7 +179,7 @@ function setterName(item: RevocationRequest): string {
             @confirm="doAction"
         />
 
-        <!-- Event-Anfragen-Dialog -->
+        <!-- Event requests dialog -->
         <ConfirmDialog
             v-model:open="eventReqConfirmOpen"
             :title="eventReqPendingAction?.action === 'approve' ? t('requests.confirmApproveEventTitle') : t('requests.confirmDeclineEventTitle')"

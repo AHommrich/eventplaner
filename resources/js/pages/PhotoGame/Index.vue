@@ -1,19 +1,14 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import InfoTooltip from '@/components/InfoTooltip.vue';
 import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
-import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
+import { toast } from 'vue-sonner';
 
 interface Catalog {
     id: number;
@@ -64,43 +59,59 @@ function originalLabel(task: TaskInPool): string {
     return task.original_text ?? '';
 }
 
-// --- Event-Typ wechseln ---
+// --- Switch event type ---
 function setCatalog(catalogId: string) {
-    router.patch(route('photo-game.catalog'), { catalog_id: catalogId || null }, {
-        onSuccess: () => toast.success(t('photoGame.catalogSaved')),
-    });
+    router.patch(
+        route('photo-game.catalog'),
+        { catalog_id: catalogId || null },
+        {
+            onSuccess: () => toast.success(t('photoGame.catalogSaved')),
+        },
+    );
 }
 
 // --- Start/Stop ---
 function startGame() {
-    router.post(route('photo-game.start'), {}, {
-        onSuccess: () => toast.success(t('photoGame.started')),
-    });
+    router.post(
+        route('photo-game.start'),
+        {},
+        {
+            onSuccess: () => toast.success(t('photoGame.started')),
+        },
+    );
 }
 
 function endGame() {
-    router.post(route('photo-game.end'), {}, {
-        onSuccess: () => toast.success(t('photoGame.ended')),
-    });
+    router.post(
+        route('photo-game.end'),
+        {},
+        {
+            onSuccess: () => toast.success(t('photoGame.ended')),
+        },
+    );
 }
 
-// --- Aufgabe ausblenden ---
+// --- Hide task ---
 function hideTask(taskId: number) {
-    router.post(route('photo-game.overrides.upsert'), { task_id: taskId, action: 'hidden' }, {
-        onSuccess: () => toast.success(t('photoGame.overrideSaved')),
-    });
+    router.post(
+        route('photo-game.overrides.upsert'),
+        { task_id: taskId, action: 'hidden' },
+        {
+            onSuccess: () => toast.success(t('photoGame.overrideSaved')),
+        },
+    );
 }
 
-// --- Aufgabe wiederherstellen / Override zurücksetzen ---
+// --- Restore task / reset override ---
 function deleteOverride(overrideId: number) {
     router.delete(route('photo-game.overrides.destroy', overrideId), {
         onSuccess: () => toast.success(t('photoGame.overrideDeleted')),
     });
 }
 
-// --- Aufgabe bearbeiten (modified) ---
-const editingTaskId = ref<number | null>(null);   // task.id (für normal/hidden tasks aus dem Pool)
-const editingAddedId = ref<number | null>(null);  // override_id (für 'added' tasks)
+// --- Edit task (modified) ---
+const editingTaskId = ref<number | null>(null); // task.id (for normal/hidden tasks from the pool)
+const editingAddedId = ref<number | null>(null); // override_id (for 'added' tasks)
 const editingText = ref('');
 
 function startEditTask(task: TaskInPool) {
@@ -123,12 +134,16 @@ function cancelEdit() {
 function saveModify(taskId: number) {
     const text = editingText.value.trim();
     if (!text) return;
-    router.post(route('photo-game.overrides.upsert'), { task_id: taskId, action: 'modified', custom_text: text }, {
-        onSuccess: () => {
-            toast.success(t('photoGame.overrideSaved'));
-            cancelEdit();
+    router.post(
+        route('photo-game.overrides.upsert'),
+        { task_id: taskId, action: 'modified', custom_text: text },
+        {
+            onSuccess: () => {
+                toast.success(t('photoGame.overrideSaved'));
+                cancelEdit();
+            },
         },
-    });
+    );
 }
 
 function saveAddedEdit(overrideId: number) {
@@ -143,31 +158,39 @@ function saveAddedEdit(overrideId: number) {
     // For now: delete old + store new via two requests.
     router.delete(route('photo-game.overrides.destroy', overrideId), {
         onSuccess: () => {
-            router.post(route('photo-game.overrides.upsert'), { action: 'added', custom_text: text }, {
-                onSuccess: () => {
-                    toast.success(t('photoGame.overrideSaved'));
-                    cancelEdit();
+            router.post(
+                route('photo-game.overrides.upsert'),
+                { action: 'added', custom_text: text },
+                {
+                    onSuccess: () => {
+                        toast.success(t('photoGame.overrideSaved'));
+                        cancelEdit();
+                    },
                 },
-            });
+            );
         },
     });
 }
 
-// --- Eigene Aufgabe hinzufügen ---
+// --- Add own task ---
 const newTaskText = ref('');
 
 function addOwnTask() {
     const text = newTaskText.value.trim();
     if (!text) return;
-    router.post(route('photo-game.overrides.upsert'), { action: 'added', custom_text: text }, {
-        onSuccess: () => {
-            toast.success(t('photoGame.overrideSaved'));
-            newTaskText.value = '';
+    router.post(
+        route('photo-game.overrides.upsert'),
+        { action: 'added', custom_text: text },
+        {
+            onSuccess: () => {
+                toast.success(t('photoGame.overrideSaved'));
+                newTaskText.value = '';
+            },
         },
-    });
+    );
 }
 
-// --- Eigene Aufgabe löschen ---
+// --- Delete own task ---
 const confirmDeleteOverrideOpen = ref(false);
 const pendingDeleteOverrideId = ref<number | null>(null);
 
@@ -181,7 +204,7 @@ function doDeleteAdded() {
     deleteOverride(pendingDeleteOverrideId.value);
 }
 
-// --- Einreichung löschen ---
+// --- Delete submission ---
 const confirmDeleteOpen = ref(false);
 const pendingDeleteId = ref<number | null>(null);
 
@@ -197,11 +220,11 @@ function doDeleteSubmission() {
     });
 }
 
-// --- Foto-Viewer ---
+// --- Photo viewer ---
 const viewerPhoto = ref<Submission | null>(null);
 
 // Active task count (hidden tasks don't count)
-const activeTaskCount = () => props.task_pool.filter(t => t.state !== 'hidden').length;
+const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden').length;
 </script>
 
 <template>
@@ -210,8 +233,8 @@ const activeTaskCount = () => props.task_pool.filter(t => t.state !== 'hidden').
         <div class="m-4 space-y-4">
             <h1 class="text-xl font-semibold">{{ t('photoGame.title') }}</h1>
 
-            <!-- Spiel-Einstellungen -->
-            <div class="rounded-lg border p-4 space-y-4">
+            <!-- Game settings -->
+            <div class="space-y-4 rounded-lg border p-4">
                 <div class="flex items-center justify-between">
                     <h2 class="text-sm font-semibold">{{ t('photoGame.settings') }}</h2>
                     <span
@@ -228,17 +251,21 @@ const activeTaskCount = () => props.task_pool.filter(t => t.state !== 'hidden').
                     </span>
                 </div>
 
-                <!-- Event-Typ-Auswahl -->
+                <!-- Event type selection -->
                 <div class="grid gap-1.5">
                     <label class="text-sm font-medium">{{ t('photoGame.eventTypeCatalog') }}</label>
                     <select
                         :value="String(game?.catalog_id ?? '')"
-                        class="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                        class="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:ring-1 focus:ring-ring focus:outline-none"
                         @change="setCatalog(($event.target as HTMLSelectElement).value)"
                     >
                         <option value="">{{ t('photoGame.noEventType') }}</option>
                         <option v-for="cat in catalogs" :key="cat.id" :value="String(cat.id)">
-                            {{ cat.event_type && te('photoGame.catalogType.' + cat.event_type) ? t('photoGame.catalogType.' + cat.event_type) : cat.name }}
+                            {{
+                                cat.event_type && te('photoGame.catalogType.' + cat.event_type)
+                                    ? t('photoGame.catalogType.' + cat.event_type)
+                                    : cat.name
+                            }}
                         </option>
                     </select>
                     <p class="text-xs text-muted-foreground">{{ t('photoGame.eventTypeHint') }}</p>
@@ -246,25 +273,17 @@ const activeTaskCount = () => props.task_pool.filter(t => t.state !== 'hidden').
 
                 <!-- Start/Stop Buttons -->
                 <div class="flex gap-2">
-                    <Button
-                        v-if="!game || game.status === 'draft' || game.status === 'ended'"
-                        :disabled="activeTaskCount() === 0"
-                        @click="startGame"
-                    >
+                    <Button v-if="!game || game.status === 'draft' || game.status === 'ended'" :disabled="activeTaskCount() === 0" @click="startGame">
                         {{ t('photoGame.start') }}
                     </Button>
-                    <Button
-                        v-if="game?.status === 'active'"
-                        variant="destructive"
-                        @click="endGame"
-                    >
+                    <Button v-if="game?.status === 'active'" variant="destructive" @click="endGame">
                         {{ t('photoGame.end') }}
                     </Button>
                 </div>
             </div>
 
-            <!-- Aufgaben-Pool -->
-            <div class="rounded-lg border p-4 space-y-3">
+            <!-- Task pool -->
+            <div class="space-y-3 rounded-lg border p-4">
                 <div>
                     <div class="flex items-center gap-2">
                         <h2 class="text-sm font-semibold">
@@ -273,7 +292,7 @@ const activeTaskCount = () => props.task_pool.filter(t => t.state !== 'hidden').
                         </h2>
                         <InfoTooltip :text="t('photoGame.taskPoolInfo')" />
                     </div>
-                    <p class="text-xs text-muted-foreground mt-0.5">{{ t('photoGame.taskPoolHint') }}</p>
+                    <p class="mt-0.5 text-xs text-muted-foreground">{{ t('photoGame.taskPoolHint') }}</p>
                 </div>
 
                 <div class="space-y-1">
@@ -290,52 +309,53 @@ const activeTaskCount = () => props.task_pool.filter(t => t.state !== 'hidden').
                             'border-dashed': task.state === 'added',
                         }"
                     >
-                        <!-- Bearbeitungs-Modus für normale/modified tasks -->
+                        <!-- Edit mode for normal/modified tasks -->
                         <template v-if="editingTaskId === task.id && task.id !== null">
                             <Input
                                 v-model="editingText"
-                                class="flex-1 h-7 text-sm"
+                                class="h-7 flex-1 text-sm"
                                 @keydown.enter="saveModify(task.id!)"
                                 @keydown.esc="cancelEdit"
                                 autofocus
                             />
-                            <Button size="sm" variant="ghost" class="h-7 px-2 shrink-0" @click="saveModify(task.id!)">
+                            <Button size="sm" variant="ghost" class="h-7 shrink-0 px-2" @click="saveModify(task.id!)">
                                 {{ t('common.save') }}
                             </Button>
-                            <Button size="sm" variant="ghost" class="h-7 px-2 shrink-0" @click="cancelEdit">
+                            <Button size="sm" variant="ghost" class="h-7 shrink-0 px-2" @click="cancelEdit">
                                 {{ t('common.cancel') }}
                             </Button>
                         </template>
 
-                        <!-- Bearbeitungs-Modus für 'added' tasks -->
+                        <!-- Edit mode for 'added' tasks -->
                         <template v-else-if="editingAddedId === task.override_id && task.override_id !== null && task.state === 'added'">
                             <Input
                                 v-model="editingText"
-                                class="flex-1 h-7 text-sm"
+                                class="h-7 flex-1 text-sm"
                                 @keydown.enter="saveAddedEdit(task.override_id!)"
                                 @keydown.esc="cancelEdit"
                                 autofocus
                             />
-                            <Button size="sm" variant="ghost" class="h-7 px-2 shrink-0" @click="saveAddedEdit(task.override_id!)">
+                            <Button size="sm" variant="ghost" class="h-7 shrink-0 px-2" @click="saveAddedEdit(task.override_id!)">
                                 {{ t('common.save') }}
                             </Button>
-                            <Button size="sm" variant="ghost" class="h-7 px-2 shrink-0" @click="cancelEdit">
+                            <Button size="sm" variant="ghost" class="h-7 shrink-0 px-2" @click="cancelEdit">
                                 {{ t('common.cancel') }}
                             </Button>
                         </template>
 
-                        <!-- Anzeige-Modus -->
+                        <!-- Display mode -->
                         <template v-else>
-                            <div class="flex-1 min-w-0">
+                            <div class="min-w-0 flex-1">
                                 <span
                                     class="leading-snug"
                                     :class="{
-                                        'line-through text-muted-foreground': task.state === 'hidden',
+                                        'text-muted-foreground line-through': task.state === 'hidden',
                                         'text-blue-600': task.state === 'added',
                                     }"
-                                >{{ task.state === 'modified' ? task.description : taskLabel(task) }}</span>
-                                <!-- Original-Text bei modified -->
-                                <p v-if="task.state === 'modified' && task.original_text" class="text-xs text-muted-foreground mt-0.5">
+                                    >{{ task.state === 'modified' ? task.description : taskLabel(task) }}</span
+                                >
+                                <!-- Original text for modified -->
+                                <p v-if="task.state === 'modified' && task.original_text" class="mt-0.5 text-xs text-muted-foreground">
                                     {{ t('photoGame.originalText') }}: {{ originalLabel(task) }}
                                 </p>
                             </div>
@@ -343,7 +363,7 @@ const activeTaskCount = () => props.task_pool.filter(t => t.state !== 'hidden').
                             <!-- State Badge -->
                             <span
                                 v-if="task.state !== 'normal'"
-                                class="shrink-0 text-xs px-1.5 py-0.5 rounded-full"
+                                class="shrink-0 rounded-full px-1.5 py-0.5 text-xs"
                                 :class="{
                                     'bg-red-100 text-red-700': task.state === 'hidden',
                                     'bg-amber-100 text-amber-700': task.state === 'modified',
@@ -353,59 +373,142 @@ const activeTaskCount = () => props.task_pool.filter(t => t.state !== 'hidden').
                                 {{ t('photoGame.taskState.' + task.state) }}
                             </span>
 
-                            <!-- Aktions-Menü -->
+                            <!-- Actions menu -->
                             <DropdownMenu>
                                 <DropdownMenuTrigger as-child>
                                     <button
-                                        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                                        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                                         @click.stop
                                     >
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                            <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
+                                            <circle cx="5" cy="12" r="2" />
+                                            <circle cx="12" cy="12" r="2" />
+                                            <circle cx="19" cy="12" r="2" />
                                         </svg>
                                     </button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" class="min-w-[160px]">
-                                    <!-- Normal: bearbeiten + ausblenden -->
+                                    <!-- Normal: edit + hide -->
                                     <template v-if="task.state === 'normal' && task.id !== null">
                                         <DropdownMenuItem @click="startEditTask(task)">
-                                            <svg class="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                            <svg
+                                                class="mr-2 h-4 w-4"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            >
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                            </svg>
                                             {{ t('photoGame.editTask') }}
                                         </DropdownMenuItem>
                                         <DropdownMenuItem class="text-destructive focus:text-destructive" @click="hideTask(task.id!)">
-                                            <svg class="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                            <svg
+                                                class="mr-2 h-4 w-4"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            >
+                                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                                                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                                                <line x1="1" y1="1" x2="23" y2="23" />
+                                            </svg>
                                             {{ t('photoGame.hideTask') }}
                                         </DropdownMenuItem>
                                     </template>
 
-                                    <!-- Hidden: wiederherstellen -->
+                                    <!-- Hidden: restore -->
                                     <template v-else-if="task.state === 'hidden' && task.override_id !== null">
                                         <DropdownMenuItem @click="deleteOverride(task.override_id!)">
-                                            <svg class="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                            <svg
+                                                class="mr-2 h-4 w-4"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            >
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                                <circle cx="12" cy="12" r="3" />
+                                            </svg>
                                             {{ t('photoGame.restoreTask') }}
                                         </DropdownMenuItem>
                                     </template>
 
-                                    <!-- Modified: bearbeiten + zurücksetzen -->
+                                    <!-- Modified: edit + reset -->
                                     <template v-else-if="task.state === 'modified' && task.override_id !== null">
                                         <DropdownMenuItem @click="startEditTask(task)">
-                                            <svg class="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                            <svg
+                                                class="mr-2 h-4 w-4"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            >
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                            </svg>
                                             {{ t('photoGame.editTask') }}
                                         </DropdownMenuItem>
                                         <DropdownMenuItem class="text-destructive focus:text-destructive" @click="deleteOverride(task.override_id!)">
-                                            <svg class="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                                            <svg
+                                                class="mr-2 h-4 w-4"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            >
+                                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                                                <path d="M3 3v5h5" />
+                                            </svg>
                                             {{ t('photoGame.resetTask') }}
                                         </DropdownMenuItem>
                                     </template>
 
-                                    <!-- Added: bearbeiten + löschen -->
+                                    <!-- Added: edit + delete -->
                                     <template v-else-if="task.state === 'added' && task.override_id !== null">
                                         <DropdownMenuItem @click="startEditAdded(task)">
-                                            <svg class="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                            <svg
+                                                class="mr-2 h-4 w-4"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            >
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                            </svg>
                                             {{ t('photoGame.editTask') }}
                                         </DropdownMenuItem>
                                         <DropdownMenuItem class="text-destructive focus:text-destructive" @click="askDeleteAdded(task.override_id!)">
-                                            <svg class="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                                            <svg
+                                                class="mr-2 h-4 w-4"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            >
+                                                <polyline points="3 6 5 6 21 6" />
+                                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                                <path d="M10 11v6" />
+                                                <path d="M14 11v6" />
+                                                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                                            </svg>
                                             {{ t('common.delete') }}
                                         </DropdownMenuItem>
                                     </template>
@@ -415,22 +518,18 @@ const activeTaskCount = () => props.task_pool.filter(t => t.state !== 'hidden').
                     </div>
                 </div>
 
-                <!-- Eigene Aufgabe hinzufügen -->
+                <!-- Add own task -->
                 <div class="flex gap-2 pt-1">
-                    <Input
-                        v-model="newTaskText"
-                        :placeholder="t('photoGame.taskPlaceholder')"
-                        @keydown.enter="addOwnTask"
-                    />
+                    <Input v-model="newTaskText" :placeholder="t('photoGame.taskPlaceholder')" @keydown.enter="addOwnTask" />
                     <Button size="sm" @click="addOwnTask">{{ t('common.add') }}</Button>
                 </div>
             </div>
 
-            <!-- Einreichungen -->
+            <!-- Submissions -->
             <div class="space-y-2">
                 <h2 class="text-sm font-semibold">
                     {{ t('photoGame.submissions') }}
-                    <span class="text-muted-foreground font-normal">({{ submissions.length }})</span>
+                    <span class="font-normal text-muted-foreground">({{ submissions.length }})</span>
                 </h2>
 
                 <p v-if="submissions.length === 0" class="text-sm text-muted-foreground">
@@ -441,7 +540,7 @@ const activeTaskCount = () => props.task_pool.filter(t => t.state !== 'hidden').
                     <div
                         v-for="sub in submissions"
                         :key="sub.id"
-                        class="group relative cursor-pointer overflow-hidden rounded-lg border bg-muted aspect-square"
+                        class="group relative aspect-square cursor-pointer overflow-hidden rounded-lg border bg-muted"
                         @click="viewerPhoto = sub"
                     >
                         <img
@@ -450,19 +549,28 @@ const activeTaskCount = () => props.task_pool.filter(t => t.state !== 'hidden').
                             :alt="sub.guest_name"
                             class="h-full w-full object-cover transition-transform group-hover:scale-105"
                         />
-                        <div v-else class="flex h-full items-center justify-center text-xs text-muted-foreground p-2 text-center">
+                        <div v-else class="flex h-full items-center justify-center p-2 text-center text-xs text-muted-foreground">
                             {{ sub.task }}
                         </div>
                         <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-xs text-white">
-                            <div class="font-medium truncate">{{ sub.guest_name }}</div>
+                            <div class="truncate font-medium">{{ sub.guest_name }}</div>
                             <div class="truncate opacity-75">{{ sub.task }}</div>
                         </div>
                         <button
-                            class="absolute top-1.5 right-1.5 flex sm:hidden sm:group-hover:flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-red-600 transition-colors"
+                            class="absolute top-1.5 right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-red-600 sm:hidden sm:group-hover:flex"
                             @click.stop="askDeleteSubmission(sub.id)"
                         >
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M18 6L6 18M6 6l12 12"/>
+                            <svg
+                                width="12"
+                                height="12"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <path d="M18 6L6 18M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
@@ -470,26 +578,20 @@ const activeTaskCount = () => props.task_pool.filter(t => t.state !== 'hidden').
             </div>
         </div>
 
-        <!-- Foto-Viewer -->
-        <div
-            v-if="viewerPhoto"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
-            @click="viewerPhoto = null"
-        >
-            <div class="relative max-w-2xl w-full mx-4" @click.stop>
-                <img
-                    v-if="viewerPhoto.photo_url"
-                    :src="viewerPhoto.photo_url"
-                    class="max-h-[80vh] w-full object-contain rounded-lg"
-                />
-                <div class="mt-2 text-white text-sm text-center">
+        <!-- Photo viewer -->
+        <div v-if="viewerPhoto" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80" @click="viewerPhoto = null">
+            <div class="relative mx-4 w-full max-w-2xl" @click.stop>
+                <img v-if="viewerPhoto.photo_url" :src="viewerPhoto.photo_url" class="max-h-[80vh] w-full rounded-lg object-contain" />
+                <div class="mt-2 text-center text-sm text-white">
                     <p class="font-semibold">{{ viewerPhoto.guest_name }}</p>
                     <p class="opacity-75">{{ viewerPhoto.task }}</p>
                 </div>
                 <button
-                    class="absolute top-2 right-2 h-8 w-8 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
+                    class="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
                     @click="viewerPhoto = null"
-                >✕</button>
+                >
+                    ✕
+                </button>
             </div>
         </div>
 

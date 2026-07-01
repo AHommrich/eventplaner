@@ -4,21 +4,30 @@ namespace App\Http\Controllers;
 
 use App\Models\Photo;
 use App\Models\PhotoAlbum;
+use App\Services\PhotoSanitizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Intervention\Image\ImageManager;
 use Inertia\Inertia;
 
+/**
+ * Organizer management of the photos of an event (Inertia, NOT the guest API).
+ *
+ *  - `index()`                     → all albums with photos + projector URL
+ *  - `store()`                     → upload (HEIC→JPEG via Imagick); lands in the right album based on `album_slug`
+ *  - `destroy()` / `destroyBatch()` → delete photo record + R2 object
+ *  - `updateProjectorAlbum()` / `updateProjectorNameMode()` → display config of the projector slideshow
+ *  - `regenerateProjectorToken()`  → creates a new 32-char token (old projector link becomes invalid)
+ */
 class PhotoController extends Controller
 {
     public function index()
     {
         $event = $this->activeEvent();
 
-        if (!$event) {
+        if (! $event) {
             return Inertia::render('Photos/Index', [
-                'albums'       => [],
+                'albums' => [],
                 'projectorUrl' => null,
                 'projectorAlbumId' => null,
             ]);
@@ -31,24 +40,24 @@ class PhotoController extends Controller
                 $q->with('guest')->latest();
             }])
             ->get()
-            ->map(fn($album) => [
-                'id'         => $album->id,
-                'slug'       => $album->slug,
-                'name'       => $album->name,
+            ->map(fn ($album) => [
+                'id' => $album->id,
+                'slug' => $album->slug,
+                'name' => $album->name,
                 'sort_order' => $album->sort_order,
-                'photos'     => $album->photos->map(fn($photo) => [
-                    'id'           => $photo->id,
-                    'url'          => $photo->url,
-                    'guest_name'   => $photo->guest
-                        ? trim(($photo->guest->firstname ?? '') . ' ' . ($photo->guest->lastname ?? ''))
+                'photos' => $album->photos->map(fn ($photo) => [
+                    'id' => $photo->id,
+                    'url' => $photo->url,
+                    'guest_name' => $photo->guest
+                        ? trim(($photo->guest->firstname ?? '').' '.($photo->guest->lastname ?? ''))
                         : ($photo->uploaded_by ?? null),
                     'organizer_role' => $photo->guest === null && $photo->uploaded_by !== null
                         ? ($photo->uploader_user_id !== null && $photo->uploader_user_id !== $ownerId
                             ? 'co_organizer'
                             : 'owner')
                         : null,
-                    'description'  => $photo->description,
-                    'created_at'   => $photo->created_at->format('d.m.Y H:i'),
+                    'description' => $photo->description,
+                    'created_at' => $photo->created_at->format('d.m.Y H:i'),
                 ]),
             ]);
 
@@ -57,53 +66,47 @@ class PhotoController extends Controller
             : null;
 
         return Inertia::render('Photos/Index', [
-            'albums'              => $albums,
-            'projectorUrl'        => $projectorUrl,
-            'projectorAlbumId'    => $event->projector_album_id,
-            'projectorNameMode'   => $event->projector_name_mode ?? 'first',
+            'albums' => $albums,
+            'projectorUrl' => $projectorUrl,
+            'projectorAlbumId' => $event->projector_album_id,
+            'projectorNameMode' => $event->projector_name_mode ?? 'first',
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, PhotoSanitizer $sanitizer)
     {
         $event = $this->activeEvent();
 
         $request->validate([
-            'photo'       => ['required', 'file', 'mimes:jpeg,jpg,png,heic,heif', 'max:10240'],
-            'album_id'    => ['nullable', 'integer', 'exists:photo_albums,id'],
+            'photo' => ['required', 'file', 'mimes:jpeg,jpg,png,heic,heif', 'max:10240'],
+            'album_id' => ['nullable', 'integer', 'exists:photo_albums,id'],
             'description' => ['nullable', 'string', 'max:500'],
         ]);
 
         $file = $request->file('photo');
-        $mime = strtolower($file->getMimeType() ?? '');
 
-        if (in_array($mime, ['image/heic', 'image/heif'])) {
-            $manager  = ImageManager::imagick();
-            $image    = $manager->read($file->getPathname());
-            $contents = (string) $image->toJpeg(90);
-        } else {
-            $contents = file_get_contents($file->getPathname());
-        }
+        // Re-encode to JPEG without EXIF on every upload path — see PhotoSanitizer.
+        $contents = $sanitizer->toJpegWithoutExif($file->getPathname());
 
-        $path = 'photos/' . Str::uuid() . '.jpg';
+        $path = 'photos/'.Str::uuid().'.jpg';
         Storage::disk('s3')->put($path, $contents, 'public');
 
-        // Default: party album für Admin-Uploads
+        // default: party album for admin uploads
         $albumId = $request->input('album_id');
-        if (!$albumId && $event) {
+        if (! $albumId && $event) {
             $partyAlbum = $event->photoAlbums()->where('slug', PhotoAlbum::PRESENTATION)->first();
             $albumId = $partyAlbum?->id;
         }
 
         Photo::create([
-            'event_id'         => $event?->id,
-            'album_id'         => $albumId,
-            'guest_id'         => null,
-            'uploaded_by'      => $request->user()->name,
+            'event_id' => $event?->id,
+            'album_id' => $albumId,
+            'guest_id' => null,
+            'uploaded_by' => $request->user()->name,
             'uploader_user_id' => $request->user()->id,
-            'url'              => Storage::disk('s3')->url($path),
-            'r2_key'           => $path,
-            'description'      => $request->input('description') ?: null,
+            'url' => Storage::disk('s3')->url($path),
+            'r2_key' => $path,
+            'description' => $request->input('description') ?: null,
         ]);
 
         return back();
@@ -121,7 +124,7 @@ class PhotoController extends Controller
     public function destroyBatch(Request $request)
     {
         $request->validate([
-            'ids'   => ['required', 'array'],
+            'ids' => ['required', 'array'],
             'ids.*' => ['integer', 'exists:photos,id'],
         ]);
 

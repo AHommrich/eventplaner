@@ -5,6 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Group;
 use Illuminate\Http\Request;
 
+/**
+ * Manages family / group units within an event.
+ *
+ * `store()` supports both Inertia redirects and JSON responses
+ * (for the CreatableCombobox on the frontend, which creates groups on-the-fly).
+ * `destroy()` checks the event scope and cascades the associated guests via FK.
+ */
 class GroupController extends Controller
 {
     public function store(Request $request)
@@ -15,7 +22,7 @@ class GroupController extends Controller
 
         $group = Group::create([
             'event_id' => $event?->id,
-            'name'     => $request->name,
+            'name' => $request->name,
         ]);
 
         if ($request->wantsJson()) {

@@ -7,9 +7,9 @@ return [
     | Third Party Services
     |--------------------------------------------------------------------------
     |
-    | Hier werden die Zugangsdaten für Drittanbieter-Services wie Mailgun,
-    | Postmark, AWS usw. gespeichert. Dieses File ist auch der Ort für
-    | Socialite-Provider (Google, Facebook, Apple).
+    | This is where credentials for third-party services like Mailgun,
+    | Postmark, AWS, etc. are stored. This file is also the place for
+    | Socialite providers (Google, Facebook, Apple).
     |
     */
 
@@ -39,15 +39,15 @@ return [
     | Socialite Provider Config
     |--------------------------------------------------------------------------
     |
-    | Hier kommen die OAuth-Provider rein, die für Social Logins genutzt
-    | werden. Die Werte ziehst du dir jeweils aus deiner .env.
+    | This is where the OAuth providers used for social logins go.
+    | The values are pulled from your .env each time.
     |
     */
 
     'google' => [
-        'client_id'     => env('GOOGLE_CLIENT_ID'),
+        'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-        'redirect'      => env('GOOGLE_REDIRECT_URI'),
+        'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
     // 'facebook' => [
@@ -60,7 +60,7 @@ return [
     //     'client_id'        => env('APPLE_CLIENT_ID'),
     //     'team_id'          => env('APPLE_TEAM_ID'),
     //     'key_id'           => env('APPLE_KEY_ID'),
-    //     // Private Key am besten Base64-codiert in .env speichern, damit keine Probleme mit Zeilenumbrüchen entstehen:
+    //     // Best to store the private key base64-encoded in .env so line breaks don't cause issues:
     //     'private_key_base64' => env('APPLE_PRIVATE_KEY_BASE64'),
     //     'redirect'         => env('APPLE_REDIRECT_URI'),
     // ],

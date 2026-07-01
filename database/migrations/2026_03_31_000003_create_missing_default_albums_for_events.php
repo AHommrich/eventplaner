@@ -24,11 +24,11 @@ return new class extends Migration
                     ->where('slug', $album['slug'])
                     ->exists();
 
-                if (!$exists) {
+                if (! $exists) {
                     DB::table('photo_albums')->insert([
-                        'event_id'   => $eventId,
-                        'slug'       => $album['slug'],
-                        'name'       => $album['name'],
+                        'event_id' => $eventId,
+                        'slug' => $album['slug'],
+                        'name' => $album['name'],
                         'sort_order' => $album['sort_order'],
                         'created_at' => $now,
                         'updated_at' => $now,
@@ -40,6 +40,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        // Nicht rückgängig machen — Alben sind sicher zu behalten
+        // Do not revert — albums are safe to keep
     }
 };

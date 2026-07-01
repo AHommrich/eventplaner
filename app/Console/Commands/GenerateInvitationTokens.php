@@ -21,12 +21,13 @@ class GenerateInvitationTokens extends Command
         $created = 0;
         $skipped = 0;
 
-        // 1. Einen Token pro Gruppe
+        // 1. one token per group
         Group::all()->each(function (Group $group) use ($force, &$created, &$skipped) {
             $exists = InvitationToken::where('group_id', $group->id)->exists();
 
-            if ($exists && !$force) {
+            if ($exists && ! $force) {
                 $skipped++;
+
                 return;
             }
 
@@ -37,12 +38,13 @@ class GenerateInvitationTokens extends Command
             $created++;
         });
 
-        // 2. Einen Token pro Gast ohne Gruppe
+        // 2. one token per guest without a group
         Guest::whereNull('group_id')->each(function (Guest $guest) use ($force, &$created, &$skipped) {
             $exists = InvitationToken::where('guest_id', $guest->id)->exists();
 
-            if ($exists && !$force) {
+            if ($exists && ! $force) {
                 $skipped++;
+
                 return;
             }
 

@@ -1,31 +1,39 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        // ── 1. drink_catalog_sizes Tabelle anlegen ────────────────────────────
-        DB::statement("
-            CREATE TABLE drink_catalog_sizes (
-                id           bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-                catalog_id   bigint(20) unsigned NOT NULL,
-                amount_liter double NOT NULL,
-                is_default   tinyint(1) NOT NULL DEFAULT 0,
-                sort_order   int(11) NOT NULL DEFAULT 0,
-                created_at   timestamp NULL DEFAULT NULL,
-                updated_at   timestamp NULL DEFAULT NULL,
-                PRIMARY KEY (id),
-                UNIQUE KEY drink_catalog_sizes_catalog_id_amount_liter_unique (catalog_id, amount_liter),
-                KEY drink_catalog_sizes_catalog_id_index (catalog_id),
-                CONSTRAINT drink_catalog_sizes_catalog_id_foreign
-                    FOREIGN KEY (catalog_id) REFERENCES drink_catalog (id) ON DELETE CASCADE
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        ");
+        // ── 1. create drink_catalog_sizes table ───────────────────────────────
+        if (! Schema::hasTable('drink_catalog_sizes')) {
+            Schema::create('drink_catalog_sizes', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('catalog_id');
+                $table->double('amount_liter');
+                $table->boolean('is_default')->default(false);
+                $table->integer('sort_order')->default(0);
+                $table->timestamps();
 
-        // ── 2. Größen aus drink_catalog extrahieren und in drink_catalog_sizes speichern ──
+                $table->unique(['catalog_id', 'amount_liter'], 'drink_catalog_sizes_catalog_id_amount_liter_unique');
+                $table->index('catalog_id', 'drink_catalog_sizes_catalog_id_index');
+                $table->foreign('catalog_id')->references('id')->on('drink_catalog')->cascadeOnDelete();
+            });
+        }
+
+        // The steps below transform *existing* data — on a fresh test DB
+        // without drink_catalog rows there is nothing to do.
+        if (DB::table('drink_catalog')->count() === 0) {
+            $this->normalizeSchema();
+
+            return;
+        }
+
+        // ── 2. extract sizes from drink_catalog and store in drink_catalog_sizes ──
         $types = DB::table('drink_catalog')->select('type')->distinct()->pluck('type');
 
         foreach ($types as $type) {
@@ -35,30 +43,28 @@ return new class extends Migration
                 ->get();
 
             $canonicalId = $rows->min('id');
-            $midIndex    = (int) floor($rows->count() / 2);
+            $midIndex = (int) floor($rows->count() / 2);
 
             foreach ($rows as $index => $row) {
                 DB::table('drink_catalog_sizes')->insert([
-                    'catalog_id'   => $canonicalId,
+                    'catalog_id' => $canonicalId,
                     'amount_liter' => $row->amount_liter,
-                    'is_default'   => ($index === $midIndex) ? 1 : 0,
-                    'sort_order'   => $index,
-                    'created_at'   => now(),
-                    'updated_at'   => now(),
+                    'is_default' => ($index === $midIndex) ? 1 : 0,
+                    'sort_order' => $index,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
         }
 
-        // ── 3. drinks-Tabelle dedup: zuerst drink_logs umhängen, dann löschen ──
-        $types = DB::table('drink_catalog')->select('type')->distinct()->pluck('type');
-
+        // ── 3. dedupe drinks table: first repoint drink_logs, then delete ──────
         foreach ($types as $type) {
             $ids = DB::table('drink_catalog')
                 ->where('type', $type)
                 ->orderBy('id')
                 ->pluck('id');
 
-            $canonicalId  = $ids->first();
+            $canonicalId = $ids->first();
             $duplicateIds = $ids->slice(1)->values();
 
             if ($duplicateIds->isEmpty()) {
@@ -75,14 +81,12 @@ return new class extends Migration
                         ->first();
 
                     if ($canonicalDrink) {
-                        // Event hat schon den kanonischen Drink → Logs umhängen, dann Duplikat löschen
                         DB::table('drink_logs')
                             ->where('drink_id', $drink->id)
                             ->update(['drink_id' => $canonicalDrink->id]);
 
                         DB::table('drinks')->where('id', $drink->id)->delete();
                     } else {
-                        // Nur catalog_id auf kanonisch umstellen
                         DB::table('drinks')
                             ->where('id', $drink->id)
                             ->update(['drink_catalog_id' => $canonicalId]);
@@ -91,10 +95,8 @@ return new class extends Migration
             }
         }
 
-        // ── 4. Nicht-kanonische drink_catalog-Zeilen löschen ─────────────────
-        $types = DB::table('drink_catalog')->select('type')->distinct()->pluck('type');
+        // ── 4. delete non-canonical drink_catalog rows ───────────────────────
         $toDelete = [];
-
         foreach ($types as $type) {
             $ids = DB::table('drink_catalog')
                 ->where('type', $type)
@@ -106,22 +108,52 @@ return new class extends Migration
             }
         }
 
-        if (!empty($toDelete)) {
+        if (! empty($toDelete)) {
             DB::table('drink_catalog')->whereIn('id', $toDelete)->delete();
         }
 
-        // ── 5. display_name bereinigen (Größen-Suffix entfernen) ─────────────
-        DB::statement("UPDATE drink_catalog SET display_name = TRIM(REGEXP_REPLACE(display_name, ' [0-9]+,[0-9]+ l$', ''))");
+        // ── 5. clean up display_name (strip size suffix) ─────────────────────
+        // REGEXP_REPLACE is MySQL-specific — on SQLite (tests) there is no data anyway.
+        if (DB::connection()->getDriverName() === 'mysql') {
+            DB::statement("UPDATE drink_catalog SET display_name = TRIM(REGEXP_REPLACE(display_name, ' [0-9]+,[0-9]+ l$', ''))");
+        }
 
-        // ── 6. amount_liter aus drink_catalog entfernen ───────────────────────
-        DB::statement('ALTER TABLE drink_catalog DROP INDEX drink_catalog_type_amount_liter_unique');
-        DB::statement('ALTER TABLE drink_catalog DROP COLUMN amount_liter');
-        DB::statement('ALTER TABLE drink_catalog ADD UNIQUE KEY drink_catalog_type_unique (type)');
+        $this->normalizeSchema();
+    }
+
+    /**
+     * Schema finalization — drop `amount_liter` column, unique constraint on `type`.
+     */
+    private function normalizeSchema(): void
+    {
+        if (Schema::hasColumn('drink_catalog', 'amount_liter')) {
+            Schema::table('drink_catalog', function (Blueprint $table) {
+                // MariaDB has a composite index on it — dropIndex by name if present
+                try {
+                    $table->dropUnique('drink_catalog_type_amount_liter_unique');
+                } catch (\Throwable $e) {
+                }
+                $table->dropColumn('amount_liter');
+            });
+        }
+
+        $hasUnique = collect(Schema::getIndexes('drink_catalog'))
+            ->contains(fn ($i) => ($i['name'] ?? null) === 'drink_catalog_type_unique');
+
+        if (! $hasUnique) {
+            try {
+                Schema::table('drink_catalog', function (Blueprint $table) {
+                    $table->unique('type', 'drink_catalog_type_unique');
+                });
+            } catch (\Throwable $e) {
+                // index already exists in a different form — ignore.
+            }
+        }
     }
 
     public function down(): void
     {
-        // Nicht reversibel ohne Backup — diese Migration ist eine Daten-Strukturänderung.
-        // Zum Rollback: Datenbank aus Backup wiederherstellen.
+        // Not reversible without a backup — this migration is a data structure change.
+        // To roll back: restore the database from a backup.
     }
 };

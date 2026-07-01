@@ -12,7 +12,7 @@ class DrinkCatalogSize extends Model
 
     protected $casts = [
         'amount_liter' => 'float',
-        'is_default'   => 'boolean',
+        'is_default' => 'boolean',
     ];
 
     public function catalog()

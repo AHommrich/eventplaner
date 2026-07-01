@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class PhotoAlbum extends Model
 {
-    const APP_GALLERY   = 'app_gallery';
-    const PRESENTATION  = 'presentation';
-    const PHOTO_GAME    = 'photo_game';
+    const APP_GALLERY = 'app_gallery';
+
+    const PRESENTATION = 'presentation';
+
+    const PHOTO_GAME = 'photo_game';
 
     protected $fillable = ['event_id', 'slug', 'name', 'sort_order'];
 

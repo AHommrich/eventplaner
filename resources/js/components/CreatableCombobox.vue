@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
 import Multiselect from '@vueform/multiselect';
 import axios from 'axios';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
@@ -23,8 +23,8 @@ const localOptions = ref<{ value: number; label: string }[]>([]);
 const searchQuery = ref('');
 const isOpen = ref(false);
 
-function onKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape' && isOpen.value) {
+function onKeydown(event: Event) {
+    if ((event as KeyboardEvent).key === 'Escape' && isOpen.value) {
         event.stopPropagation();
     }
 }
@@ -35,18 +35,14 @@ const value = computed({
 });
 
 const multiselectOptions = computed(() => {
-    const propIds = new Set(props.options.map(o => o.id));
-    return [
-        ...props.options.map(o => ({ value: o.id, label: o.label })),
-        ...localOptions.value.filter(o => !propIds.has(o.value)),
-    ];
+    const propIds = new Set(props.options.map((o) => o.id));
+    return [...props.options.map((o) => ({ value: o.id, label: o.label })), ...localOptions.value.filter((o) => !propIds.has(o.value))];
 });
 
-const hasExactMatch = computed(() =>
-    searchQuery.value.trim() !== '' &&
-    multiselectOptions.value.some(o =>
-        o.label.split(' · ')[0].toLowerCase() === searchQuery.value.trim().toLowerCase()
-    )
+const hasExactMatch = computed(
+    () =>
+        searchQuery.value.trim() !== '' &&
+        multiselectOptions.value.some((o) => o.label.split(' · ')[0].toLowerCase() === searchQuery.value.trim().toLowerCase()),
 );
 
 async function handleCreate(option: { label: string }) {
@@ -87,7 +83,7 @@ async function handleCreate(option: { label: string }) {
             </div>
         </template>
         <template #option="{ option }">
-            <span v-if="(option as any).__CREATE__" class="text-primary font-medium">
+            <span v-if="(option as any).__CREATE__" class="font-medium text-primary">
                 {{ hasExactMatch ? t('common.createItemAgain', { name: option.label }) : t('common.createItem', { name: option.label }) }}
             </span>
             <span v-else>{{ option.label }}</span>

@@ -10,12 +10,12 @@ class RevocationController extends Controller
 {
     /**
      * GET /revocations
-     * Zeigt alle Gäste mit declined_pending für das aktive Event.
+     * Shows all guests with declined_pending for the active event.
      */
     public function index(Request $request)
     {
         $event = $this->activeEvent();
-        abort_if(!$event, 404);
+        abort_if(! $event, 404);
 
         $guests = Guest::where('event_id', $event->id)
             ->where('rsvp_status', 'declined_pending')
@@ -23,10 +23,10 @@ class RevocationController extends Controller
             ->orderBy('rsvp_set_at', 'desc')
             ->get()
             ->map(fn (Guest $g) => [
-                'id'          => $g->id,
-                'firstname'   => $g->firstname,
-                'lastname'    => $g->lastname,
-                'group_name'  => $g->group?->name,
+                'id' => $g->id,
+                'firstname' => $g->firstname,
+                'lastname' => $g->lastname,
+                'group_name' => $g->group?->name,
                 'rsvp_set_at' => $g->rsvp_set_at?->toIso8601String(),
                 'set_by_guest' => $g->rsvpSetByGuest
                     ? ['id' => $g->rsvpSetByGuest->id, 'firstname' => $g->rsvpSetByGuest->firstname, 'lastname' => $g->rsvpSetByGuest->lastname]
@@ -43,7 +43,7 @@ class RevocationController extends Controller
 
     /**
      * POST /revocations/{guest}/approve
-     * Gibt die Revocation-Anfrage frei → rsvp_status = null.
+     * Approves the revocation request → rsvp_status = null.
      */
     public function approve(Request $request, Guest $guest)
     {
@@ -52,10 +52,10 @@ class RevocationController extends Controller
         abort_if($guest->rsvp_status !== 'declined_pending', 422);
 
         $guest->update([
-            'rsvp_status'          => null,
+            'rsvp_status' => null,
             'rsvp_set_by_guest_id' => null,
-            'rsvp_set_by_user_id'  => $request->user()->id,
-            'rsvp_set_at'          => now(),
+            'rsvp_set_by_user_id' => $request->user()->id,
+            'rsvp_set_at' => now(),
         ]);
 
         return redirect()->route('revocations.index');
@@ -63,7 +63,7 @@ class RevocationController extends Controller
 
     /**
      * POST /revocations/{guest}/decline
-     * Lehnt die Anfrage ab → rsvp_status bleibt declined.
+     * Declines the request → rsvp_status stays declined.
      */
     public function decline(Request $request, Guest $guest)
     {
@@ -72,9 +72,9 @@ class RevocationController extends Controller
         abort_if($guest->rsvp_status !== 'declined_pending', 422);
 
         $guest->update([
-            'rsvp_status'         => 'declined',
+            'rsvp_status' => 'declined',
             'rsvp_set_by_user_id' => $request->user()->id,
-            'rsvp_set_at'         => now(),
+            'rsvp_set_at' => now(),
         ]);
 
         return redirect()->route('revocations.index');

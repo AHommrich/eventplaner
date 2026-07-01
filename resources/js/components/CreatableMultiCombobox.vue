@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
 import Multiselect from '@vueform/multiselect';
 import axios from 'axios';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
@@ -21,8 +21,8 @@ const { t } = useI18n();
 const localOptions = ref<{ value: number; label: string }[]>([]);
 const isOpen = ref(false);
 
-function onKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape' && isOpen.value) {
+function onKeydown(event: Event) {
+    if ((event as KeyboardEvent).key === 'Escape' && isOpen.value) {
         event.stopPropagation();
     }
 }
@@ -32,10 +32,7 @@ const value = computed({
     set: (val: number[]) => emit('update:modelValue', val ?? []),
 });
 
-const multiselectOptions = computed(() => [
-    ...props.options.map(o => ({ value: o.id, label: o.label })),
-    ...localOptions.value,
-]);
+const multiselectOptions = computed(() => [...props.options.map((o) => ({ value: o.id, label: o.label })), ...localOptions.value]);
 
 async function handleCreate(option: { label: string }) {
     const response = await axios.post(route(props.createRoute), { [props.createField]: option.label });
@@ -67,7 +64,7 @@ async function handleCreate(option: { label: string }) {
         @keydown="onKeydown"
     >
         <template #option="{ option }">
-            <span v-if="(option as any).__CREATE__" class="text-primary font-medium">{{ t('common.createItem', { name: option.label }) }}</span>
+            <span v-if="(option as any).__CREATE__" class="font-medium text-primary">{{ t('common.createItem', { name: option.label }) }}</span>
             <span v-else>{{ option.label }}</span>
         </template>
     </Multiselect>

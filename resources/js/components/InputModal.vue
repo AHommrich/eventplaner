@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
-withDefaults(defineProps<{
-    title: string;
-    description?: string;
-    maxWidth?: string;
-}>(), { maxWidth: 'max-w-md' });
+withDefaults(
+    defineProps<{
+        title: string;
+        description?: string;
+        maxWidth?: string;
+    }>(),
+    { maxWidth: 'max-w-md' },
+);
 
 const open = defineModel<boolean>('open', { required: true });
 </script>
