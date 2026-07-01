@@ -6,14 +6,13 @@
 
 Hochzeits- und Eventplaner als Progressive Web App mit React-Native-Companion: Gäste-, RSVP- und Foto-Verwaltung, Trinkspiel, Fotospiel und eine Token-geschützte Projektor-Diashow für die Feier.
 
-<!-- TODO: Screenshot — Web-Dashboard nach Login -->
-<!-- ![Web Dashboard](docs/screenshots/web-dashboard.png) -->
+> Auch auf Englisch verfügbar: [README.md](README.md)
 
-<!-- TODO: Screenshot — React Native App (Home oder Photos) -->
-<!-- ![Mobile App](docs/screenshots/mobile-app.png) -->
+![Event-Einstellungen mit Live-Handy-Preview](docs/screenshots/event-settings.png)
 
-<!-- TODO: Screenshot — Projektor-Diashow im Vollbild mit Label-Overlay -->
-<!-- ![Diashow](docs/screenshots/diashow.png) -->
+![Foto-Galerie mit Gast-Attribution](docs/screenshots/photos.png)
+
+![Projektor-Diashow im Vollbild](docs/screenshots/projector.png)
 
 ---
 
@@ -113,7 +112,7 @@ Die ausführliche Architekturbeschreibung mit ER-Diagramm, Auth-Schichten und Su
 
 **Abdeckung:**
 
-- 21 Backend-Test-Dateien mit 174 Cases — alle API-Endpunkte, alle Kernfeature-Web-Controller, Services mit Edge Cases, Auth-Flows, Permission-Middlewares
+- ~25 Backend-Test-Dateien mit ~200 Cases — alle API-Endpunkte, alle Kernfeature-Web-Controller, Services mit Edge Cases, Auth-Flows, Permission-Middlewares
 - 4 Frontend-Specs für ConfirmDialog, CreatableCombobox, InfoTooltip und das i18n-Plugin (16 Cases)
 
 Test-Aufbau, Coverage-Ziele und Strategie pro Schicht stehen in [`docs/SHOWCASE_PLAN.md`](docs/SHOWCASE_PLAN.md).
@@ -122,12 +121,27 @@ Test-Aufbau, Coverage-Ziele und Strategie pro Schicht stehen in [`docs/SHOWCASE_
 
 ## Companion-App (React Native)
 
-Die mobile App liegt in einem separaten Repo und teilt sich mit der Web-App nur die HTTP-API. Sie deckt aktuell QR-Login, Foto-Galerie inkl. Upload und dynamisches Theming via `/api/event/info` ab. Geplant sind RSVP, Menüwahl und Getränke-Tracking direkt aus der App.
+Die mobile App liegt in einem separaten Repo und teilt sich mit der Web-App nur die HTTP-API. Sie deckt QR-Login, Foto-Galerie inkl. Upload und dynamisches Theming via `/api/event/info` ab. Die App ist feature-complete für den realen Hochzeitseinsatz; Dokumentation und README für das Mobile-Repo bekommen später denselben Feinschliff wie dieses Projekt hier.
 
 <!-- TODO: Link zum öffentlichen Mobile-Repo, sobald veröffentlicht -->
 
 ---
 
-## License
+## DSGVO / Datenschutz
+
+Das Projekt wird aus Deutschland betrieben und ist dokumentiert DSGVO-ready:
+
+- Impressum unter `/impressum` (§5 DDG)
+- Datenschutzerklärung unter `/datenschutz` (Art. 13 DSGVO), Signup-Consent verpflichtend
+- Data-Export-Endpoint für das Auskunftsrecht (Art. 15)
+- Kaskadierendes Löschen von Fotos in Cloudflare R2 bei Account-/Event-Löschung (Art. 17)
+- Geplante Retention-Cleanups für abgelaufene Invitation-Tokens und abgesagte Gäste (Art. 5)
+- Sub-Prozessor-Register in [`docs/legal/sub-processors.md`](docs/legal/sub-processors.md)
+
+Der vollständige Plan mit den einzelnen Etappen liegt in [`docs/GDPR_COMPLIANCE_PLAN.md`](docs/GDPR_COMPLIANCE_PLAN.md).
+
+---
+
+## Lizenz
 
 [MIT](LICENSE) — frei nutzbar, ohne Gewährleistung.

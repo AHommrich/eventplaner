@@ -475,6 +475,18 @@ function selectCountry(country: string) {
     countryOpen.value = false;
 }
 
+function deferCloseCountry() {
+    setTimeout(() => {
+        countryOpen.value = false;
+    }, 150);
+}
+
+function deferCloseMapSearch() {
+    setTimeout(() => {
+        mapSearchOpen.value = false;
+    }, 150);
+}
+
 const isGermanyForm = computed(() => {
     const c = (form.venue_country || 'Deutschland').toLowerCase().trim();
     return c === 'deutschland' || c === 'germany' || c === 'de';
@@ -1227,11 +1239,7 @@ function importStyle(e: Event) {
                                                         countryOpen = true;
                                                         updateCountryDropdownStyle();
                                                     "
-                                                    @blur="
-                                                        setTimeout(() => {
-                                                            countryOpen = false;
-                                                        }, 150)
-                                                    "
+                                                    @blur="deferCloseCountry"
                                                 />
                                                 <button
                                                     v-if="isFieldDirty('venue_country')"
@@ -1335,11 +1343,7 @@ function importStyle(e: Event) {
                                                 class="placeholder:text-foreground/50"
                                                 autocomplete="off"
                                                 @focus="mapSearchResults.length && (mapSearchOpen = true)"
-                                                @blur="
-                                                    setTimeout(() => {
-                                                        mapSearchOpen = false;
-                                                    }, 150)
-                                                "
+                                                @blur="deferCloseMapSearch"
                                             />
                                             <div v-if="mapSearching" class="absolute top-1/2 right-2.5 -translate-y-1/2">
                                                 <svg

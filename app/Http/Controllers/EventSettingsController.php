@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\PhotoSanitizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
-use App\Services\PhotoSanitizer;
 
 /**
  * Editing of event master data (Inertia settings page).

@@ -77,7 +77,16 @@ If the integration involves cookies or local-storage entries beyond the strictly
 
 ---
 
+## Log retention
+
+Where personal data can end up in logs (IP addresses in nginx access logs, request context in Laravel logs), we bound the retention window explicitly.
+
+- **Laravel application log.** `LOG_STACK=daily` + `LOG_DAILY_DAYS=14` (default in `.env.example`). One file per day under `storage/logs/laravel-YYYY-MM-DD.log`; Laravel deletes files older than 14 days on the next log write. `LOG_LEVEL=info` in production so the log doesn't grow with debug chatter.
+- **Nginx logs (inside the app container).** `access_log` on production still uses the compiled-in default location `/var/log/nginx/access.log`. The container is recreated on every Coolify deploy (weekly or more often), which resets the file — effective retention is bounded by the deploy cadence rather than a rotation window. **Follow-up**: switch to `access_log off;` in `Dockerfile.prod`, since we do not use access logs for analytics and the upstream Coolify proxy already keeps its own request log.
+- **Hetzner-side system logs.** Hetzner has hypervisor-level visibility (VM boot, network abuse reports) but no direct access to the guest filesystem. Their retention is governed by §4 + §7 of the Hetzner AVV (limited-purpose processing, deletion after contract termination). No customer-side action available.
+- **Coolify proxy logs.** Coolify runs its own reverse proxy in front of the app container. Its access-log retention is controlled by the Coolify installation config, not by this application. Documented here so we remember it exists.
+
 ## Known gaps (tracked for follow-up)
 
 - **R2 jurisdiction.** The bucket currently uses `AWS_DEFAULT_REGION=auto`. For strict EU residency, recreate the bucket in a Cloudflare R2 EU jurisdiction (see [`r2-eu-jurisdiction-migration.md`](r2-eu-jurisdiction-migration.md)) and switch the env. Until then we rely on Cloudflare's standard DPA SCCs for any potential transfer outside the EU.
-- **Server-side log retention** of nginx/laravel logs on Hetzner — they should rotate, but the rotation window is not documented here. Add when reviewed.
+- **Nginx access log off-switch.** Documented under "Log retention" above — flip `access_log off;` in `Dockerfile.prod` on the next deploy touch to make the reset-on-deploy behaviour a proper policy rather than an accidental one.

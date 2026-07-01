@@ -1,5 +1,12 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
+
+defineProps<{
+    retention: {
+        invitation_tokens_days: number;
+        declined_guests_days: number;
+    };
+}>();
 </script>
 
 <template>
@@ -95,8 +102,8 @@ import { Head, Link } from '@inertiajs/vue3';
                 <ul>
                     <li>Veranstalter-Accounts werden gespeichert, solange der Account aktiv ist; Löschung jederzeit über „Konto löschen".</li>
                     <li>
-                        Einladungs-Tokens werden 30 Tage nach dem Veranstaltungsdatum automatisch entfernt; abgesagte Gäste ohne App-Zugang
-                        nach 180 Tagen.
+                        Einladungs-Tokens werden {{ retention.invitation_tokens_days }} Tage nach dem Veranstaltungsdatum automatisch entfernt;
+                        abgesagte Gäste ohne App-Zugang nach {{ retention.declined_guests_days }} Tagen.
                     </li>
                     <li>Persönliche Zugangstokens (z. B. App-Login der Gäste) verfallen nach Ablauf und werden täglich gelöscht.</li>
                     <li>Beim Löschen einer Veranstaltung werden die zugehörigen Fotos auch im Cloudflare-R2-Speicher entfernt.</li>

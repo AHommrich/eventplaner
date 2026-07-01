@@ -180,7 +180,7 @@ const guestTotals = computed(
                 <CardContent>
                     <p v-if="eventTotals.length === 0" class="text-sm text-muted-foreground">{{ t('game.empty') }}</p>
                     <ul v-else class="divide-y">
-                        <li v-for="row in eventTotals" :key="row.drink_id" class="flex items-center justify-between py-2.5">
+                        <li v-for="row in eventTotals" :key="row.catalog_id" class="flex items-center justify-between py-2.5">
                             <div class="flex items-center gap-2">
                                 <span class="text-sm font-medium">{{ drinkName(row.type, row.display_name) }}</span>
                                 <span class="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
@@ -197,7 +197,7 @@ const guestTotals = computed(
             </Card>
 
             <!-- Top drinkers per drink -->
-            <Card v-for="drink in leaderboard" :key="drink.drink_id">
+            <Card v-for="drink in leaderboard" :key="drink.catalog_id">
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         {{ drinkName(drink.type, drink.display_name) }}

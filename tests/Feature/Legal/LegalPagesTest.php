@@ -28,4 +28,18 @@ class LegalPagesTest extends TestCase
     {
         $this->assertSame(url('/datenschutz'), route('legal.privacy'));
     }
+
+    public function test_privacy_page_receives_retention_windows_from_config(): void
+    {
+        config()->set('retention.invitation_tokens_after_event_days', 42);
+        config()->set('retention.declined_guests_after_event_days', 365);
+
+        $this->get('/datenschutz')
+            ->assertOk()
+            ->assertInertia(fn ($assert) => $assert
+                ->component('Legal/Privacy')
+                ->where('retention.invitation_tokens_days', 42)
+                ->where('retention.declined_guests_days', 365)
+            );
+    }
 }

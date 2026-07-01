@@ -75,6 +75,9 @@ jobs:
       - name: Publish Ziggy Configuration
         run: php artisan ziggy:generate
 
+      - name: Typecheck (vue-tsc)
+        run: npm run typecheck
+
       - name: Build Assets
         run: npm run build
 

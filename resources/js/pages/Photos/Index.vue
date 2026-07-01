@@ -346,7 +346,7 @@ function updateProjectorNameMode(mode: string) {
                         >
                             <img
                                 :src="photo.url"
-                                :alt="photo.guest_name"
+                                :alt="photo.guest_name ?? undefined"
                                 class="h-full w-full object-cover transition-transform group-hover:scale-105"
                             />
                             <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-xs text-white">
@@ -402,7 +402,7 @@ function updateProjectorNameMode(mode: string) {
                     <p v-if="selected?.description" class="text-sm font-normal">{{ selected.description }}</p>
                     <p class="text-sm text-muted-foreground">{{ selected?.created_at }}</p>
                 </DialogHeader>
-                <img v-if="selected" :src="selected.url" :alt="selected.guest_name" class="max-h-[65vh] w-full object-contain" />
+                <img v-if="selected" :src="selected.url" :alt="selected.guest_name ?? undefined" class="max-h-[65vh] w-full object-contain" />
                 <div class="flex justify-between border-t px-4 py-3">
                     <div class="flex gap-2">
                         <Button
