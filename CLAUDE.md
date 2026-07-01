@@ -44,6 +44,8 @@ develop → staging → production
 
 Coolify deployt automatisch nach Push. Migrations laufen automatisch.
 
+**⚠️ Redeploy-Disziplin:** Der VPS hat 4 GB RAM — bei **parallelen** Redeploys auf staging + prod kollabiert der OOM-Killer (2026-07-01 einmal passiert: systemd + traefik gekillt, Emergency-Reset via Hetzner-Panel nötig, ~30 Min Downtime). Deshalb: bei Multi-Env-Changes (Env-Vars, Force-Pushes, APP_KEY-Rotation) **immer sequentiell** — erst staging, verify dass `beta.hommrich.app` grün ist, dann prod.
+
 ---
 
 ## Datenmodelle
