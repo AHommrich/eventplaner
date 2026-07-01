@@ -23,12 +23,12 @@ pest()->extend(Tests\TestCase::class)->in('Unit');
 | DB safety guard runs in {@see Tests\TestCase::setUp()} and triggers on every
 | unit/feature test — see there.
 | Mail::fake prevents real Resend calls during email verification, etc.
-| Storage::fake('r2') keeps the R2/S3 disk local — no cloud uploads from tests.
+| Storage::fake('s3') keeps the object-storage disk local — no cloud uploads from tests.
 */
 
 pest()->beforeEach(function () {
     Mail::fake();
-    Storage::fake('r2');
+    Storage::fake('s3');
 })->in('Feature');
 
 /*
