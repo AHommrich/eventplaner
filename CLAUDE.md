@@ -140,12 +140,7 @@ Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
 - `app/(tabs)/settings.tsx` — Logout + Benutzerinfo
 - Dynamisches Theming via `/api/event/info` (Palette + aufgelöste Rollen)
 
-**Noch nicht gebaut:**
-- `GET /api/guest/me` — eigene Gastdaten
-- `POST /api/guest/rsvp` — Zu-/Absage
-- `GET /api/event/menu` — Menüoptionen
-- `POST /api/guest/menu` — Menüwahl speichern
-- Getränke-Tracking / Trinkspiel in App
+**Nicht geplant (bewusst):** In-App RSVP, Menu-API, In-App-Getränke-Tracking. Die App ist feature-complete für die reale Nutzung — keine neuen Features vorschlagen ohne explizite Anfrage.
 
 ---
 
@@ -214,3 +209,60 @@ Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
 - **`npm run build` lokal schlägt fehl** (esbuild macOS vs. Linux Docker) — ist ein bekanntes Pre-existing Issue, kein Fehler in unserem Code. TypeScript-Check mit `npx tsc --noEmit` als Ersatz.
 - **Reka UI SidebarGroupLabel**: Im collapsed mode wird der Label mit `-mt-8 opacity-0` versteckt, belegt aber weiterhin Platz und blockiert pointer-events. Daher `group-data-[collapsible=icon]:pointer-events-none` auf dem Label — fehlt das, ist das letzte Item der vorherigen NavMain-Gruppe nicht vollständig klickbar.
 - **Vite HMR im Docker**: Dateiänderungen auf dem Host werden vom Vite-Container manchmal nicht erkannt. Fix: `docker restart eventplaner-vite-1`.
+- **Demo-Daten für Screenshots / öffentliche Demos**: `DemoDataSeeder` legt ein plausibles Fake-Event „Hochzeit Anna & Ben 2027" mit 36 Gästen, 27 Fotos (via picsum-Placeholder), Trinkspiel-Leaderboard und Fotospiel-Einreichungen an — echte Daten bleiben unberührt. `docker exec laravel-app php artisan db:seed --class=DemoDataSeeder`. Login `demo@eveplan.app` / `demo-1234`. Cleanup: `User::where('email', 'demo@eveplan.app')->delete()`. Seeder ist idempotent — Re-Run löscht den alten Demo-User und legt neu an.
+
+---
+
+## DSGVO / Datenschutz
+
+### Öffentliche Rechts-Seiten
+
+- `GET /impressum` → `LegalController@imprint` → `resources/js/pages/Legal/Imprint.vue`
+- `GET /datenschutz` → `LegalController@privacy` → `resources/js/pages/Legal/Privacy.vue`
+- Beide Seiten sind auf Deutsch (Zielgruppe + Art. 12 DSGVO Transparenz-Anforderung); Dev-Doku bleibt Englisch.
+
+### Signup-Consent
+
+- Spalte `users.privacy_accepted_at` (Migration `2026_07_01_000001_add_privacy_accepted_at_to_users`).
+- Registrieren-Formular hat eine verpflichtende Checkbox („Ich akzeptiere die Datenschutzerklärung"); `RegisteredUserController` schreibt den Timestamp.
+- Bei OAuth-Anmeldungen wird das Feld ebenfalls gesetzt.
+
+### Security-Headers (`app/Http/Middleware/SecurityHeaders.php`)
+
+- `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (camera=self, microphone/geolocation=off) — in **allen** Environments aktiv.
+- `Strict-Transport-Security: max-age=31536000; includeSubDomains` — **nur `production` + `staging`** (Long-lived HSTS würde lokalen HTTP-Dev bricken).
+- `Content-Security-Policy` — in `production`, `staging`, `testing` aktiv. **In `local` deaktiviert**, weil der Vite-Dev-Server auf `localhost:5173` sonst geblockt wird.
+- CSP erlaubt `nominatim.openstreetmap.org` als `connect-src` (Adress-Autocomplete in Event-Settings) und `fonts.googleapis.com` / `fonts.gstatic.com` als style/font-src.
+
+### R2-Cleanup bei Löschung
+
+- `app/Observers/PhotoObserver.php` löscht das R2-Objekt (`$photo->r2_key`) im `deleting`-Event.
+- Event-/User-Löschungen kaskadieren über Foreign-Keys auf `photos`, wodurch der Observer für jedes verwaiste Foto auslöst.
+- Fallback-Sweep: `php artisan photos:cleanup-orphans` (`app/Console/Commands/CleanupOrphanPhotos.php`) räumt Bucket-Objekte weg, deren DB-Zeile bereits weg ist.
+
+### Data-Export (Art. 15 DSGVO)
+
+- Route `GET /settings/export-data` → `DataExportController` nutzt `app/Services/UserDataExporter.php` und liefert einen JSON-Dump aller Daten die dem User „gehören" (Events, Gäste, Fotos-Metadaten, Getränke-Logs, …). Foto-Binärdaten werden nicht mit reingebacken — der Export enthält nur URLs.
+
+### Retention (Art. 5 DSGVO)
+
+- Konfiguriert in `config/retention.php`. Defaults: `RETENTION_INVITATION_TOKENS_DAYS=30`, `RETENTION_DECLINED_GUESTS_DAYS=180`.
+- `app:prune-invitation-tokens` löscht `InvitationToken`s deren Event schon länger als N Tage vorbei ist.
+- `app:prune-declined-guests` löscht abgesagte Gäste ohne `app_access`/`drinks_access` nach Event-Ende + N Tage.
+- Beide Commands sind in `bootstrap/app.php` bzw. `routes/console.php` täglich gescheduled.
+
+### EXIF-Stripping (`app/Services/PhotoSanitizer.php`)
+
+- **Für jeden neuen Upload-Pfad benutzen.** Konvertiert das Bild deterministisch nach JPEG und entfernt EXIF/IPTC/XMP.
+- Aktuell eingehängt in: `Api/PhotoController` (App-Upload), `PhotoController` (Web-Upload), `Api/PhotoGameController` (Foto-Aufgabe), `EventSettingsController` (Cover).
+- Treiber: Imagick wenn verfügbar, sonst GD-Fallback.
+- Guard-Test: `tests/Feature/Photo/ExifStrippingTest.php`.
+
+### Sub-Processor-Register
+
+- `docs/legal/sub-processors.md` — authoritative Quelle für die Datenschutzerklärung. Bei neuem Dienst **zuerst dort dokumentieren**, dann Privacy.vue Sektion 5 aktualisieren, dann Integration mergen.
+- R2-EU-Jurisdiktions-Migration ist in `docs/legal/r2-eu-jurisdiction-migration.md` geplant, noch nicht ausgeführt.
+
+### Gesamt-Plan
+
+- Übersicht + Etappen 1–7 in `docs/GDPR_COMPLIANCE_PLAN.md`. Stage 7 (Cookie-Consent) ist bewusst deferred bis Tracking landet.

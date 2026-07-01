@@ -8,14 +8,11 @@ Wedding and event planner built as a Progressive Web App with a React Native com
 
 > Auch auf Deutsch verfügbar: [README.de.md](README.de.md)
 
-<!-- TODO: Screenshot — Web dashboard after login -->
-<!-- ![Web Dashboard](docs/screenshots/web-dashboard.png) -->
+![Event settings with live phone preview](docs/screenshots/event-settings.png)
 
-<!-- TODO: Screenshot — React Native app (home or photos screen) -->
-<!-- ![Mobile App](docs/screenshots/mobile-app.png) -->
+![Photo gallery with guest attribution](docs/screenshots/photos.png)
 
-<!-- TODO: Screenshot — Projector slideshow in fullscreen with label overlay -->
-<!-- ![Slideshow](docs/screenshots/diashow.png) -->
+![Projector slideshow in fullscreen](docs/screenshots/projector.png)
 
 ---
 
@@ -124,7 +121,7 @@ Test setup, coverage goals, and the strategy per layer are documented in `docs/S
 
 ## Companion app (React Native)
 
-The mobile app lives in a separate repository and shares only the HTTP API with the web app. It currently covers QR login, the photo gallery (including upload) and dynamic theming via `/api/event/info`. RSVP, menu selection, and in-app drink tracking are planned.
+The mobile app lives in a separate repository and shares only the HTTP API with the web app. It covers QR login, the photo gallery (including upload) and dynamic theming via `/api/event/info`. The app is feature-complete for actual wedding-day use; documentation and README for the mobile repo will get the same polish as this one.
 
 <!-- TODO: Link to the public mobile repo once it ships -->
 

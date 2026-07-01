@@ -12,7 +12,7 @@ const { open } = useAddGuestModal();
 const page = usePage();
 
 const groups = computed(() => (page.props as any).groups as { id: number; name: string }[]);
-const foodSpecials = computed(() => (page.props as any).food_specials as { id: number; name: string }[]);
+const foodSpecials = computed(() => (page.props as any).food_specials as { id: number; name: string; translation_key: string | null }[]);
 
 function handleCreate(form: any) {
     form.post(route('guests.store'), {

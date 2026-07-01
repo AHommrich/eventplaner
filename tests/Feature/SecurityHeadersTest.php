@@ -46,4 +46,11 @@ class SecurityHeadersTest extends TestCase
 
         $this->get('/')->assertHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     }
+
+    public function test_csp_is_omitted_in_local_env_so_vite_dev_server_works(): void
+    {
+        app()->detectEnvironment(fn () => 'local');
+
+        $this->get('/')->assertHeaderMissing('Content-Security-Policy');
+    }
 }

@@ -28,7 +28,13 @@ class SecurityHeaders
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->headers->set('Permissions-Policy', 'camera=(self), microphone=(), geolocation=()');
-        $response->headers->set('Content-Security-Policy', $this->csp());
+
+        // CSP is off in local so the Vite dev server (localhost:5173) can inject
+        // its client + HMR websocket. Production/staging load assets from `/build`
+        // on the same origin, so `script-src 'self'` is enough there.
+        if (! app()->environment('local')) {
+            $response->headers->set('Content-Security-Policy', $this->csp());
+        }
 
         return $response;
     }

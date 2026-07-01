@@ -3,7 +3,7 @@ import InputModal from '@/components/InputModal.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -16,7 +16,7 @@ function createEvent() {
 }
 
 function onClose() {
-    router.back();
+    window.history.back();
 }
 
 onMounted(() => {

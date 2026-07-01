@@ -23,8 +23,8 @@ const localOptions = ref<{ value: number; label: string }[]>([]);
 const searchQuery = ref('');
 const isOpen = ref(false);
 
-function onKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape' && isOpen.value) {
+function onKeydown(event: Event) {
+    if ((event as KeyboardEvent).key === 'Escape' && isOpen.value) {
         event.stopPropagation();
     }
 }
