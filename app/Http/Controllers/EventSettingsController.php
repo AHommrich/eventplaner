@@ -14,7 +14,7 @@ use Inertia\Inertia;
  *  - `show()`        → settings page with style presets
  *  - `update()`      → validates and persists ALL fields: address, colors (palette + 9 roles),
  *                      cover (incl. HEIC→JPEG via Imagick), drink-game / photo-game flags
- *  - `uploadCover()` / `deleteCover()` → standalone cover endpoints (R2 cleanup on delete)
+ *  - `uploadCover()` / `deleteCover()` → standalone cover endpoints (object-storage cleanup on delete)
  *
  * Color roles store palette keys (`primary` / `secondary` / `tertiary`), not hex —
  * resolution is handled by {@see \App\Services\ColorRoleResolver} for the API response.

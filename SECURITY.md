@@ -11,7 +11,7 @@ Include, if possible:
 - A short description of the issue and its impact.
 - Steps to reproduce (a curl command, a request/response pair, or a small script).
 - The affected endpoint or file path.
-- Whether you have already tried the issue against `https://beta.hommrich.app` (staging) or `https://hommrich.app` (production).
+- Whether you have already tried the issue against `https://beta.hommrich.app` (staging) or `https://eveplan.de` (production).
 
 ## What to expect
 
@@ -22,12 +22,12 @@ Include, if possible:
 
 ## Scope
 
-- **In scope:** anything in this repository, the production site `hommrich.app`, and the staging site `beta.hommrich.app`.
+- **In scope:** anything in this repository, the production site `eveplan.de`, and the staging site `beta.hommrich.app`.
 - **Out of scope:**
   - Denial-of-service tests against production.
   - Automated vulnerability-scanner reports without a reproduction path.
   - Social-engineering or physical attacks.
-  - Third-party services (Cloudflare, Hetzner, Resend, Google OAuth) — please report those directly to the vendor.
+  - Third-party services (Hetzner, Resend, Google OAuth) — please report those directly to the vendor.
 
 ## Safe harbour
 

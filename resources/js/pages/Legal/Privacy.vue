@@ -16,7 +16,7 @@ defineProps<{
             <Link href="/" class="text-sm text-muted-foreground hover:underline">&larr; Zurück zur Startseite</Link>
 
             <h1 class="mt-6 text-3xl font-semibold tracking-tight">Datenschutzerklärung</h1>
-            <p class="mt-2 text-sm text-muted-foreground">Stand: 30. Juni 2026</p>
+            <p class="mt-2 text-sm text-muted-foreground">Stand: 1. Juli 2026</p>
 
             <section class="prose dark:prose-invert mt-10 max-w-none">
                 <h2>1. Verantwortliche Stelle</h2>
@@ -81,21 +81,26 @@ defineProps<{
                 <h2>5. Empfänger und Auftragsverarbeiter</h2>
                 <p>
                     Wir setzen sorgfältig ausgewählte Dienstleister ein, mit denen jeweils ein Vertrag zur Auftragsverarbeitung gemäß
-                    Art. 28 DSGVO besteht oder die ihre Dienste auf Basis vergleichbarer Schutzregelungen erbringen:
+                    Art. 28 DSGVO besteht. Die gesamte Verarbeitung Ihrer Daten findet innerhalb der Europäischen Union statt —
+                    einzige Ausnahme ist die optionale „Mit Google anmelden"-Funktion, die Sie aktiv auslösen müssen:
                 </p>
                 <ul>
                     <li>
                         <strong>Hetzner Online GmbH</strong>, Industriestr. 25, 91710 Gunzenhausen, Deutschland — Hosting der
-                        Anwendung und der Datenbank. Serverstandort Falkenstein (Deutschland); Verarbeitung ausschließlich
-                        innerhalb der EU. AVV gemäß Art. 28 DSGVO geschlossen.
+                        Anwendung, der Datenbank sowie Object Storage für hochgeladene Fotos. Standort Nürnberg (Deutschland);
+                        Verarbeitung ausschließlich innerhalb der EU. AVV gemäß Art. 28 DSGVO geschlossen. EXIF-, IPTC- und
+                        XMP-Metadaten werden vor dem Speichern serverseitig aus den Bildern entfernt.
                     </li>
-                    <li><strong>Cloudflare R2</strong> (EU-Region) — Speicherung hochgeladener Fotos</li>
                     <li>
-                        <strong>Plus Five Five, Inc. (Resend)</strong>, USA — Versand von System-E-Mails
-                        (Verifizierung, Passwort-Reset, Einladungen). Datenübermittlung in die USA auf Grundlage der
-                        EU-Standardvertragsklauseln.
+                        <strong>Plus Five Five, Inc. (Resend)</strong> — Versand von System-E-Mails
+                        (Verifizierung, Passwort-Reset, Einladungen). Verarbeitung in der EU (Region Irland,
+                        <code>eu-west-1</code>); Datenverarbeitungsvertrag geschlossen.
                     </li>
-                    <li><strong>Google LLC</strong> (USA) — nur, wenn Sie sich aktiv mit „Mit Google anmelden" registrieren</li>
+                    <li>
+                        <strong>Google LLC</strong> (USA) — <strong>nur</strong>, wenn Sie sich aktiv mit „Mit Google anmelden"
+                        registrieren. Google erhält dann Ihre Google-ID, E-Mail und den Namen (keine weiteren Scopes).
+                        Datenübermittlung in die USA auf Grundlage der EU-Standardvertragsklauseln (SCCs).
+                    </li>
                 </ul>
 
                 <h2>6. Speicherdauer</h2>

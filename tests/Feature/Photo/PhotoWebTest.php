@@ -10,7 +10,7 @@ it('shows the photos page', function () {
     $this->get(route('photos'))->assertOk();
 });
 
-it('deletes a single photo and removes it from R2', function () {
+it('deletes a single photo and removes it from object storage', function () {
     Storage::fake('s3');
     $user = actingAsOwner();
     $event = $user->ownedEvents()->first();

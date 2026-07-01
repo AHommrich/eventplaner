@@ -18,7 +18,7 @@ use Inertia\Inertia;
  *  - `start()` / `end()` → set status to active / ended (lifecycle)
  *  - `updateCatalog()` → select the event-type catalog (wedding / birthday / ...)
  *  - `upsertOverride()` / `destroyOverride()` → maintain hidden / modified / added deltas
- *  - `destroyAssignment()` → delete submission incl. R2 photo (cleanup side effect)
+ *  - `destroyAssignment()` → delete submission incl. object-storage photo (cleanup side effect)
  */
 class PhotoGameController extends Controller
 {

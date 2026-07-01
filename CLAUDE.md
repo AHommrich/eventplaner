@@ -13,14 +13,14 @@ Hochzeitsplaner für André & Tabea. Echte Gäste werden damit arbeiten — Einf
 | Mobile | React Native (Expo) — separates Repo |
 | Build | Vite 6 + PWA |
 | Deploy | Docker + Coolify (Hetzner, 142.132.165.232) |
-| Storage | Cloudflare R2 (Fotos) |
-| Mail | Resend (Domain hommrich.app verifiziert) |
+| Storage | Hetzner Object Storage (Fotos, Bucket in Nürnberg) |
+| Mail | Resend (Domain eveplan.de verifiziert, EU-Region Ireland) |
 
 ---
 
 ## Domains
 
-- **Production:** `https://hommrich.app`
+- **Production:** `https://eveplan.de`
 - **Staging:** `https://beta.hommrich.app`
 
 ---
@@ -193,7 +193,7 @@ Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
   3. Overrides anwenden: hidden überschreibt state, modified ersetzt description, added wird hinzugefügt
 - **Assignment**: speichert `task_id` ODER `override_id` (für `added` Tasks). `resolveTaskDescription()` prüft modified-Override zuerst.
 - **Re-Submission erlaubt**: Gäste können ein neues Foto für dieselbe Aufgabe einreichen (kein 409 mehr).
-- **S3-Cleanup**: Beim Löschen eines Assignments wird das R2-Foto mitgelöscht.
+- **S3-Cleanup**: Beim Löschen eines Assignments wird das Foto aus dem Object Storage mitgelöscht.
 
 ---
 
@@ -234,9 +234,9 @@ Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
 - `Content-Security-Policy` — in `production`, `staging`, `testing` aktiv. **In `local` deaktiviert**, weil der Vite-Dev-Server auf `localhost:5173` sonst geblockt wird.
 - CSP erlaubt `nominatim.openstreetmap.org` als `connect-src` (Adress-Autocomplete in Event-Settings) und `fonts.googleapis.com` / `fonts.gstatic.com` als style/font-src.
 
-### R2-Cleanup bei Löschung
+### Object-Storage-Cleanup bei Löschung
 
-- `app/Observers/PhotoObserver.php` löscht das R2-Objekt (`$photo->r2_key`) im `deleting`-Event.
+- `app/Observers/PhotoObserver.php` löscht das Object-Storage-Blob (`$photo->r2_key` — Feldname historisch aus R2-Zeit, jetzt Hetzner-Object-Key) im `deleting`-Event.
 - Event-/User-Löschungen kaskadieren über Foreign-Keys auf `photos`, wodurch der Observer für jedes verwaiste Foto auslöst.
 - Fallback-Sweep: `php artisan photos:cleanup-orphans` (`app/Console/Commands/CleanupOrphanPhotos.php`) räumt Bucket-Objekte weg, deren DB-Zeile bereits weg ist.
 
@@ -261,8 +261,34 @@ Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
 ### Sub-Processor-Register
 
 - `docs/legal/sub-processors.md` — authoritative Quelle für die Datenschutzerklärung. Bei neuem Dienst **zuerst dort dokumentieren**, dann Privacy.vue Sektion 5 aktualisieren, dann Integration mergen.
-- R2-EU-Jurisdiktions-Migration ist in `docs/legal/r2-eu-jurisdiction-migration.md` geplant, noch nicht ausgeführt.
+- Foto-Storage-Migration R2 → Hetzner Object Storage am 2026-07-01 abgeschlossen — dokumentiert in `docs/legal/hetzner-object-storage-migration.md`.
 
 ### Gesamt-Plan
 
 - Übersicht + Etappen 1–7 in `docs/GDPR_COMPLIANCE_PLAN.md`. Stage 7 (Cookie-Consent) ist bewusst deferred bis Tracking landet.
+
+### ⚠️ Governance-Regel — Sub-Processor / Infrastruktur-Änderungen
+
+**Immer wenn sich etwas an den Sub-Processors oder der Infrastruktur ändert** (neuer Anbieter, Anbieterwechsel, Region-Wechsel, Domain-Wechsel, neuer Datentyp der verarbeitet wird, …), **müssen alle diese Stellen synchron nachgezogen werden** — sonst driftet die öffentliche Datenschutzerklärung von der Realität ab. Das ist ein Rechtsproblem: DSGVO Art. 13 verlangt korrekte Angaben.
+
+Checkliste bei jeder Sub-Processor-/Infrastruktur-Änderung:
+
+- [ ] `docs/legal/sub-processors.md` — authoritative Register mit Purpose, Location, DPA
+- [ ] `resources/js/pages/Legal/Privacy.vue` — user-facing Datenschutzerklärung (Sektion 5 „Empfänger und Auftragsverarbeiter"), muss mit dem Register übereinstimmen
+- [ ] `resources/js/pages/Legal/Imprint.vue` — Impressum wenn Verantwortlicher/Adresse/Domain betroffen
+- [ ] `docs/ARCHITECTURE.md` — falls Erwähnung des Providers
+- [ ] `README.md` + `README.de.md` — Stack-Tabelle + DSGVO-Sektion
+- [ ] `CLAUDE.md` (dieses File) — Stack-Tabelle + relevante Sub-Sektionen
+- [ ] Code-Docblocks in `PhotoSanitizer`, `PhotoObserver`, `CleanupOrphanPhotos`, Controllern die Storage nutzen — bei Storage-Provider-Wechsel
+- [ ] Test-Beschreibungen (`it('… on R2', …)` etc.) wenn sie den Provider-Namen enthalten
+- [ ] `.env.example` — Kommentare + Default-Werte
+- [ ] `docs/legal/*` — Migrations-Doku (z. B. `hetzner-object-storage-migration.md`) mit Datum + Playbook für die Zukunft
+- [ ] Wenn eine _AGB_ / Terms-of-Service existiert (aktuell nicht) → dort auch nachziehen
+
+**Faustregel: Wenn Du einen Provider-Namen im Register änderst, must Du grep-en:**
+```bash
+grep -rln "Cloudflare\|R2\|hommrich.app" --exclude-dir=node_modules --exclude-dir=vendor --exclude-dir=.git .
+```
+Alle Treffer die nicht historische Doku (docs/gdpr/*, docs/showcase/*, NEXT_SESSION.md) sind, müssen angepasst werden.
+
+**Merge-Regel**: In der PR-Beschreibung explizit auflisten welche der obigen Stellen upgedated wurden. Das PR-Template (`.github/PULL_REQUEST_TEMPLATE.md`) hat dafür die Sektion „GDPR / privacy touched?".
