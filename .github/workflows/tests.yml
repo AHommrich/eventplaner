@@ -36,6 +36,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Laravel's MariaDbSchemaState invokes the `mariadb` CLI to load the
+      # schema dump. ubuntu-latest ships only the mysql-client by default, so
+      # install the mariadb-client explicitly.
+      - name: Install MariaDB client
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends mariadb-client
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
