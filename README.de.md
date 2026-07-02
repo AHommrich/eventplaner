@@ -2,7 +2,7 @@
 
 [![Tests](https://github.com/AHommrich/eventplaner/actions/workflows/tests.yml/badge.svg?branch=develop)](https://github.com/AHommrich/eventplaner/actions/workflows/tests.yml)
 [![Lint](https://github.com/AHommrich/eventplaner/actions/workflows/lint.yml/badge.svg?branch=develop)](https://github.com/AHommrich/eventplaner/actions/workflows/lint.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-All%20Rights%20Reserved-red.svg)](LICENSE)
 
 Hochzeits- und Eventplaner als Progressive Web App mit React-Native-Companion: Gäste-, RSVP- und Foto-Verwaltung, Trinkspiel, Fotospiel und eine Token-geschützte Projektor-Diashow für die Feier.
 
@@ -144,4 +144,4 @@ Der vollständige Plan mit den einzelnen Etappen liegt in [`docs/GDPR_COMPLIANCE
 
 ## Lizenz
 
-[MIT](LICENSE) — frei nutzbar, ohne Gewährleistung.
+Alle Rechte vorbehalten. Siehe [LICENSE](LICENSE). Der Code ist öffentlich einsehbar (Portfolio-Zweck); Nutzung, Fork oder Weiterverbreitung nur mit schriftlicher Zustimmung.
