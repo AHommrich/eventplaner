@@ -2,7 +2,7 @@
 
 [![Tests](https://github.com/AHommrich/eventplaner/actions/workflows/tests.yml/badge.svg?branch=develop)](https://github.com/AHommrich/eventplaner/actions/workflows/tests.yml)
 [![Lint](https://github.com/AHommrich/eventplaner/actions/workflows/lint.yml/badge.svg?branch=develop)](https://github.com/AHommrich/eventplaner/actions/workflows/lint.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-All%20Rights%20Reserved-red.svg)](LICENSE)
 
 Wedding and event planner built as a Progressive Web App with a React Native companion: guest management, RSVPs, photo uploads, a drinking game, a photo game, and a token-protected projector slideshow for the actual party.
 
@@ -144,4 +144,4 @@ The full plan, including stage breakdowns, is in [`docs/GDPR_COMPLIANCE_PLAN.md`
 
 ## License
 
-[MIT](LICENSE) — free to use, no warranty.
+All rights reserved. See [LICENSE](LICENSE). Publicly viewable for portfolio purposes; no reuse, fork, or redistribution without written permission.
