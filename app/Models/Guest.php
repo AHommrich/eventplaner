@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Sanctum\HasApiTokens;
 
-class Guest extends Model
+class Guest extends Model implements AuthenticatableContract
 {
-    use HasApiTokens, HasFactory;
+    use Authenticatable, HasApiTokens, HasFactory;
 
     protected $fillable = [
         'event_id',
@@ -21,12 +23,21 @@ class Guest extends Model
         'rsvp_set_at',
         'app_access',
         'drinks_access',
+        'erasure_requested_at',
+        'scheduled_erasure_at',
+        'erasure_recovery_token',
     ];
 
     protected $casts = [
         'rsvp_set_at' => 'datetime',
         'app_access' => 'boolean',
         'drinks_access' => 'boolean',
+        'erasure_requested_at' => 'datetime',
+        'scheduled_erasure_at' => 'datetime',
+    ];
+
+    protected $hidden = [
+        'erasure_recovery_token',
     ];
 
     public function event()
@@ -52,6 +63,11 @@ class Guest extends Model
     public function photos()
     {
         return $this->hasMany(Photo::class);
+    }
+
+    public function drinkLogs()
+    {
+        return $this->hasMany(DrinkLog::class);
     }
 
     public function rsvpSetByGuest()
