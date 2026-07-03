@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Guest;
 use App\Models\Photo;
+use App\Observers\GuestObserver;
 use App\Observers\PhotoObserver;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -30,5 +32,6 @@ class AppServiceProvider extends ServiceProvider
         }
 
         Photo::observe(PhotoObserver::class);
+        Guest::observe(GuestObserver::class);
     }
 }

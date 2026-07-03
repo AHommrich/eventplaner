@@ -21,4 +21,11 @@ return [
      * after their event date by `app:prune-declined-guests`.
      */
     'declined_guests_after_event_days' => (int) env('RETENTION_DECLINED_GUESTS_DAYS', 180),
+
+    /*
+     * Grace window in days between a guest requesting erasure (Art. 17) and
+     * the hard delete. The guest can revoke during this window via a one-time
+     * recovery token; after that `app:purge-expired-erasures` removes the row.
+     */
+    'guest_erasure_grace_days' => (int) env('RETENTION_GUEST_ERASURE_DAYS', 30),
 ];
