@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\EventInfoController;
 use App\Http\Controllers\Api\GuestApiController;
 use App\Http\Controllers\Api\GuestDataExportController;
 use App\Http\Controllers\Api\GuestErasureController;
+use App\Http\Controllers\Api\LegalController;
 use App\Http\Controllers\Api\PhotoController;
 use App\Http\Controllers\Api\PhotoGameController as ApiPhotoGameController;
 use App\Http\Controllers\Api\QrAuthController;
@@ -18,6 +19,11 @@ use Illuminate\Support\Facades\Route;
 | Used by React Native and other API clients.
 | Auth via Sanctum bearer token (Authorization: Bearer {token})
 */
+
+// Privacy policy: public, unauthenticated — the app renders it natively so
+// users can read it before they consent. Rate-limited to shrug off abuse.
+Route::get('/legal/privacy', [LegalController::class, 'privacy'])
+    ->middleware('throttle:30,1');
 
 // QR-code login: no auth needed, token in the URL identifies the guest
 Route::get('/auth/qr/{token}', [QrAuthController::class, 'login']);

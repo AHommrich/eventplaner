@@ -29,17 +29,22 @@ class LegalPagesTest extends TestCase
         $this->assertSame(url('/datenschutz'), route('legal.privacy'));
     }
 
-    public function test_privacy_page_receives_retention_windows_from_config(): void
+    public function test_privacy_page_interpolates_retention_windows_from_config(): void
     {
         config()->set('retention.invitation_tokens_after_event_days', 42);
         config()->set('retention.declined_guests_after_event_days', 365);
 
         $this->get('/datenschutz')
             ->assertOk()
-            ->assertInertia(fn ($assert) => $assert
-                ->component('Legal/Privacy')
-                ->where('retention.invitation_tokens_days', 42)
-                ->where('retention.declined_guests_days', 365)
-            );
+            ->assertInertia(function ($assert) {
+                $assert->component('Legal/Privacy');
+
+                $sections = $assert->toArray()['props']['sections'];
+                $speicherdauer = collect($sections)->firstWhere('id', 'speicherdauer');
+
+                $this->assertNotNull($speicherdauer, 'speicherdauer section missing');
+                $this->assertStringContainsString('42 Tage', $speicherdauer['body_html']);
+                $this->assertStringContainsString('365 Tage', $speicherdauer['body_html']);
+            });
     }
 }
