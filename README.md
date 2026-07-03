@@ -85,6 +85,48 @@ Vite runs in its own container and serves assets over HMR.
 
 ---
 
+## Deploy workflow
+
+Three long-lived branches, each auto-deployed by Coolify on push. Migrations run automatically.
+
+| Branch | Environment | Domain | Dockerfile |
+|---|---|---|---|
+| `develop` | local dev | — | `Dockerfile` (artisan serve, port 8080) |
+| `staging` | staging | `beta.hommrich.app` | `Dockerfile.prod` (nginx + php-fpm) |
+| `production` | live | `eveplan.de` | `Dockerfile.prod` (nginx + php-fpm) |
+
+`docker-compose.yml` is intentionally different per branch (different Dockerfile, different exposed ports). **Never let the develop version overwrite staging or production.** Every merge to `staging` or `production` resets that file to the target-branch version.
+
+### develop → staging
+
+```bash
+git checkout staging
+git merge --no-ff --no-commit develop
+git checkout HEAD -- docker-compose.yml   # keep the staging compose file
+git commit -m "Merge branch 'develop' into staging"
+git push origin staging
+git checkout develop
+```
+
+Coolify picks up the push, rebuilds and redeploys. Verify at `https://beta.hommrich.app` before promoting further.
+
+### staging → production
+
+Only promote once staging is green.
+
+```bash
+git checkout production
+git merge --no-ff --no-commit develop
+git checkout HEAD -- docker-compose.yml   # keep the production compose file
+git commit -m "Merge branch 'develop' into production"
+git push origin production
+git checkout develop
+```
+
+> ⚠️ **Never push staging and production at the same time.** The VPS has 4 GB RAM; two Coolify redeploys in parallel trigger the OOM killer (has taken down systemd + traefik once, ~30 min downtime, emergency reset via the Hetzner panel). Always sequentially: push `staging`, wait until `beta.hommrich.app` responds, then push `production`.
+
+---
+
 ## Architecture (short version)
 
 The data model is centered on **Event as root**: guests, groups, categories, photos, drinks and photo-game tasks all hang off an event. Web owners authenticate the classic way over email/password (Sanctum session + Inertia); guests authenticate via QR-code tokens (Sanctum bearer). The active event is kept in the session and shared globally to every Vue page through an Inertia share.
