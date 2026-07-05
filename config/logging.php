@@ -123,6 +123,13 @@ return [
             'handler' => NullHandler::class,
         ],
 
+        'sentry_logs' => [
+            'driver' => 'sentry_logs',
+            // Keep level intentionally high — Sentry free tier caps at 5k events/month.
+            // Only warnings and above should ship; info-level noise stays in file logs.
+            'level' => env('SENTRY_LOG_LEVEL', 'warning'),
+        ],
+
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
         ],

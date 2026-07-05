@@ -1,6 +1,6 @@
 # Sub-Processor Register
 
-_Last reviewed: 2026-07-01 (Cloudflare R2 → Hetzner Object Storage migration completed)_
+_Last reviewed: 2026-07-05 (Sentry EU added as error-monitoring sub-processor)_
 
 This register lists every third party that processes personal data on behalf of eveplan. It is the authoritative source the user-facing privacy policy (`/datenschutz`) quotes from. **Any new sub-processor must be added here before the integration ships to production** — otherwise the published privacy policy becomes a lie.
 
@@ -37,6 +37,16 @@ GDPR Art. 28 requires a written data-processing agreement with each processor. A
 - **Location of processing:** United States / global
 - **Data Processing Agreement:** Google's standard processor terms for OAuth integrations apply automatically; no separate signed copy required for a SaaS using public OAuth scopes.
 - **Provider privacy notice:** https://policies.google.com/privacy
+
+### Functional Software, Inc. d/b/a Sentry
+- **Purpose:** Application error monitoring for the Laravel backend on `eveplan.de` and `beta.hommrich.app` — captures unhandled exceptions, warning-level log records, and a 10 % performance-trace sample.
+- **Data categories:** Exception messages, stack traces (with argument values via `zend.exception_ignore_args=Off`), request URL, HTTP method, application environment name. **No personally identifying data by default** — `send_default_pii` defaults to `false` in `config/sentry.php`, which suppresses IP addresses, session cookies, authenticated-user context, and request headers. Guest names, email addresses, and photo binaries never travel to Sentry.
+- **Location of processing:** European Union — Sentry EU region, Frankfurt (`de.sentry.io`, ingestion endpoint `o4511683645997056.ingest.de.sentry.io`). Region was chosen explicitly at account creation; Sentry does not permit region migration afterwards.
+- **Data Processing Agreement:** Sentry Data Processing Addendum, self-serve, binding upon account creation.
+  - Provider link: https://sentry.io/legal/dpa/
+  - Local filing target: `~/legal/eventplaner/dpa-sentry-2026-07-05.pdf` (snapshot to be downloaded).
+- **Free-tier limits enforced:** 5 000 error events/month, 10 000 trace spans/month, 30-day event retention. `SENTRY_TRACES_SAMPLE_RATE=0.1` and `SENTRY_LOG_LEVEL=warning` keep ingest inside the tier.
+- **Provider privacy notice:** https://sentry.io/privacy/
 
 ### GitHub, Inc.
 - **Purpose:** Source-code hosting and CI execution. **No production user data**, but commit metadata is technically personal data of the contributor (commit author name + email).
@@ -83,4 +93,4 @@ Where personal data can end up in logs (IP addresses in nginx access logs, reque
 ## Known gaps (tracked for follow-up)
 
 - **Nginx access log off-switch.** Documented under "Log retention" above — flip `access_log off;` in `Dockerfile.prod` on the next deploy touch to make the reset-on-deploy behaviour a proper policy rather than an accidental one.
-- **Photo backup bucket + rclone cron.** Weekly sync of `eveplan-photos-prod` to a `eveplan-photos-prod-backup` bucket for accidental-deletion protection. Setup outstanding.
+- **Cross-region photo backup / bucket versioning.** In-bucket weekly snapshot to `snapshots/YYYY-MM-DD/` is in place (accidental-delete protection, see `docs/RUNBOOK.md` §3.2). Still open: a copy in a second Hetzner region (Helsinki `hel1`) or bucket-level versioning for defence against bucket-loss, credential compromise, or a Nürnberg outage.

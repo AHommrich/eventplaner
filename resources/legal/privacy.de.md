@@ -1,5 +1,5 @@
 ---
-updated_at: 2026-07-03T00:00:00Z
+updated_at: 2026-07-05T00:00:00Z
 ---
 
 ## Verantwortlicher {#verantwortlich}
@@ -58,6 +58,7 @@ Für den Betrieb setzen wir sorgfältig ausgewählte Auftragsverarbeiter ein, mi
 
 - **Hetzner Online GmbH**, Industriestr. 25, 91710 Gunzenhausen, Deutschland — Hosting der Anwendung, der Datenbank sowie Object Storage für hochgeladene Fotos. Standort Nürnberg (Deutschland); Verarbeitung ausschließlich innerhalb der EU. AVV gemäß Art. 28 DSGVO geschlossen. EXIF-, IPTC- und XMP-Metadaten werden vor dem Speichern serverseitig aus den Bildern entfernt.
 - **Plus Five Five, Inc. (Resend)** — Versand von System-E-Mails (Verifizierung, Passwort-Reset, Einladungen). Verarbeitung in der EU (Region Irland, eu-west-1); Datenverarbeitungsvertrag geschlossen.
+- **Functional Software, Inc. (Sentry)** — automatisierte Fehlerüberwachung des Backends (Erfassung unbehandelter Ausnahmen und Warnungen). Verarbeitung in der EU (Region Frankfurt, `de.sentry.io`). Standardmäßig werden **keine** IP-Adressen, Session-Cookies, angemeldete Nutzerkontexte oder Request-Header übertragen. Datenverarbeitungsvertrag mit Aktivierung des Accounts geschlossen.
 - **Google LLC** (USA) — **nur**, wenn Du Dich aktiv mit „Mit Google anmelden" registrierst. Google erhält dann Deine Google-ID, E-Mail und den Namen (keine weiteren Scopes). Datenübermittlung in die USA auf Grundlage der EU-Standardvertragsklauseln (SCCs).
 
 ## Kontakt {#kontakt}
