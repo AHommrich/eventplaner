@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Event;
 use App\Models\Photo;
 use App\Models\PhotoAlbum;
 use Illuminate\Support\Facades\Storage;
@@ -40,4 +41,32 @@ it('batch-deletes multiple photos', function () {
     $this->delete(route('photos.destroy-batch'), ['ids' => [$p1->id, $p2->id]])->assertRedirect();
 
     expect(Photo::whereIn('id', [$p1->id, $p2->id])->count())->toBe(0);
+});
+
+it('rejects destroy for a photo from another event', function () {
+    Storage::fake('s3');
+    actingAsOwner();
+    $foreignEvent = Event::factory()->create();
+    $foreignAlbum = PhotoAlbum::create(['event_id' => $foreignEvent->id, 'slug' => 'app_gallery', 'name' => 'Fremd']);
+    Storage::disk('s3')->put('photos/foreign.jpg', 'do-not-delete');
+    $foreignPhoto = Photo::create([
+        'event_id' => $foreignEvent->id,
+        'album_id' => $foreignAlbum->id,
+        'url' => '/foreign.jpg',
+        'r2_key' => 'photos/foreign.jpg',
+    ]);
+
+    $this->delete(route('photos.destroy', $foreignPhoto))->assertStatus(403);
+
+    expect(Photo::find($foreignPhoto->id))->not->toBeNull();
+    Storage::disk('s3')->assertExists('photos/foreign.jpg');
+});
+
+it('rejects assigning a projector album from another event', function () {
+    actingAsOwner();
+    $foreignEvent = Event::factory()->create();
+    $foreignAlbum = PhotoAlbum::create(['event_id' => $foreignEvent->id, 'slug' => 'app_gallery', 'name' => 'Fremd']);
+
+    $this->patch(route('photos.projector-album'), ['album_id' => $foreignAlbum->id])
+        ->assertSessionHasErrors('album_id');
 });

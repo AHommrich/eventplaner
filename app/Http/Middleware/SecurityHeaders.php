@@ -45,13 +45,25 @@ class SecurityHeaders
         // Inertia injects its page payload inline and reka-ui/Tailwind 4
         // produce inline style attributes. Tightening with nonces is a
         // separate hardening task — see docs/gdpr/stage-4-security-headers.md.
+        //
+        // `worker-src 'self' blob: 'unsafe-eval'` — heic2any spawns a Web
+        // Worker from a blob URL to convert HEIC → JPEG in the cover upload,
+        // and internally uses `new Function(...)` for its libheif shim. The
+        // eval permission is scoped to worker context only; `script-src` on
+        // the main page stays without unsafe-eval. Tracked follow-up:
+        // replace heic2any with a WASM-only HEIC decoder to drop this.
+        //
+        // `connect-src` allows Nominatim (address autocomplete) and Sentry
+        // (`*.ingest.de.sentry.io` — the EU-region ingest endpoint used by
+        // both the Laravel and the Vue Sentry clients).
         return implode('; ', [
             "default-src 'self'",
             "script-src 'self' 'unsafe-inline'",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "img-src 'self' data: blob: https:",
             "font-src 'self' data: https://fonts.gstatic.com",
-            "connect-src 'self' https://nominatim.openstreetmap.org",
+            "connect-src 'self' https://nominatim.openstreetmap.org https://*.ingest.de.sentry.io",
+            "worker-src 'self' blob: 'unsafe-eval'",
             "frame-ancestors 'none'",
             "base-uri 'self'",
             "form-action 'self'",

@@ -1,0 +1,76 @@
+# Keep the Docker build context small AND free of secrets/test artefacts.
+#
+# Reason: `Dockerfile.prod` uses `COPY . .`. Without this file the following
+# would land in the production image:
+#   - `.env*` — application secrets (APP_KEY, DB credentials, Google OAuth,
+#     Resend API key, Hetzner S3 keys, Sentry DSN)
+#   - Local SQLite scratch databases (`laravel`, `laravel_test_*`)
+#   - `hochzeits_einladung.json` — historical wedding invitation data
+#   - `dbcheck.php` — ad-hoc debugging script
+#   - `.git`, `node_modules`, `vendor`, `coverage`, test suites
+#
+# See docs/AUDIT_ACTION_PLAN.md, Muss-Punkt 2.
+
+# --- Secrets / env ---
+.env
+.env.*
+!.env.example
+
+# --- VCS + editor state ---
+.git
+.gitattributes
+.gitignore
+.github
+.idea
+.vscode
+.nova
+.zed
+.fleet
+.editorconfig
+.phpactor.json
+
+# --- Dependencies (re-installed in the image) ---
+node_modules
+vendor
+
+# --- Build + coverage artefacts ---
+coverage
+public/build
+public/hot
+bootstrap/cache/*.php
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/logs/*
+!storage/logs/.gitkeep
+.phpunit.cache
+.phpunit.result.cache
+
+# --- Tests + docs (not needed at runtime) ---
+tests
+docs
+
+# --- Docker + CI scaffolding (irrelevant at runtime) ---
+docker-compose.yml
+Dockerfile
+Dockerfile.prod
+.dockerignore
+
+# --- Local scratch files that live outside git (see .gitignore) ---
+dbcheck.php
+hochzeits_einladung.json
+laravel
+laravel_test_*
+
+# --- Composer/npm caches inside repo ---
+.composer
+.config
+
+# --- Prettier / lint config not needed inside the container ---
+.prettierrc
+.prettierignore
+eslint.config.js
+
+# --- OS junk ---
+.DS_Store
+Thumbs.db

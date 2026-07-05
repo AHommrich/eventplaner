@@ -58,7 +58,7 @@ Sorted from "technically interesting" to "UX polish". Each item links to the cen
 |---|---|
 | Backend | Laravel 12 (PHP 8.3) + Inertia.js + Sanctum |
 | Web frontend | Vue 3 + TypeScript + Tailwind CSS 4 + Reka UI |
-| Mobile | React Native (Expo) — separate repository |
+| Mobile | React Native (Expo) — [separate repository](https://github.com/AHommrich/eventplaner-app) |
 | Build | Vite 6 + `vite-plugin-pwa` |
 | Storage | Hetzner Object Storage (photos, Nürnberg) |
 | Mail | Resend |
@@ -163,9 +163,7 @@ Test setup, coverage goals, and the strategy per layer are documented in `docs/S
 
 ## Companion app (React Native)
 
-The mobile app lives in a separate repository and shares only the HTTP API with the web app. It covers QR login, the photo gallery (including upload) and dynamic theming via `/api/event/info`. The app is feature-complete for actual wedding-day use; documentation and README for the mobile repo will get the same polish as this one.
-
-<!-- TODO: Link to the public mobile repo once it ships -->
+The mobile app lives at [**github.com/AHommrich/eventplaner-app**](https://github.com/AHommrich/eventplaner-app) and shares only the HTTP API with the web app. It covers QR login, the photo gallery (including upload) and dynamic theming via `/api/event/info`. The mobile repo went through its own portfolio refactor (see [`docs/REFACTOR_PLAN.md`](https://github.com/AHommrich/eventplaner-app/blob/main/docs/REFACTOR_PLAN.md) there) and is feature-complete for actual wedding-day use.
 
 ---
 

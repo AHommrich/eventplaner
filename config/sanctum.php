@@ -51,6 +51,25 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Guest Token TTL (custom)
+    |--------------------------------------------------------------------------
+    |
+    | How many days a guest bearer token (created via QR-code login) stays
+    | valid. This is a *project-specific* setting used explicitly in
+    | App\Http\Controllers\Api\QrAuthController when calling createToken().
+    |
+    | Data minimisation (GDPR Art. 5(1)(c/e)): guest access is only necessary
+    | around the event date — indefinitely-valid tokens would linger long
+    | after the wedding is over. Sanctum's `expiration` above is null (owner
+    | API + web sessions must not be aged out arbitrarily), so we scope the
+    | TTL to the guest flow only.
+    |
+    */
+
+    'guest_token_ttl_days' => (int) env('SANCTUM_GUEST_TOKEN_TTL_DAYS', 90),
+
+    /*
+    |--------------------------------------------------------------------------
     | Token Prefix
     |--------------------------------------------------------------------------
     |

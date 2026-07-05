@@ -28,6 +28,15 @@ run composer install --no-dev --optimize-autoloader --no-interaction --no-progre
 # App-Code
 copy . .
 
+# Frontend build-time env vars — Vite bakes `import.meta.env.VITE_*` into the
+# generated JS bundle at build time, so these must be injected via Docker
+# build args (Coolify's runtime env vars are unavailable during `npm run build`).
+# Empty defaults are safe: if unset, Sentry-JS init falls through to a no-op.
+arg VITE_SENTRY_DSN=""
+arg VITE_SENTRY_TRACES_SAMPLE_RATE="0.05"
+env VITE_SENTRY_DSN=$VITE_SENTRY_DSN
+env VITE_SENTRY_TRACES_SAMPLE_RATE=$VITE_SENTRY_TRACES_SAMPLE_RATE
+
 # Frontend-Build (Vite/Inertia)
 run npm ci --prefer-offline --no-audit --no-fund && npm run build
 
@@ -35,10 +44,13 @@ run npm ci --prefer-offline --no-audit --no-fund && npm run build
 run mkdir -p /var/www/storage /var/www/bootstrap/cache \
  && chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
-# PHP Upload-Limits
+# PHP Upload-Limits + Sentry stack-trace argument capture.
+# zend.exception_ignore_args=Off keeps argument values on exception stack frames
+# so Sentry can render actionable traces (default 'On' hides them).
 run printf '%s\n' \
   'upload_max_filesize = 20M' \
   'post_max_size = 25M' \
+  'zend.exception_ignore_args = Off' \
   > /usr/local/etc/php/conf.d/uploads.ini
 
 # OPcache

@@ -102,6 +102,35 @@ it('rejects rsvp/access changes for guests from other events', function () {
         ->assertStatus(403);
 });
 
+it('rejects edit view for guests from other events', function () {
+    actingAsOwner();
+    $otherEvent = Event::factory()->create();
+    $foreign = Guest::factory()->create(['event_id' => $otherEvent->id]);
+
+    $this->get(route('guests.edit', $foreign))->assertStatus(403);
+});
+
+it('rejects update for guests from other events', function () {
+    actingAsOwner();
+    $otherEvent = Event::factory()->create();
+    $foreign = Guest::factory()->create(['event_id' => $otherEvent->id, 'firstname' => 'DoNotChange']);
+
+    $this->put(route('guests.update', $foreign), ['firstname' => 'Hacked'])
+        ->assertStatus(403);
+
+    expect($foreign->fresh()->firstname)->toBe('DoNotChange');
+});
+
+it('rejects destroy for guests from other events', function () {
+    actingAsOwner();
+    $otherEvent = Event::factory()->create();
+    $foreign = Guest::factory()->create(['event_id' => $otherEvent->id]);
+
+    $this->delete(route('guests.destroy', $foreign))->assertStatus(403);
+
+    expect(Guest::find($foreign->id))->not->toBeNull();
+});
+
 it('resets drink logs for a guest', function () {
     $user = actingAsOwner();
     $event = $user->ownedEvents()->first();

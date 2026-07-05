@@ -34,6 +34,17 @@ class SecurityHeadersTest extends TestCase
         $this->assertStringContainsString('nominatim.openstreetmap.org', $csp);
     }
 
+    public function test_content_security_policy_permits_heic_worker_and_sentry_ingest(): void
+    {
+        // Guard against silent regressions: heic2any needs `worker-src blob:`,
+        // and Sentry-JS needs `connect-src *.ingest.de.sentry.io`. Dropping
+        // either kills a feature (HEIC upload) or the frontend error monitor.
+        $csp = $this->get('/')->headers->get('Content-Security-Policy');
+
+        $this->assertStringContainsString("worker-src 'self' blob: 'unsafe-eval'", $csp);
+        $this->assertStringContainsString('*.ingest.de.sentry.io', $csp);
+    }
+
     public function test_hsts_is_absent_in_test_environment(): void
     {
         $this->assertSame('testing', app()->environment());

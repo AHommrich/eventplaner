@@ -78,6 +78,40 @@ it('returns 404 for an invalid token', function () {
     $this->getJson('/api/auth/qr/nope-not-a-real-token')->assertStatus(404);
 });
 
+it('issues guest tokens with an explicit expiry (90 days by default)', function () {
+    $event = Event::factory()->create();
+    $guest = Guest::factory()->create(['event_id' => $event->id]);
+    $token = InvitationToken::factory()->create(['guest_id' => $guest->id]);
+
+    $this->getJson("/api/auth/qr/{$token->token}")->assertOk();
+
+    $pat = PersonalAccessToken::where('tokenable_type', Guest::class)
+        ->where('tokenable_id', $guest->id)
+        ->first();
+
+    expect($pat)->not->toBeNull();
+    expect($pat->expires_at)->not->toBeNull();
+    expect($pat->expires_at->diffInDays(now(), false))->toBeGreaterThan(-91)->toBeLessThan(-89);
+});
+
+it('does not treat expired tokens as active — re-login allowed', function () {
+    $event = Event::factory()->create();
+    $group = Group::factory()->create(['event_id' => $event->id]);
+    $guest = Guest::factory()->create(['event_id' => $event->id, 'group_id' => $group->id]);
+    $token = InvitationToken::factory()->create(['group_id' => $group->id]);
+
+    // simulate a stale token from a previous event
+    $guest->createToken('stale', ['role:guest'], now()->subDay());
+
+    $response = $this->getJson("/api/auth/qr/{$token->token}")->assertOk();
+    $memberSelf = collect($response->json('guests'))->firstWhere('guest_id', $guest->id);
+    expect($memberSelf['is_active'])->toBeFalse();
+
+    // select must succeed — no 409
+    $this->postJson("/api/auth/qr/{$token->token}/select", ['guest_id' => $guest->id])
+        ->assertOk();
+});
+
 it('rejects login when app_access is disabled for all guests in group', function () {
     $event = Event::factory()->create();
     $group = Group::factory()->create(['event_id' => $event->id]);
