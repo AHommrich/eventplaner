@@ -65,3 +65,45 @@ it('dry-run neither copies nor deletes', function () {
     Storage::disk('s3')->assertMissing('snapshots/2026-07-05/photos/a.jpg');
     Storage::disk('s3')->assertExists('snapshots/2026-01-01/photos/old.jpg');
 });
+
+it('streams into the Helsinki backup disk on --target=hel1', function () {
+    Storage::fake('s3_backup');
+    Carbon::setTestNow('2026-07-05 04:30:00');
+
+    Storage::disk('s3')->put('photos/a.jpg', 'A');
+    Storage::disk('s3')->put('covers/e1.jpg', 'C');
+
+    $this->artisan('photos:backup-to-prefix', ['--target' => 'hel1'])->assertSuccessful();
+
+    // Backup disk received the payload.
+    Storage::disk('s3_backup')->assertExists('snapshots/2026-07-05/photos/a.jpg');
+    Storage::disk('s3_backup')->assertExists('snapshots/2026-07-05/covers/e1.jpg');
+    expect(Storage::disk('s3_backup')->get('snapshots/2026-07-05/photos/a.jpg'))->toBe('A');
+
+    // Primary disk untouched — no in-bucket snapshot when target is hel1.
+    Storage::disk('s3')->assertExists('photos/a.jpg');
+    Storage::disk('s3')->assertMissing('snapshots/2026-07-05/photos/a.jpg');
+});
+
+it('applies retention on the target disk when --target=hel1', function () {
+    Storage::fake('s3_backup');
+    foreach (['2026-05-01', '2026-05-08', '2026-05-15'] as $d) {
+        Storage::disk('s3_backup')->put("snapshots/{$d}/photos/x.jpg", 'stale');
+    }
+    Carbon::setTestNow('2026-07-05 04:30:00');
+    Storage::disk('s3')->put('photos/current.jpg', 'C');
+
+    $this->artisan('photos:backup-to-prefix', ['--target' => 'hel1', '--keep' => 2])
+        ->assertSuccessful();
+
+    Storage::disk('s3_backup')->assertMissing('snapshots/2026-05-01/photos/x.jpg');
+    Storage::disk('s3_backup')->assertMissing('snapshots/2026-05-08/photos/x.jpg');
+    Storage::disk('s3_backup')->assertExists('snapshots/2026-05-15/photos/x.jpg');
+    Storage::disk('s3_backup')->assertExists('snapshots/2026-07-05/photos/current.jpg');
+});
+
+it('rejects an unknown --target', function () {
+    Carbon::setTestNow('2026-07-05');
+    $this->artisan('photos:backup-to-prefix', ['--target' => 'moon'])
+        ->assertFailed();
+});

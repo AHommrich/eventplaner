@@ -1,6 +1,7 @@
 import '../css/app.css';
 
 import { createInertiaApp } from '@inertiajs/vue3';
+import * as Sentry from '@sentry/vue';
 import axios from 'axios';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import type { DefineComponent } from 'vue';
@@ -50,6 +51,21 @@ createInertiaApp({
             .use(i18n)
             // If @routes is included, pass Ziggy to the plugin:
             .use(ZiggyVue, typeof window !== 'undefined' ? (window as any).Ziggy : undefined);
+
+        // Frontend error monitoring — mirrors the backend Sentry config
+        // (EU region, no PII, low trace sample). Init only when a DSN is
+        // present so local dev + tests never phone home. See
+        // docs/legal/sub-processors.md for the DPA reference.
+        const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
+        if (sentryDsn) {
+            Sentry.init({
+                app: vue,
+                dsn: sentryDsn,
+                environment: import.meta.env.MODE,
+                tracesSampleRate: Number(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE ?? 0.05),
+                sendDefaultPii: false,
+            });
+        }
 
         vue.mount(el);
     },

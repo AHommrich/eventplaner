@@ -1,0 +1,45 @@
+name: post-deploy smoke
+
+# External smoke-test after Coolify has redeployed staging/production.
+# Runs from GitHub-hosted runner (not from the VPS itself) so a broken
+# ingress / TLS / proxy layer is detected too, not just container-internal state.
+#
+# If any curl call fails, this job goes red — the GitHub → Discord bridge that
+# Coolify Notifications set up (see docs/RUNBOOK.md §2.3) then delivers the alert.
+
+on:
+  push:
+    branches:
+      - staging
+      - production
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for Coolify redeploy to settle
+        # Container swap + healthcheck + migrations usually finish inside 90s.
+        # 120s adds headroom without pushing beyond the notification window.
+        run: sleep 120
+
+      - name: Smoke test staging
+        if: github.ref_name == 'staging'
+        env:
+          BASE_URL: https://beta.hommrich.app
+        run: |
+          set -euxo pipefail
+          curl -fsS "${BASE_URL}/up" > /dev/null
+          curl -fsS -o /dev/null -w "%{http_code}\n" "${BASE_URL}/login"      | grep -qE '^(200|302)$'
+          curl -fsS -o /dev/null -w "%{http_code}\n" "${BASE_URL}/impressum"  | grep -q '^200$'
+          curl -fsS -o /dev/null -w "%{http_code}\n" "${BASE_URL}/datenschutz"| grep -q '^200$'
+
+      - name: Smoke test production
+        if: github.ref_name == 'production'
+        env:
+          BASE_URL: https://eveplan.de
+        run: |
+          set -euxo pipefail
+          curl -fsS "${BASE_URL}/up" > /dev/null
+          curl -fsS -o /dev/null -w "%{http_code}\n" "${BASE_URL}/login"      | grep -qE '^(200|302)$'
+          curl -fsS -o /dev/null -w "%{http_code}\n" "${BASE_URL}/impressum"  | grep -q '^200$'
+          curl -fsS -o /dev/null -w "%{http_code}\n" "${BASE_URL}/datenschutz"| grep -q '^200$'
