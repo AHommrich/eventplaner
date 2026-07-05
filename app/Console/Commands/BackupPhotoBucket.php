@@ -3,78 +3,120 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Weekly snapshot of the photo + cover prefixes into an in-bucket snapshot
- * prefix.
+ * Snapshot of the photo + cover prefixes into a dated backup directory.
  *
- * Threat model this actually covers:
- *   - Accidental deletion of individual files by an application bug
- *     (mis-firing observer, buggy cleanup command, wrong DELETE cascade).
- *   - "I deleted the wrong photo" cases the user notices within a few weeks.
+ * Two targets are supported via `--target`:
  *
- * Threat model this does NOT cover (deliberately — see docs/RUNBOOK.md §3):
- *   - Bucket entirely deleted from the Hetzner panel.
- *   - Object Storage API credentials compromised — attacker has equal access
- *     to the snapshot prefix.
- *   - Regional Hetzner outage in Nürnberg.
+ *   --target=in-bucket (default)
+ *       Copies within the primary bucket into `snapshots/YYYY-MM-DD/…`. Uses
+ *       S3 server-side CopyObject via Laravel's `Storage::copy` — no download.
+ *       Protects against accidental deletion of individual objects only.
  *
- * The heavier hitters (bucket-loss, credentials, region-loss) are follow-ups
- * tracked in docs/legal/sub-processors.md ("Photo backup bucket").
+ *   --target=hel1
+ *       Streams into the Hetzner Helsinki backup bucket (disk `s3_backup`)
+ *       under the same dated prefix. Additionally protects against primary
+ *       bucket loss, primary credential compromise, and a Nürnberg regional
+ *       outage — provided the backup disk uses a SEPARATE access key with
+ *       PutObject/ListBucket rights on the backup bucket only.
  *
- * Implementation uses S3 server-side CopyObject via Laravel's `Storage::copy`
- * — no download/re-upload traffic. Idempotent: reruns of the same day skip
- * files already snapshotted.
+ * Both modes are idempotent (existing target objects are skipped) and honour
+ * `--keep` for retention on the target disk. See docs/RUNBOOK.md §3.2 for the
+ * full threat model per layer.
  */
 class BackupPhotoBucket extends Command
 {
     protected $signature = 'photos:backup-to-prefix
+                            {--target=in-bucket : Where snapshots land — "in-bucket" (default) or "hel1"}
                             {--prefix=snapshots : Root prefix under which snapshots are stored}
-                            {--keep=4 : Number of dated snapshots to retain}
+                            {--keep=4 : Number of dated snapshots to retain on the target disk}
                             {--dry-run : Report only, do not copy or delete}';
 
-    protected $description = 'Snapshot photos/ + covers/ into an in-bucket snapshot prefix (accidental-delete protection).';
+    protected $description = 'Snapshot photos/ + covers/ into a dated backup prefix (in the same bucket, or into the Helsinki backup bucket).';
+
+    private const SOURCE_DISK = 's3';
 
     /** Bucket prefixes that get snapshotted. */
     private const SOURCE_PREFIXES = ['photos', 'covers'];
 
+    private const TARGET_IN_BUCKET = 'in-bucket';
+
+    private const TARGET_HELSINKI = 'hel1';
+
     public function handle(): int
     {
+        $targetOption = (string) $this->option('target');
+        $targetDisk = $this->resolveTargetDisk($targetOption);
+
+        if ($targetDisk === null) {
+            $this->error("Unknown --target '{$targetOption}'. Use 'in-bucket' or 'hel1'.");
+
+            return self::FAILURE;
+        }
+
         $rootPrefix = trim((string) $this->option('prefix'), '/');
         $timestamp = now()->format('Y-m-d');
         $snapshotDir = "{$rootPrefix}/{$timestamp}";
         $dryRun = (bool) $this->option('dry-run');
 
-        $copied = $this->copySources($snapshotDir, $dryRun);
-        $removed = $this->applyRetention($rootPrefix, (int) $this->option('keep'), $dryRun);
+        $copied = $this->copySources($targetDisk, $snapshotDir, $dryRun);
+        $removed = $this->applyRetention($targetDisk, $rootPrefix, (int) $this->option('keep'), $dryRun);
 
         $this->info(sprintf(
-            '%s %d file(s) into "%s/", pruned %d expired snapshot(s).',
+            '%s %d file(s) into "%s/" on target "%s", pruned %d expired snapshot(s).',
             $dryRun ? '[dry-run] would copy' : 'Copied',
             $copied,
             $snapshotDir,
+            $targetOption,
             $removed,
         ));
 
         return self::SUCCESS;
     }
 
-    private function copySources(string $snapshotDir, bool $dryRun): int
+    private function resolveTargetDisk(string $target): ?Filesystem
     {
-        $disk = Storage::disk('s3');
+        return match ($target) {
+            self::TARGET_IN_BUCKET => Storage::disk(self::SOURCE_DISK),
+            self::TARGET_HELSINKI => Storage::disk('s3_backup'),
+            default => null,
+        };
+    }
+
+    private function copySources(Filesystem $targetDisk, string $snapshotDir, bool $dryRun): int
+    {
+        $sourceDisk = Storage::disk(self::SOURCE_DISK);
+        $sameDisk = $targetDisk === $sourceDisk;
         $copied = 0;
 
         foreach (self::SOURCE_PREFIXES as $prefix) {
-            foreach ($disk->allFiles($prefix) as $key) {
+            foreach ($sourceDisk->allFiles($prefix) as $key) {
                 $target = "{$snapshotDir}/{$key}";
 
-                if ($disk->exists($target)) {
+                if ($targetDisk->exists($target)) {
                     continue;
                 }
 
                 if (! $dryRun) {
-                    $disk->copy($key, $target);
+                    if ($sameDisk) {
+                        // Server-side CopyObject — no bytes cross the wire.
+                        $sourceDisk->copy($key, $target);
+                    } else {
+                        // Cross-disk / cross-region: stream download → upload.
+                        // Slower and traffic-billed, but the only portable path
+                        // when source and destination are different S3 endpoints.
+                        $stream = $sourceDisk->readStream($key);
+                        if ($stream === null) {
+                            continue;
+                        }
+                        $targetDisk->writeStream($target, $stream);
+                        if (is_resource($stream)) {
+                            fclose($stream);
+                        }
+                    }
                 }
                 $copied++;
             }
@@ -84,24 +126,23 @@ class BackupPhotoBucket extends Command
     }
 
     /**
-     * Keep the N newest dated snapshot directories, delete the rest.
+     * Keep the N newest dated snapshot directories on the target disk, delete the rest.
      * Directory names are `YYYY-MM-DD`, so lexicographic sort == chronological.
      */
-    private function applyRetention(string $rootPrefix, int $keep, bool $dryRun): int
+    private function applyRetention(Filesystem $targetDisk, string $rootPrefix, int $keep, bool $dryRun): int
     {
         if ($keep < 1) {
             return 0;
         }
 
-        $disk = Storage::disk('s3');
-        $snapshotDirs = $disk->directories($rootPrefix);
+        $snapshotDirs = $targetDisk->directories($rootPrefix);
         sort($snapshotDirs);
 
         $obsolete = array_slice($snapshotDirs, 0, max(0, count($snapshotDirs) - $keep));
 
         foreach ($obsolete as $dir) {
             if (! $dryRun) {
-                $disk->deleteDirectory($dir);
+                $targetDisk->deleteDirectory($dir);
             }
         }
 

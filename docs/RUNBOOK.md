@@ -114,7 +114,7 @@ The stack is protected in three layers. Understand what each one covers *and wha
   - Bucket entirely deleted from the Hetzner panel — the snapshots go with it.
   - API credentials compromised — attacker has equal access to `photos/`, `covers/` **and** `snapshots/`.
   - Regional Hetzner Object Storage outage in Nürnberg.
-- The bigger threats above are only defensible with a bucket in another region (Hetzner Helsinki, `hel1`) or with bucket-level versioning / object-lock. Both are tracked as follow-ups in `docs/AUDIT_ACTION_PLAN.md`.
+- The bigger threats above (bucket loss, credential compromise, regional outage) are now handled by Layer 3 below. Bucket-level versioning / object-lock is still a follow-up in `docs/AUDIT_ACTION_PLAN.md`.
 - **Manual run (before a risky migration, for example):**
   ```bash
   docker exec laravel-app php artisan photos:backup-to-prefix
@@ -135,6 +135,26 @@ The stack is protected in three layers. Understand what each one covers *and wha
   # tinker one-liner — replace <date> with the most recent snapshot directory
   docker exec laravel-app php artisan tinker --execute='foreach (Storage::disk("s3")->allFiles("snapshots/<date>/photos") as $k) { Storage::disk("s3")->copy($k, str_replace("snapshots/<date>/", "", $k)); }'
   ```
+
+### 3.2b Layer 2b — Cross-region backup to Helsinki (prepared, not yet active)
+- **Status:** the command `photos:backup-to-prefix --target=hel1` and the `s3_backup` filesystem disk exist in code. The scheduler entry in `routes/console.php` is gated with `->when(fn () => filled(env('AWS_BACKUP_BUCKET')))`, so it stays inert until Coolify env-vars are provided. Retention when active is `--keep=8` (≈ two months). No traffic is generated and no sub-processor location changes until you flip the switch below.
+- **What it does:** streams every object under `photos/` and `covers/` from the primary bucket in Nürnberg into the Helsinki backup bucket (`eveplan-photos-backup-hel1` at `hel1.your-objectstorage.com`), under `snapshots/YYYY-MM-DD/…`. Cross-region CopyObject is not available across separate S3 endpoints, so this uses a `readStream → writeStream` — a full byte transfer, billed as egress on Nürnberg and ingress-free on Helsinki. At current data volumes (~30 photos + a handful of covers, all in the low-MB range), this is well below Hetzner's included traffic quota.
+- **Threat model it covers (additionally to Layer 2):**
+  - Primary bucket entirely deleted from the Hetzner panel — Helsinki survives.
+  - Primary access key (`AWS_ACCESS_KEY_ID`) compromised — the backup key (`AWS_BACKUP_ACCESS_KEY_ID`) is a **separate** credential with rights only on the backup bucket, so the attacker cannot reach or overwrite the backup.
+  - Regional Object-Storage outage in Nürnberg — Helsinki is a different Hetzner datacenter in Finland.
+- **What is required to be set up on the Hetzner side (one-off, then permanent):**
+  1. Object Storage → new bucket in `hel1`, name `eveplan-photos-backup-hel1`.
+  2. Object Storage → credentials → new access key **only** with permissions on that backup bucket (never on the primary). Note the key + secret.
+  3. In Coolify, staging + production application → Environment Variables: set `AWS_BACKUP_ACCESS_KEY_ID`, `AWS_BACKUP_SECRET_ACCESS_KEY`, `AWS_BACKUP_BUCKET=eveplan-photos-backup-hel1`, `AWS_BACKUP_ENDPOINT=https://hel1.your-objectstorage.com`, `AWS_BACKUP_DEFAULT_REGION=hel1`.
+  4. Redeploy (sequentially — staging first). Verify with `docker exec laravel-app php artisan photos:backup-to-prefix --target=hel1 --dry-run` before letting the scheduler run.
+- **Restore a single lost object from Helsinki:**
+  ```bash
+  docker exec laravel-app php artisan tinker
+  # > $stream = Storage::disk('s3_backup')->readStream('snapshots/2026-07-05/photos/<uuid>.jpg');
+  # > Storage::disk('s3')->writeStream('photos/<uuid>.jpg', $stream);
+  ```
+- **Governance:** the Helsinki bucket is covered by the existing Hetzner AVV (Annex 3 — Hetzner Finland Oy is on the EU processor list). No new sub-processor DPA is required; only the location entry in `docs/legal/sub-processors.md` needs to name Helsinki alongside Nürnberg.
 
 ### 3.3 Layer 3 — Manual DB dump (optional; only before risky deploys)
 Hetzner Cloud Backup already covers the DB every 24 h. A manual dump is only needed when:
@@ -191,6 +211,46 @@ Laravel migrations do **not** have a robust auto-rollback for schema changes tha
 - Hetzner Cloud Console: log in, take a screenshot of the graphs before rebooting. RAM curve tells you whether it was OOM.
 - Emergency reset: Hetzner console → server → power → hard reboot. Same procedure that was used in the 2026-07-01 OOM incident.
 - After the VPS is back: `systemctl status coolify` (or the equivalent) — Coolify itself may have been the victim.
+
+### 4.4 Rollback after a broken deploy
+When the post-deploy smoke workflow (`.github/workflows/post-deploy.yml`) fires red on `staging` or `production`, or Sentry lights up right after a Coolify redeploy, work through this checklist in order.
+
+**1. First, look — do not roll back reflexively.**
+- GitHub Actions → the failed smoke run → the exact HTTP code / route that broke.
+- Sentry → most recent issue with `environment:<staging|production>` tag.
+- Coolify UI → deploy log → last 200 lines.
+- Often the failure is a single missing env var or a route that returns 500 because a config value was renamed. A one-line forward-fix on `develop` → re-promote is faster than a rollback and does not lose the good parts of the failing deploy.
+
+**2. If the failure is truly the deploy (not env / DNS / TLS), roll back to the last green commit.**
+- The last-green SHA is whatever was in `production` (or `staging`) *before* the broken merge. Find it via:
+  ```bash
+  git log --oneline -10 production
+  ```
+- Revert the merge commit, do **not** `git reset --hard`. Reset would rewrite history and require a force-push, which is forbidden on `production` (see `feedback_git_destructive_ops` in memory).
+  ```bash
+  git checkout production
+  git revert -m 1 <merge-sha-of-the-broken-merge> --no-edit
+  git push origin production
+  ```
+- Coolify picks up the push, rebuilds. Wait for the health check + the post-deploy smoke workflow to go green.
+
+**3. If migrations already ran and are the reason things are broken.**
+- Migrations that failed halfway leave the schema in a partial state. Do **not** click redeploy — the same migration will hit the same broken state.
+- Inspect what ran vs. what did not:
+  ```bash
+  docker exec laravel-app php artisan migrate:status
+  ```
+- Two paths, pick one:
+  - **Forward-fix (default).** Write a new migration on `develop` that repairs the schema, promote through staging to production. Safer than a `down()`, because most of our recent migrations *add* columns (e.g. `add_erasure_fields_to_guests`, `add_privacy_accepted_at_to_users`) and their `down()` would drop data.
+  - **DB rollback via Hetzner Cloud Backup snapshot.** Last resort, ~5–10 min downtime. Only when the forward-fix isn't obvious inside 20 min. See §3.1.
+
+**4. After rollback, verify.**
+- Post-deploy smoke workflow on the reverted commit must go green.
+- Manually walk the golden path: log in as a real user, open `/dashboard`, open a guest, log out. That confirms sessions + Inertia payload survived the rollback.
+- Sentry: watch for new issues over the next 10 minutes. Silence = success.
+
+**5. Post-mortem hygiene.**
+- Any incident that reached production goes into a short note at the top of §5 „Change log" (below) with the date, the failure mode, and the fix. Two lines are enough — future-you needs the pattern, not a novel.
 
 ### 4.5 Domain / TLS problem
 - Coolify uses Traefik as the ingress. Traefik logs live in the Coolify UI under the proxy resource.

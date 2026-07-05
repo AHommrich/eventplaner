@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/AppLayout.vue';
+import { originalLabel as pureOriginalLabel, taskLabel as pureTaskLabel, type TaskInPool as PoolTask } from '@/lib/photoGameLabels';
 import { Head, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -16,14 +17,7 @@ interface Catalog {
     event_type: string | null;
 }
 
-interface TaskInPool {
-    id: number | null;
-    override_id: number | null;
-    description: string;
-    translation_key: string | null;
-    state: 'normal' | 'hidden' | 'modified' | 'added';
-    original_text: string | null;
-}
+type TaskInPool = PoolTask;
 
 interface Submission {
     id: number;
@@ -49,15 +43,9 @@ const props = defineProps<{
 
 const { t, te } = useI18n();
 
-function taskLabel(task: TaskInPool): string {
-    if (task.translation_key && te(task.translation_key)) return t(task.translation_key);
-    return task.description;
-}
-
-function originalLabel(task: TaskInPool): string {
-    if (task.translation_key && te(task.translation_key)) return t(task.translation_key);
-    return task.original_text ?? '';
-}
+// Pure logic lives in resources/js/lib/photoGameLabels.ts so it can be unit-tested.
+const taskLabel = (task: TaskInPool): string => pureTaskLabel(task, t, te);
+const originalLabel = (task: TaskInPool): string => pureOriginalLabel(task, t, te);
 
 // --- Switch event type ---
 function setCatalog(catalogId: string) {

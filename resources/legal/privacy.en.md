@@ -1,5 +1,5 @@
 ---
-updated_at: 2026-07-05T00:00:00Z
+updated_at: 2026-07-05T12:00:00Z
 ---
 
 ## Data Controller {#verantwortlich}
@@ -59,7 +59,7 @@ To operate the service we use carefully selected data processors, each under a c
 
 - **Hetzner Online GmbH**, Industriestr. 25, 91710 Gunzenhausen, Germany — hosting of the application, the database and object storage for uploaded photos. Location: Nuremberg (Germany); processing exclusively within the EU. Order-processing agreement (Art. 28 GDPR) in place. EXIF, IPTC and XMP metadata are stripped server-side before storage.
 - **Plus Five Five, Inc. (Resend)** — sending of system emails (verification, password reset, invitations). Processing in the EU (region Ireland, eu-west-1); data-processing agreement in place.
-- **Functional Software, Inc. (Sentry)** — automated backend error monitoring (capturing unhandled exceptions and warning-level events). Processing in the EU (region Frankfurt, `de.sentry.io`). By default **no** IP addresses, session cookies, authenticated-user context, or request headers are transmitted. Data-processing agreement in place upon account activation.
+- **Functional Software, Inc. (Sentry)** — automated error monitoring for both the backend (unhandled exceptions and warning-level events) and the web client in the browser (JavaScript exceptions). Processing in the EU (region Frankfurt, `de.sentry.io`). By default **no** IP addresses, session cookies, authenticated-user context, or request headers are transmitted; no browser session replay is captured. Data-processing agreement in place upon account activation.
 - **Google LLC** (USA) — **only** if you actively sign in with "Sign in with Google". Google then receives your Google ID, email and name (no further scopes). Data transfer to the USA is based on the EU Standard Contractual Clauses (SCCs).
 
 ## Contact {#kontakt}

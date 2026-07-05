@@ -111,6 +111,7 @@
         "roleBorder": "Border color",
         "roleFab": "Photo button (FAB)",
         "roleFabIcon": "Icon color in photo button",
+        "contrastWarning": "Contrast {ratio}:1 — too low for WCAG AA (4.5:1). Text is hard to read for guests with reduced vision.",
         "venueDisplayMode": "Venue display",
         "venueDisplayModeHint": "Controls what guests see on the app home screen: venue name only, address only, or both stacked.",
         "venueDisplayModeAddress": "Address only",
