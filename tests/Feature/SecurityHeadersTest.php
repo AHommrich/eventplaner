@@ -41,7 +41,7 @@ class SecurityHeadersTest extends TestCase
         // either kills a feature (HEIC upload) or the frontend error monitor.
         $csp = $this->get('/')->headers->get('Content-Security-Policy');
 
-        $this->assertStringContainsString("worker-src 'self' blob:", $csp);
+        $this->assertStringContainsString("worker-src 'self' blob: 'unsafe-eval'", $csp);
         $this->assertStringContainsString('*.ingest.de.sentry.io', $csp);
     }
 
