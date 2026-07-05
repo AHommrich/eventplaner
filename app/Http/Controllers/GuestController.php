@@ -55,6 +55,8 @@ class GuestController extends Controller
 
     public function destroy(Guest $guest)
     {
+        abort_if($guest->event_id !== $this->activeEvent()?->id, 403);
+
         $guest->delete();
 
         return redirect()->back()->with('success', 'Gast wurde gelöscht.');
@@ -63,6 +65,7 @@ class GuestController extends Controller
     public function edit(Request $request, Guest $guest)
     {
         $event = $this->activeEvent();
+        abort_if($guest->event_id !== $event?->id, 403);
 
         $guest->load('group.invitationToken', 'foodSpecials', 'invitationToken', 'rsvpSetByGuest', 'rsvpSetByUser');
 
@@ -93,6 +96,8 @@ class GuestController extends Controller
 
     public function update(Request $request, Guest $guest)
     {
+        abort_if($guest->event_id !== $this->activeEvent()?->id, 403);
+
         $data = $request->validate([
             'firstname' => 'required|string|max:255',
             'lastname' => 'nullable|string|max:255',

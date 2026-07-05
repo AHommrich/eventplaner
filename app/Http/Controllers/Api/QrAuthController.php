@@ -17,9 +17,15 @@ use Laravel\Sanctum\PersonalAccessToken;
  *              POST /api/auth/qr/{token}/select { guest_id } only then issues a
  *              token for the chosen guest.
  *
+
  * Tokens are intentionally NOT created up front for all members on the first scan —
  * otherwise unused tokens would block other family members (`is_active`
  * would be true even though nobody is logged in). Hence the two-step flow.
+ *
+ * Every guest token is created with an explicit `expires_at` (defaults to 90 days,
+ * see `config('sanctum.guest_token_ttl_days')`). Data-minimisation: guest access
+ * should not linger indefinitely after the event. `sanctum:prune-expired` runs
+ * daily via `routes/console.php` and physically removes expired tokens.
  *
  * The `is_active` check runs explicitly via {@see PersonalAccessToken}, not via the
  * `$guest->tokens()` relation — on eager-loaded objects MorphMany does not scope
@@ -60,7 +66,7 @@ class QrAuthController extends Controller
         if (! $isGroup) {
             $guest = $guests->first();
             $guest->tokens()->delete();
-            $sanctumToken = $guest->createToken('guest-login', ['role:guest']);
+            $sanctumToken = $guest->createToken('guest-login', ['role:guest'], now()->addDays(config('sanctum.guest_token_ttl_days', 90)));
 
             return response()->json([
                 'type' => 'solo',
@@ -80,9 +86,7 @@ class QrAuthController extends Controller
             'firstname' => $guest->firstname,
             'lastname' => $guest->lastname,
             'token' => null,
-            'is_active' => PersonalAccessToken::where('tokenable_type', Guest::class)
-                ->where('tokenable_id', $guest->id)
-                ->exists(),
+            'is_active' => $this->hasActiveToken($guest),
         ]);
 
         return response()->json([
@@ -120,15 +124,13 @@ class QrAuthController extends Controller
             return response()->json(['message' => 'Der App-Zugang wurde für diesen Gast deaktiviert.'], 403);
         }
 
-        $alreadyActive = PersonalAccessToken::where('tokenable_type', Guest::class)
-            ->where('tokenable_id', $guest->id)
-            ->exists();
+        $alreadyActive = $this->hasActiveToken($guest);
 
         if ($alreadyActive) {
             return response()->json(['message' => 'Dieser Gast ist bereits eingeloggt.'], 409);
         }
 
-        $sanctumToken = $guest->createToken('guest-login', ['role:guest']);
+        $sanctumToken = $guest->createToken('guest-login', ['role:guest'], now()->addDays(config('sanctum.guest_token_ttl_days', 90)));
 
         return response()->json([
             'guest_id' => $guest->id,
@@ -136,5 +138,20 @@ class QrAuthController extends Controller
             'lastname' => $guest->lastname,
             'token' => $sanctumToken->plainTextToken,
         ]);
+    }
+
+    /**
+     * A guest counts as active only while at least one un-expired token exists.
+     * Expired tokens linger until `sanctum:prune-expired` runs (scheduled daily);
+     * treating them as active would falsely block re-login for the whole day.
+     */
+    private function hasActiveToken(Guest $guest): bool
+    {
+        return PersonalAccessToken::where('tokenable_type', Guest::class)
+            ->where('tokenable_id', $guest->id)
+            ->where(function ($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->exists();
     }
 }

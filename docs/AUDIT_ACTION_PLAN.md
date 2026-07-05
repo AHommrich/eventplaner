@@ -97,6 +97,75 @@ hochzeits_einladung.json
 
 ---
 
+### [~] 6. Sentry-Setup abschließen (in Umsetzung, 2026-07-05)
+**Warum:** Application-Error-Sichtbarkeit — Coolify sieht Container-Health, aber keine 500er im Detail. Sentry EU-Region (Frankfurt, `de.sentry.io`) ist bereits angelegt, Free Tier reicht für dieses Projekt satt.
+
+**Wichtig — nicht der Standard-Anleitung 1:1 folgen. Diese Projekt-spezifischen Anpassungen zwingend beachten:**
+
+**a) Composer + Bootstrap**
+```bash
+composer require sentry/sentry-laravel
+```
+In `bootstrap/app.php` den `withExceptions`-Block ergänzen (nicht den vorhandenen Middleware-Block anfassen):
+```php
+->withExceptions(function (Exceptions $exceptions) {
+    \Sentry\Laravel\Integration::handles($exceptions);
+})
+```
+
+**b) DSN via `sentry:publish`**
+```bash
+php artisan sentry:publish --dsn=<DSN aus Sentry-Dashboard>
+```
+DSN kommt ins lokale `.env`, **nicht ins Repo**. In `.env.example` nur der leere Platzhalter:
+```
+SENTRY_LARAVEL_DSN=
+SENTRY_TRACES_SAMPLE_RATE=0.1
+```
+
+**c) Sample-Rate und Log-Channel bewusst tief halten (Free-Tier-Schutz)**
+- `SENTRY_TRACES_SAMPLE_RATE=0.1` (Standard-Anleitung schlägt 1.0 vor — bei 10 k Spans/Monat Free Tier reicht das nur solange keine echte Last kommt)
+- `SENTRY_ENABLE_LOGS=false` initial. Falls doch aktiviert, dann Log-Channel-Level auf `warning` heben:
+  ```php
+  'sentry_logs' => [
+      'driver' => 'sentry_logs',
+      'level' => 'warning',
+  ],
+  ```
+  Nicht `env('LOG_LEVEL', 'info')` übernehmen — würde jede `Log::info(...)` an Sentry senden, das Free-Tier-Kontingent ist in Tagen weg.
+
+**d) Log-Stack env-spezifisch, nicht in `.env.example` global**
+Aktuell `LOG_STACK=daily`. Nur in staging + production `LOG_STACK=daily,sentry_logs` setzen (via Coolify Environment-Variables). `LOG_STACK` in `.env.example` bleibt `daily` — lokale Dev soll nicht an Sentry senden.
+
+**e) `config/sentry.php` nach `sentry:publish` überprüfen**
+- `send_default_pii => false` (soll Standard sein — verifizieren)
+- `class_serializers` und `before_send` optional erweitern, um Guest-Namen/E-Mail-Adressen aus Exception-Kontexten zu scrubben
+
+**f) `Dockerfile.prod` — php.ini-Config**
+Damit Stack-Traces Argumente enthalten, in `Dockerfile.prod` in der PHP-uploads.ini-Sektion ergänzen (die Datei existiert bereits, Zeile 39):
+```
+zend.exception_ignore_args=Off
+```
+Neuer Build nötig.
+
+**g) Verifikation**
+```bash
+docker exec laravel-app php artisan sentry:test
+```
+Muss eine Test-Exception erzeugen, die im Sentry-Dashboard erscheint.
+
+**h) Sub-Processor + Privacy nachziehen (Governance-Regel, `CLAUDE.md`)**
+- `docs/legal/sub-processors.md` — neuer Eintrag „Functional Software, Inc. (Sentry.io) / EU-Region Frankfurt / Purpose: Error Monitoring / DPA-Snapshot ablegen unter `~/legal/eventplaner/dpa-sentry-2026-07-05.pdf`"
+- `resources/js/pages/Legal/Privacy.vue` Sektion 5 „Empfänger und Auftragsverarbeiter" ergänzen
+- `.env.example` mit Kommentar warum leer + welche Region
+
+**i) Frontend-Sentry (Vue) — bewusst separater Punkt, siehe „Kann langfristig"**
+Nur Backend im aktuellen Setup. JS-Fehler bleiben vorerst unsichtbar — als Follow-up in Punkt 20 verlegt.
+
+**Aufwand:** ~1 h Setup + 30 min Doku-Nachzug (Sub-Processor + Privacy).
+
+---
+
 ### [ ] 5. Root-Altlasten aufräumen
 **Warum:** liegen im Docker-Build-Kontext (siehe Punkt 2). Sobald `.dockerignore` existiert, ist das Sicherheitsproblem weg — aber diese Dateien haben auch in der lokalen Working-Copy nichts verloren, weil sie leicht mit „echten" Files verwechselt werden.
 
@@ -208,30 +277,26 @@ Fehlt aktuell: `SANCTUM_STATEFUL_DOMAINS`, `MAIL_FROM_ADDRESS` (Resend-Setup), `
 ### [ ] 19. PHP-Version konsistent machen
 `composer.json: ^8.2`, CI: `8.4`, `Dockerfile.prod: 8.3`, `CLAUDE.md: 8.3`. Einheitlich auf 8.3 oder 8.4.
 
+### [ ] 20. Sentry für das Frontend (Vue) einbinden
+Aktuell nur Backend-Errors sichtbar. JS-Errors im Web-Client (und ggf. im RN-Repo) bleiben unsichtbar. `@sentry/vue` mit derselben Organization anhängen — separater DSN. Vor Aktivierung: Sub-Processor-Eintrag prüfen (deckt eine Sentry-Org mehrere Projekte ab, wird nur ein Register-Eintrag).
+
 ---
 
-## Follow-up (Entscheidung offen)
+## Follow-up (Entscheidung getroffen 2026-07-05)
 
-### [ ] Monitoring-/Alerting-Stack wählen
-**Status:** offen, User entscheidet später.
+### Monitoring-/Alerting-Stack — gewählt
+**Kombination:** **Coolify-nativ + Sentry Free (EU-Region Frankfurt)**.
 
-**Kontext für die Entscheidung:**
-- Error-Monitoring aktuell **nur** über Laravel-Log-File. Ein 500er auf `eveplan.de` fällt nur auf, wenn ein Gast sich meldet.
-- Uptime-Monitoring: keins.
-- Ziel: Sentry-ähnliche Fehlerübersicht + Uptime-Ping.
+- **Coolify** deckt ab: Container-Health, Deploy-Notifications (Discord/Slack/Telegram), Server-Ressourcen-Anzeige, Zero-Downtime-Deployment. Bei bereits managter MariaDB zusätzlich automatisiertes DB-Backup.
+- **Sentry Free (EU)** deckt ab: Application-Errors (5 k/Monat), Uptime-Monitoring (1 Monitor, 1 Min), Cron-Check-Ins für `schedule:run`-Jobs. Setup: siehe Muss-Punkt 6.
+- **Nicht abgedeckt:** Object-Storage-Bucket-Backup (bleibt in Muss-Punkt 4 enthalten), langfristige Log-Aggregation (verzichtbar), Frontend-JS-Fehler (siehe Kann-Punkt 20).
 
-**Kandidaten, jeweils DSGVO-freundlich:**
-- **Sentry SaaS (EU-Region Frankfurt)** — Free-Tier 5 k Events/Monat, DPA verfügbar. Schnellste Anbindung, aber weiteres Sub-Processor-Register-Item.
-- **GlitchTip self-hosted** — Sentry-kompatible API, läuft auf demselben VPS oder einem zusätzlichen Container. Kein Sub-Processor-Add-on. Betriebs-Overhead.
-- **BetterStack** (früher Logtail/Better Uptime) — Uptime + Log-Aggregation zusammen, EU-Region verfügbar.
-- **UptimeRobot** — nur Uptime, aber gratis und ausreichend für den Anfang.
+**Noch zu erledigen im Rahmen dieser Entscheidung:**
+1. Coolify-Notification-Channel (Discord/Slack) konfigurieren — 10 min
+2. In Coolify prüfen und aktivieren: Health-Check-Endpunkt auf `/up`, Zero-Downtime-Deploy, DB-Backup falls Managed
+3. Externes UptimeRobot-Ping als redundanter Sanity-Check (Coolify läuft auf demselben VPS — Blindspot) — 10 min, optional
 
-**Wenn entschieden, ist auf jeden Fall zu ergänzen:**
-1. Anbieter in `docs/legal/sub-processors.md` eintragen (siehe Governance-Regel in `CLAUDE.md`)
-2. Privacy.vue Sektion 5 synchronisieren
-3. `.env.example` erweitern
-4. Sentry/GlitchTip: `sentry/sentry-laravel` per Composer + Konfiguration nur in staging/production aktiv
-5. Alerting-Ziel (E-Mail / Slack / Telegram) festlegen
+**Aufwand kumuliert:** ~20–30 min für die Coolify-Seite, dann fertig.
 
 ---
 
@@ -244,20 +309,23 @@ Fehlt aktuell: `SANCTUM_STATEFUL_DOMAINS`, `MAIL_FROM_ADDRESS` (Resend-Setup), `
 | 3 | Guest-Token-Expiry | Muss | offen |
 | 4 | Backup + Restore | Muss | offen |
 | 5 | Root-Aufräumen | Muss | offen |
-| 6 | E2E-Smoke (Playwright) | Sollte | offen |
-| 7 | API-Pagination | Sollte | offen |
-| 8 | Inertia-Share verschlanken | Sollte | offen |
-| 9 | `Settings.vue` schneiden | Sollte | offen |
-| 10 | CORS explizit | Sollte | offen |
-| 11 | Runbook | Sollte | offen |
-| 12 | CSP ohne unsafe-inline | Kann | offen |
-| 13 | `r2_key` → `object_key` | Kann | offen |
-| 14 | axe-a11y in CI | Kann | offen |
-| 15 | Cookie-Consent (Stage 7) | Kann | zurückgestellt |
-| 16 | Sub-Processor-Sync-Check | Kann | offen |
-| 17 | `ExampleTest.php` löschen | Kann | offen |
-| 18 | `.env.example` vervollständigen | Kann | offen |
-| 19 | PHP-Version konsistent | Kann | offen |
-| — | Monitoring-Tool wählen | Follow-up | Entscheidung offen |
+| 6 | Sentry-Setup Backend | Muss | **in Arbeit (2026-07-05)** |
+| 7 | Coolify-Notifications + Health-Check-Config | Muss | offen |
+| 8 | E2E-Smoke (Playwright) | Sollte | offen |
+| 9 | API-Pagination | Sollte | offen |
+| 10 | Inertia-Share verschlanken | Sollte | offen |
+| 11 | `Settings.vue` schneiden | Sollte | offen |
+| 12 | CORS explizit | Sollte | offen |
+| 13 | Runbook | Sollte | offen |
+| 14 | CSP ohne unsafe-inline | Kann | offen |
+| 15 | `r2_key` → `object_key` | Kann | offen |
+| 16 | axe-a11y in CI | Kann | offen |
+| 17 | Cookie-Consent (Stage 7) | Kann | zurückgestellt |
+| 18 | Sub-Processor-Sync-Check | Kann | offen |
+| 19 | `ExampleTest.php` löschen | Kann | offen |
+| 20 | `.env.example` vervollständigen | Kann | offen |
+| 21 | PHP-Version konsistent | Kann | offen |
+| 22 | Sentry Frontend (Vue) | Kann | offen |
+| — | Monitoring-Tool-Wahl | Follow-up | **entschieden: Coolify + Sentry Free EU** |
 
 Beim Abarbeiten pro Punkt: Status auf „in Arbeit" / „erledigt (Commit-SHA)" setzen, damit die Historie im Doc bleibt.
