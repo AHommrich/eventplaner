@@ -45,13 +45,22 @@ class SecurityHeaders
         // Inertia injects its page payload inline and reka-ui/Tailwind 4
         // produce inline style attributes. Tightening with nonces is a
         // separate hardening task — see docs/gdpr/stage-4-security-headers.md.
+        //
+        // `worker-src 'self' blob:` — heic2any spawns a Web Worker from a
+        // blob URL to convert HEIC → JPEG in the cover upload. Without this,
+        // the browser falls back to `script-src` and blocks the worker.
+        //
+        // `connect-src` allows Nominatim (address autocomplete) and Sentry
+        // (`*.ingest.de.sentry.io` — the EU-region ingest endpoint used by
+        // both the Laravel and the Vue Sentry clients).
         return implode('; ', [
             "default-src 'self'",
             "script-src 'self' 'unsafe-inline'",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "img-src 'self' data: blob: https:",
             "font-src 'self' data: https://fonts.gstatic.com",
-            "connect-src 'self' https://nominatim.openstreetmap.org",
+            "connect-src 'self' https://nominatim.openstreetmap.org https://*.ingest.de.sentry.io",
+            "worker-src 'self' blob:",
             "frame-ancestors 'none'",
             "base-uri 'self'",
             "form-action 'self'",
