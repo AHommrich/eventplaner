@@ -288,6 +288,11 @@ Wenn Du alles durchziehst, landest Du bei **~2,5 Tagen** verteilter Arbeit — r
 
 ---
 
+## Offene Follow-ups aus dieser Runde
+
+### Welcome.vue a11y-Sweep
+- `tests/e2e/a11y.spec.ts` — der Test für `/` ist `test.fixme` (nicht red, aber sichtbar in Reports). Lokal `E2E_BASE_URL=http://localhost:8080 npx playwright test a11y --grep '/ passes'` fahren, den axe-Output lesen (die Konsole-Zeile mit den Violation-IDs), die 2–3 offensichtlichen Findings (vermutlich Kontrast im Hero + fehlende aria-labels auf Icon-Buttons) in `resources/js/pages/Welcome.vue` fixen. Danach `.fixme` in Line 44 des specs entfernen. **Aufwand:** ~1 h.
+
 ## Was NICHT in diesem Plan ist (bewusst)
 
 - **CSP ohne `unsafe-inline`** — Härtungspunkt, aber Security-Ampel ist schon 🟢. Bleibt Kann-Punkt in `AUDIT_ACTION_PLAN.md`.
@@ -314,7 +319,7 @@ Falls Du eine dieser Sachen doch mit reinnehmen willst, sag Bescheid — sie sin
 | C | 7 | Rollback-Prozedur konkretisieren | Deployment | 30 min | **erledigt (RUNBOOK §4.4)** |
 | D | 8 | Playwright-Smoke-Suite | Tests | 1 Tag | **erledigt (config + 9 tests + CI e2e.yml)** |
 | D | 9 | Vitest-Ausbau (3 Bereiche) | Tests | 4 h | **erledigt (34 tests, +18)** |
-| E | 10 | axe-a11y + Kontrast-Guard | A11y (Beifang) | 2 h | **erledigt (5 a11y-Tests + `colorContrast.ts` + Warn-Zeile im Color-Editor)** |
+| E | 10 | axe-a11y + Kontrast-Guard | A11y (Beifang) | 2 h | **erledigt bis auf Welcome-Page** (4 von 5 Routen grün, `/` als `test.fixme` markiert — Follow-up unten) |
 
 Beim Abarbeiten pro Punkt: Status auf „in Arbeit" bzw. „erledigt (Commit-SHA)" setzen, damit die Historie im Doc bleibt — analog zur Konvention in `AUDIT_ACTION_PLAN.md`.
 

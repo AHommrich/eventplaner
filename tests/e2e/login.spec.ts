@@ -32,7 +32,7 @@ test('wrong password stays on the login page and shows an error', async ({ page 
 test.describe('with the demo seeder', () => {
     // Skip when the demo user is not present (env-gated so CI stays green
     // even when the seeder hasn't been run yet).
-    test.skip(({}) => !process.env.E2E_DEMO_USER_READY, 'set E2E_DEMO_USER_READY=1 after `db:seed --class=DemoDataSeeder`');
+    test.skip(!process.env.E2E_DEMO_USER_READY, 'set E2E_DEMO_USER_READY=1 after `db:seed --class=DemoDataSeeder`');
 
     test('demo credentials reach the dashboard', async ({ page }) => {
         await page.goto('/login');
