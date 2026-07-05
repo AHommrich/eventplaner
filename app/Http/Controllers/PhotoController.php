@@ -76,10 +76,15 @@ class PhotoController extends Controller
     public function store(Request $request, PhotoSanitizer $sanitizer)
     {
         $event = $this->activeEvent();
+        abort_if(! $event, 404);
 
         $request->validate([
             'photo' => ['required', 'file', 'mimes:jpeg,jpg,png,heic,heif', 'max:10240'],
-            'album_id' => ['nullable', 'integer', 'exists:photo_albums,id'],
+            'album_id' => [
+                'nullable',
+                'integer',
+                \Illuminate\Validation\Rule::exists('photo_albums', 'id')->where('event_id', $event->id),
+            ],
             'description' => ['nullable', 'string', 'max:500'],
         ]);
 
@@ -114,6 +119,8 @@ class PhotoController extends Controller
 
     public function destroy(Photo $photo)
     {
+        abort_if($photo->event_id !== $this->activeEvent()?->id, 403);
+
         $key = $photo->r2_key ?? ltrim(parse_url($photo->url, PHP_URL_PATH), '/');
         Storage::disk('s3')->delete($key);
         $photo->delete();
@@ -144,12 +151,18 @@ class PhotoController extends Controller
 
     public function updateProjectorAlbum(Request $request)
     {
+        $event = $this->activeEvent();
+        abort_if(! $event, 404);
+
         $request->validate([
-            'album_id' => ['required', 'integer', 'exists:photo_albums,id'],
+            'album_id' => [
+                'required',
+                'integer',
+                \Illuminate\Validation\Rule::exists('photo_albums', 'id')->where('event_id', $event->id),
+            ],
         ]);
 
-        $event = $this->activeEvent();
-        $event?->update(['projector_album_id' => $request->input('album_id')]);
+        $event->update(['projector_album_id' => $request->input('album_id')]);
 
         return back();
     }

@@ -111,6 +111,7 @@
         "roleBorder": "Rahmenfarbe",
         "roleFab": "Foto-Button (FAB)",
         "roleFabIcon": "Icon-Farbe im Foto-Button",
+        "contrastWarning": "Kontrast {ratio}:1 — zu niedrig für WCAG AA (4,5:1). Text ist für sehbeeinträchtigte Gäste schwer lesbar.",
         "venueDisplayMode": "Veranstaltungsort-Anzeige",
         "venueDisplayModeHint": "Legt fest was Gäste auf dem Home-Screen der App sehen: nur den Ortsnamen, nur die Adresse, oder beides untereinander.",
         "venueDisplayModeAddress": "Adresse",

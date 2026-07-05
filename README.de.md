@@ -85,6 +85,48 @@ Vite läuft in einem eigenen Container und reicht Assets per HMR an die App durc
 
 ---
 
+## Deploy-Workflow
+
+Drei langlebige Branches, die von Coolify beim Push automatisch deployt werden. Migrations laufen automatisch mit.
+
+| Branch | Umgebung | Domain | Dockerfile |
+|---|---|---|---|
+| `develop` | lokale Entwicklung | — | `Dockerfile` (artisan serve, Port 8080) |
+| `staging` | Staging | `beta.hommrich.app` | `Dockerfile.prod` (nginx + php-fpm) |
+| `production` | Live | `eveplan.de` | `Dockerfile.prod` (nginx + php-fpm) |
+
+`docker-compose.yml` ist bewusst branch-spezifisch (unterschiedliches Dockerfile, unterschiedliche exposed Ports). **Nie darf die develop-Version staging oder production überschreiben.** Jeder Merge nach `staging` oder `production` setzt diese Datei auf die Version des Ziel-Branches zurück.
+
+### develop → staging
+
+```bash
+git checkout staging
+git merge --no-ff --no-commit develop
+git checkout HEAD -- docker-compose.yml   # staging-Compose-Datei behalten
+git commit -m "Merge branch 'develop' into staging"
+git push origin staging
+git checkout develop
+```
+
+Coolify erkennt den Push, rebuildet und redeployt. Vor dem Weiterreichen gegenprüfen unter `https://beta.hommrich.app`.
+
+### staging → production
+
+Erst promoten, wenn Staging grün ist.
+
+```bash
+git checkout production
+git merge --no-ff --no-commit develop
+git checkout HEAD -- docker-compose.yml   # production-Compose-Datei behalten
+git commit -m "Merge branch 'develop' into production"
+git push origin production
+git checkout develop
+```
+
+> ⚠️ **Nie staging und production parallel pushen.** Der VPS hat 4 GB RAM; zwei parallele Coolify-Redeploys triggern den OOM-Killer (hat einmal systemd + traefik gekillt, ~30 Min Downtime, Emergency-Reset via Hetzner-Panel nötig). Immer sequentiell: erst `staging` pushen, warten bis `beta.hommrich.app` wieder antwortet, dann `production` pushen.
+
+---
+
 ## Architektur (Kurzfassung)
 
 Das Datenmodell ist auf **Event als Root** zentriert: Gäste, Gruppen, Kategorien, Fotos, Getränke und Fotospiel-Aufgaben hängen alle an einem Event. Web-Owner authentifizieren sich klassisch über Email/Passwort (Sanctum-Session + Inertia), Gäste authentifizieren sich über QR-Code-Tokens (Sanctum-Bearer). Das aktive Event wird per Session gehalten und über einen Inertia-Share global an alle Vue-Seiten weitergegeben.

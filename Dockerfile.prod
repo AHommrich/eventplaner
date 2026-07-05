@@ -35,10 +35,13 @@ run npm ci --prefer-offline --no-audit --no-fund && npm run build
 run mkdir -p /var/www/storage /var/www/bootstrap/cache \
  && chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
-# PHP Upload-Limits
+# PHP Upload-Limits + Sentry stack-trace argument capture.
+# zend.exception_ignore_args=Off keeps argument values on exception stack frames
+# so Sentry can render actionable traces (default 'On' hides them).
 run printf '%s\n' \
   'upload_max_filesize = 20M' \
   'post_max_size = 25M' \
+  'zend.exception_ignore_args = Off' \
   > /usr/local/etc/php/conf.d/uploads.ini
 
 # OPcache

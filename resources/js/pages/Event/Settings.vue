@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useFloatingBar } from '@/composables/useFloatingBar';
 import AppLayout from '@/layouts/AppLayout.vue';
+import { contrastRatio, WCAG_AA_NORMAL } from '@/lib/colorContrast';
+import { buildPalette, resolveRole, type PaletteKey } from '@/lib/colorResolver';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
@@ -696,15 +698,9 @@ async function geocodeFromFields() {
 
 const hasAddressInput = computed(() => !!(form.venue_street || form.venue_city || form.venue_postal_code));
 
-// Palette + role resolution
-const palette = computed(() => ({
-    primary: form.color_primary || '#7c2d3e',
-    secondary: form.color_secondary || '#e8e3de',
-    tertiary: form.color_tertiary || '#ffffff',
-}));
-
-type PaletteKey = 'primary' | 'secondary' | 'tertiary';
-const resolve = (role: string | null, fallback: PaletteKey): string => palette.value[(role as PaletteKey) ?? fallback] ?? palette.value[fallback];
+// Palette + role resolution — pure logic in resources/js/lib/colorResolver.ts
+const palette = computed(() => buildPalette(form.color_primary, form.color_secondary, form.color_tertiary));
+const resolve = (role: string | null, fallback: PaletteKey): string => resolveRole(role, fallback, palette.value);
 
 const cScreenBg = computed(() => resolve(form.role_screen_bg, 'secondary'));
 const cCardBg = computed(() => resolve(form.role_card_bg, 'tertiary'));
@@ -715,6 +711,12 @@ const cTabTint = computed(() => resolve(form.role_tab_tint, 'primary'));
 const cBorder = computed(() => resolve(form.role_border, 'primary'));
 const cFab = computed(() => resolve(form.role_fab, 'primary'));
 const cFabIcon = computed(() => resolve(form.role_fab_icon, 'tertiary'));
+
+// WCAG AA contrast guard for the card text/background pair — the most read
+// combination in the app. Warns when the chosen palette collapses below 4.5:1.
+const cardContrast = computed(() => contrastRatio(cCardText.value, cCardBg.value));
+const cardContrastFailsAA = computed(() => cardContrast.value < WCAG_AA_NORMAL);
+const cardContrastLabel = computed(() => cardContrast.value.toFixed(1));
 
 // Options for radio selectors
 const colorOptions = computed(() => [
@@ -1659,6 +1661,13 @@ function importStyle(e: Event) {
                                                         <span>{{ opt.label }}</span>
                                                     </button>
                                                 </div>
+                                                <p
+                                                    v-if="cardContrastFailsAA"
+                                                    role="alert"
+                                                    class="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-[11px] leading-snug text-amber-800 dark:text-amber-200"
+                                                >
+                                                    {{ t('event.contrastWarning', { ratio: cardContrastLabel }) }}
+                                                </p>
                                             </div>
                                             <!-- Button on cards -->
                                             <div class="grid gap-1.5">

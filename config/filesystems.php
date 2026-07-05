@@ -60,6 +60,22 @@ return [
             'report' => false,
         ],
 
+        // Cross-region backup bucket (Hetzner Object Storage, Helsinki `hel1`).
+        // Written to by `photos:backup-to-prefix --target=hel1`. Uses a separate
+        // access key that has PutObject/ListBucket on THIS bucket only — so a
+        // compromise of the primary AWS_ACCESS_KEY_ID does not leak the backup.
+        's3_backup' => [
+            'driver' => 's3',
+            'key' => env('AWS_BACKUP_ACCESS_KEY_ID'),
+            'secret' => env('AWS_BACKUP_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_BACKUP_DEFAULT_REGION', 'hel1'),
+            'bucket' => env('AWS_BACKUP_BUCKET'),
+            'endpoint' => env('AWS_BACKUP_ENDPOINT'),
+            'use_path_style_endpoint' => env('AWS_BACKUP_USE_PATH_STYLE_ENDPOINT', false),
+            'throw' => false,
+            'report' => false,
+        ],
+
     ],
 
     /*

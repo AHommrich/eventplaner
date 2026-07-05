@@ -58,7 +58,7 @@ Sorted from "technically interesting" to "UX polish". Each item links to the cen
 |---|---|
 | Backend | Laravel 12 (PHP 8.3) + Inertia.js + Sanctum |
 | Web frontend | Vue 3 + TypeScript + Tailwind CSS 4 + Reka UI |
-| Mobile | React Native (Expo) — separate repository |
+| Mobile | React Native (Expo) — [separate repository](https://github.com/AHommrich/eventplaner-app) |
 | Build | Vite 6 + `vite-plugin-pwa` |
 | Storage | Hetzner Object Storage (photos, Nürnberg) |
 | Mail | Resend |
@@ -82,6 +82,48 @@ docker exec laravel-app php artisan tinker
 ```
 
 Vite runs in its own container and serves assets over HMR.
+
+---
+
+## Deploy workflow
+
+Three long-lived branches, each auto-deployed by Coolify on push. Migrations run automatically.
+
+| Branch | Environment | Domain | Dockerfile |
+|---|---|---|---|
+| `develop` | local dev | — | `Dockerfile` (artisan serve, port 8080) |
+| `staging` | staging | `beta.hommrich.app` | `Dockerfile.prod` (nginx + php-fpm) |
+| `production` | live | `eveplan.de` | `Dockerfile.prod` (nginx + php-fpm) |
+
+`docker-compose.yml` is intentionally different per branch (different Dockerfile, different exposed ports). **Never let the develop version overwrite staging or production.** Every merge to `staging` or `production` resets that file to the target-branch version.
+
+### develop → staging
+
+```bash
+git checkout staging
+git merge --no-ff --no-commit develop
+git checkout HEAD -- docker-compose.yml   # keep the staging compose file
+git commit -m "Merge branch 'develop' into staging"
+git push origin staging
+git checkout develop
+```
+
+Coolify picks up the push, rebuilds and redeploys. Verify at `https://beta.hommrich.app` before promoting further.
+
+### staging → production
+
+Only promote once staging is green.
+
+```bash
+git checkout production
+git merge --no-ff --no-commit develop
+git checkout HEAD -- docker-compose.yml   # keep the production compose file
+git commit -m "Merge branch 'develop' into production"
+git push origin production
+git checkout develop
+```
+
+> ⚠️ **Never push staging and production at the same time.** The VPS has 4 GB RAM; two Coolify redeploys in parallel trigger the OOM killer (has taken down systemd + traefik once, ~30 min downtime, emergency reset via the Hetzner panel). Always sequentially: push `staging`, wait until `beta.hommrich.app` responds, then push `production`.
 
 ---
 
@@ -121,9 +163,7 @@ Test setup, coverage goals, and the strategy per layer are documented in `docs/S
 
 ## Companion app (React Native)
 
-The mobile app lives in a separate repository and shares only the HTTP API with the web app. It covers QR login, the photo gallery (including upload) and dynamic theming via `/api/event/info`. The app is feature-complete for actual wedding-day use; documentation and README for the mobile repo will get the same polish as this one.
-
-<!-- TODO: Link to the public mobile repo once it ships -->
+The mobile app lives at [**github.com/AHommrich/eventplaner-app**](https://github.com/AHommrich/eventplaner-app) and shares only the HTTP API with the web app. It covers QR login, the photo gallery (including upload) and dynamic theming via `/api/event/info`. The mobile repo went through its own portfolio refactor (see [`docs/REFACTOR_PLAN.md`](https://github.com/AHommrich/eventplaner-app/blob/main/docs/REFACTOR_PLAN.md) there) and is feature-complete for actual wedding-day use.
 
 ---
 
