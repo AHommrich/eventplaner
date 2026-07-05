@@ -290,6 +290,9 @@ Wenn Du alles durchziehst, landest Du bei **~2,5 Tagen** verteilter Arbeit — r
 
 ## Offene Follow-ups aus dieser Runde
 
+### heic2any → WASM-Decoder
+- `heic2any` benutzt `new Function(...)` in seinem Worker. Deshalb steht heute `'unsafe-eval'` in `worker-src` der CSP (`app/Http/Middleware/SecurityHeaders.php`). Der Scope ist auf Worker-Kontext begrenzt, aber es bleibt ein bewusster Sicherheits-Trade-off. Alternativen: `libheif-js` als reine WASM-Version, oder serverseitige HEIC-Konvertierung (Imagick kann das schon — clientseitige Konvertierung war eine Bandbreiten-Optimierung). **Aufwand:** ~2–4 h Recherche + Umbau des Cover-Upload-Flows in `resources/js/pages/Event/Settings.vue`.
+
 ### Welcome.vue a11y-Sweep
 - `tests/e2e/a11y.spec.ts` — der Test für `/` ist `test.fixme` (nicht red, aber sichtbar in Reports). Lokal `E2E_BASE_URL=http://localhost:8080 npx playwright test a11y --grep '/ passes'` fahren, den axe-Output lesen (die Konsole-Zeile mit den Violation-IDs), die 2–3 offensichtlichen Findings (vermutlich Kontrast im Hero + fehlende aria-labels auf Icon-Buttons) in `resources/js/pages/Welcome.vue` fixen. Danach `.fixme` in Line 44 des specs entfernen. **Aufwand:** ~1 h.
 
