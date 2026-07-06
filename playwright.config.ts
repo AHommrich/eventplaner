@@ -1,20 +1,23 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Playwright smoke suite.
+ * Playwright end-to-end suite.
  *
- * The tests intentionally cover a *thin* golden path — health, public legal
- * pages, and the auth error path — so they stay stable when UI details drift.
- * Deeper owner/guest flows are tracked as a follow-up in
- * docs/AUDIT_YELLOW_TO_GREEN.md.
+ * Scope: public smoke (login, imprint, privacy, health) + a11y + owner UI
+ * flows (guest CRUD, event settings) + guest API journey (QR-Auth, photo
+ * upload) + projector-with-photos rendering.
+ *
+ * Runs against the seeded E2eSetupSeeder fixture — an owner + event +
+ * guests + tokens. Never touches real user data.
  *
  * Local run:
  *   docker compose up -d
+ *   docker exec laravel-app php artisan db:seed --class=E2eSetupSeeder
  *   npx playwright install chromium  # first time only
  *   E2E_BASE_URL=http://localhost:8080 npx playwright test
  *
- * CI run: see .github/workflows/e2e.yml — starts `php artisan serve` on port
- * 8080 against a MariaDB service, then executes this config.
+ * CI run: see .github/workflows/e2e.yml — starts `php artisan serve` on
+ * port 8080 against a MariaDB service, runs the seeder, then this config.
  */
 
 const baseURL = process.env.E2E_BASE_URL ?? 'http://localhost:8080';

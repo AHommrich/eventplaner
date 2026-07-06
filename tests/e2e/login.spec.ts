@@ -1,12 +1,11 @@
 import { expect, test } from '@playwright/test';
+import { loginAsOwner } from './support/auth';
 
 /**
  * Auth smoke — the login screen renders, wrong credentials produce a visible
- * error, and (when the demo seeder has been run) valid credentials land on
- * the dashboard.
+ * error, and the seeded e2e owner can log in end-to-end.
  *
- * Uses only the built-in Laravel login endpoint — no direct DB access — so it
- * is safe to run against any environment where DemoDataSeeder has executed.
+ * Depends on E2eSetupSeeder having run (both locally and in CI).
  */
 
 test('login page renders the form', async ({ page }) => {
@@ -29,18 +28,6 @@ test('wrong password stays on the login page and shows an error', async ({ page 
     expect(body).toMatch(/credentials|passwort|password|anmelde/i);
 });
 
-test.describe('with the demo seeder', () => {
-    // Skip when the demo user is not present (env-gated so CI stays green
-    // even when the seeder hasn't been run yet).
-    test.skip(!process.env.E2E_DEMO_USER_READY, 'set E2E_DEMO_USER_READY=1 after `db:seed --class=DemoDataSeeder`');
-
-    test('demo credentials reach the dashboard', async ({ page }) => {
-        await page.goto('/login');
-        await page.locator('input[name="email"]').fill('demo@eveplan.app');
-        await page.locator('input[name="password"]').fill('demo-1234');
-        await page.locator('button[type="submit"]').click();
-
-        await page.waitForURL(/\/dashboard/);
-        await expect(page).toHaveURL(/\/dashboard/);
-    });
+test('seeded owner reaches the dashboard', async ({ page }) => {
+    await loginAsOwner(page);
 });

@@ -1,8 +1,9 @@
 name: e2e
 
-# Playwright smoke suite — runs Chromium against an ephemeral `php artisan serve`
-# instance backed by the MariaDB service. Deliberately narrow: public routes,
-# health, and the login error path. See tests/e2e/*.spec.ts for the scope.
+# Playwright e2e suite — runs Chromium against an ephemeral `php artisan serve`
+# instance backed by the MariaDB service. Seeds E2eSetupSeeder for owner + guest
+# fixtures. Covers public smoke, a11y, owner UI flows, guest API journey and
+# projector rendering. See tests/e2e/*.spec.ts for the full scope.
 
 on:
   push:
@@ -96,6 +97,19 @@ jobs:
           DB_USERNAME: laravel
           DB_PASSWORD: secret
         run: php artisan migrate --force
+
+      - name: Seed e2e fixtures
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: laravel_test
+          DB_USERNAME: laravel
+          DB_PASSWORD: secret
+        run: |
+          php artisan db:seed --class=Database\\Seeders\\DrinkCatalogSeeder --force
+          php artisan db:seed --class=Database\\Seeders\\E2eSetupSeeder --force
+          php artisan storage:link
 
       - name: Start Laravel server
         env:

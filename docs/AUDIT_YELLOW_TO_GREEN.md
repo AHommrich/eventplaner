@@ -314,9 +314,9 @@ Falls Du eine dieser Sachen doch mit reinnehmen willst, sag Bescheid — sie sin
 | Block | # | Titel | Ampel-Ziel | Aufwand | Status |
 |---|---:|---|---|---|---|
 | A | 1 | Coolify-Notifications | Betrieb | 10 min | offen |
-| A | 2 | Sentry-Test-Exception staging + prod | Betrieb | 10 min | offen |
-| A | 3 | `SESSION_ENCRYPT=true` | Security-Härtung | 10 min | offen |
-| A | 4 | `@sentry/vue` Web-Frontend | Betrieb | 45 min | **Code fertig, wartet auf DSN in Coolify** |
+| A | 2 | Sentry-Test-Exception staging + prod | Betrieb | 10 min | **erledigt (2026-07-06, `sentry:test` beide Envs sichtbar, korrekt getaggt)** |
+| A | 3 | `SESSION_ENCRYPT=true` | Security-Härtung | 10 min | **erledigt (staging + prod)** |
+| A | 4 | `@sentry/vue` Web-Frontend | Betrieb | 45 min | **erledigt (2026-07-06, Frontend + Backend beide Envs sauber getrennt via `VITE_SENTRY_ENVIRONMENT` + `SENTRY_ENVIRONMENT`)** |
 | B | 5 | Cross-Region-Backup (hel1) | Betrieb | ½ Tag | **Code + Tests + Doku fertig, Aktivierung bewusst zurückgestellt (Scheduler `when()`-gated)** |
 | C | 6 | Post-Deploy-Smoke-Test | Deployment | 1 h | **erledigt (post-deploy.yml)** |
 | C | 7 | Rollback-Prozedur konkretisieren | Deployment | 30 min | **erledigt (RUNBOOK §4.4)** |

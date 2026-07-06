@@ -48,3 +48,15 @@ it('switches the active event in session', function () {
 
     expect(session('active_event_id'))->toBe($other->id);
 });
+
+it('rejects switching to an event the user has no access to', function () {
+    $user = actingAsOwner();
+    $ownEventId = $user->ownedEvents()->first()->id;
+    $foreign = Event::factory()->create();
+
+    $this->post(route('events.switch'), ['event_id' => $foreign->id])
+        ->assertRedirect()
+        ->assertSessionHas('error');
+
+    expect(session('active_event_id'))->toBe($ownEventId);
+});
