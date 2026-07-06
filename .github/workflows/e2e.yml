@@ -31,15 +31,6 @@ jobs:
           --health-timeout=5s
           --health-retries=10
 
-      minio:
-        image: bitnami/minio:latest
-        env:
-          MINIO_ROOT_USER: minioadmin
-          MINIO_ROOT_PASSWORD: minioadmin
-          MINIO_DEFAULT_BUCKETS: eventplaner-e2e
-        ports:
-          - 9000:9000
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -47,10 +38,31 @@ jobs:
       - name: Install MariaDB client
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends mariadb-client
 
+      - name: Start MinIO (S3-compatible object storage)
+        run: |
+          curl -sSLo minio https://dl.min.io/server/minio/release/linux-amd64/minio
+          chmod +x minio
+          mkdir -p /tmp/minio-data
+          MINIO_ROOT_USER=minioadmin MINIO_ROOT_PASSWORD=minioadmin \
+            ./minio server /tmp/minio-data --address ":9000" > /tmp/minio.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:9000/minio/health/live > /dev/null 2>&1; then
+              echo "minio ready"
+              break
+            fi
+            sleep 1
+          done
+          curl -sSLo mc https://dl.min.io/client/mc/release/linux-amd64/mc
+          chmod +x mc
+          ./mc alias set local http://127.0.0.1:9000 minioadmin minioadmin
+          ./mc mb local/eventplaner-e2e
+          ./mc anonymous set download local/eventplaner-e2e
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.4
+          extensions: mbstring, xml, curl, pdo_mysql, gd, imagick, bcmath
           tools: composer:v2
 
       - name: Setup Node
