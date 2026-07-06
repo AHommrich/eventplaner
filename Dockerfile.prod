@@ -34,8 +34,10 @@ copy . .
 # Empty defaults are safe: if unset, Sentry-JS init falls through to a no-op.
 arg VITE_SENTRY_DSN=""
 arg VITE_SENTRY_TRACES_SAMPLE_RATE="0.05"
+arg VITE_SENTRY_ENVIRONMENT=""
 env VITE_SENTRY_DSN=$VITE_SENTRY_DSN
 env VITE_SENTRY_TRACES_SAMPLE_RATE=$VITE_SENTRY_TRACES_SAMPLE_RATE
+env VITE_SENTRY_ENVIRONMENT=$VITE_SENTRY_ENVIRONMENT
 
 # Frontend-Build (Vite/Inertia)
 run npm ci --prefer-offline --no-audit --no-fund && npm run build
