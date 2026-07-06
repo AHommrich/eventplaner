@@ -15,6 +15,25 @@ jobs:
   playwright:
     runs-on: ubuntu-latest
 
+    # These flow into every step's environment. Laravel's env() reads
+    # process-level vars before .env, so appending to .env would be
+    # unreliable (phpdotenv's immutable mode keeps the first-seen value).
+    env:
+      APP_ENV: testing
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: '3306'
+      DB_DATABASE: laravel_test
+      DB_USERNAME: laravel
+      DB_PASSWORD: secret
+      FILESYSTEM_DISK: s3
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_BUCKET: eventplaner-e2e
+      AWS_ENDPOINT: http://127.0.0.1:9000
+      AWS_USE_PATH_STYLE_ENDPOINT: 'true'
+
     services:
       mariadb:
         image: mariadb:11
@@ -89,22 +108,6 @@ jobs:
       - name: Prepare environment
         run: |
           cp .env.example .env
-          {
-            echo "APP_ENV=testing"
-            echo "DB_CONNECTION=mysql"
-            echo "DB_HOST=127.0.0.1"
-            echo "DB_PORT=3306"
-            echo "DB_DATABASE=laravel_test"
-            echo "DB_USERNAME=laravel"
-            echo "DB_PASSWORD=secret"
-            echo "FILESYSTEM_DISK=s3"
-            echo "AWS_ACCESS_KEY_ID=minioadmin"
-            echo "AWS_SECRET_ACCESS_KEY=minioadmin"
-            echo "AWS_DEFAULT_REGION=us-east-1"
-            echo "AWS_BUCKET=eventplaner-e2e"
-            echo "AWS_ENDPOINT=http://127.0.0.1:9000"
-            echo "AWS_USE_PATH_STYLE_ENDPOINT=true"
-          } >> .env
           php artisan key:generate
           php artisan ziggy:generate
 
@@ -112,13 +115,6 @@ jobs:
         run: npm run build
 
       - name: Run migrations
-        env:
-          DB_CONNECTION: mysql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_DATABASE: laravel_test
-          DB_USERNAME: laravel
-          DB_PASSWORD: secret
         run: php artisan migrate --force
 
       - name: Seed e2e fixtures
@@ -139,16 +135,8 @@ jobs:
           "
 
       - name: Start Laravel server
-        env:
-          DB_CONNECTION: mysql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_DATABASE: laravel_test
-          DB_USERNAME: laravel
-          DB_PASSWORD: secret
         run: |
-          php artisan serve --host=127.0.0.1 --port=8080 &
-          # Wait until /up responds. Give it up to 30s.
+          php artisan serve --host=127.0.0.1 --port=8080 > /tmp/laravel-serve.log 2>&1 &
           for i in {1..30}; do
             if curl -fsS http://127.0.0.1:8080/up > /dev/null 2>&1; then
               echo "server is up"
@@ -164,6 +152,16 @@ jobs:
           E2E_BASE_URL: http://127.0.0.1:8080
         run: npx playwright test
 
+      - name: Show Laravel serve log on failure
+        if: failure()
+        run: |
+          echo "=== /tmp/laravel-serve.log ==="
+          cat /tmp/laravel-serve.log || echo "(no log)"
+          echo "=== storage/logs/laravel.log ==="
+          find storage/logs -name '*.log' -exec sh -c 'echo "--- $1 ---"; cat "$1"' _ {} \; 2>/dev/null || echo "(no laravel.log)"
+          echo "=== /tmp/minio.log (tail) ==="
+          tail -n 100 /tmp/minio.log || echo "(no minio log)"
+
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -172,4 +170,6 @@ jobs:
           path: |
             playwright-report/
             test-results/
+            /tmp/laravel-serve.log
+            storage/logs/
           retention-days: 7

@@ -11,6 +11,9 @@ export async function loginAsOwner(page: Page): Promise<void> {
     await page.locator('input[type="password"]').fill(OWNER_PASSWORD);
     await page.locator('button[type="submit"]').click();
 
-    await page.waitForURL(/\/dashboard/);
+    // Inertia navigates via history.pushState — kein `load`-Event feuert,
+    // deshalb ist `commit` der richtige Wait-Modus (nur URL-Match, ohne
+    // auf einen Full-Page-Reload zu warten).
+    await page.waitForURL(/\/dashboard/, { waitUntil: 'commit' });
     await expect(page).toHaveURL(/\/dashboard/);
 }
