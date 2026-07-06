@@ -56,12 +56,17 @@ createInertiaApp({
         // (EU region, no PII, low trace sample). Init only when a DSN is
         // present so local dev + tests never phone home. See
         // docs/legal/sub-processors.md for the DPA reference.
+        //
+        // `environment` is read from an explicit VITE_SENTRY_ENVIRONMENT
+        // build-arg (`staging` / `production` — set per Coolify application)
+        // because import.meta.env.MODE is always "production" for any
+        // `npm run build`, regardless of which env we're deploying to.
         const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
         if (sentryDsn) {
             Sentry.init({
                 app: vue,
                 dsn: sentryDsn,
-                environment: import.meta.env.MODE,
+                environment: import.meta.env.VITE_SENTRY_ENVIRONMENT ?? import.meta.env.MODE,
                 tracesSampleRate: Number(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE ?? 0.05),
                 sendDefaultPii: false,
             });
