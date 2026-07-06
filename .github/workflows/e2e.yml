@@ -20,6 +20,11 @@ jobs:
     # unreliable (phpdotenv's immutable mode keeps the first-seen value).
     env:
       APP_ENV: testing
+      # Playwright uses 127.0.0.1 as baseURL. If APP_URL points at
+      # `localhost`, the session + CSRF cookies get scoped to that host
+      # and Chromium refuses to send them to 127.0.0.1 → every POST
+      # comes back as 419 Page Expired.
+      APP_URL: http://127.0.0.1:8080
       DB_CONNECTION: mysql
       DB_HOST: 127.0.0.1
       DB_PORT: '3306'

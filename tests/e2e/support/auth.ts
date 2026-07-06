@@ -24,7 +24,7 @@ export async function loginAsOwner(page: Page): Promise<void> {
 
     try {
         await page.waitForURL(/\/dashboard/, { waitUntil: 'commit', timeout: 15_000 });
-    } catch (e) {
+    } catch {
         const url = page.url();
         const bodyText = (await page.locator('body').innerText().catch(() => '(no body)')).slice(0, 400);
         const responseBody = (await loginResponse.text().catch(() => '(no body)')).slice(0, 400);
