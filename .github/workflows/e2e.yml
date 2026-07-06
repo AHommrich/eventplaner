@@ -31,6 +31,15 @@ jobs:
           --health-timeout=5s
           --health-retries=10
 
+      minio:
+        image: bitnami/minio:latest
+        env:
+          MINIO_ROOT_USER: minioadmin
+          MINIO_ROOT_PASSWORD: minioadmin
+          MINIO_DEFAULT_BUCKETS: eventplaner-e2e
+        ports:
+          - 9000:9000
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -66,22 +75,24 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Prepare environment
-        env:
-          DB_CONNECTION: mysql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_DATABASE: laravel_test
-          DB_USERNAME: laravel
-          DB_PASSWORD: secret
         run: |
           cp .env.example .env
-          echo "DB_CONNECTION=mysql"       >> .env
-          echo "DB_HOST=127.0.0.1"         >> .env
-          echo "DB_PORT=3306"              >> .env
-          echo "DB_DATABASE=laravel_test"  >> .env
-          echo "DB_USERNAME=laravel"       >> .env
-          echo "DB_PASSWORD=secret"        >> .env
-          echo "APP_ENV=testing"           >> .env
+          {
+            echo "APP_ENV=testing"
+            echo "DB_CONNECTION=mysql"
+            echo "DB_HOST=127.0.0.1"
+            echo "DB_PORT=3306"
+            echo "DB_DATABASE=laravel_test"
+            echo "DB_USERNAME=laravel"
+            echo "DB_PASSWORD=secret"
+            echo "FILESYSTEM_DISK=s3"
+            echo "AWS_ACCESS_KEY_ID=minioadmin"
+            echo "AWS_SECRET_ACCESS_KEY=minioadmin"
+            echo "AWS_DEFAULT_REGION=us-east-1"
+            echo "AWS_BUCKET=eventplaner-e2e"
+            echo "AWS_ENDPOINT=http://127.0.0.1:9000"
+            echo "AWS_USE_PATH_STYLE_ENDPOINT=true"
+          } >> .env
           php artisan key:generate
           php artisan ziggy:generate
 
@@ -99,17 +110,21 @@ jobs:
         run: php artisan migrate --force
 
       - name: Seed e2e fixtures
-        env:
-          DB_CONNECTION: mysql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_DATABASE: laravel_test
-          DB_USERNAME: laravel
-          DB_PASSWORD: secret
         run: |
-          php artisan db:seed --class=Database\\Seeders\\DrinkCatalogSeeder --force
-          php artisan db:seed --class=Database\\Seeders\\E2eSetupSeeder --force
+          php artisan db:seed --class=DrinkCatalogSeeder --force
+          php artisan db:seed --class=E2eSetupSeeder --force
           php artisan storage:link
+
+      - name: Verify seeded fixtures
+        run: |
+          php artisan tinker --execute="
+            \$u = App\Models\User::where('email', 'e2e@eveplan.test')->first();
+            if (! \$u) { fwrite(STDERR, 'E2E OWNER MISSING'); exit(1); }
+            fwrite(STDOUT, 'owner id=' . \$u->id . ' verified=' . (\$u->email_verified_at ? 'yes' : 'no') . PHP_EOL);
+            \$e = \$u->ownedEvents()->first();
+            if (! \$e) { fwrite(STDERR, 'E2E EVENT MISSING'); exit(1); }
+            fwrite(STDOUT, 'event id=' . \$e->id . ' projector_album_id=' . (\$e->projector_album_id ?? 'null') . PHP_EOL);
+          "
 
       - name: Start Laravel server
         env:
@@ -142,5 +157,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: playwright-report/
+          path: |
+            playwright-report/
+            test-results/
           retention-days: 7
