@@ -111,10 +111,12 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Prepare environment
-        run: |
-          cp .env.example .env
-          php artisan key:generate
-          php artisan ziggy:generate
+        # APP_ENV=testing → Laravel loads `.env.testing` only, not `.env`, so
+        # copying `.env.example` and generating an APP_KEY into `.env` was dead
+        # code (the APP_KEY actually used is the fixed one baked into
+        # `.env.testing`). `ziggy:generate` is real work — it produces the
+        # route manifest that `npm run build` bundles into the Vue frontend.
+        run: php artisan ziggy:generate
 
       - name: Build frontend assets
         run: npm run build
