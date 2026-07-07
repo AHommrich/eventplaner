@@ -1,8 +1,10 @@
 <?php
 
+use App\Mail\RevocationRequestMail;
 use App\Models\Event;
 use App\Models\Group;
 use App\Models\Guest;
+use Illuminate\Support\Facades\Mail;
 
 it('returns the current guest profile via /me', function () {
     $event = Event::factory()->create();
@@ -90,6 +92,8 @@ it('creates a revocation request when /revoke is called on declined', function (
         ->assertJsonPath('rsvp_status', 'revocation_requested');
 
     expect($guest->fresh()->rsvp_status)->toBe('revocation_requested');
+
+    Mail::assertQueued(RevocationRequestMail::class);
 });
 
 it('rejects revoke when guest has no rsvp yet', function () {

@@ -42,17 +42,17 @@ The application resource in Coolify needs the following settings. If you spin up
 - Effect: Coolify starts the new container, waits for the health check, then swaps traffic. If the new container never becomes healthy, the old container keeps serving.
 
 ### 2.3 Notifications
-Currently not configured. **Do this before you start relying on the app in production.**
+Discord webhook, active for both staging and production. Set up 2026-07-07.
 
-Recommended channel: Discord (personal server) or Telegram. Discord is easier to skim.
-
-- Coolify → **Notifications** → add a channel (Discord webhook URL, Telegram bot + chat id, or plain SMTP).
-- Enable at least these event types:
+- Coolify → **Notifications** → Discord webhook URL configured for the maintainer's private Discord server.
+- Enabled event types:
   - Deployment failed
-  - Deployment succeeded (optional — noisy but useful in the beginning)
+  - Deployment succeeded
   - Container status changed (healthy ↔ unhealthy)
   - Server disk usage above threshold
-- Test the channel once via the Coolify test-message button; do not go live blind.
+- If the webhook ever needs to be re-created, use the Coolify test-message button on the new channel before switching production over — a silent notification pipe is the worst kind of monitoring gap.
+
+**Sentry alert rule (Resend transport errors).** Sentry → project `eventplaner-laravel` → Alerts → create rule: "When the number of events matching `logger:mail` **or** `message:Resend*` exceeds **5 per hour**, notify the `#eventplaner-alerts` Discord webhook." Reasoning: Resend 429 / 5xx events reach Sentry via the queued Mailable's `failed()` chain (see §2.8); the alert flags a sustained outage instead of one-off transients.
 
 ### 2.4 Environment variables
 Coolify → application resource → **Environment Variables**. Compare against `.env.example`; anything missing needs to be added here (Coolify does not read a checked-in `.env` file). The list below is not exhaustive — it lists the ones that are easy to forget.
@@ -65,11 +65,14 @@ Coolify → application resource → **Environment Variables**. Compare against 
 - Object storage (Hetzner): `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION=nbg1`, `AWS_BUCKET`, `AWS_ENDPOINT`, `AWS_URL`, `AWS_USE_PATH_STYLE_ENDPOINT=false`.
 - Mail (Resend): `RESEND_API_KEY`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME`, `MAIL_MAILER=resend`.
 - OAuth: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`.
-- **Sentry (new, 2026-07-05):**
+- **Sentry:** active for Laravel backend + Vue web frontend, EU region (Frankfurt, `de.sentry.io`).
   - `SENTRY_LARAVEL_DSN=<the DSN from de.sentry.io>` — set on staging and production only.
   - `SENTRY_TRACES_SAMPLE_RATE=0.1` — keeps performance ingest inside the 10k free-tier budget.
   - `SENTRY_LOG_LEVEL=warning` — only warnings and above ship to Sentry (keeps error-event ingest well under 5k/month).
   - `LOG_STACK=daily,sentry_logs` — adds the Sentry log channel next to the existing daily file log.
+  - `VITE_SENTRY_DSN=<the DSN from the eventplaner-web project>` — must be set at *build time* (via Coolify build-args → `Dockerfile.prod` bakes it into the Vite bundle). Runtime env-vars do not reach the compiled JS.
+  - `VITE_SENTRY_ENVIRONMENT=staging` / `production` — set explicitly per environment so Sentry doesn't tag everything as `production` (Vite defaults `MODE=production` for every `npm run build`).
+- **Sessions:** `SESSION_ENCRYPT=true` on staging and production. Local dev may leave the default `false` in `.env.example`. Session payload (`active_event_id`, auth context, CSRF token) is stored in the DB; encryption prevents a DB leak from being an immediate session-hijack leak.
 - Retention overrides (optional): `RETENTION_INVITATION_TOKENS_DAYS`, `RETENTION_DECLINED_GUESTS_DAYS`.
 
 ### 2.5 Log retention
@@ -87,8 +90,25 @@ Laravel's scheduler is triggered by `routes/console.php`. For it to actually run
 Verify with `docker exec laravel-app php artisan schedule:list` — should list the retention + cleanup jobs from `routes/console.php`.
 
 ### 2.7 Resource limits (mind the 4 GB RAM incident)
-- App container: no hard memory limit set today. If the container starts leaking, the OOM killer will hit the whole VPS. Adding a memory limit (e.g. `deploy.resources.limits.memory: 1.5g` in the compose file) contains the blast radius. **TODO** — decide + measure.
+- App container: **Maximum Memory Limit = 1536 MB** set via Coolify → Application → Advanced → Resource Limits, on both staging and production. Contains the OOM blast radius to the container instead of the whole VPS. Verify after any redeploy with `docker stats laravel-app --no-stream` — the `MEM LIMIT` column must read `1.5 GiB`. If a future feature genuinely needs more memory, raise this deliberately rather than silently — the VPS still only has 4 GB total, so leaving room for MariaDB + Coolify + the second application matters.
 - Never trigger a redeploy on `staging` and `production` at the same time. See `CLAUDE.md` and `README.md` for the 2026-07-01 incident that established this rule.
+
+### 2.8 Mail queue worker
+
+Transactional mail runs on the queue (`QUEUE_CONNECTION=database`, `App\Mail\RevocationRequestMail implements ShouldQueue` — every future Mailable should do the same). Something needs to actually process that queue.
+
+- **Recommended:** Coolify → application resource → **Scheduled Tasks** → add a task
+  - Command: `php artisan queue:work --stop-when-empty --max-time=280 --tries=3 --backoff=60,300,900`
+  - Frequency: every 5 minutes (`*/5 * * * *`)
+  - Container: the application container
+
+  The worker drains the queue and exits when empty (or after ~4.5 min max), which fits Coolify's Scheduled Task model without needing a sidecar container. `--tries=3` + backoff mirror the Mailable defaults so failing sends give up gracefully. On a wedding-scale load (dozens of mails/day) a 5-min heartbeat is well below the human threshold anyone would notice.
+
+- **Alternative (higher volume):** a long-running `queue:work` process. Coolify does not model sidecar containers cleanly, so this is a follow-up if we ever outgrow the 5-min heartbeat.
+
+Verify the worker with `docker exec laravel-app php artisan queue:failed` — nothing should be in the failed table on a healthy system. `docker exec laravel-app php artisan queue:work --once` runs a single job manually if the queue backs up.
+
+Failed jobs land in the `failed_jobs` table and Sentry receives them via `report()`; see §2.3 for the Resend alert rule.
 
 ---
 
@@ -136,8 +156,9 @@ The stack is protected in three layers. Understand what each one covers *and wha
   docker exec laravel-app php artisan tinker --execute='foreach (Storage::disk("s3")->allFiles("snapshots/<date>/photos") as $k) { Storage::disk("s3")->copy($k, str_replace("snapshots/<date>/", "", $k)); }'
   ```
 
-### 3.2b Layer 2b — Cross-region backup to Helsinki (prepared, not yet active)
-- **Status:** the command `photos:backup-to-prefix --target=hel1` and the `s3_backup` filesystem disk exist in code. The scheduler entry in `routes/console.php` is gated with `->when(fn () => filled(env('AWS_BACKUP_BUCKET')))`, so it stays inert until Coolify env-vars are provided. Retention when active is `--keep=8` (≈ two months). No traffic is generated and no sub-processor location changes until you flip the switch below.
+### 3.2b Layer 2b — Cross-region backup to Helsinki (deferred pending budget)
+- **Status:** the command `photos:backup-to-prefix --target=hel1` and the `s3_backup` filesystem disk exist in code. The scheduler entry in `routes/console.php` is gated with `->when(fn () => filled(env('AWS_BACKUP_BUCKET')))`, so it stays inert until Coolify env-vars are provided. Retention when active is `--keep=8` (≈ two months). No traffic is generated and no sub-processor location changes until it is switched on.
+- **Why deferred:** at current data volumes (~2 GB) the marginal Hetzner cost for a second bucket + cross-region egress is out of proportion to the risk profile of a single-owner wedding site. Revisit when the platform hosts third-party events rather than just the maintainer's own wedding.
 - **What it does:** streams every object under `photos/` and `covers/` from the primary bucket in Nürnberg into the Helsinki backup bucket (`eveplan-photos-backup-hel1` at `hel1.your-objectstorage.com`), under `snapshots/YYYY-MM-DD/…`. Cross-region CopyObject is not available across separate S3 endpoints, so this uses a `readStream → writeStream` — a full byte transfer, billed as egress on Nürnberg and ingress-free on Helsinki. At current data volumes (~30 photos + a handful of covers, all in the low-MB range), this is well below Hetzner's included traffic quota.
 - **Threat model it covers (additionally to Layer 2):**
   - Primary bucket entirely deleted from the Hetzner panel — Helsinki survives.

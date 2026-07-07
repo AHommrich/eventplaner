@@ -1,6 +1,6 @@
 # Sub-Processor Register
 
-_Last reviewed: 2026-07-05 (Sentry EU coverage extended to Vue web frontend; Helsinki cross-region backup prepared in code, deployment deferred)_
+_Last reviewed: 2026-07-07. Sentry EU covers Laravel backend + Vue web frontend. Helsinki cross-region backup is prepared in code but deferred pending budget._
 
 This register lists every third party that processes personal data on behalf of eveplan. It is the authoritative source the user-facing privacy policy (`/datenschutz`) quotes from. **Any new sub-processor must be added here before the integration ships to production** — otherwise the published privacy policy becomes a lie.
 
@@ -17,7 +17,7 @@ GDPR Art. 28 requires a written data-processing agreement with each processor. A
 - **Customer number:** K0847634225
 - **Location of processing:** European Union — VPS in Falkenstein (Germany), primary Object Storage in Nürnberg (Germany, bucket `eveplan-photos-prod` at `nbg1.your-objectstorage.com`). Confirmed EU-only by §3 of the AVV. A Helsinki backup bucket is *prepared in code* (see `docs/RUNBOOK.md` §3.2b) but not yet provisioned — update this location entry to name Helsinki once `AWS_BACKUP_*` are set in Coolify.
 - **Data Processing Agreement:** Hetzner AVV v1.2, **signed 2026-06-30**. Covers all Hetzner services on the account, including Object Storage.
-  - Local filing: `~/Downloads/dpa-2026-06-30.pdf` (move to `~/legal/eventplaner/dpa-hetzner-2026-06-30.pdf`)
+  - Local filing: `~/legal/eventplaner/dpa-hetzner-2026-06-30.pdf` (EN) + `~/legal/eventplaner/dpa-hetzner-de-2026-06-30.pdf` (DE) + `~/legal/eventplaner/hetzner-tuev-audit-de-2026-06-30.pdf` (TÜV Art. 32 security audit annex).
 - **Authorised sub-sub-processors per Annex 3 of the AVV:** Hetzner Finland Oy (EU). The US (Hetzner US LLC, NTT, QTS) and Singapore (Hetzner SG, NTT SG1) entries do not apply because our services are in EU locations — Annex 3 footnote: *„Soweit Sie sich für einen Serverstandort in der EU entschieden haben, werden Ihre Serverdaten ausschließlich innerhalb der EU verarbeitet."*
 - **Provider privacy notice:** https://www.hetzner.com/de/legal/privacy-policy
 
@@ -28,7 +28,7 @@ GDPR Art. 28 requires a written data-processing agreement with each processor. A
 - **Location of processing:** Ireland (`eu-west-1`). Email content and metadata stay within the EU while the EU sending region is used. Corporate-level Resend infrastructure is in the US, but no user data crosses the Atlantic during normal sending. Fallback to US SCCs stays in the Resend DPA in case Resend ever routes fail-over traffic outside the EU.
 - **Data Processing Agreement:** Resend DPA, last updated 2025-12-31
   - Resend states that the DPA "becomes legally binding upon Customer entering into the Agreement" — no separate signature step required for Self-Serve customers.
-  - Local filing: `~/Downloads/Data Processing Addendum · Resend.pdf` (snapshot saved 2026-06-30) — move to `~/legal/eventplaner/dpa-resend-2026-06-30.pdf`
+  - Local filing: `~/legal/eventplaner/dpa-resend-2026-06-30.pdf` (snapshot saved 2026-06-30).
 - **Provider privacy notice / source of DPA:** https://resend.com/legal/dpa
 
 ### Google LLC (only for "Sign in with Google" users)
@@ -45,9 +45,9 @@ GDPR Art. 28 requires a written data-processing agreement with each processor. A
   - *Frontend:* Exception messages, JavaScript stack traces, current URL path, browser + OS strings that Sentry derives from the User-Agent, application environment name.
   - **No personally identifying data by default** — `send_default_pii` defaults to `false` on both the Laravel side (`config/sentry.php`) and the Vue side (`resources/js/app.ts`). This suppresses IP addresses, session cookies, authenticated-user context, and request headers. No browser session-replay is captured. Guest names, email addresses, and photo binaries never travel to Sentry.
 - **Location of processing:** European Union — Sentry EU region, Frankfurt (`de.sentry.io`, ingestion endpoint `o4511683645997056.ingest.de.sentry.io`). Region was chosen explicitly at account creation; Sentry does not permit region migration afterwards. Both projects sit in the same EU organisation.
-- **Data Processing Agreement:** Sentry Data Processing Addendum, self-serve, binding upon account creation. Covers all projects under the organisation.
+- **Data Processing Agreement:** Sentry Data Processing Addendum v5.1.0 (29 May 2024), self-serve, binding upon account creation. Covers all projects under the organisation.
   - Provider link: https://sentry.io/legal/dpa/
-  - Local filing target: `~/legal/eventplaner/dpa-sentry-2026-07-05.pdf` (snapshot to be downloaded).
+  - Local filing: `~/legal/eventplaner/dpa-sentry-2026-07-05.pdf` (browser-print snapshot of the DPA page, taken 2026-07-07).
 - **Free-tier limits enforced:** 5 000 error events/month, 10 000 trace spans/month, 30-day event retention — shared across both projects. `SENTRY_TRACES_SAMPLE_RATE=0.1` (backend) and `VITE_SENTRY_TRACES_SAMPLE_RATE=0.05` (frontend) keep ingest inside the tier.
 - **Provider privacy notice:** https://sentry.io/privacy/
 
@@ -89,12 +89,11 @@ If the integration involves cookies or local-storage entries beyond the strictly
 Where personal data can end up in logs (IP addresses in nginx access logs, request context in Laravel logs), we bound the retention window explicitly.
 
 - **Laravel application log.** `LOG_STACK=daily` + `LOG_DAILY_DAYS=14` (default in `.env.example`). One file per day under `storage/logs/laravel-YYYY-MM-DD.log`; Laravel deletes files older than 14 days on the next log write. `LOG_LEVEL=info` in production so the log doesn't grow with debug chatter.
-- **Nginx logs (inside the app container).** `access_log` on production still uses the compiled-in default location `/var/log/nginx/access.log`. The container is recreated on every Coolify deploy (weekly or more often), which resets the file — effective retention is bounded by the deploy cadence rather than a rotation window. **Follow-up**: switch to `access_log off;` in `Dockerfile.prod`, since we do not use access logs for analytics and the upstream Coolify proxy already keeps its own request log.
+- **Nginx logs (inside the app container).** `access_log off;` is set at the server-block level in `Dockerfile.prod`, so nginx does not collect any client-IP records for dashboard, login, API or projector requests. The Coolify upstream reverse proxy in front of the app already keeps its own request log for operational purposes, so this is not a monitoring gap. Data-minimisation choice (GDPR Art. 5(1)(c)): removes duplicate PII collection with no distinct purpose.
 - **Hetzner-side system logs.** Hetzner has hypervisor-level visibility (VM boot, network abuse reports) but no direct access to the guest filesystem. Their retention is governed by §4 + §7 of the Hetzner AVV (limited-purpose processing, deletion after contract termination). No customer-side action available.
 - **Coolify proxy logs.** Coolify runs its own reverse proxy in front of the app container. Its access-log retention is controlled by the Coolify installation config, not by this application. Documented here so we remember it exists.
 
 ## Known gaps (tracked for follow-up)
 
-- **Nginx access log off-switch.** Documented under "Log retention" above — flip `access_log off;` in `Dockerfile.prod` on the next deploy touch to make the reset-on-deploy behaviour a proper policy rather than an accidental one.
-- **Cross-region photo backup.** In-bucket weekly snapshot to `snapshots/YYYY-MM-DD/` (`docs/RUNBOOK.md` §3.2) is in place and protects against accidental deletion. A Helsinki cross-region backup is *prepared in code* (`photos:backup-to-prefix --target=hel1`, `s3_backup` filesystem disk, scheduler `when()`-gated on `AWS_BACKUP_BUCKET`) but the target bucket has not been provisioned — activation requires: (1) Hetzner bucket in `hel1`, (2) separate access-key with rights on that bucket only, (3) `AWS_BACKUP_*` env vars set in Coolify. When activated, this register's location line and Privacy §5 must be updated in the same commit.
+- **Cross-region photo backup — deferred pending budget.** The in-bucket weekly snapshot to `snapshots/YYYY-MM-DD/` (`docs/RUNBOOK.md` §3.2) is in place and protects against accidental deletion. A Helsinki cross-region backup is *prepared in code* (`photos:backup-to-prefix --target=hel1`, `s3_backup` filesystem disk, scheduler `when()`-gated on `AWS_BACKUP_BUCKET`) but the target bucket has not been provisioned. Activation is a conscious cost-vs-value decision: at current data volumes (~2 GB) it would add a small monthly bucket + egress fee for a single-owner wedding site. Revisit when the platform hosts third-party events (not just the maintainer's own wedding). When activated, this register's location line and Privacy §5 must be updated in the same commit.
 - **Bucket-level versioning / object-lock** on the primary bucket. Long-term follow-up. Blocked on Hetzner Object Storage feature availability.

@@ -2,6 +2,7 @@
 
 [![Tests](https://github.com/AHommrich/eventplaner/actions/workflows/tests.yml/badge.svg?branch=develop)](https://github.com/AHommrich/eventplaner/actions/workflows/tests.yml)
 [![Lint](https://github.com/AHommrich/eventplaner/actions/workflows/lint.yml/badge.svg?branch=develop)](https://github.com/AHommrich/eventplaner/actions/workflows/lint.yml)
+[![E2E](https://github.com/AHommrich/eventplaner/actions/workflows/e2e.yml/badge.svg?branch=develop)](https://github.com/AHommrich/eventplaner/actions/workflows/e2e.yml)
 [![License](https://img.shields.io/badge/License-All%20Rights%20Reserved-red.svg)](LICENSE)
 
 Hochzeits- und Eventplaner als Progressive Web App mit React-Native-Companion: Gäste-, RSVP- und Foto-Verwaltung, Trinkspiel, Fotospiel und eine Token-geschützte Projektor-Diashow für die Feier.
@@ -97,12 +98,25 @@ Drei langlebige Branches, die von Coolify beim Push automatisch deployt werden. 
 
 `docker-compose.yml` ist bewusst branch-spezifisch (unterschiedliches Dockerfile, unterschiedliche exposed Ports). **Nie darf die develop-Version staging oder production überschreiben.** Jeder Merge nach `staging` oder `production` setzt diese Datei auf die Version des Ziel-Branches zurück.
 
+Drei Safety-Nets stützen das ab:
+
+- **Immer lokal mergen, nie über die GitHub-UI.** Ein Server-Side-Merge auf github.com ignoriert den `.gitattributes merge=ours`-Treiber *und* hat keinen Richtungs-Guard — der „Create pull request"-Button auf dem falschen Branch hat auf `develop` schon einmal die dev-Compose durch die Prod-Version überschrieben (PR #4). Alle Promotions laufen über die Terminal-Snippets unten.
+- **`merge=ours`-Treiber** — `.gitattributes` markiert `docker-compose.yml` (und `Dockerfile`) als `merge=ours`, sodass git bei jedem *lokalen* Merge die Version des Ziel-Branches behält, statt einen Three-Way-Merge zu versuchen. Einmalig pro Clone aktivieren:
+
+  ```bash
+  git config --local merge.ours.driver true
+  ```
+
+- **CI-Guard** — `.github/workflows/compose-guard.yml` läuft bei jedem Push auf `staging` und `production` und lässt den Build failen, wenn die Compose-Datei auf das dev-Dockerfile oder `artisan serve` verweist. Falls ein manueller Merge doch die falsche Datei durchlässt, fängt das den Fehler ab, bevor Coolify redeployt.
+
 ### develop → staging
 
 ```bash
 git checkout staging
+git pull --ff-only origin staging          # abbrechen falls jemand anderes gepusht hat
 git merge --no-ff --no-commit develop
-git checkout HEAD -- docker-compose.yml   # staging-Compose-Datei behalten
+git checkout HEAD -- docker-compose.yml    # staging-Compose-Datei behalten
+grep -q 'Dockerfile.prod' docker-compose.yml || { echo "compose drift"; exit 1; }
 git commit -m "Merge branch 'develop' into staging"
 git push origin staging
 git checkout develop
@@ -110,14 +124,16 @@ git checkout develop
 
 Coolify erkennt den Push, rebuildet und redeployt. Vor dem Weiterreichen gegenprüfen unter `https://beta.hommrich.app`.
 
-### staging → production
+### develop → production
 
 Erst promoten, wenn Staging grün ist.
 
 ```bash
 git checkout production
+git pull --ff-only origin production       # abbrechen falls jemand anderes gepusht hat
 git merge --no-ff --no-commit develop
-git checkout HEAD -- docker-compose.yml   # production-Compose-Datei behalten
+git checkout HEAD -- docker-compose.yml    # production-Compose-Datei behalten
+grep -q 'Dockerfile.prod' docker-compose.yml || { echo "compose drift"; exit 1; }
 git commit -m "Merge branch 'develop' into production"
 git push origin production
 git checkout develop

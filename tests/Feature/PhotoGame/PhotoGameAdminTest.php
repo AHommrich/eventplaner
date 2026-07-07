@@ -1,7 +1,9 @@
 <?php
 
+use App\Models\Event;
 use App\Models\EventPhotoGame;
 use App\Models\EventTaskOverride;
+use App\Models\Guest;
 use App\Models\Photo;
 use App\Models\PhotoAlbum;
 use App\Models\PhotoGameAssignment;
@@ -88,6 +90,42 @@ it('deletes a task override', function () {
     expect(EventTaskOverride::find($override->id))->toBeNull();
 });
 
+it('rejects destroy for an override from another event', function () {
+    actingAsOwner();
+    $foreignEvent = Event::factory()->create();
+    $foreignOverride = EventTaskOverride::create([
+        'event_id' => $foreignEvent->id,
+        'task_id' => null,
+        'action' => 'added',
+        'custom_text' => 'Fremd',
+    ]);
+
+    $this->delete(route('photo-game.overrides.destroy', $foreignOverride))
+        ->assertStatus(403);
+
+    expect(EventTaskOverride::find($foreignOverride->id))->not->toBeNull();
+});
+
+it('rejects destroy for an assignment from another event', function () {
+    Storage::fake('s3');
+    actingAsOwner();
+    $foreignEvent = Event::factory()->create();
+    $foreignGame = EventPhotoGame::create(['event_id' => $foreignEvent->id, 'status' => 'active']);
+    $foreignGuest = Guest::factory()->create(['event_id' => $foreignEvent->id]);
+    $catalog = PhotoGameTaskCatalog::create(['event_id' => null, 'name' => 'Base', 'is_base' => true, 'is_active' => true]);
+    $task = PhotoGameTask::create(['catalog_id' => $catalog->id, 'description' => 'X', 'is_active' => true]);
+    $foreignAssignment = PhotoGameAssignment::create([
+        'game_id' => $foreignGame->id,
+        'guest_id' => $foreignGuest->id,
+        'task_id' => $task->id,
+    ]);
+
+    $this->delete(route('photo-game.assignments.destroy', $foreignAssignment))
+        ->assertStatus(403);
+
+    expect(PhotoGameAssignment::find($foreignAssignment->id))->not->toBeNull();
+});
+
 it('deletes an assignment and removes its photo from object storage', function () {
     Storage::fake('s3');
     $user = actingAsOwner();
@@ -96,7 +134,7 @@ it('deletes an assignment and removes its photo from object storage', function (
     $game = EventPhotoGame::create(['event_id' => $event->id, 'status' => 'active']);
     $catalog = PhotoGameTaskCatalog::create(['event_id' => null, 'name' => 'Base', 'is_base' => true, 'is_active' => true]);
     $task = PhotoGameTask::create(['catalog_id' => $catalog->id, 'description' => 'X', 'is_active' => true]);
-    $guest = \App\Models\Guest::factory()->create(['event_id' => $event->id]);
+    $guest = Guest::factory()->create(['event_id' => $event->id]);
 
     Storage::disk('s3')->put('photos/task.jpg', 'fake');
     $photo = Photo::create([

@@ -1,8 +1,9 @@
 name: e2e
 
-# Playwright smoke suite — runs Chromium against an ephemeral `php artisan serve`
-# instance backed by the MariaDB service. Deliberately narrow: public routes,
-# health, and the login error path. See tests/e2e/*.spec.ts for the scope.
+# Playwright e2e suite — runs Chromium against an ephemeral `php artisan serve`
+# instance backed by the MariaDB service. Seeds E2eSetupSeeder for owner + guest
+# fixtures. Covers public smoke, a11y, owner UI flows, guest API journey and
+# projector rendering. See tests/e2e/*.spec.ts for the full scope.
 
 on:
   push:
@@ -13,6 +14,30 @@ on:
 jobs:
   playwright:
     runs-on: ubuntu-latest
+
+    # These flow into every step's environment. Laravel's env() reads
+    # process-level vars before .env, so appending to .env would be
+    # unreliable (phpdotenv's immutable mode keeps the first-seen value).
+    env:
+      APP_ENV: testing
+      # Playwright uses 127.0.0.1 as baseURL. If APP_URL points at
+      # `localhost`, the session + CSRF cookies get scoped to that host
+      # and Chromium refuses to send them to 127.0.0.1 → every POST
+      # comes back as 419 Page Expired.
+      APP_URL: http://127.0.0.1:8080
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: '3306'
+      DB_DATABASE: laravel_test
+      DB_USERNAME: laravel
+      DB_PASSWORD: secret
+      FILESYSTEM_DISK: s3
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_BUCKET: eventplaner-e2e
+      AWS_ENDPOINT: http://127.0.0.1:9000
+      AWS_USE_PATH_STYLE_ENDPOINT: 'true'
 
     services:
       mariadb:
@@ -37,10 +62,31 @@ jobs:
       - name: Install MariaDB client
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends mariadb-client
 
+      - name: Start MinIO (S3-compatible object storage)
+        run: |
+          curl -sSLo minio https://dl.min.io/server/minio/release/linux-amd64/minio
+          chmod +x minio
+          mkdir -p /tmp/minio-data
+          MINIO_ROOT_USER=minioadmin MINIO_ROOT_PASSWORD=minioadmin \
+            ./minio server /tmp/minio-data --address ":9000" > /tmp/minio.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:9000/minio/health/live > /dev/null 2>&1; then
+              echo "minio ready"
+              break
+            fi
+            sleep 1
+          done
+          curl -sSLo mc https://dl.min.io/client/mc/release/linux-amd64/mc
+          chmod +x mc
+          ./mc alias set local http://127.0.0.1:9000 minioadmin minioadmin
+          ./mc mb local/eventplaner-e2e
+          ./mc anonymous set download local/eventplaner-e2e
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.4
+          extensions: mbstring, xml, curl, pdo_mysql, gd, imagick, bcmath
           tools: composer:v2
 
       - name: Setup Node
@@ -65,49 +111,39 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Prepare environment
-        env:
-          DB_CONNECTION: mysql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_DATABASE: laravel_test
-          DB_USERNAME: laravel
-          DB_PASSWORD: secret
-        run: |
-          cp .env.example .env
-          echo "DB_CONNECTION=mysql"       >> .env
-          echo "DB_HOST=127.0.0.1"         >> .env
-          echo "DB_PORT=3306"              >> .env
-          echo "DB_DATABASE=laravel_test"  >> .env
-          echo "DB_USERNAME=laravel"       >> .env
-          echo "DB_PASSWORD=secret"        >> .env
-          echo "APP_ENV=testing"           >> .env
-          php artisan key:generate
-          php artisan ziggy:generate
+        # APP_ENV=testing → Laravel loads `.env.testing` only, not `.env`, so
+        # copying `.env.example` and generating an APP_KEY into `.env` was dead
+        # code (the APP_KEY actually used is the fixed one baked into
+        # `.env.testing`). `ziggy:generate` is real work — it produces the
+        # route manifest that `npm run build` bundles into the Vue frontend.
+        run: php artisan ziggy:generate
 
       - name: Build frontend assets
         run: npm run build
 
       - name: Run migrations
-        env:
-          DB_CONNECTION: mysql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_DATABASE: laravel_test
-          DB_USERNAME: laravel
-          DB_PASSWORD: secret
         run: php artisan migrate --force
 
-      - name: Start Laravel server
-        env:
-          DB_CONNECTION: mysql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_DATABASE: laravel_test
-          DB_USERNAME: laravel
-          DB_PASSWORD: secret
+      - name: Seed e2e fixtures
         run: |
-          php artisan serve --host=127.0.0.1 --port=8080 &
-          # Wait until /up responds. Give it up to 30s.
+          php artisan db:seed --class=DrinkCatalogSeeder --force
+          php artisan db:seed --class=E2eSetupSeeder --force
+          php artisan storage:link
+
+      - name: Verify seeded fixtures
+        run: |
+          php artisan tinker --execute="
+            \$u = App\Models\User::where('email', 'e2e@eveplan.test')->first();
+            if (! \$u) { fwrite(STDERR, 'E2E OWNER MISSING'); exit(1); }
+            fwrite(STDOUT, 'owner id=' . \$u->id . ' verified=' . (\$u->email_verified_at ? 'yes' : 'no') . PHP_EOL);
+            \$e = \$u->ownedEvents()->first();
+            if (! \$e) { fwrite(STDERR, 'E2E EVENT MISSING'); exit(1); }
+            fwrite(STDOUT, 'event id=' . \$e->id . ' projector_album_id=' . (\$e->projector_album_id ?? 'null') . PHP_EOL);
+          "
+
+      - name: Start Laravel server
+        run: |
+          php artisan serve --host=127.0.0.1 --port=8080 > /tmp/laravel-serve.log 2>&1 &
           for i in {1..30}; do
             if curl -fsS http://127.0.0.1:8080/up > /dev/null 2>&1; then
               echo "server is up"
@@ -123,10 +159,24 @@ jobs:
           E2E_BASE_URL: http://127.0.0.1:8080
         run: npx playwright test
 
+      - name: Show Laravel serve log on failure
+        if: failure()
+        run: |
+          echo "=== /tmp/laravel-serve.log ==="
+          cat /tmp/laravel-serve.log || echo "(no log)"
+          echo "=== storage/logs/laravel.log ==="
+          find storage/logs -name '*.log' -exec sh -c 'echo "--- $1 ---"; cat "$1"' _ {} \; 2>/dev/null || echo "(no laravel.log)"
+          echo "=== /tmp/minio.log (tail) ==="
+          tail -n 100 /tmp/minio.log || echo "(no minio log)"
+
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: playwright-report/
+          path: |
+            playwright-report/
+            test-results/
+            /tmp/laravel-serve.log
+            storage/logs/
           retention-days: 7

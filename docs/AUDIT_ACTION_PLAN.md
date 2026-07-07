@@ -97,7 +97,7 @@ hochzeits_einladung.json
 
 ---
 
-### [~] 6. Sentry-Setup abschließen (in Umsetzung, 2026-07-05)
+### [x] 6. Sentry-Setup abschließen (erledigt 2026-07-05, verifiziert 2026-07-07)
 **Warum:** Application-Error-Sichtbarkeit — Coolify sieht Container-Health, aber keine 500er im Detail. Sentry EU-Region (Frankfurt, `de.sentry.io`) ist bereits angelegt, Free Tier reicht für dieses Projekt satt.
 
 **Wichtig — nicht der Standard-Anleitung 1:1 folgen. Diese Projekt-spezifischen Anpassungen zwingend beachten:**
@@ -277,8 +277,8 @@ Fehlt aktuell: `SANCTUM_STATEFUL_DOMAINS`, `MAIL_FROM_ADDRESS` (Resend-Setup), `
 ### [ ] 19. PHP-Version konsistent machen
 `composer.json: ^8.2`, CI: `8.4`, `Dockerfile.prod: 8.3`, `CLAUDE.md: 8.3`. Einheitlich auf 8.3 oder 8.4.
 
-### [ ] 20. Sentry für das Frontend (Vue) einbinden
-Aktuell nur Backend-Errors sichtbar. JS-Errors im Web-Client (und ggf. im RN-Repo) bleiben unsichtbar. `@sentry/vue` mit derselben Organization anhängen — separater DSN. Vor Aktivierung: Sub-Processor-Eintrag prüfen (deckt eine Sentry-Org mehrere Projekte ab, wird nur ein Register-Eintrag).
+### [x] 20. Sentry für das Frontend (Vue) einbinden (erledigt 2026-07-05, Commit `efbfdbf`)
+`@sentry/vue` in `resources/js/app.ts` initialisiert. Separater Projekt-DSN in derselben Sentry-Organization (EU-Region Frankfurt); `VITE_SENTRY_DSN` + `VITE_SENTRY_ENVIRONMENT` als Build-Args in `Dockerfile.prod`, gesetzt via Coolify pro Environment. Sub-Processor-Register bleibt ein Eintrag (Purpose um „Vue web frontend" ergänzt). RN-App bleibt bewusst außen vor, gehört ins separate Mobile-Repo.
 
 ---
 
@@ -309,8 +309,8 @@ Aktuell nur Backend-Errors sichtbar. JS-Errors im Web-Client (und ggf. im RN-Rep
 | 3 | Guest-Token-Expiry | Muss | offen |
 | 4 | Backup + Restore | Muss | offen |
 | 5 | Root-Aufräumen | Muss | offen |
-| 6 | Sentry-Setup Backend | Muss | **in Arbeit (2026-07-05)** |
-| 7 | Coolify-Notifications + Health-Check-Config | Muss | offen |
+| 6 | Sentry-Setup Backend | Muss | **erledigt (2026-07-05)** |
+| 7 | Coolify-Notifications + Health-Check-Config | Muss | **erledigt (2026-07-07, Discord staging + prod)** |
 | 8 | E2E-Smoke (Playwright) | Sollte | offen |
 | 9 | API-Pagination | Sollte | offen |
 | 10 | Inertia-Share verschlanken | Sollte | offen |
@@ -325,7 +325,7 @@ Aktuell nur Backend-Errors sichtbar. JS-Errors im Web-Client (und ggf. im RN-Rep
 | 19 | `ExampleTest.php` löschen | Kann | offen |
 | 20 | `.env.example` vervollständigen | Kann | offen |
 | 21 | PHP-Version konsistent | Kann | offen |
-| 22 | Sentry Frontend (Vue) | Kann | offen |
+| 22 | Sentry Frontend (Vue) | Kann | **erledigt (2026-07-05, Commit `efbfdbf`)** |
 | — | Monitoring-Tool-Wahl | Follow-up | **entschieden: Coolify + Sentry Free EU** |
 
 Beim Abarbeiten pro Punkt: Status auf „in Arbeit" / „erledigt (Commit-SHA)" setzen, damit die Historie im Doc bleibt.

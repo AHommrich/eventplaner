@@ -1,0 +1,17 @@
+name: compose-guard
+
+on:
+  push:
+    branches: [staging, production]
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure prod compose does not reference dev Dockerfile
+        run: |
+          if grep -qE '(artisan serve|dockerfile:\s*Dockerfile$)' docker-compose.yml; then
+            echo "FATAL: docker-compose.yml points at dev Dockerfile" >&2
+            exit 1
+          fi
