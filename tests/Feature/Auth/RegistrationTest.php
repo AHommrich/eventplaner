@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\User;
+use Illuminate\Contracts\Notifications\Dispatcher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -66,6 +68,20 @@ class RegistrationTest extends TestCase
             'password_confirmation' => 'password',
             'privacy_accepted' => true,
         ])->assertStatus(429);
+    }
+
+    public function test_resend_verification_swallows_transport_errors()
+    {
+        $user = User::factory()->create(['email_verified_at' => null]);
+
+        $this->mock(Dispatcher::class, function ($mock) {
+            $mock->shouldReceive('send')->andThrow(new \RuntimeException('mail transport down'));
+        });
+
+        $response = $this->actingAs($user)->post(route('verification.send'));
+
+        $response->assertRedirect();
+        $response->assertSessionHas('status', 'verification-link-mail-error');
     }
 
     public function test_registration_is_blocked_without_privacy_consent()

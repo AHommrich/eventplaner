@@ -23,6 +23,10 @@ const submit = () => {
             {{ t('auth.verificationSent') }}
         </div>
 
+        <div v-else-if="status === 'verification-link-mail-error'" class="mb-4 text-center text-sm font-medium text-red-600">
+            {{ t('auth.verificationSendError') }}
+        </div>
+
         <form @submit.prevent="submit" class="space-y-6 text-center">
             <Button :disabled="form.processing" variant="secondary">
                 <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />

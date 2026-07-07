@@ -87,6 +87,9 @@ const submit = () => {
                         <div v-if="status === 'verification-link-sent'" class="mt-2 text-sm font-medium text-green-600">
                             {{ t('settings.verificationSent') }}
                         </div>
+                        <div v-else-if="status === 'verification-link-mail-error'" class="mt-2 text-sm font-medium text-red-600">
+                            {{ t('settings.verificationSendError') }}
+                        </div>
                     </div>
 
                     <div class="flex items-center gap-4">

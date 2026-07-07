@@ -52,6 +52,8 @@ Discord webhook, active for both staging and production. Set up 2026-07-07.
   - Server disk usage above threshold
 - If the webhook ever needs to be re-created, use the Coolify test-message button on the new channel before switching production over — a silent notification pipe is the worst kind of monitoring gap.
 
+**Sentry alert rule (Resend transport errors).** Sentry → project `eventplaner-laravel` → Alerts → create rule: "When the number of events matching `logger:mail` **or** `message:Resend*` exceeds **5 per hour**, notify the `#eventplaner-alerts` Discord webhook." Reasoning: Resend 429 / 5xx events reach Sentry via the queued Mailable's `failed()` chain (see §2.8); the alert flags a sustained outage instead of one-off transients.
+
 ### 2.4 Environment variables
 Coolify → application resource → **Environment Variables**. Compare against `.env.example`; anything missing needs to be added here (Coolify does not read a checked-in `.env` file). The list below is not exhaustive — it lists the ones that are easy to forget.
 
@@ -90,6 +92,23 @@ Verify with `docker exec laravel-app php artisan schedule:list` — should list 
 ### 2.7 Resource limits (mind the 4 GB RAM incident)
 - App container: **Maximum Memory Limit = 1536 MB** set via Coolify → Application → Advanced → Resource Limits, on both staging and production. Contains the OOM blast radius to the container instead of the whole VPS. Verify after any redeploy with `docker stats laravel-app --no-stream` — the `MEM LIMIT` column must read `1.5 GiB`. If a future feature genuinely needs more memory, raise this deliberately rather than silently — the VPS still only has 4 GB total, so leaving room for MariaDB + Coolify + the second application matters.
 - Never trigger a redeploy on `staging` and `production` at the same time. See `CLAUDE.md` and `README.md` for the 2026-07-01 incident that established this rule.
+
+### 2.8 Mail queue worker
+
+Transactional mail runs on the queue (`QUEUE_CONNECTION=database`, `App\Mail\RevocationRequestMail implements ShouldQueue` — every future Mailable should do the same). Something needs to actually process that queue.
+
+- **Recommended:** Coolify → application resource → **Scheduled Tasks** → add a task
+  - Command: `php artisan queue:work --stop-when-empty --max-time=280 --tries=3 --backoff=60,300,900`
+  - Frequency: every 5 minutes (`*/5 * * * *`)
+  - Container: the application container
+
+  The worker drains the queue and exits when empty (or after ~4.5 min max), which fits Coolify's Scheduled Task model without needing a sidecar container. `--tries=3` + backoff mirror the Mailable defaults so failing sends give up gracefully. On a wedding-scale load (dozens of mails/day) a 5-min heartbeat is well below the human threshold anyone would notice.
+
+- **Alternative (higher volume):** a long-running `queue:work` process. Coolify does not model sidecar containers cleanly, so this is a follow-up if we ever outgrow the 5-min heartbeat.
+
+Verify the worker with `docker exec laravel-app php artisan queue:failed` — nothing should be in the failed table on a healthy system. `docker exec laravel-app php artisan queue:work --once` runs a single job manually if the queue backs up.
+
+Failed jobs land in the `failed_jobs` table and Sentry receives them via `report()`; see §2.3 for the Resend alert rule.
 
 ---
 
