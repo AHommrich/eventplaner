@@ -46,6 +46,28 @@ class RegistrationTest extends TestCase
         $this->assertNotNull($user->privacy_accepted_at);
     }
 
+    public function test_register_route_is_rate_limited()
+    {
+        for ($i = 0; $i < 5; $i++) {
+            $this->post('/register', [
+                'name' => "User $i",
+                'email' => "u$i@example.com",
+                'password' => 'password',
+                'password_confirmation' => 'password',
+                'privacy_accepted' => true,
+            ]);
+            \Illuminate\Support\Facades\Auth::logout();
+        }
+
+        $this->post('/register', [
+            'name' => 'Overflow',
+            'email' => 'overflow@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'privacy_accepted' => true,
+        ])->assertStatus(429);
+    }
+
     public function test_registration_is_blocked_without_privacy_consent()
     {
         $response = $this->from('/register')->post('/register', [
