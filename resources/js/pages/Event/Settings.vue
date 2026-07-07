@@ -3,6 +3,7 @@ import PhonePreviewHome from '@/components/EventSettings/PhonePreview/Home.vue';
 import PhonePreviewPhotos from '@/components/EventSettings/PhonePreview/Photos.vue';
 import PhonePreviewRsvp from '@/components/EventSettings/PhonePreview/Rsvp.vue';
 import PhonePreviewSettings from '@/components/EventSettings/PhonePreview/Settings.vue';
+import VenueEditor from '@/components/EventSettings/VenueEditor.vue';
 import InfoTooltip from '@/components/InfoTooltip.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,18 +17,9 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import heic2any from 'heic2any';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
-
-// Leaflet default icon fix for Vite
-import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
-import iconUrl from 'leaflet/dist/images/marker-icon.png';
-import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({ iconUrl, iconRetinaUrl, shadowUrl });
 
 interface EventData {
     id: number;
@@ -136,25 +128,7 @@ const form = useForm({
 const skipGuard = ref(false);
 const isDirty = computed(() => form.isDirty);
 
-// Field-level dirty detection for address section
-const savedAddress = reactive<Record<string, string>>({
-    venue_name: props.event.venue_name ?? '',
-    venue_street: props.event.venue_street ?? '',
-    venue_house_number: props.event.venue_house_number ?? '',
-    venue_postal_code: props.event.venue_postal_code ?? '',
-    venue_city: props.event.venue_city ?? '',
-    venue_state: props.event.venue_state ?? '',
-    venue_country: props.event.venue_country ?? 'Deutschland',
-});
-type AddressField = keyof typeof savedAddress;
-const formAny = form as unknown as Record<string, string | null>;
-function isFieldDirty(field: AddressField): boolean {
-    return (formAny[field] ?? '') !== savedAddress[field];
-}
-function resetField(field: AddressField) {
-    formAny[field] = savedAddress[field];
-    if (field === 'venue_country') countryQuery.value = savedAddress.venue_country;
-}
+const venueEditor = ref<InstanceType<typeof VenueEditor> | null>(null);
 
 // Hint system
 const activeHint = ref<string | null>(null);
@@ -204,8 +178,6 @@ let removeInertiaGuard: (() => void) | null = null;
 
 onMounted(() => {
     window.addEventListener('beforeunload', handleBeforeUnload);
-    // Map lazy-init: wait briefly until DOM is rendered
-    setTimeout(initMap, 50);
     removeInertiaGuard = router.on('before', (event) => {
         if (isDirty.value && !skipGuard.value) {
             const confirmed = window.confirm(t('drink.unsavedChangesPrompt'));
@@ -219,10 +191,6 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     window.removeEventListener('beforeunload', handleBeforeUnload);
-    if (leafletMap) {
-        leafletMap.remove();
-        leafletMap = null;
-    }
     removeInertiaGuard?.();
     floatingBarActive.value = false;
     if (previewCountdownInterval) clearInterval(previewCountdownInterval);
@@ -230,7 +198,6 @@ onBeforeUnmount(() => {
 
 function discard() {
     form.reset();
-    countryQuery.value = props.event.venue_country ?? 'Deutschland';
     if (coverPreview.value) URL.revokeObjectURL(coverPreview.value);
     coverPreview.value = null;
 }
@@ -242,10 +209,8 @@ function submit() {
             toast.success(t('toast.eventSettingsSaved'));
             coverPreview.value = null;
             form.cover = null;
-            // Update dirty baseline
-            for (const key of Object.keys(savedAddress) as AddressField[]) {
-                savedAddress[key] = (formAny[key] ?? '') as string;
-            }
+            // Update venue dirty baseline
+            venueEditor.value?.resetDirtyBaseline();
         },
         onFinish: () => {
             skipGuard.value = false;
@@ -392,106 +357,6 @@ watch(
     { immediate: true },
 );
 
-// --- Address form ---
-const COUNTRIES = [
-    'Deutschland',
-    'Österreich',
-    'Schweiz',
-    'Frankreich',
-    'Italien',
-    'Spanien',
-    'Portugal',
-    'Niederlande',
-    'Belgien',
-    'Luxemburg',
-    'Polen',
-    'Tschechien',
-    'Slowakei',
-    'Ungarn',
-    'Rumänien',
-    'Bulgarien',
-    'Griechenland',
-    'Kroatien',
-    'Slowenien',
-    'Serbien',
-    'Albanien',
-    'Montenegro',
-    'Nordmazedonien',
-    'Kosovo',
-    'Dänemark',
-    'Schweden',
-    'Norwegen',
-    'Finnland',
-    'Island',
-    'Vereinigtes Königreich',
-    'Irland',
-    'Vereinigte Staaten',
-    'Kanada',
-    'Mexiko',
-    'Brasilien',
-    'Argentinien',
-    'Chile',
-    'Kolumbien',
-    'Peru',
-    'Türkei',
-    'Russland',
-    'Ukraine',
-    'Litauen',
-    'Lettland',
-    'Estland',
-    'Japan',
-    'China',
-    'Südkorea',
-    'Indien',
-    'Thailand',
-    'Vietnam',
-    'Singapur',
-    'Indonesien',
-    'Malaysia',
-    'Philippinen',
-    'Australien',
-    'Neuseeland',
-    'Südafrika',
-    'Ägypten',
-    'Marokko',
-    'Israel',
-    'Vereinigte Arabische Emirate',
-    'Saudi-Arabien',
-];
-
-const countryQuery = ref(props.event.venue_country ?? 'Deutschland');
-const countryOpen = ref(false);
-const countryInputRef = ref<HTMLElement | null>(null);
-const countryDropdownStyle = ref({ top: '0px', left: '0px', width: '0px' });
-
-const filteredCountries = computed(() => {
-    const q = countryQuery.value.toLowerCase().trim();
-    return q ? COUNTRIES.filter((c) => c.toLowerCase().includes(q)) : COUNTRIES;
-});
-
-function updateCountryDropdownStyle() {
-    if (!countryInputRef.value) return;
-    const rect = countryInputRef.value.getBoundingClientRect();
-    countryDropdownStyle.value = { top: `${rect.bottom + 4}px`, left: `${rect.left}px`, width: `${rect.width}px` };
-}
-
-function selectCountry(country: string) {
-    form.venue_country = country;
-    countryQuery.value = country;
-    countryOpen.value = false;
-}
-
-function deferCloseCountry() {
-    setTimeout(() => {
-        countryOpen.value = false;
-    }, 150);
-}
-
-function deferCloseMapSearch() {
-    setTimeout(() => {
-        mapSearchOpen.value = false;
-    }, 150);
-}
 
 const isGermanyForm = computed(() => {
     const c = (form.venue_country || 'Deutschland').toLowerCase().trim();
@@ -509,198 +374,6 @@ const previewVenueAddress = computed(() => {
     return [form.venue_street, form.venue_city].filter(Boolean).join(', ');
 });
 
-// --- Leaflet map picker ---
-const mapContainer = ref<HTMLElement | null>(null);
-const reverseGeocoding = ref(false);
-let leafletMap: L.Map | null = null;
-let mapMarker: L.Marker | null = null;
-
-function initMap() {
-    if (!mapContainer.value || leafletMap) return;
-    const center: [number, number] = form.venue_lat && form.venue_lng ? [form.venue_lat, form.venue_lng] : [51.1657, 10.4515];
-    leafletMap = L.map(mapContainer.value).setView(center, form.venue_lat ? 15 : 6);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 19,
-    }).addTo(leafletMap);
-    if (form.venue_lat && form.venue_lng) {
-        mapMarker = L.marker([form.venue_lat, form.venue_lng], { draggable: true }).addTo(leafletMap);
-        mapMarker.on('dragend', (e) => {
-            const ll = (e.target as L.Marker).getLatLng();
-            setCoords(ll.lat, ll.lng);
-        });
-    }
-    leafletMap.on('click', (e: L.LeafletMouseEvent) => setCoords(e.latlng.lat, e.latlng.lng));
-}
-
-async function setCoords(lat: number, lng: number) {
-    form.venue_lat = lat;
-    form.venue_lng = lng;
-    if (!leafletMap) return;
-    if (mapMarker) {
-        mapMarker.setLatLng([lat, lng]);
-    } else {
-        mapMarker = L.marker([lat, lng], { draggable: true }).addTo(leafletMap);
-        mapMarker.on('dragend', (e) => {
-            const ll = (e.target as L.Marker).getLatLng();
-            setCoords(ll.lat, ll.lng);
-        });
-    }
-    await reverseGeocode(lat, lng);
-}
-
-async function reverseGeocode(lat: number, lng: number) {
-    reverseGeocoding.value = true;
-    try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`, {
-            headers: { 'Accept-Language': 'de' },
-        });
-        const data = await res.json();
-        const addr = data.address;
-        if (!addr) return;
-        form.venue_street = addr.road ?? addr.pedestrian ?? addr.path ?? '';
-        form.venue_house_number = addr.house_number ?? '';
-        form.venue_postal_code = addr.postcode ?? '';
-        form.venue_city = addr.city ?? addr.town ?? addr.village ?? addr.municipality ?? addr.county ?? '';
-        form.venue_state = addr.state ?? '';
-        const country = addr.country ?? 'Deutschland';
-        form.venue_country = country;
-        countryQuery.value = country;
-    } catch {
-        /* silent — user can fill in manually */
-    } finally {
-        reverseGeocoding.value = false;
-    }
-}
-
-function clearMapCoords() {
-    form.venue_lat = null;
-    form.venue_lng = null;
-    if (mapMarker && leafletMap) {
-        leafletMap.removeLayer(mapMarker);
-        mapMarker = null;
-    }
-}
-
-// --- Map search (forward geocode to center) ---
-interface NominatimResult {
-    place_id: number;
-    lat: string;
-    lon: string;
-    display_name: string;
-    name: string;
-    address: Record<string, string>;
-}
-
-const mapSearchQuery = ref('');
-const mapSearchResults = ref<NominatimResult[]>([]);
-const mapSearching = ref(false);
-const mapSearchOpen = ref(false);
-const mapSearchInputRef = ref<HTMLElement | null>(null);
-const mapSearchDropdownStyle = ref({ top: '0px', left: '0px', width: '0px' });
-let mapSearchDebounce: ReturnType<typeof setTimeout> | null = null;
-
-function updateMapSearchDropdownStyle() {
-    if (!mapSearchInputRef.value) return;
-    const rect = mapSearchInputRef.value.getBoundingClientRect();
-    mapSearchDropdownStyle.value = { top: `${rect.bottom + 4}px`, left: `${rect.left}px`, width: `${rect.width}px` };
-}
-
-watch(mapSearchQuery, (val) => {
-    if (mapSearchDebounce) clearTimeout(mapSearchDebounce);
-    if (!val || val.length < 2) {
-        mapSearchResults.value = [];
-        mapSearchOpen.value = false;
-        return;
-    }
-    mapSearchDebounce = setTimeout(async () => {
-        mapSearching.value = true;
-        try {
-            const res = await fetch(
-                `https://nominatim.openstreetmap.org/search?format=json&limit=6&dedupe=0&q=${encodeURIComponent(val)}&addressdetails=1`,
-                { headers: { 'Accept-Language': 'de' } },
-            );
-            mapSearchResults.value = await res.json();
-            if (mapSearchResults.value.length > 0) {
-                updateMapSearchDropdownStyle();
-                mapSearchOpen.value = true;
-            } else {
-                mapSearchOpen.value = false;
-            }
-        } catch {
-            mapSearchResults.value = [];
-        } finally {
-            mapSearching.value = false;
-        }
-    }, 350);
-});
-
-function selectMapResult(result: NominatimResult) {
-    const lat = parseFloat(result.lat);
-    const lng = parseFloat(result.lon);
-
-    // Center the map + zoom
-    if (leafletMap) {
-        leafletMap.setView([lat, lng], 17);
-    }
-
-    // Set pin
-    form.venue_lat = lat;
-    form.venue_lng = lng;
-    if (mapMarker) {
-        mapMarker.setLatLng([lat, lng]);
-    } else if (leafletMap) {
-        mapMarker = L.marker([lat, lng], { draggable: true }).addTo(leafletMap);
-        mapMarker.on('dragend', (e) => {
-            const ll = (e.target as L.Marker).getLatLng();
-            setCoords(ll.lat, ll.lng);
-        });
-    }
-
-    // Populate address fields from the Nominatim result
-    const addr = result.address;
-    form.venue_street = addr.road ?? addr.pedestrian ?? addr.path ?? '';
-    form.venue_house_number = addr.house_number ?? '';
-    form.venue_postal_code = addr.postcode ?? '';
-    form.venue_city = addr.city ?? addr.town ?? addr.village ?? addr.municipality ?? addr.county ?? '';
-    form.venue_state = addr.state ?? '';
-    const country = addr.country ?? 'Deutschland';
-    form.venue_country = country;
-    countryQuery.value = country;
-
-    mapSearchQuery.value = '';
-    mapSearchResults.value = [];
-    mapSearchOpen.value = false;
-}
-
-// --- Geocode from address fields ---
-const geocodingFromFields = ref(false);
-
-async function geocodeFromFields() {
-    const parts: string[] = [];
-    const street = [form.venue_street, form.venue_house_number].filter(Boolean).join(' ');
-    if (street) parts.push(street);
-    if (form.venue_postal_code) parts.push(form.venue_postal_code);
-    if (form.venue_city) parts.push(form.venue_city);
-    if (form.venue_country && form.venue_country !== 'Deutschland') parts.push(form.venue_country);
-    if (!parts.length) return;
-
-    geocodingFromFields.value = true;
-    try {
-        const res = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=json&limit=1&dedupe=0&q=${encodeURIComponent(parts.join(', '))}&addressdetails=1`,
-            { headers: { 'Accept-Language': 'de' } },
-        );
-        const results: NominatimResult[] = await res.json();
-        if (results.length) selectMapResult(results[0]);
-    } catch {
-        /* ignore */
-    } finally {
-        geocodingFromFields.value = false;
-    }
-}
-
-const hasAddressInput = computed(() => !!(form.venue_street || form.venue_city || form.venue_postal_code));
 
 // Palette + role resolution — pure logic in resources/js/lib/colorResolver.ts
 const palette = computed(() => buildPalette(form.color_primary, form.color_secondary, form.color_tertiary));
@@ -987,409 +660,19 @@ function importStyle(e: Event) {
                                             :placeholder="t('event.dresscode')"
                                         />
                                     </div>
-                                    <!-- Venue name (optional) -->
-                                    <div class="grid gap-2">
-                                        <Label
-                                            >{{ t('event.venueName') }}
-                                            <span class="text-xs font-normal text-muted-foreground">({{ t('event.venueNameOptional') }})</span></Label
-                                        >
-                                        <div class="relative">
-                                            <Input
-                                                v-model="form.venue_name"
-                                                :placeholder="t('event.venueNamePlaceholder')"
-                                                :class="isFieldDirty('venue_name') ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30' : ''"
-                                            />
-                                            <button
-                                                v-if="isFieldDirty('venue_name')"
-                                                type="button"
-                                                @click="resetField('venue_name')"
-                                                class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
-                                                title="Zurücksetzen"
-                                            >
-                                                ↺
-                                            </button>
-                                        </div>
-                                        <p class="-mt-1 text-xs text-muted-foreground">{{ t('event.venueNameHint') }}</p>
-                                    </div>
-                                    <!-- Venue display on the home screen -->
-                                    <div class="grid gap-2">
-                                        <div class="flex items-center gap-2">
-                                            <Label>{{ t('event.venueDisplayMode') }}</Label>
-                                            <InfoTooltip :text="t('event.venueDisplayModeHint')" />
-                                        </div>
-                                        <div class="flex gap-2">
-                                            <button
-                                                v-for="opt in [
-                                                    { key: 'address', label: t('event.venueDisplayModeAddress') },
-                                                    { key: 'name', label: t('event.venueDisplayModeName') },
-                                                    { key: 'both', label: t('event.venueDisplayModeBoth') },
-                                                ]"
-                                                :key="opt.key"
-                                                type="button"
-                                                @click="form.venue_display_mode = opt.key"
-                                                class="flex-1 rounded-lg border-2 px-2 py-1.5 text-center text-xs transition-colors"
-                                                :class="
-                                                    (form.venue_display_mode ?? 'both') === opt.key
-                                                        ? 'border-ring bg-muted/20'
-                                                        : 'border-input hover:border-muted-foreground'
-                                                "
-                                            >
-                                                {{ opt.label }}
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <!-- Structured address -->
-                                    <div class="grid gap-3 rounded-lg border border-input p-3">
-                                        <!-- DE form -->
-                                        <template v-if="isGermanyForm">
-                                            <div class="grid grid-cols-[1fr_80px] gap-2">
-                                                <div class="grid gap-1.5">
-                                                    <Label class="text-xs">{{ t('event.venueStreet') }}</Label>
-                                                    <div class="relative">
-                                                        <Input
-                                                            v-model="form.venue_street"
-                                                            :placeholder="t('event.venueStreet')"
-                                                            :class="
-                                                                isFieldDirty('venue_street') ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30' : ''
-                                                            "
-                                                        />
-                                                        <button
-                                                            v-if="isFieldDirty('venue_street')"
-                                                            type="button"
-                                                            @click="resetField('venue_street')"
-                                                            class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
-                                                            title="Zurücksetzen"
-                                                        >
-                                                            ↺
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <div class="grid gap-1.5">
-                                                    <Label class="text-xs">{{ t('event.venueHouseNumber') }}</Label>
-                                                    <div class="relative">
-                                                        <Input
-                                                            v-model="form.venue_house_number"
-                                                            placeholder="26"
-                                                            :class="
-                                                                isFieldDirty('venue_house_number')
-                                                                    ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30'
-                                                                    : ''
-                                                            "
-                                                        />
-                                                        <button
-                                                            v-if="isFieldDirty('venue_house_number')"
-                                                            type="button"
-                                                            @click="resetField('venue_house_number')"
-                                                            class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
-                                                            title="Zurücksetzen"
-                                                        >
-                                                            ↺
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="grid grid-cols-[100px_1fr] gap-2">
-                                                <div class="grid gap-1.5">
-                                                    <Label class="text-xs">{{ t('event.venuePostalCode') }}</Label>
-                                                    <div class="relative">
-                                                        <Input
-                                                            v-model="form.venue_postal_code"
-                                                            placeholder="56218"
-                                                            :class="
-                                                                isFieldDirty('venue_postal_code')
-                                                                    ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30'
-                                                                    : ''
-                                                            "
-                                                        />
-                                                        <button
-                                                            v-if="isFieldDirty('venue_postal_code')"
-                                                            type="button"
-                                                            @click="resetField('venue_postal_code')"
-                                                            class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
-                                                            title="Zurücksetzen"
-                                                        >
-                                                            ↺
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <div class="grid gap-1.5">
-                                                    <Label class="text-xs">{{ t('event.venueCity') }}</Label>
-                                                    <div class="relative">
-                                                        <Input
-                                                            v-model="form.venue_city"
-                                                            :placeholder="t('event.venueCity')"
-                                                            :class="
-                                                                isFieldDirty('venue_city') ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30' : ''
-                                                            "
-                                                        />
-                                                        <button
-                                                            v-if="isFieldDirty('venue_city')"
-                                                            type="button"
-                                                            @click="resetField('venue_city')"
-                                                            class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
-                                                            title="Zurücksetzen"
-                                                        >
-                                                            ↺
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </template>
-
-                                        <!-- International Form -->
-                                        <template v-else>
-                                            <div class="grid gap-1.5">
-                                                <Label class="text-xs">{{ t('event.venueAddressLine1') }}</Label>
-                                                <div class="relative">
-                                                    <Input
-                                                        v-model="form.venue_street"
-                                                        :placeholder="t('event.venueAddressLine1Placeholder')"
-                                                        :class="isFieldDirty('venue_street') ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30' : ''"
-                                                    />
-                                                    <button
-                                                        v-if="isFieldDirty('venue_street')"
-                                                        type="button"
-                                                        @click="resetField('venue_street')"
-                                                        class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
-                                                        title="Zurücksetzen"
-                                                    >
-                                                        ↺
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <div class="grid grid-cols-[1fr_120px] gap-2">
-                                                <div class="grid gap-1.5">
-                                                    <Label class="text-xs">{{ t('event.venueCity') }}</Label>
-                                                    <div class="relative">
-                                                        <Input
-                                                            v-model="form.venue_city"
-                                                            :placeholder="t('event.venueCity')"
-                                                            :class="
-                                                                isFieldDirty('venue_city') ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30' : ''
-                                                            "
-                                                        />
-                                                        <button
-                                                            v-if="isFieldDirty('venue_city')"
-                                                            type="button"
-                                                            @click="resetField('venue_city')"
-                                                            class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
-                                                            title="Zurücksetzen"
-                                                        >
-                                                            ↺
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <div class="grid gap-1.5">
-                                                    <Label class="text-xs">{{ t('event.venuePostalCode') }}</Label>
-                                                    <div class="relative">
-                                                        <Input
-                                                            v-model="form.venue_postal_code"
-                                                            placeholder="10001"
-                                                            :class="
-                                                                isFieldDirty('venue_postal_code')
-                                                                    ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30'
-                                                                    : ''
-                                                            "
-                                                        />
-                                                        <button
-                                                            v-if="isFieldDirty('venue_postal_code')"
-                                                            type="button"
-                                                            @click="resetField('venue_postal_code')"
-                                                            class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
-                                                            title="Zurücksetzen"
-                                                        >
-                                                            ↺
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="grid gap-1.5">
-                                                <Label class="text-xs"
-                                                    >{{ t('event.venueState') }}
-                                                    <span class="font-normal text-muted-foreground">({{ t('event.venueOptional') }})</span></Label
-                                                >
-                                                <div class="relative">
-                                                    <Input
-                                                        v-model="form.venue_state"
-                                                        :placeholder="t('event.venueState')"
-                                                        :class="isFieldDirty('venue_state') ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30' : ''"
-                                                    />
-                                                    <button
-                                                        v-if="isFieldDirty('venue_state')"
-                                                        type="button"
-                                                        @click="resetField('venue_state')"
-                                                        class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
-                                                        title="Zurücksetzen"
-                                                    >
-                                                        ↺
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </template>
-
-                                        <!-- Country (always visible) -->
-                                        <div ref="countryInputRef" class="grid gap-1.5">
-                                            <Label class="text-xs">{{ t('event.venueCountry') }}</Label>
-                                            <div class="relative">
-                                                <Input
-                                                    v-model="countryQuery"
-                                                    :placeholder="t('event.venueCountry')"
-                                                    autocomplete="off"
-                                                    :class="isFieldDirty('venue_country') ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30' : ''"
-                                                    @focus="
-                                                        countryOpen = true;
-                                                        updateCountryDropdownStyle();
-                                                    "
-                                                    @input="
-                                                        countryOpen = true;
-                                                        updateCountryDropdownStyle();
-                                                    "
-                                                    @blur="deferCloseCountry"
-                                                />
-                                                <button
-                                                    v-if="isFieldDirty('venue_country')"
-                                                    type="button"
-                                                    @click="resetField('venue_country')"
-                                                    class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
-                                                    title="Zurücksetzen"
-                                                >
-                                                    ↺
-                                                </button>
-                                                <Teleport to="body">
-                                                    <div
-                                                        v-if="countryOpen && filteredCountries.length"
-                                                        class="fixed z-[9999] max-h-52 overflow-y-auto rounded-md border bg-popover shadow-lg"
-                                                        :style="countryDropdownStyle"
-                                                    >
-                                                        <button
-                                                            v-for="country in filteredCountries"
-                                                            :key="country"
-                                                            type="button"
-                                                            class="flex w-full items-center px-3 py-2 text-sm hover:bg-accent"
-                                                            :class="form.venue_country === country ? 'bg-muted font-medium' : ''"
-                                                            @mousedown.prevent="selectCountry(country)"
-                                                        >
-                                                            {{ country }}
-                                                        </button>
-                                                    </div>
-                                                </Teleport>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- Map picker -->
-                                    <div class="grid gap-2">
-                                        <div class="flex items-center justify-between">
-                                            <Label>{{ t('event.venueMap') }}</Label>
-                                            <span
-                                                v-if="reverseGeocoding || geocodingFromFields"
-                                                class="animate-pulse text-xs text-muted-foreground"
-                                                >{{ t('event.venueGeocoding') }}</span
-                                            >
-                                            <button
-                                                v-else-if="form.venue_lat && form.venue_lng"
-                                                type="button"
-                                                class="text-xs text-muted-foreground hover:text-destructive"
-                                                @click="clearMapCoords"
-                                            >
-                                                {{ t('event.venueMapReset') }}
-                                            </button>
-                                        </div>
-                                        <!-- Geocode from address fields -->
-                                        <button
-                                            v-if="hasAddressInput && !geocodingFromFields"
-                                            type="button"
-                                            class="flex items-center gap-1.5 rounded-md border border-dashed border-primary/50 px-3 py-1.5 text-sm text-primary hover:bg-primary/5 disabled:opacity-40"
-                                            :disabled="geocodingFromFields"
-                                            @click="geocodeFromFields"
-                                        >
-                                            <svg
-                                                width="14"
-                                                height="14"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                stroke-width="2"
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                            >
-                                                <circle cx="11" cy="11" r="8" />
-                                                <path d="m21 21-4.35-4.35" />
-                                            </svg>
-                                            {{ t('event.venueSearchFromFields') }}
-                                        </button>
-                                        <!-- Hint: confirm location via map -->
-                                        <div
-                                            v-if="hasAddressInput && !form.venue_lat && !form.venue_lng"
-                                            class="flex items-start gap-2 rounded-md border border-amber-400/50 bg-amber-50/50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-950/30 dark:text-amber-400"
-                                        >
-                                            <svg
-                                                width="14"
-                                                height="14"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                stroke-width="2"
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                class="mt-0.5 shrink-0"
-                                            >
-                                                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                                                <line x1="12" y1="9" x2="12" y2="13" />
-                                                <line x1="12" y1="17" x2="12.01" y2="17" />
-                                            </svg>
-                                            <span>{{ t('event.venueMapConfirmHint') }}</span>
-                                        </div>
-                                        <p v-else class="-mt-1 text-xs text-muted-foreground">{{ t('event.venueMapHint') }}</p>
-                                        <!-- Map search -->
-                                        <div ref="mapSearchInputRef" class="relative">
-                                            <Input
-                                                v-model="mapSearchQuery"
-                                                :placeholder="t('event.venueMapSearch')"
-                                                class="placeholder:text-foreground/50"
-                                                autocomplete="off"
-                                                @focus="mapSearchResults.length && (mapSearchOpen = true)"
-                                                @blur="deferCloseMapSearch"
-                                            />
-                                            <div v-if="mapSearching" class="absolute top-1/2 right-2.5 -translate-y-1/2">
-                                                <svg
-                                                    class="h-4 w-4 animate-spin text-muted-foreground"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    fill="none"
-                                                    viewBox="0 0 24 24"
-                                                >
-                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                                                </svg>
-                                            </div>
-                                            <Teleport to="body">
-                                                <div
-                                                    v-if="mapSearchOpen && mapSearchResults.length"
-                                                    class="fixed z-[9999] max-h-60 overflow-y-auto rounded-md border bg-popover shadow-lg"
-                                                    :style="mapSearchDropdownStyle"
-                                                >
-                                                    <button
-                                                        v-for="r in mapSearchResults"
-                                                        :key="r.place_id"
-                                                        type="button"
-                                                        class="flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-accent"
-                                                        @mousedown.prevent="selectMapResult(r)"
-                                                    >
-                                                        <span class="truncate font-medium">{{ r.name || r.display_name.split(', ')[0] }}</span>
-                                                        <span class="truncate text-xs text-muted-foreground">{{ r.display_name }}</span>
-                                                    </button>
-                                                </div>
-                                            </Teleport>
-                                        </div>
-                                        <div
-                                            ref="mapContainer"
-                                            class="h-56 w-full overflow-hidden rounded-lg border border-input"
-                                            style="z-index: 0"
-                                        />
-                                        <p v-if="form.venue_lat && form.venue_lng" class="text-xs text-muted-foreground">
-                                            ✓ {{ form.venue_lat.toFixed(6) }}, {{ form.venue_lng.toFixed(6) }}
-                                        </p>
-                                    </div>
+                                    <VenueEditor
+                                        ref="venueEditor"
+                                        v-model:venue-name="form.venue_name"
+                                        v-model:venue-lat="form.venue_lat"
+                                        v-model:venue-lng="form.venue_lng"
+                                        v-model:venue-street="form.venue_street"
+                                        v-model:venue-house-number="form.venue_house_number"
+                                        v-model:venue-postal-code="form.venue_postal_code"
+                                        v-model:venue-city="form.venue_city"
+                                        v-model:venue-state="form.venue_state"
+                                        v-model:venue-country="form.venue_country"
+                                        v-model:venue-display-mode="form.venue_display_mode"
+                                    />
                                 </div>
                             </CardContent>
                         </Card>
