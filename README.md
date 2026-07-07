@@ -139,7 +139,7 @@ git push origin production
 git checkout develop
 ```
 
-> ⚠️ **Never push staging and production at the same time.** The VPS has 4 GB RAM; two Coolify redeploys in parallel trigger the OOM killer (has taken down systemd + traefik once, ~30 min downtime, emergency reset via the Hetzner panel). Always sequentially: push `staging`, wait until `beta.hommrich.app` responds, then push `production`.
+> ⚠️ **Never push staging and production at the same time.** Two Coolify redeploys in parallel exhaust the 4 GB VPS and trigger the OOM killer. Push `staging` first, wait until `beta.hommrich.app` responds, then push `production`.
 
 ---
 
@@ -195,6 +195,19 @@ The project is operated from Germany and is documented to be GDPR-ready:
 - Sub-processor register in [`docs/legal/sub-processors.md`](docs/legal/sub-processors.md)
 
 The full plan, including stage breakdowns, is in [`docs/GDPR_COMPLIANCE_PLAN.md`](docs/GDPR_COMPLIANCE_PLAN.md).
+
+---
+
+## Documentation
+
+Beyond this README the repo carries a small set of docs, each with a clear purpose:
+
+- [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md) — bring the project up locally, including the common pitfalls
+- [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) — branch model, commit convention, doc-sync rule
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — subsystem internals (photo game, drink score, projector, color system)
+- [`docs/RUNBOOK.md`](docs/RUNBOOK.md) — operational playbook (Coolify, backups, incident checklists)
+- [`docs/security-rotations.md`](docs/security-rotations.md) — secret rotation log + per-secret procedures
+- [`SECURITY.md`](SECURITY.md) — vulnerability disclosure
 
 ---
 

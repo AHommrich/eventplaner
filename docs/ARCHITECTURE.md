@@ -143,7 +143,7 @@ Every event has a fully configurable theme that feeds both the web app and the R
 
 `role_screen_bg`, `role_card_bg`, `role_card_text`, `role_card_button`, `role_card_button_text`, `role_tab_tint`, `role_border`, `role_fab`, `role_fab_icon`
 
-**Why it's set up this way**: change the palette and every role follows automatically. If hex values were stored directly in the roles, every re-skin would require touching every field. The settings frontend ([`resources/js/pages/Event/Settings.vue`](../resources/js/pages/Event/Settings.vue)) renders four simulated phone screens that react live to every change.
+**Why it's set up this way**: change the palette and every role follows automatically. If hex values were stored directly in the roles, every re-skin would require touching every field. The settings frontend ([`resources/js/pages/Event/Settings.vue`](../resources/js/pages/Event/Settings.vue)) is a slim form + save-bar wrapper; the actual UI is composed from seven sub-components under [`resources/js/components/EventSettings/`](../resources/js/components/EventSettings/) (four simulated phone screens under `PhonePreview/`, plus `VenueEditor.vue`, `ColorSystemEditor.vue`, `CoverUpload.vue`). Each sub-component owns its slice of the event via `defineModel<T>()` per field, so state stays typed end-to-end and the phone previews react live to every palette / role change.
 
 **Cover overlay** — `color_home_text`, `color_home_shadow` and `home_shadow_opacity` are optional and only relevant when a cover image is set.
 

@@ -34,7 +34,7 @@ const { t } = useI18n();
                         {{ t('welcome.hero.tagline1') }}<br class="hidden sm:block" />
                         {{ t('welcome.hero.tagline2') }}
                     </p>
-                    <p class="mx-auto max-w-xl text-base leading-relaxed text-gray-500 sm:text-lg dark:text-white/50">
+                    <p class="mx-auto max-w-xl text-base leading-relaxed text-gray-600 sm:text-lg dark:text-white/60">
                         {{ t('welcome.hero.description') }}
                     </p>
                 </div>
@@ -89,11 +89,11 @@ const { t } = useI18n();
                     </template>
                 </div>
 
-                <p class="text-sm text-gray-400 dark:text-white/25">{{ t('welcome.hero.pwaNote') }}</p>
+                <p class="text-sm text-gray-600 dark:text-white/60">{{ t('welcome.hero.pwaNote') }}</p>
             </div>
 
             <!-- Scroll hint -->
-            <div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-gray-400 dark:text-white/30">
+            <div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-gray-600 dark:text-white/60">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
@@ -104,7 +104,7 @@ const { t } = useI18n();
         <section class="mx-auto max-w-4xl px-6 py-24">
             <div class="mb-16 text-center">
                 <h2 class="mb-4 text-3xl font-bold sm:text-4xl">{{ t('welcome.howItWorks.title') }}</h2>
-                <p class="mx-auto max-w-xl text-lg text-gray-500 dark:text-white/50">
+                <p class="mx-auto max-w-xl text-lg text-gray-600 dark:text-white/60">
                     {{ t('welcome.howItWorks.subtitle') }}
                 </p>
             </div>
@@ -117,7 +117,7 @@ const { t } = useI18n();
                         1
                     </div>
                     <h3 class="text-lg font-semibold">{{ t('welcome.howItWorks.step1Title') }}</h3>
-                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">{{ t('welcome.howItWorks.step1Text') }}</p>
+                    <p class="text-sm leading-relaxed text-gray-600 dark:text-white/60">{{ t('welcome.howItWorks.step1Text') }}</p>
                 </div>
                 <div class="flex flex-col items-center gap-4 text-center">
                     <div
@@ -126,7 +126,7 @@ const { t } = useI18n();
                         2
                     </div>
                     <h3 class="text-lg font-semibold">{{ t('welcome.howItWorks.step2Title') }}</h3>
-                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">{{ t('welcome.howItWorks.step2Text') }}</p>
+                    <p class="text-sm leading-relaxed text-gray-600 dark:text-white/60">{{ t('welcome.howItWorks.step2Text') }}</p>
                 </div>
                 <div class="flex flex-col items-center gap-4 text-center">
                     <div
@@ -135,7 +135,7 @@ const { t } = useI18n();
                         3
                     </div>
                     <h3 class="text-lg font-semibold">{{ t('welcome.howItWorks.step3Title') }}</h3>
-                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">{{ t('welcome.howItWorks.step3Text') }}</p>
+                    <p class="text-sm leading-relaxed text-gray-600 dark:text-white/60">{{ t('welcome.howItWorks.step3Text') }}</p>
                 </div>
             </div>
         </section>
@@ -144,7 +144,7 @@ const { t } = useI18n();
         <section class="mx-auto max-w-5xl px-6 py-16">
             <div class="mb-16 text-center">
                 <h2 class="mb-4 text-3xl font-bold sm:text-4xl">{{ t('welcome.features.title') }}</h2>
-                <p class="mx-auto max-w-xl text-lg text-gray-500 dark:text-white/50">
+                <p class="mx-auto max-w-xl text-lg text-gray-600 dark:text-white/60">
                     {{ t('welcome.features.subtitle') }}
                 </p>
             </div>
@@ -156,7 +156,7 @@ const { t } = useI18n();
                 >
                     <div class="mb-4 text-3xl">👥</div>
                     <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.guestsTitle') }}</h3>
-                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">{{ t('welcome.features.guestsText') }}</p>
+                    <p class="text-sm leading-relaxed text-gray-600 dark:text-white/60">{{ t('welcome.features.guestsText') }}</p>
                 </div>
 
                 <div
@@ -164,7 +164,7 @@ const { t } = useI18n();
                 >
                     <div class="mb-4 text-3xl">📲</div>
                     <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.qrTitle') }}</h3>
-                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">{{ t('welcome.features.qrText') }}</p>
+                    <p class="text-sm leading-relaxed text-gray-600 dark:text-white/60">{{ t('welcome.features.qrText') }}</p>
                 </div>
 
                 <div
@@ -172,7 +172,7 @@ const { t } = useI18n();
                 >
                     <div class="mb-4 text-3xl">📸</div>
                     <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.galleryTitle') }}</h3>
-                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">{{ t('welcome.features.galleryText') }}</p>
+                    <p class="text-sm leading-relaxed text-gray-600 dark:text-white/60">{{ t('welcome.features.galleryText') }}</p>
                 </div>
 
                 <div
@@ -180,7 +180,7 @@ const { t } = useI18n();
                 >
                     <div class="mb-4 text-3xl">🎞️</div>
                     <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.slideshowTitle') }}</h3>
-                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">{{ t('welcome.features.slideshowText') }}</p>
+                    <p class="text-sm leading-relaxed text-gray-600 dark:text-white/60">{{ t('welcome.features.slideshowText') }}</p>
                 </div>
 
                 <div
@@ -188,7 +188,7 @@ const { t } = useI18n();
                 >
                     <div class="mb-4 text-3xl">🎯</div>
                     <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.photoGameTitle') }}</h3>
-                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">{{ t('welcome.features.photoGameText') }}</p>
+                    <p class="text-sm leading-relaxed text-gray-600 dark:text-white/60">{{ t('welcome.features.photoGameText') }}</p>
                 </div>
 
                 <div
@@ -196,7 +196,7 @@ const { t } = useI18n();
                 >
                     <div class="mb-4 text-3xl">🍾</div>
                     <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.drinkGameTitle') }}</h3>
-                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">{{ t('welcome.features.drinkGameText') }}</p>
+                    <p class="text-sm leading-relaxed text-gray-600 dark:text-white/60">{{ t('welcome.features.drinkGameText') }}</p>
                 </div>
             </div>
 
@@ -207,7 +207,7 @@ const { t } = useI18n();
                 >
                     <div class="mb-4 text-3xl">🎨</div>
                     <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.lookTitle') }}</h3>
-                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">{{ t('welcome.features.lookText') }}</p>
+                    <p class="text-sm leading-relaxed text-gray-600 dark:text-white/60">{{ t('welcome.features.lookText') }}</p>
                 </div>
 
                 <div
@@ -215,7 +215,7 @@ const { t } = useI18n();
                 >
                     <div class="mb-4 text-3xl">📍</div>
                     <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.infoTitle') }}</h3>
-                    <p class="text-sm leading-relaxed text-gray-500 dark:text-white/50">{{ t('welcome.features.infoText') }}</p>
+                    <p class="text-sm leading-relaxed text-gray-600 dark:text-white/60">{{ t('welcome.features.infoText') }}</p>
                 </div>
             </div>
         </section>
@@ -250,7 +250,7 @@ const { t } = useI18n();
                         >{{ t('welcome.forWho.gardenparty') }}</span
                     >
                 </div>
-                <p class="mx-auto max-w-xl text-base leading-relaxed text-gray-500 dark:text-white/50">
+                <p class="mx-auto max-w-xl text-base leading-relaxed text-gray-600 dark:text-white/60">
                     {{ t('welcome.forWho.description') }}
                 </p>
             </div>
@@ -259,7 +259,7 @@ const { t } = useI18n();
         <!-- Footer CTA -->
         <section class="border-t border-gray-200 px-6 py-20 text-center dark:border-white/10">
             <h2 class="mb-4 text-3xl font-bold sm:text-4xl">{{ t('welcome.cta.title') }}</h2>
-            <p class="mb-8 text-lg text-gray-500 dark:text-white/50">{{ t('welcome.cta.subtitle') }}</p>
+            <p class="mb-8 text-lg text-gray-600 dark:text-white/60">{{ t('welcome.cta.subtitle') }}</p>
             <template v-if="!$page.props.auth.user">
                 <a
                     :href="route('oauth.google.redirect', {}, false)"
@@ -267,7 +267,7 @@ const { t } = useI18n();
                 >
                     {{ t('welcome.cta.button') }}
                 </a>
-                <p class="mt-4 text-sm text-gray-400 dark:text-white/25">{{ t('welcome.cta.note') }}</p>
+                <p class="mt-4 text-sm text-gray-600 dark:text-white/60">{{ t('welcome.cta.note') }}</p>
             </template>
             <template v-else>
                 <Link
@@ -277,8 +277,8 @@ const { t } = useI18n();
                     {{ t('welcome.hero.ctaDashboard') }}
                 </Link>
             </template>
-            <p class="mt-10 text-sm text-gray-400 dark:text-white/20">{{ t('welcome.cta.footer', { year: new Date().getFullYear() }) }}</p>
-            <div class="mt-6 flex flex-wrap justify-center gap-4 text-sm text-gray-400 dark:text-white/30">
+            <p class="mt-10 text-sm text-gray-600 dark:text-white/60">{{ t('welcome.cta.footer', { year: new Date().getFullYear() }) }}</p>
+            <div class="mt-6 flex flex-wrap justify-center gap-4 text-sm text-gray-600 dark:text-white/60">
                 <Link :href="route('legal.imprint')" class="hover:underline">Impressum</Link>
                 <Link :href="route('legal.privacy')" class="hover:underline">Datenschutz</Link>
             </div>

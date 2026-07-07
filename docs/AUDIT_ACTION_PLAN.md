@@ -9,8 +9,10 @@ Abarbeitungslogik: **erst „Muss", dann „Sollte", dann „Kann".** Monitoring
 
 ## Muss vor produktivem Fremdkunden-Betrieb
 
-### [ ] 1. IDOR-Guards nachziehen (Web-Backend)
+### [x] 1. IDOR-Guards nachziehen (Web-Backend) (erledigt 2026-07-05, Commit `b606ccb`)
 **Warum:** Cross-Event-Zugriff möglich. Sobald mehr als ein Owner das System nutzt, ist das eine meldepflichtige Datenpanne nach Art. 33 DSGVO.
+
+**Umsetzung:** `PhotoController::destroy` (Zeile 122) und `updateProjectorAlbum` (Zeile 161) prüfen jetzt `abort_if($photo->event_id !== $this->activeEvent()?->id, 403)` bzw. `Rule::exists('photo_albums','id')->where('event_id', $event->id)`. `GuestController` hat das Muster an sieben Stellen (Zeilen 58, 68, 99, 132, 151, 165, 179).
 
 **Konkrete Stellen:**
 - `app/Http/Controllers/PhotoController.php:115` — `destroy(Photo $photo)`: Guard fehlt, S3-Blob wird direkt gelöscht
@@ -32,8 +34,10 @@ Für die Album-Validierung: `Rule::exists('photo_albums', 'id')->where('event_id
 
 ---
 
-### [ ] 2. `.dockerignore` anlegen
+### [x] 2. `.dockerignore` anlegen (erledigt 2026-07-05, Commit `b606ccb`)
 **Warum:** `Dockerfile.prod` macht `COPY . .`. Ohne `.dockerignore` landen `.env`, `.env.docker`, `.env.develop`, `laravel`/`laravel_test_*` (SQLite), `dbcheck.php`, `hochzeits_einladung.json` (potenziell echte Gästedaten), `coverage/`, `node_modules`, `.git` im Prod-Image. Kritisch, sobald das Image je aus der Registry abfließt.
+
+**Umsetzung:** `.dockerignore` existiert mit vollständigen Secret- und Test-Artefakt-Blöcken (Kommentar oben in der Datei verweist zurück auf diesen Muss-Punkt).
 
 **Mindestinhalt:**
 ```
@@ -63,8 +67,10 @@ hochzeits_einladung.json
 
 ---
 
-### [ ] 3. Sanctum-Guest-Tokens: Expiry setzen
+### [x] 3. Sanctum-Guest-Tokens: Expiry setzen (erledigt 2026-07-05, Commit `b606ccb`)
 **Warum:** `config/sanctum.php` — `'expiration' => null`. Guest-Tokens bleiben nach dem Event unbegrenzt gültig. Widerspricht Datenminimierung (Art. 5 lit. c/e DSGVO).
+
+**Umsetzung:** Pro-Token-Expiry gewählt (Owner-Tokens bleiben unlimitiert). `config/sanctum.php` definiert `guest_token_ttl_days` (Default 90, override via `SANCTUM_GUEST_TOKEN_TTL_DAYS`). `QrAuthController::login` und `select` (Zeilen 69 + 133) rufen `createToken('guest-login', ['role:guest'], now()->addDays(config('sanctum.guest_token_ttl_days', 90)))`. Der daily `sanctum:prune-expired --hours=24` läuft schon (`routes/console.php:21`, Commit `70e6e68`).
 
 **Vorschlag:** zwei Wege möglich, entscheiden bei der Umsetzung:
 
@@ -81,8 +87,10 @@ hochzeits_einladung.json
 
 ---
 
-### [ ] 4. Backup + Restore dokumentieren
+### [ ] 4. Backup + Restore dokumentieren (Runbook §3 vorhanden; Restore-Drill deferred bis erstes echtes Event)
 **Warum:** Migrations laufen bei jedem Coolify-Deploy blind (`Dockerfile.prod:125`). Ein fehlerhafter Deploy oder eine irreversible Migration ist derzeit ohne Recovery-Pfad. Roadmap-Memo hat „VPS-Backups" bereits als offen vermerkt.
+
+**Stand 2026-07-07:** `docs/RUNBOOK.md` §3 dokumentiert die drei Backup-Layer (Hetzner-Cloud-VM-Snapshots wöchentlich, MariaDB-Dumps, Object-Storage-Snapshots). Der Restore-Drill (§3.5 laut `docs/FOLLOWUP_2026-07-07.md` Step 4) und der zweite Backup-Bucket in Helsinki sind bewusst deferred bis zum ersten zahlenden Event — Grund: Budget. Reopen zusammen mit Step 4 im Follow-up-Backlog.
 
 **Konkret:**
 - `docs/RUNBOOK.md` anlegen mit:
@@ -216,7 +224,7 @@ Playwright-Setup: `npm i -D @playwright/test`, Config gegen `http://localhost:80
 
 ---
 
-### [ ] 9. `Settings.vue` schneiden
+### [x] 9. `Settings.vue` schneiden (erledigt 2026-07-07, Commits `8cbbe10..b662ead`)
 **Warum:** 2 929 Zeilen — jede Änderung dort ist teuer.
 
 **Extraktions-Kandidaten:**
@@ -227,7 +235,7 @@ Playwright-Setup: `npm i -D @playwright/test`, Config gegen `http://localhost:80
 
 Nur schneiden, nicht umschreiben. Business-Logik bleibt gleich.
 
-**Aufwand:** ~½ Tag.
+**Umsetzung:** Sieben Sub-Komponenten unter `resources/js/components/EventSettings/` extrahiert (`PhonePreview/{Home,Rsvp,Photos,Settings}.vue`, `VenueEditor.vue`, `ColorSystemEditor.vue`, `CoverUpload.vue`). `resources/js/pages/Event/Settings.vue` auf 1 070 Zeilen reduziert (−63 %), Contract via `defineModel<T>()` pro Feld. E2E-Spec `owner-settings.spec.ts` grün. Ablauf dokumentiert in `docs/FOLLOWUP_2026-07-07.md` Step 3.
 
 ---
 
@@ -304,17 +312,17 @@ Fehlt aktuell: `SANCTUM_STATEFUL_DOMAINS`, `MAIL_FROM_ADDRESS` (Resend-Setup), `
 
 | # | Titel | Priorität | Status |
 |---:|---|---|---|
-| 1 | IDOR-Guards | Muss | offen |
-| 2 | `.dockerignore` | Muss | offen |
-| 3 | Guest-Token-Expiry | Muss | offen |
-| 4 | Backup + Restore | Muss | offen |
+| 1 | IDOR-Guards | Muss | **erledigt (2026-07-05, Commit `b606ccb`)** |
+| 2 | `.dockerignore` | Muss | **erledigt (2026-07-05, Commit `b606ccb`)** |
+| 3 | Guest-Token-Expiry | Muss | **erledigt (2026-07-05, Commit `b606ccb`)** |
+| 4 | Backup + Restore | Muss | Runbook §3 vorhanden; Drill deferred (Budget, siehe Followup Step 4) |
 | 5 | Root-Aufräumen | Muss | offen |
 | 6 | Sentry-Setup Backend | Muss | **erledigt (2026-07-05)** |
 | 7 | Coolify-Notifications + Health-Check-Config | Muss | **erledigt (2026-07-07, Discord staging + prod)** |
 | 8 | E2E-Smoke (Playwright) | Sollte | offen |
 | 9 | API-Pagination | Sollte | offen |
 | 10 | Inertia-Share verschlanken | Sollte | offen |
-| 11 | `Settings.vue` schneiden | Sollte | offen |
+| 11 | `Settings.vue` schneiden | Sollte | **erledigt (2026-07-07, Commits `8cbbe10..b662ead`)** |
 | 12 | CORS explizit | Sollte | offen |
 | 13 | Runbook | Sollte | offen |
 | 14 | CSP ohne unsafe-inline | Kann | offen |
