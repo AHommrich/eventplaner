@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import ColorSystemEditor from '@/components/EventSettings/ColorSystemEditor.vue';
+import CoverUpload from '@/components/EventSettings/CoverUpload.vue';
 import PhonePreviewHome from '@/components/EventSettings/PhonePreview/Home.vue';
 import PhonePreviewPhotos from '@/components/EventSettings/PhonePreview/Photos.vue';
 import PhonePreviewRsvp from '@/components/EventSettings/PhonePreview/Rsvp.vue';
@@ -11,12 +13,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useFloatingBar } from '@/composables/useFloatingBar';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { contrastRatio, WCAG_AA_NORMAL } from '@/lib/colorContrast';
 import { buildPalette, resolveRole, type PaletteKey } from '@/lib/colorResolver';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
-import axios from 'axios';
-import heic2any from 'heic2any';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
@@ -198,8 +197,7 @@ onBeforeUnmount(() => {
 
 function discard() {
     form.reset();
-    if (coverPreview.value) URL.revokeObjectURL(coverPreview.value);
-    coverPreview.value = null;
+    coverUpload.value?.resetPreview();
 }
 
 function submit() {
@@ -207,7 +205,7 @@ function submit() {
     form.post(route('event.settings.update'), {
         onSuccess: () => {
             toast.success(t('toast.eventSettingsSaved'));
-            coverPreview.value = null;
+            coverUpload.value?.resetPreview();
             form.cover = null;
             // Update venue dirty baseline
             venueEditor.value?.resetDirtyBaseline();
@@ -218,103 +216,11 @@ function submit() {
     });
 }
 
-// Cover
-const coverUrl = ref<string | null>(props.event.cover_image_url);
-watch(
-    () => props.event.cover_image_url,
-    (val) => {
-        coverUrl.value = val;
-    },
-);
-const coverPreview = ref<string | null>(null);
-const coverRemoving = ref(false);
-
-const displayCoverUrl = computed(() => coverPreview.value ?? coverUrl.value);
-
-const coverFilename = computed(() => {
-    if (form.cover) return form.cover.name;
-    if (!coverUrl.value) return null;
-    try {
-        return decodeURIComponent(coverUrl.value.split('/').pop()?.split('?')[0] ?? '');
-    } catch {
-        return null;
-    }
-});
-
-const coverConverting = ref(false);
-const isDraggingCover = ref(false);
-
-async function processCoverFile(file: File) {
-    const isHeic = /heic|heif/i.test(file.name) || file.type === 'image/heic' || file.type === 'image/heif';
-    const needsConvert = isHeic || file.type === 'image/png' || file.type === 'image/webp';
-
-    if (isHeic) {
-        coverConverting.value = true;
-        try {
-            const blob = (await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 })) as Blob;
-            file = new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' });
-        } catch {
-            toast.error(t('toast.coverError'));
-            return;
-        } finally {
-            coverConverting.value = false;
-        }
-    } else if (needsConvert) {
-        // PNG / WebP → JPEG via Canvas
-        coverConverting.value = true;
-        try {
-            const bitmap = await createImageBitmap(file);
-            const canvas = document.createElement('canvas');
-            canvas.width = bitmap.width;
-            canvas.height = bitmap.height;
-            canvas.getContext('2d')!.drawImage(bitmap, 0, 0);
-            const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject()), 'image/jpeg', 0.92));
-            file = new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' });
-        } catch {
-            toast.error(t('toast.coverError'));
-            return;
-        } finally {
-            coverConverting.value = false;
-        }
-    }
-
-    form.cover = file;
-    if (coverPreview.value) URL.revokeObjectURL(coverPreview.value);
-    coverPreview.value = URL.createObjectURL(file);
-}
-
-async function onFileSelect(e: Event) {
-    const file = (e.target as HTMLInputElement).files?.[0];
-    if (file) await processCoverFile(file);
-}
-
-async function onCoverDrop(e: DragEvent) {
-    isDraggingCover.value = false;
-    if (coverConverting.value) return;
-    const file = e.dataTransfer?.files[0];
-    if (!file) return;
-    await processCoverFile(file);
-}
-
-function clearSelectedFile() {
-    form.cover = null;
-    if (coverPreview.value) URL.revokeObjectURL(coverPreview.value);
-    coverPreview.value = null;
-}
-
-async function removeCover() {
-    coverRemoving.value = true;
-    try {
-        await axios.delete(route('event.settings.cover.delete'));
-        coverUrl.value = null;
-        clearSelectedFile();
-        toast.success(t('toast.coverRemoved'));
-    } catch {
-        toast.error(t('toast.coverError'));
-    } finally {
-        coverRemoving.value = false;
-    }
-}
+// Cover — logic lives in CoverUpload.vue. Parent keeps a ref to the child's
+// displayCoverUrl so the PhonePreview stays in sync, plus a component ref so
+// discard()/submit() onSuccess can drop the in-flight preview blob.
+const coverUpload = ref<InstanceType<typeof CoverUpload> | null>(null);
+const displayCoverUrl = ref<string | null>(props.event.cover_image_url);
 
 // Preview
 const previewDate = computed(() => {
@@ -389,19 +295,6 @@ const cBorder = computed(() => resolve(form.role_border, 'primary'));
 const cFab = computed(() => resolve(form.role_fab, 'primary'));
 const cFabIcon = computed(() => resolve(form.role_fab_icon, 'tertiary'));
 
-// WCAG AA contrast guard for the card text/background pair — the most read
-// combination in the app. Warns when the chosen palette collapses below 4.5:1.
-const cardContrast = computed(() => contrastRatio(cCardText.value, cCardBg.value));
-const cardContrastFailsAA = computed(() => cardContrast.value < WCAG_AA_NORMAL);
-const cardContrastLabel = computed(() => cardContrast.value.toFixed(1));
-
-// Options for radio selectors
-const colorOptions = computed(() => [
-    { key: 'primary', label: t('event.colorPrimaryLabel'), value: palette.value.primary },
-    { key: 'secondary', label: t('event.colorSecondaryLabel'), value: palette.value.secondary },
-    { key: 'tertiary', label: t('event.colorTertiaryLabel'), value: palette.value.tertiary },
-]);
-
 // Font
 const fontOptions = [
     { key: 'playfair', label: 'Playfair Display', family: 'Playfair Display' },
@@ -465,10 +358,6 @@ const tabDefs = [
         ],
     },
 ];
-
-// Helper for radio selector class
-const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKey) =>
-    (formRole ?? fallback) === optKey ? 'border-ring bg-muted/20' : 'border-input hover:border-muted-foreground';
 
 // Style presets
 const presetNameInput = ref('');
@@ -683,118 +572,15 @@ function importStyle(e: Event) {
                                 ><CardTitle>{{ t('event.cover') }}</CardTitle></CardHeader
                             >
                             <CardContent class="space-y-3">
-                                <p class="text-sm text-muted-foreground">{{ t('event.coverHint') }}</p>
-
-                                <div v-if="displayCoverUrl" class="flex items-center gap-3 rounded-lg border bg-muted/30 px-3 py-2">
-                                    <img :src="displayCoverUrl" class="h-12 w-20 shrink-0 rounded object-cover" />
-                                    <div class="min-w-0 flex-1">
-                                        <p class="truncate text-xs font-medium">{{ coverFilename }}</p>
-                                        <p class="text-xs text-muted-foreground">
-                                            {{ coverPreview ? t('event.coverSelected') : t('event.coverCurrent') }}
-                                        </p>
-                                    </div>
-                                    <Button v-if="coverPreview" variant="ghost" size="sm" class="shrink-0" @click="clearSelectedFile">
-                                        {{ t('common.remove') }}
-                                    </Button>
-                                    <Button
-                                        v-else
-                                        variant="ghost"
-                                        size="sm"
-                                        class="shrink-0 text-destructive hover:text-destructive"
-                                        :disabled="coverRemoving"
-                                        @click="removeCover"
-                                    >
-                                        {{ coverRemoving ? '…' : t('common.remove') }}
-                                    </Button>
-                                </div>
-
-                                <label
-                                    class="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-6 text-center transition-all"
-                                    :class="[
-                                        coverConverting ? 'pointer-events-none opacity-50' : '',
-                                        isDraggingCover
-                                            ? 'scale-[1.01] border-ring bg-muted/30'
-                                            : 'border-input hover:border-muted-foreground hover:bg-muted/20',
-                                    ]"
-                                    @dragover.prevent
-                                    @dragenter.prevent="isDraggingCover = true"
-                                    @dragleave.self="isDraggingCover = false"
-                                    @drop.prevent="onCoverDrop"
-                                >
-                                    <input
-                                        type="file"
-                                        class="hidden"
-                                        accept="image/jpeg,image/png,image/heic,image/heif"
-                                        @change="onFileSelect"
-                                        :disabled="coverConverting"
-                                    />
-                                    <svg
-                                        class="h-6 w-6 text-muted-foreground"
-                                        :class="{ 'animate-bounce': isDraggingCover }"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="1.5"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    >
-                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                        <polyline points="17 8 12 3 7 8" />
-                                        <line x1="12" y1="3" x2="12" y2="15" />
-                                    </svg>
-                                    <span class="text-sm font-medium">
-                                        {{
-                                            coverConverting
-                                                ? t('event.coverUploading')
-                                                : isDraggingCover
-                                                  ? t('event.coverDragging')
-                                                  : displayCoverUrl
-                                                    ? t('event.coverReplace')
-                                                    : t('event.coverUpload')
-                                        }}
-                                    </span>
-                                    <span v-if="!isDraggingCover && !coverConverting" class="text-xs text-muted-foreground">
-                                        {{ t('event.coverDragHint') }}
-                                    </span>
-                                </label>
-                                <p class="text-xs text-muted-foreground">{{ t('event.coverSaveHint') }}</p>
-
-                                <!-- Home screen color — only when cover is present -->
-                                <div v-if="displayCoverUrl" class="grid gap-1.5 pt-1">
-                                    <span class="text-xs text-muted-foreground">{{ t('event.colorHomeText') }}</span>
-                                    <div class="flex items-center gap-2">
-                                        <input
-                                            type="color"
-                                            v-model="form.color_home_text"
-                                            class="h-9 w-10 shrink-0 cursor-pointer rounded border border-input bg-transparent p-0.5"
-                                        />
-                                        <Input
-                                            v-model="form.color_home_text"
-                                            class="px-2 font-mono text-xs uppercase"
-                                            maxlength="7"
-                                            placeholder="#ffffff"
-                                        />
-                                    </div>
-                                </div>
-                                <div v-if="displayCoverUrl" class="grid gap-2">
-                                    <Label>{{ t('event.colorHomeShadow') }}</Label>
-                                    <div class="flex items-center gap-2">
-                                        <input
-                                            type="color"
-                                            v-model="form.color_home_shadow"
-                                            class="h-9 w-10 shrink-0 cursor-pointer rounded border border-input bg-transparent p-0.5"
-                                        />
-                                        <Input v-model="form.color_home_shadow" maxlength="7" class="font-mono uppercase" placeholder="#000000" />
-                                    </div>
-                                </div>
-                                <div v-if="displayCoverUrl" class="grid gap-2">
-                                    <Label
-                                        >{{ t('event.homeShadowOpacity') }}
-                                        <span class="text-xs font-normal text-muted-foreground">{{ form.home_shadow_opacity }}%</span></Label
-                                    >
-                                    <input type="range" v-model.number="form.home_shadow_opacity" min="0" max="100" step="5" class="w-full" />
-                                    <p class="-mt-1 text-xs text-muted-foreground">{{ t('event.homeShadowOpacityHint') }}</p>
-                                </div>
+                                <CoverUpload
+                                    ref="coverUpload"
+                                    :initial-cover-url="props.event.cover_image_url"
+                                    v-model:cover="form.cover"
+                                    v-model:color-home-text="form.color_home_text"
+                                    v-model:color-home-shadow="form.color_home_shadow"
+                                    v-model:home-shadow-opacity="form.home_shadow_opacity"
+                                    @update:display-cover-url="displayCoverUrl = $event"
+                                />
                             </CardContent>
                         </Card>
 
@@ -831,307 +617,21 @@ function importStyle(e: Event) {
                                             </button>
                                         </div>
                                     </div>
-
-                                    <!-- Color palette -->
-                                    <div class="grid gap-3">
-                                        <div class="flex items-center gap-2">
-                                            <Label>{{ t('event.colorHint') }}</Label>
-                                            <InfoTooltip :text="t('event.colorSystemInfo')" />
-                                        </div>
-                                        <p class="-mt-1 text-xs text-muted-foreground">{{ t('event.colorHintSub') }}</p>
-                                        <!-- 3 base pickers -->
-                                        <div class="grid grid-cols-3 gap-3">
-                                            <div
-                                                v-for="(key, idx) in ['color_primary', 'color_secondary', 'color_tertiary'] as const"
-                                                :key="key"
-                                                class="grid gap-1.5"
-                                            >
-                                                <span class="text-xs text-muted-foreground">{{
-                                                    [t('event.colorPrimary'), t('event.colorSecondary'), t('event.colorTertiary')][idx]
-                                                }}</span>
-                                                <div class="flex items-center gap-1.5">
-                                                    <input
-                                                        type="color"
-                                                        v-model="form[key]"
-                                                        class="h-9 w-10 shrink-0 cursor-pointer rounded border border-input bg-transparent p-0.5"
-                                                    />
-                                                    <Input v-model="form[key]" class="px-2 font-mono text-xs uppercase" maxlength="7" />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Radio selectors -->
-                                        <div class="space-y-3 pt-1">
-                                            <!-- Screen background -->
-                                            <div class="grid gap-1.5">
-                                                <div class="flex items-center justify-between">
-                                                    <span class="text-xs text-muted-foreground">{{ t('event.roleScreenBg') }}</span
-                                                    ><button
-                                                        type="button"
-                                                        @click="showHint('screenBg')"
-                                                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
-                                                    >
-                                                        ?
-                                                    </button>
-                                                </div>
-                                                <div class="flex gap-2">
-                                                    <button
-                                                        v-for="opt in colorOptions"
-                                                        :key="'sb' + opt.key"
-                                                        type="button"
-                                                        @click="form.role_screen_bg = opt.key"
-                                                        class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
-                                                        :class="radioClass(form.role_screen_bg, opt.key, 'secondary')"
-                                                    >
-                                                        <div
-                                                            class="h-6 w-6 rounded-full border border-black/10 shadow-sm"
-                                                            :style="{ backgroundColor: opt.value }"
-                                                        />
-                                                        <span>{{ opt.label }}</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <!-- Card background -->
-                                            <div class="grid gap-1.5">
-                                                <div class="flex items-center justify-between">
-                                                    <span class="text-xs text-muted-foreground">{{ t('event.roleCardBg') }}</span
-                                                    ><button
-                                                        type="button"
-                                                        @click="showHint('cardBg')"
-                                                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
-                                                    >
-                                                        ?
-                                                    </button>
-                                                </div>
-                                                <div class="flex gap-2">
-                                                    <button
-                                                        v-for="opt in colorOptions"
-                                                        :key="'cb' + opt.key"
-                                                        type="button"
-                                                        @click="form.role_card_bg = opt.key"
-                                                        class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
-                                                        :class="radioClass(form.role_card_bg, opt.key, 'tertiary')"
-                                                    >
-                                                        <div
-                                                            class="h-6 w-6 rounded-full border border-black/10 shadow-sm"
-                                                            :style="{ backgroundColor: opt.value }"
-                                                        />
-                                                        <span>{{ opt.label }}</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <!-- Text on cards -->
-                                            <div class="grid gap-1.5">
-                                                <div class="flex items-center justify-between">
-                                                    <span class="text-xs text-muted-foreground">{{ t('event.roleCardText') }}</span
-                                                    ><button
-                                                        type="button"
-                                                        @click="showHint('cardText')"
-                                                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
-                                                    >
-                                                        ?
-                                                    </button>
-                                                </div>
-                                                <div class="flex gap-2">
-                                                    <button
-                                                        v-for="opt in colorOptions"
-                                                        :key="'ct' + opt.key"
-                                                        type="button"
-                                                        @click="form.role_card_text = opt.key"
-                                                        class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
-                                                        :class="radioClass(form.role_card_text, opt.key, 'primary')"
-                                                    >
-                                                        <div
-                                                            class="h-6 w-6 rounded-full border border-black/10 shadow-sm"
-                                                            :style="{ backgroundColor: opt.value }"
-                                                        />
-                                                        <span>{{ opt.label }}</span>
-                                                    </button>
-                                                </div>
-                                                <p
-                                                    v-if="cardContrastFailsAA"
-                                                    role="alert"
-                                                    class="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-[11px] leading-snug text-amber-800 dark:text-amber-200"
-                                                >
-                                                    {{ t('event.contrastWarning', { ratio: cardContrastLabel }) }}
-                                                </p>
-                                            </div>
-                                            <!-- Button on cards -->
-                                            <div class="grid gap-1.5">
-                                                <div class="flex items-center justify-between">
-                                                    <span class="text-xs text-muted-foreground">{{ t('event.roleCardButton') }}</span
-                                                    ><button
-                                                        type="button"
-                                                        @click="showHint('cardButton')"
-                                                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
-                                                    >
-                                                        ?
-                                                    </button>
-                                                </div>
-                                                <div class="flex gap-2">
-                                                    <button
-                                                        v-for="opt in colorOptions"
-                                                        :key="'cbt' + opt.key"
-                                                        type="button"
-                                                        @click="form.role_card_button = opt.key"
-                                                        class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
-                                                        :class="radioClass(form.role_card_button, opt.key, 'primary')"
-                                                    >
-                                                        <div
-                                                            class="h-6 w-6 rounded-full border border-black/10 shadow-sm"
-                                                            :style="{ backgroundColor: opt.value }"
-                                                        />
-                                                        <span>{{ opt.label }}</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <!-- Text on card buttons -->
-                                            <div class="grid gap-1.5">
-                                                <div class="flex items-center justify-between">
-                                                    <span class="text-xs text-muted-foreground">{{ t('event.roleCardButtonText') }}</span
-                                                    ><button
-                                                        type="button"
-                                                        @click="showHint('cardButtonText')"
-                                                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
-                                                    >
-                                                        ?
-                                                    </button>
-                                                </div>
-                                                <div class="flex gap-2">
-                                                    <button
-                                                        v-for="opt in colorOptions"
-                                                        :key="'cbtx' + opt.key"
-                                                        type="button"
-                                                        @click="form.role_card_button_text = opt.key"
-                                                        class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
-                                                        :class="radioClass(form.role_card_button_text, opt.key, 'tertiary')"
-                                                    >
-                                                        <div
-                                                            class="h-6 w-6 rounded-full border border-black/10 shadow-sm"
-                                                            :style="{ backgroundColor: opt.value }"
-                                                        />
-                                                        <span>{{ opt.label }}</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <!-- Navbar color -->
-                                            <div class="grid gap-1.5">
-                                                <div class="flex items-center justify-between">
-                                                    <span class="text-xs text-muted-foreground">{{ t('event.roleTabTint') }}</span
-                                                    ><button
-                                                        type="button"
-                                                        @click="showHint('tabTint')"
-                                                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
-                                                    >
-                                                        ?
-                                                    </button>
-                                                </div>
-                                                <div class="flex gap-2">
-                                                    <button
-                                                        v-for="opt in colorOptions"
-                                                        :key="'tt' + opt.key"
-                                                        type="button"
-                                                        @click="form.role_tab_tint = opt.key"
-                                                        class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
-                                                        :class="radioClass(form.role_tab_tint, opt.key, 'primary')"
-                                                    >
-                                                        <div
-                                                            class="h-6 w-6 rounded-full border border-black/10 shadow-sm"
-                                                            :style="{ backgroundColor: opt.value }"
-                                                        />
-                                                        <span>{{ opt.label }}</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <!-- Border color -->
-                                            <div class="grid gap-1.5">
-                                                <div class="flex items-center justify-between">
-                                                    <span class="text-xs text-muted-foreground">{{ t('event.roleBorder') }}</span
-                                                    ><button
-                                                        type="button"
-                                                        @click="showHint('border')"
-                                                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
-                                                    >
-                                                        ?
-                                                    </button>
-                                                </div>
-                                                <div class="flex gap-2">
-                                                    <button
-                                                        v-for="opt in colorOptions"
-                                                        :key="'br' + opt.key"
-                                                        type="button"
-                                                        @click="form.role_border = opt.key"
-                                                        class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
-                                                        :class="radioClass(form.role_border, opt.key, 'primary')"
-                                                    >
-                                                        <div
-                                                            class="h-6 w-6 rounded-full border border-black/10 shadow-sm"
-                                                            :style="{ backgroundColor: opt.value }"
-                                                        />
-                                                        <span>{{ opt.label }}</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <!-- FAB button -->
-                                            <div class="grid gap-1.5">
-                                                <div class="flex items-center justify-between">
-                                                    <span class="text-xs text-muted-foreground">{{ t('event.roleFab') }}</span
-                                                    ><button
-                                                        type="button"
-                                                        @click="showHint('fab')"
-                                                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
-                                                    >
-                                                        ?
-                                                    </button>
-                                                </div>
-                                                <div class="flex gap-2">
-                                                    <button
-                                                        v-for="opt in colorOptions"
-                                                        :key="'fab' + opt.key"
-                                                        type="button"
-                                                        @click="form.role_fab = opt.key"
-                                                        class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
-                                                        :class="radioClass(form.role_fab, opt.key, 'primary')"
-                                                    >
-                                                        <div
-                                                            class="h-6 w-6 rounded-full border border-black/10 shadow-sm"
-                                                            :style="{ backgroundColor: opt.value }"
-                                                        />
-                                                        <span>{{ opt.label }}</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <!-- Icon color inside FAB -->
-                                            <div class="grid gap-1.5">
-                                                <div class="flex items-center justify-between">
-                                                    <span class="text-xs text-muted-foreground">{{ t('event.roleFabIcon') }}</span
-                                                    ><button
-                                                        type="button"
-                                                        @click="showHint('fabIcon')"
-                                                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
-                                                    >
-                                                        ?
-                                                    </button>
-                                                </div>
-                                                <div class="flex gap-2">
-                                                    <button
-                                                        v-for="opt in colorOptions"
-                                                        :key="'fabi' + opt.key"
-                                                        type="button"
-                                                        @click="form.role_fab_icon = opt.key"
-                                                        class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
-                                                        :class="radioClass(form.role_fab_icon, opt.key, 'tertiary')"
-                                                    >
-                                                        <div
-                                                            class="h-6 w-6 rounded-full border border-black/10 shadow-sm"
-                                                            :style="{ backgroundColor: opt.value }"
-                                                        />
-                                                        <span>{{ opt.label }}</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <ColorSystemEditor
+                                        v-model:color-primary="form.color_primary"
+                                        v-model:color-secondary="form.color_secondary"
+                                        v-model:color-tertiary="form.color_tertiary"
+                                        v-model:role-screen-bg="form.role_screen_bg"
+                                        v-model:role-card-bg="form.role_card_bg"
+                                        v-model:role-card-text="form.role_card_text"
+                                        v-model:role-card-button="form.role_card_button"
+                                        v-model:role-card-button-text="form.role_card_button_text"
+                                        v-model:role-tab-tint="form.role_tab_tint"
+                                        v-model:role-border="form.role_border"
+                                        v-model:role-fab="form.role_fab"
+                                        v-model:role-fab-icon="form.role_fab_icon"
+                                        @show-hint="showHint"
+                                    />
                                 </div>
                             </CardContent>
                         </Card>
