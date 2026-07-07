@@ -13,14 +13,14 @@ class SocialLoginController extends Controller
 {
     public function redirect()
     {
-        // If you have proxies or similar, use ->stateless()
-        // return Socialite::driver('google')->stateless()->redirect();
+        // Stateful (session-based) is correct here. Only switch to ->stateless()
+        // if the login flow ever crosses instances that do not share session
+        // storage (multi-node deployment, external SPA on a different origin).
         return Socialite::driver('google')->redirect();
     }
 
     public function callback()
     {
-        // $googleUser = Socialite::driver('google')->stateless()->user();
         $googleUser = Socialite::driver('google')->user();
 
         $googleId = (string) $googleUser->getId();

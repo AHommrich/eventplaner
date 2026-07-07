@@ -12,7 +12,7 @@ Hochzeitsplaner für André & Tabea. Echte Gäste werden damit arbeiten — Einf
 | Web-Frontend | Vue 3 + TypeScript + Tailwind CSS 4 + Reka UI |
 | Mobile | React Native (Expo) — separates Repo |
 | Build | Vite 6 + PWA |
-| Deploy | Docker + Coolify (Hetzner, 142.132.165.232) |
+| Deploy | Docker + Coolify (Hetzner Cloud) |
 | Storage | Hetzner Object Storage (Fotos, Bucket in Nürnberg) |
 | Mail | Resend (Domain eveplan.de verifiziert, EU-Region Ireland) |
 
@@ -44,7 +44,7 @@ develop → staging → production
 
 Coolify deployt automatisch nach Push. Migrations laufen automatisch.
 
-**⚠️ Redeploy-Disziplin:** Der VPS hat 4 GB RAM — bei **parallelen** Redeploys auf staging + prod kollabiert der OOM-Killer (2026-07-01 einmal passiert: systemd + traefik gekillt, Emergency-Reset via Hetzner-Panel nötig, ~30 Min Downtime). Deshalb: bei Multi-Env-Changes (Env-Vars, Force-Pushes, APP_KEY-Rotation) **immer sequentiell** — erst staging, verify dass `beta.hommrich.app` grün ist, dann prod.
+**⚠️ Redeploy-Disziplin:** Der 4-GB-VPS überlebt keine parallelen Coolify-Redeploys — beide Container zusammen sprengen das RAM und triggern den OOM-Killer. Deshalb bei Multi-Env-Changes (Env-Vars, Force-Pushes, APP_KEY-Rotation) **immer sequentiell**: erst staging, verify dass `beta.hommrich.app` grün ist, dann prod.
 
 ---
 
@@ -208,7 +208,7 @@ Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
 - **Standard-Event**: Migration `2026_03_16_130000` legt "Hochzeit André & Tabea" an und befüllt alle alten Datensätze ohne event_id
 - **Farbsystem-Palette-Mapping**: `color_primary` = Bordeaux (#7c2d3e, ex-`color_accent`), `color_secondary` = Beige (#e8e3de, ex-`color_background`), `color_tertiary` = Weiß (#ffffff, ex-`color_card`). Migration: `2026_03_19_000010_refactor_color_system_to_palette_and_roles`.
 - **HEIC-Upload**: Wird clientseitig via `heic2any` zu JPEG konvertiert (Settings.vue Cover-Upload) und serverseitig via Imagick (API Photo-Upload).
-- **`npm run build` lokal schlägt fehl** (esbuild macOS vs. Linux Docker) — ist ein bekanntes Pre-existing Issue, kein Fehler in unserem Code. TypeScript-Check mit `npx tsc --noEmit` als Ersatz.
+- **`npm run build` lokal schlägt fehl** (esbuild macOS vs. Linux Docker) — ist ein bekanntes Pre-existing Issue, kein Fehler in unserem Code. TypeScript-Check mit `npm run typecheck` (vue-tsc) als Ersatz.
 - **Reka UI SidebarGroupLabel**: Im collapsed mode wird der Label mit `-mt-8 opacity-0` versteckt, belegt aber weiterhin Platz und blockiert pointer-events. Daher `group-data-[collapsible=icon]:pointer-events-none` auf dem Label — fehlt das, ist das letzte Item der vorherigen NavMain-Gruppe nicht vollständig klickbar.
 - **Vite HMR im Docker**: Dateiänderungen auf dem Host werden vom Vite-Container manchmal nicht erkannt. Fix: `docker restart eventplaner-vite-1`.
 - **Demo-Daten für Screenshots / öffentliche Demos**: `DemoDataSeeder` legt ein plausibles Fake-Event „Hochzeit Anna & Ben 2027" mit 36 Gästen, 27 Fotos (via picsum-Placeholder), Trinkspiel-Leaderboard und Fotospiel-Einreichungen an — echte Daten bleiben unberührt. `docker exec laravel-app php artisan db:seed --class=DemoDataSeeder`. Login `demo@eveplan.app` / `demo-1234`. Cleanup: `User::where('email', 'demo@eveplan.app')->delete()`. Seeder ist idempotent — Re-Run löscht den alten Demo-User und legt neu an.
@@ -276,7 +276,7 @@ Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
 Checkliste bei jeder Sub-Processor-/Infrastruktur-Änderung:
 
 - [ ] `docs/legal/sub-processors.md` — authoritative Register mit Purpose, Location, DPA
-- [ ] `resources/js/pages/Legal/Privacy.vue` — user-facing Datenschutzerklärung (Sektion 5 „Empfänger und Auftragsverarbeiter"), muss mit dem Register übereinstimmen
+- [ ] `resources/legal/privacy.de.md` + `resources/legal/privacy.en.md` — user-facing Datenschutzerklärung (Sektion „Drittanbieter"). Wird von `resources/js/pages/Legal/Privacy.vue` gerendert; muss inhaltlich mit dem Register übereinstimmen.
 - [ ] `resources/js/pages/Legal/Imprint.vue` — Impressum wenn Verantwortlicher/Adresse/Domain betroffen
 - [ ] `docs/ARCHITECTURE.md` — falls Erwähnung des Providers
 - [ ] `README.md` + `README.de.md` — Stack-Tabelle + DSGVO-Sektion
@@ -291,6 +291,22 @@ Checkliste bei jeder Sub-Processor-/Infrastruktur-Änderung:
 ```bash
 grep -rln "Cloudflare\|R2\|hommrich.app" --exclude-dir=node_modules --exclude-dir=vendor --exclude-dir=.git .
 ```
-Alle Treffer die nicht historische Doku (docs/gdpr/*, docs/showcase/*, NEXT_SESSION.md) sind, müssen angepasst werden.
+Alle Treffer die nicht historische Doku (`docs/gdpr/*`, `docs/showcase/*`) sind, müssen angepasst werden.
 
 **Merge-Regel**: In der PR-Beschreibung explizit auflisten welche der obigen Stellen upgedated wurden. Das PR-Template (`.github/PULL_REQUEST_TEMPLATE.md`) hat dafür die Sektion „GDPR / privacy touched?".
+
+---
+
+## Verwandte Dokumentation
+
+- `README.md` / `README.de.md` — externe Projekt-Übersicht, Feature-Highlights, Deploy-Workflow
+- `docs/GETTING_STARTED.md` — Lokales Dev-Setup + typische Fußfallen
+- `docs/CONTRIBUTING.md` — Branch-Modell, Commit-Convention, Doc-Sync-Regel
+- `docs/ARCHITECTURE.md` — Subsystem-Deep-Dives (Photo-Game, Drink-Score, Projector, Color System)
+- `docs/RUNBOOK.md` — Ops-Playbook (Coolify, Backups, Incidents, Change-Log)
+- `docs/security-rotations.md` — Secret-Rotation-Log + Prozeduren pro Secret
+- `docs/AUDIT_ACTION_PLAN.md` — interne Audit-Punkte + Status
+- `docs/FOLLOWUP_2026-07-07.md` — Post-Audit-Backlog. Steps 1–3 + 5–11 sind gemergt; Step 4 (Restore-Drill) deferred bis erstes zahlendes Event
+- `docs/legal/sub-processors.md` — Sub-Processor-Register (authoritative)
+- `docs/GDPR_COMPLIANCE_PLAN.md` — DSGVO-Etappen 1–6 abgeschlossen; Stage 7 (Cookie-Consent) deferred
+- `SECURITY.md` — Disclosure-Prozess

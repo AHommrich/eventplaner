@@ -67,7 +67,7 @@ Coverage-Badge im README zeigt **Backend-Coverage** (die ehrliche Zahl).
 ## Out of Scope (bewusst nicht eingeplant)
 
 - **PHPStan/Larastan**: Wertvoll, aber zieht laufende Pflege nach sich. Erst aufsetzen, wenn jemand aktiv mit dem Repo arbeitet.
-- **Playwright/E2E**: Nächster Schritt nach diesem Showcase, aber zu groß für die jetzige Runde.
+- ~~**Playwright/E2E**~~: Ursprünglich aus dem Showcase ausgeklammert. Mittlerweile eingezogen (`tests/e2e/*.spec.ts`), deckt öffentliche Smoke-Routes, a11y auf allen public routes inkl. `/`, Owner-Settings-Flow, Guest-API-Journey und Projektor-Rendering ab. Läuft in `.github/workflows/e2e.yml` gegen ephemeres `artisan serve` + MinIO.
 - **Mehr Frontend-Tests**: 162 Vue-Komponenten test-mäßig hochzufahren wäre 1-2 Wochen Arbeit ohne klaren Showcase-Mehrwert.
 - **CONTRIBUTING.md / Issue-Templates**: Nur sinnvoll, wenn echte Community ankommt.
 - **Pre-commit hooks**: Persönliche Disziplin reicht; CI fängt den Rest.
