@@ -98,6 +98,16 @@ Drei langlebige Branches, die von Coolify beim Push automatisch deployt werden. 
 
 `docker-compose.yml` ist bewusst branch-spezifisch (unterschiedliches Dockerfile, unterschiedliche exposed Ports). **Nie darf die develop-Version staging oder production überschreiben.** Jeder Merge nach `staging` oder `production` setzt diese Datei auf die Version des Ziel-Branches zurück.
 
+Zwei Safety-Nets stützen das ab:
+
+- **`merge=ours`-Treiber** — `.gitattributes` markiert `docker-compose.yml` (und `Dockerfile`) als `merge=ours`, sodass git bei jedem Merge die Version des Ziel-Branches behält, statt einen Three-Way-Merge zu versuchen. Einmalig pro Clone aktivieren:
+
+  ```bash
+  git config --local merge.ours.driver true
+  ```
+
+- **CI-Guard** — `.github/workflows/compose-guard.yml` läuft bei jedem Push auf `staging` und `production` und lässt den Build failen, wenn die Compose-Datei auf das dev-Dockerfile oder `artisan serve` verweist. Falls ein manueller Merge doch die falsche Datei durchlässt, fängt das den Fehler ab, bevor Coolify redeployt.
+
 ### develop → staging
 
 ```bash

@@ -98,6 +98,16 @@ Three long-lived branches, each auto-deployed by Coolify on push. Migrations run
 
 `docker-compose.yml` is intentionally different per branch (different Dockerfile, different exposed ports). **Never let the develop version overwrite staging or production.** Every merge to `staging` or `production` resets that file to the target-branch version.
 
+Two safety nets back this up:
+
+- **`merge=ours` driver** — `.gitattributes` marks `docker-compose.yml` (and `Dockerfile`) as `merge=ours` so git keeps the target-branch version on every merge instead of trying a three-way merge. Enable the driver once per clone:
+
+  ```bash
+  git config --local merge.ours.driver true
+  ```
+
+- **CI guard** — `.github/workflows/compose-guard.yml` runs on every push to `staging` and `production` and fails the build if the compose file references the dev Dockerfile or `artisan serve`. If a manual merge ever slips the wrong file through, this catches it before Coolify redeploys.
+
 ### develop → staging
 
 ```bash
