@@ -98,9 +98,10 @@ Drei langlebige Branches, die von Coolify beim Push automatisch deployt werden. 
 
 `docker-compose.yml` ist bewusst branch-spezifisch (unterschiedliches Dockerfile, unterschiedliche exposed Ports). **Nie darf die develop-Version staging oder production überschreiben.** Jeder Merge nach `staging` oder `production` setzt diese Datei auf die Version des Ziel-Branches zurück.
 
-Zwei Safety-Nets stützen das ab:
+Drei Safety-Nets stützen das ab:
 
-- **`merge=ours`-Treiber** — `.gitattributes` markiert `docker-compose.yml` (und `Dockerfile`) als `merge=ours`, sodass git bei jedem Merge die Version des Ziel-Branches behält, statt einen Three-Way-Merge zu versuchen. Einmalig pro Clone aktivieren:
+- **Immer lokal mergen, nie über die GitHub-UI.** Ein Server-Side-Merge auf github.com ignoriert den `.gitattributes merge=ours`-Treiber *und* hat keinen Richtungs-Guard — der „Create pull request"-Button auf dem falschen Branch hat auf `develop` schon einmal die dev-Compose durch die Prod-Version überschrieben (PR #4). Alle Promotions laufen über die Terminal-Snippets unten.
+- **`merge=ours`-Treiber** — `.gitattributes` markiert `docker-compose.yml` (und `Dockerfile`) als `merge=ours`, sodass git bei jedem *lokalen* Merge die Version des Ziel-Branches behält, statt einen Three-Way-Merge zu versuchen. Einmalig pro Clone aktivieren:
 
   ```bash
   git config --local merge.ours.driver true
@@ -112,8 +113,10 @@ Zwei Safety-Nets stützen das ab:
 
 ```bash
 git checkout staging
+git pull --ff-only origin staging          # abbrechen falls jemand anderes gepusht hat
 git merge --no-ff --no-commit develop
-git checkout HEAD -- docker-compose.yml   # staging-Compose-Datei behalten
+git checkout HEAD -- docker-compose.yml    # staging-Compose-Datei behalten
+grep -q 'Dockerfile.prod' docker-compose.yml || { echo "compose drift"; exit 1; }
 git commit -m "Merge branch 'develop' into staging"
 git push origin staging
 git checkout develop
@@ -121,14 +124,16 @@ git checkout develop
 
 Coolify erkennt den Push, rebuildet und redeployt. Vor dem Weiterreichen gegenprüfen unter `https://beta.hommrich.app`.
 
-### staging → production
+### develop → production
 
 Erst promoten, wenn Staging grün ist.
 
 ```bash
 git checkout production
+git pull --ff-only origin production       # abbrechen falls jemand anderes gepusht hat
 git merge --no-ff --no-commit develop
-git checkout HEAD -- docker-compose.yml   # production-Compose-Datei behalten
+git checkout HEAD -- docker-compose.yml    # production-Compose-Datei behalten
+grep -q 'Dockerfile.prod' docker-compose.yml || { echo "compose drift"; exit 1; }
 git commit -m "Merge branch 'develop' into production"
 git push origin production
 git checkout develop
