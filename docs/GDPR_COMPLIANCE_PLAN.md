@@ -18,7 +18,7 @@ Each stage is **self-contained** — pick any one, tick its acceptance criteria,
 
 ## Why this plan exists
 
-The app is hosted in Germany (Hetzner), stores photos in Cloudflare R2, sends mail via Resend, and real wedding guests + event owners will sign up. Once a real human creates an account, GDPR (DSGVO) and the German Digital Services Act (DDG) apply in full. Without an imprint, a privacy policy, and a clean data-subject-rights workflow, the project would be **non-shippable** in Germany — fines run from a warning letter (Abmahnung) up to 4 % of annual revenue.
+The app is hosted in Germany (Hetzner), stores photos in Hetzner Object Storage (Nürnberg, since 2026-07-01 — previously Cloudflare R2), sends mail via Resend, and real wedding guests + event owners will sign up. Once a real human creates an account, GDPR (DSGVO) and the German Digital Services Act (DDG) apply in full. Without an imprint, a privacy policy, and a clean data-subject-rights workflow, the project would be **non-shippable** in Germany — fines run from a warning letter (Abmahnung) up to 4 % of annual revenue.
 
 This plan turns the audit findings (see "Today" below) into shippable stages.
 

@@ -34,3 +34,6 @@ yarn-error.log
 /hochzeits_einladung.json
 /laravel
 /laravel_test_*
+
+# private working notes — kept locally if the maintainer wants to reuse the format
+/docs/NEXT_SESSION.md

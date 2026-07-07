@@ -62,8 +62,8 @@ Reasoning:
 2. Click **Add secret**. Google keeps the previous secret valid during
    the grace window — do **not** revoke it yet.
 3. **Coolify production** → env var `GOOGLE_CLIENT_SECRET` → save →
-   redeploy. Sequential; never in parallel with any other Coolify
-   redeploy (OOM regression 2026-07-01, see `RUNBOOK.md` §5).
+   redeploy. Sequential; the 4 GB VPS cannot handle parallel Coolify
+   redeploys — see `RUNBOOK.md` §5.
 4. Verify Google login on `https://eveplan.de`.
 5. Update the maintainer's local `.env` → `GOOGLE_CLIENT_SECRET=<new>` →
    `docker restart laravel-app`.

@@ -139,7 +139,7 @@ git push origin production
 git checkout develop
 ```
 
-> ⚠️ **Nie staging und production parallel pushen.** Der VPS hat 4 GB RAM; zwei parallele Coolify-Redeploys triggern den OOM-Killer (hat einmal systemd + traefik gekillt, ~30 Min Downtime, Emergency-Reset via Hetzner-Panel nötig). Immer sequentiell: erst `staging` pushen, warten bis `beta.hommrich.app` wieder antwortet, dann `production` pushen.
+> ⚠️ **Nie staging und production parallel pushen.** Zwei parallele Coolify-Redeploys sprengen den 4-GB-VPS und triggern den OOM-Killer. Immer sequentiell: erst `staging` pushen, warten bis `beta.hommrich.app` antwortet, dann `production` pushen.
 
 ---
 
@@ -179,9 +179,7 @@ Test-Aufbau, Coverage-Ziele und Strategie pro Schicht stehen in [`docs/SHOWCASE_
 
 ## Companion-App (React Native)
 
-Die mobile App liegt in einem separaten Repo und teilt sich mit der Web-App nur die HTTP-API. Sie deckt QR-Login, Foto-Galerie inkl. Upload und dynamisches Theming via `/api/event/info` ab. Die App ist feature-complete für den realen Hochzeitseinsatz; Dokumentation und README für das Mobile-Repo bekommen später denselben Feinschliff wie dieses Projekt hier.
-
-<!-- TODO: Link zum öffentlichen Mobile-Repo, sobald veröffentlicht -->
+Die mobile App liegt unter [**github.com/AHommrich/eventplaner-app**](https://github.com/AHommrich/eventplaner-app) und teilt sich mit der Web-App nur die HTTP-API. Sie deckt QR-Login, Foto-Galerie inkl. Upload und dynamisches Theming via `/api/event/info` ab. Das Mobile-Repo hat einen eigenen Portfolio-Refactor durchlaufen (siehe [`docs/REFACTOR_PLAN.md`](https://github.com/AHommrich/eventplaner-app/blob/main/docs/REFACTOR_PLAN.md) dort) und ist feature-complete für den realen Hochzeitseinsatz.
 
 ---
 
@@ -197,6 +195,19 @@ Das Projekt wird aus Deutschland betrieben und ist dokumentiert DSGVO-ready:
 - Sub-Prozessor-Register in [`docs/legal/sub-processors.md`](docs/legal/sub-processors.md)
 
 Der vollständige Plan mit den einzelnen Etappen liegt in [`docs/GDPR_COMPLIANCE_PLAN.md`](docs/GDPR_COMPLIANCE_PLAN.md).
+
+---
+
+## Dokumentation
+
+Neben dieser README liegen einige gezielte Dokumente im Repo, jeweils mit klarem Zweck:
+
+- [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md) — Projekt lokal aufsetzen inkl. der typischen Fußfallen
+- [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) — Branch-Modell, Commit-Konvention, Doc-Sync-Regel
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Subsystem-Deep-Dives (Fotospiel, Drink-Score, Projektor, Farbsystem)
+- [`docs/RUNBOOK.md`](docs/RUNBOOK.md) — Operational Playbook (Coolify, Backups, Incidents)
+- [`docs/security-rotations.md`](docs/security-rotations.md) — Secret-Rotation-Log + Prozeduren pro Secret
+- [`SECURITY.md`](SECURITY.md) — Sicherheits-Disclosure
 
 ---
 

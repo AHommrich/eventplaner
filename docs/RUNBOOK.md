@@ -1,8 +1,8 @@
 # Runbook — eveplan.de / beta.hommrich.app
 
-Operational reference for the Eventplaner stack. Written for the single maintainer (André). If someone else has to keep this alive tomorrow, this is where they start.
+Operational reference for the Eventplaner stack. Written for the single maintainer. If someone else has to keep this alive tomorrow, this is where they start.
 
-Last touched: 2026-07-05.
+Last touched: 2026-07-07.
 
 > Sections marked **TODO** are stubs to be filled by the maintainer once the corresponding setup step in Coolify has been performed. Update this file *in the same commit* as the Coolify change — otherwise the runbook drifts.
 
@@ -10,7 +10,7 @@ Last touched: 2026-07-05.
 
 ## 1. Stack overview
 
-- **VPS:** Hetzner CX22 / 4 GB RAM, Falkenstein. Host IP `142.132.165.232`.
+- **VPS:** Hetzner CX22 / 4 GB RAM, Falkenstein. Host IP tracked in `~/.ssh/config` on the maintainer's machine — not in this repo.
 - **Orchestration:** Coolify, self-hosted on the VPS.
 - **Domains:**
   - `eveplan.de` → `production` branch → Dockerfile.prod (nginx + php-fpm) + separate MariaDB container
@@ -87,11 +87,11 @@ Laravel's scheduler is triggered by `routes/console.php`. For it to actually run
   - Container: the application container
 - Alternative: system cron on the VPS host executing `docker exec laravel-app php artisan schedule:run` — works but is easier to lose track of.
 
-Verify with `docker exec laravel-app php artisan schedule:list` — should list the retention + cleanup jobs from `routes/console.php`.
+**Status.** Active on staging + production since 2026-07-07. `docker exec laravel-app php artisan schedule:list` confirms all six retention / cleanup / backup jobs from `routes/console.php` are registered. The `photos:backup-to-prefix --target=hel1` entry surfaces at listing time but stays inert (gated by `->when(filled(env('AWS_BACKUP_BUCKET')))`) until the Helsinki bucket is switched on — see §3.2b.
 
 ### 2.7 Resource limits (mind the 4 GB RAM incident)
 - App container: **Maximum Memory Limit = 1536 MB** set via Coolify → Application → Advanced → Resource Limits, on both staging and production. Contains the OOM blast radius to the container instead of the whole VPS. Verify after any redeploy with `docker stats laravel-app --no-stream` — the `MEM LIMIT` column must read `1.5 GiB`. If a future feature genuinely needs more memory, raise this deliberately rather than silently — the VPS still only has 4 GB total, so leaving room for MariaDB + Coolify + the second application matters.
-- Never trigger a redeploy on `staging` and `production` at the same time. See `CLAUDE.md` and `README.md` for the 2026-07-01 incident that established this rule.
+- Never trigger a redeploy on `staging` and `production` at the same time. Parallel redeploys have exhausted the 4 GB VPS in the past — CLAUDE.md and README.md carry the same rule. Always sequential: staging first, verify `beta.hommrich.app`, then production.
 
 ### 2.8 Mail queue worker
 
@@ -198,6 +198,12 @@ gunzip -c ~/backups/eveplan/<file>.sql.gz \
   | docker exec -i mariadb sh -c 'exec mysql -u root -p"$MYSQL_ROOT_PASSWORD"'
 ```
 
+### 3.5 Restore drill (semi-annual) — deferred pending budget
+
+**Purpose.** A backup that has never been restored is not a backup. This drill is designed to run twice a year to prove the mysqldump chain works end-to-end.
+
+**Status.** Deferred as of 2026-07-07. Reason: budget. Hetzner Cloud Backup (Layer 1, active) is deemed sufficient for the first test events. The full drill procedure is spelled out in `docs/FOLLOWUP_2026-07-07.md` Step 4 and should be reopened before the first paid customer event runs on the platform.
+
 ### 3.4 Migration rollback
 Laravel migrations do **not** have a robust auto-rollback for schema changes that have already touched data. Treat each migration as one-way unless it has a working `down()` **and** you have a fresh backup.
 
@@ -230,7 +236,7 @@ Laravel migrations do **not** have a robust auto-rollback for schema changes tha
 
 ### 4.4 VPS unresponsive
 - Hetzner Cloud Console: log in, take a screenshot of the graphs before rebooting. RAM curve tells you whether it was OOM.
-- Emergency reset: Hetzner console → server → power → hard reboot. Same procedure that was used in the 2026-07-01 OOM incident.
+- Emergency reset: Hetzner console → server → power → hard reboot.
 - After the VPS is back: `systemctl status coolify` (or the equivalent) — Coolify itself may have been the victim.
 
 ### 4.4 Rollback after a broken deploy
@@ -281,4 +287,5 @@ When the post-deploy smoke workflow (`.github/workflows/post-deploy.yml`) fires 
 
 ## 5. Change log
 
+- **2026-07-07** — Follow-up sprint. Coolify scheduler activated (§2.6 status flip). Rate-limit added on `POST /register`. `Settings.vue` split into seven sub-components (see `docs/AUDIT_ACTION_PLAN.md` Sollte-Punkt 9). `docker-compose.yml` protected by `.gitattributes merge=ours` + `compose-guard.yml` (see `README.md` "Deploy workflow"). Google OAuth client secrets rotated for both beta and eveplan clients — logged in `docs/security-rotations.md`. Google login `invalid_client` on local dev diagnosed and fixed same day (local `.env` still held the old eveplan secret after the rotation; the rotation procedure now explicitly reminds the maintainer to update the local `.env` in the same session, see `docs/security-rotations.md`). CI security audits added (`composer audit` + `npm audit` in `tests.yml`, new `dependency-review.yml`).
 - **2026-07-05** — Runbook created. Sentry EU integration landed the same day (`docs/legal/sub-processors.md`, `docs/AUDIT_ACTION_PLAN.md` Muss-Punkt 6).

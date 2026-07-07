@@ -1,6 +1,6 @@
 # Sub-Processor Register
 
-_Last reviewed: 2026-07-07. Sentry EU covers Laravel backend + Vue web frontend. Helsinki cross-region backup is prepared in code but deferred pending budget._
+_Last reviewed: 2026-07-08. Sentry EU covers Laravel backend + Vue web frontend. Helsinki cross-region backup is prepared in code but deferred pending budget._
 
 This register lists every third party that processes personal data on behalf of eveplan. It is the authoritative source the user-facing privacy policy (`/datenschutz`) quotes from. **Any new sub-processor must be added here before the integration ships to production** — otherwise the published privacy policy becomes a lie.
 
