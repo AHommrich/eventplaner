@@ -144,19 +144,6 @@ function showHint(section: string) {
         }, 2500);
     });
 }
-// Unified amber overlay for all elements
-function hintBgClass(hint: string): string {
-    return activeHint.value === hint ? 'preview-hint-bg' : '';
-}
-// For frames/borders: slightly lighter amber (0.5 instead of 0.3)
-function hintBorderClass(hint: string): string {
-    return activeHint.value === hint ? 'preview-hint-border' : '';
-}
-
-function hintFilterClass(hint: string): string {
-    return activeHint.value === hint ? 'preview-hint-filter' : '';
-}
-
 const { active: floatingBarActive } = useFloatingBar();
 watch(
     isDirty,
