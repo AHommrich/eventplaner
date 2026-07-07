@@ -1,0 +1,21 @@
+name: dependency-review
+
+# Blocks PRs that introduce dependencies with high-severity advisories
+# before they reach the shared branches. Complements the audit steps
+# in tests.yml, which surface CVEs on already-merged dependencies.
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - staging
+      - production
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
