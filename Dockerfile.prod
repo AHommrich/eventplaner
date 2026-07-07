@@ -94,6 +94,12 @@ run printf '%s\n' \
   '    server_name _;' \
   '    root /var/www/public;' \
   '' \
+  '    # GDPR Art. 5(1)(c) data minimisation: nginx access_log would' \
+  '    # collect client IPs for every request. The Coolify upstream proxy' \
+  '    # already keeps its own request log for operational purposes, so' \
+  '    # this would be duplicate PII collection without a distinct use.' \
+  '    access_log off;' \
+  '' \
   '    index index.php index.html;' \
   '    client_max_body_size 25m;' \
   '' \
@@ -124,20 +130,26 @@ run printf '%s\n' \
 
 expose 80
 
-# Start (nur /bin/sh, kein bash)
-cmd ["/bin/sh","-lc", "\
-  php -v && nginx -t && php-fpm -v && \
+# Startup — fail loud on any error so Coolify's zero-downtime deploy keeps
+# the old container serving instead of swapping to a half-migrated new one.
+# `set -e` aborts the shell as soon as a command exits non-zero; only
+# `storage:link` is allowed to fail (the symlink already exists after the
+# first successful boot, and `File exists` is the expected error path).
+# DrinkCatalogSeeder is idempotent (`upsert()` in the seeder), so a
+# re-run on redeploy is safe and must fail loudly if it does break.
+cmd ["/bin/sh","-lc", "set -e; \
+  php -v; nginx -t; php-fpm -v; \
   echo 'Waiting for app warmup...' ; \
-  (php artisan package:discover --ansi || true) && \
-  (php artisan config:clear || true) && \
-  (php artisan route:clear || true) && \
-  (php artisan view:clear || true) && \
-  (php artisan storage:link || true) && \
-  (php artisan config:cache || true) && \
-  (php artisan route:cache || true) && \
-  (php artisan view:cache || true) && \
-  (php artisan migrate --force || true) && \
-  (php artisan db:seed --class=DrinkCatalogSeeder --force || true) && \
-  php-fpm -D && \
+  php artisan package:discover --ansi; \
+  php artisan config:clear; \
+  php artisan route:clear; \
+  php artisan view:clear; \
+  php artisan storage:link || true; \
+  php artisan config:cache; \
+  php artisan route:cache; \
+  php artisan view:cache; \
+  php artisan migrate --force; \
+  php artisan db:seed --class=DrinkCatalogSeeder --force; \
+  php-fpm -D; \
   exec nginx -g 'daemon off;' \
 "]

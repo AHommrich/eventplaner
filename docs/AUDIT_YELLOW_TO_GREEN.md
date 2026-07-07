@@ -24,7 +24,7 @@ Wenn Du alles durchziehst, landest Du bei **~2,5 Tagen** verteilter Arbeit — r
 
 ## Block A — Schnelle Betriebs-Wins (~1 h)
 
-### [ ] 1. Coolify-Notifications aktivieren
+### [x] 1. Coolify-Notifications aktivieren (erledigt 2026-07-07)
 **Warum:** Aktuell merkt kein Mensch, wenn ein Deploy fehlschlägt oder ein Container umkippt. Ohne Kanal bleibt Sentry allein — das sieht nur die App, nicht die Infra.
 
 **Konkret:**
@@ -38,7 +38,7 @@ Wenn Du alles durchziehst, landest Du bei **~2,5 Tagen** verteilter Arbeit — r
 
 ---
 
-### [ ] 2. Sentry-Test-Exception auf staging feuern
+### [x] 2. Sentry-Test-Exception auf staging feuern (erledigt 2026-07-05)
 **Warum:** Wir haben Sentry frisch eingebunden, aber noch nicht End-to-End verifiziert. Ohne diesen Ping wissen wir nicht, ob Ingestion + EU-Region + DSN in Coolify wirklich greifen.
 
 **Konkret:**
@@ -53,7 +53,7 @@ Wenn Du alles durchziehst, landest Du bei **~2,5 Tagen** verteilter Arbeit — r
 
 ---
 
-### [ ] 3. `SESSION_ENCRYPT=true` in staging + production
+### [x] 3. `SESSION_ENCRYPT=true` in staging + production (erledigt 2026-07-07)
 **Warum:** `SESSION_DRIVER=database` legt Session-Payloads (Auth-Kontext, CSRF-Token, `active_event_id`) unverschlüsselt in der DB ab. Ein DB-Leak wäre damit direkt ein Sitzungs-Hijack-Leak. Verschlüsselung kostet <1 ms, kein Grund es weiter aus zu lassen.
 
 **Konkret:**
@@ -68,7 +68,7 @@ Wenn Du alles durchziehst, landest Du bei **~2,5 Tagen** verteilter Arbeit — r
 
 ---
 
-### [ ] 4. `@sentry/vue` fürs Web-Frontend
+### [x] 4. `@sentry/vue` fürs Web-Frontend (erledigt 2026-07-05, Commit `efbfdbf`)
 **Warum:** Backend-Fehler laufen jetzt in Sentry, aber jede JS-Exception im Web-Client (Vue-Router-Fehler, Inertia-Payload-Parse-Fehler, Upload-Client-Crash) bleibt unsichtbar. Damit wäre der Betriebs-Zustand konsistent instrumentiert.
 
 **Konkret:**
@@ -100,8 +100,10 @@ Wenn Du alles durchziehst, landest Du bei **~2,5 Tagen** verteilter Arbeit — r
 
 ## Block B — Cross-Region-Foto-Backup (~½ Tag)
 
-### [ ] 5. Zweiter Hetzner-Bucket in Helsinki + Nightly-Copy
+### [~] 5. Zweiter Hetzner-Bucket in Helsinki + Nightly-Copy (aufgeschoben — Budget-Entscheidung)
 **Warum:** Der aktuelle In-Bucket-Snapshot (`snapshots/YYYY-MM-DD/…`) schützt nur gegen versehentliches File-Delete. Bei Credential-Compromise, Bucket-Delete oder Regional-Ausfall in Nürnberg sind Original **und** Snapshot weg. Für die eigene Hochzeit vertretbares Risiko, für Fremdkunden-Betrieb nicht.
+
+**Aktueller Status (2026-07-07):** Code steht vollständig (Command, Filesystem-Disk `s3_backup`, Scheduler-Eintrag mit `->when()`-Gate). Aktivierung ist eine bewusste Kosten-Nutzen-Entscheidung — bei den aktuellen Datenmengen (~2 GB) ist der zusätzliche Hetzner-Bucket + Cross-Region-Egress finanziell unverhältnismäßig für eine Single-Owner-Hochzeitsseite. Reaktivieren, sobald echte Fremdkunden-Daten (nicht nur die eigene Feier) auf dem System liegen.
 
 **Konkret:**
 - Hetzner Console → Object Storage → neuer Bucket in `hel1` (Helsinki), Name z. B. `eveplan-photos-backup-hel1`
@@ -131,7 +133,7 @@ Wenn Du alles durchziehst, landest Du bei **~2,5 Tagen** verteilter Arbeit — r
 
 ## Block C — Deployment-Verifikation (~2 h)
 
-### [ ] 6. Post-Deploy-Smoke-Test
+### [x] 6. Post-Deploy-Smoke-Test (erledigt 2026-07-05, Commit `efbfdbf`, `.github/workflows/post-deploy.yml`)
 **Warum:** Migrations laufen im `Dockerfile.prod`-Startup blind (Zeile 128). Wenn eine schiefgeht, kommt der Container hoch, aber Routen sind kaputt — Coolify sieht nur „Container läuft", die Fehler landen erst dann in Sentry, wenn ein echter User draufklickt.
 
 **Konkret:** zwei parallel mögliche Wege, einer reicht:
@@ -196,7 +198,7 @@ Wenn Du alles durchziehst, landest Du bei **~2,5 Tagen** verteilter Arbeit — r
 
 ## Block D — Tests: E2E-Smoke + Frontend-Coverage (~1,5 Tage)
 
-### [ ] 8. Playwright-Smoke-Suite
+### [x] 8. Playwright-Smoke-Suite (erledigt 2026-07-05, `tests/e2e/*.spec.ts` + `.github/workflows/e2e.yml`)
 **Warum:** Frontend-Coverage ist aktuell 4 Vitest-Specs für 164 Vue-Dateien. Ein Golden-Path-E2E-Test fängt 90 % der regressiven Bugs, die ein Unit-Test nie sieht (Inertia-Payload-Fehler, Vue-Router-Bruch, Session-Timing).
 
 **Umfang:** genau drei Szenarien, mehr nicht — nicht in eine E2E-Coverage-Falle rennen.
@@ -257,7 +259,7 @@ Wenn Du alles durchziehst, landest Du bei **~2,5 Tagen** verteilter Arbeit — r
 
 ## Block E — A11y als Beifang (~2 h)
 
-### [ ] 10. axe-a11y im E2E-Setup
+### [x] 10. axe-a11y im E2E-Setup (erledigt 2026-07-05, `tests/e2e/a11y.spec.ts`)
 **Warum:** Sobald Block D steht, ist axe für ~10 zusätzliche Zeilen dabei. Bringt Barrierefreiheit von 🟡 auf 🟢 ohne separaten Aufwand. Deshalb ans Ende — nur sinnvoll wenn Playwright läuft.
 
 **Konkret:**
