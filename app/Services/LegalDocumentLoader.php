@@ -17,8 +17,8 @@ use Symfony\Component\Yaml\Yaml;
  *
  * Retention numbers from config/retention.php are interpolated into the body
  * via {{retention.invitation_tokens_days}} / {{retention.declined_guests_days}}
- * placeholders so the user-facing text cannot drift from the actual scheduled
- * command windows.
+ * / {{retention.guest_erasure_grace_days}} placeholders so the user-facing
+ * text cannot drift from the actual scheduled command windows.
  *
  * Locale handling: unknown locales fall back to "de" (German is the
  * authoritative version because the primary audience and the legal
@@ -110,6 +110,7 @@ class LegalDocumentLoader
         $replacements = [
             '{{retention.invitation_tokens_days}}' => (string) config('retention.invitation_tokens_after_event_days'),
             '{{retention.declined_guests_days}}' => (string) config('retention.declined_guests_after_event_days'),
+            '{{retention.guest_erasure_grace_days}}' => (string) config('retention.guest_erasure_grace_days'),
         ];
 
         return strtr($body, $replacements);
@@ -142,6 +143,7 @@ class LegalDocumentLoader
                     'heading' => $heading,
                     'lines' => [],
                 ];
+
                 continue;
             }
 
