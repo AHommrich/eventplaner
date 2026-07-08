@@ -56,9 +56,18 @@ version of that for a private wedding companion, not a public social network.
   albums are not visible to guests in the app. Moderation is scoped to what
   the app renders. See [Photo-Game readiness](#photo-game-readiness).
 - **No new admin dashboard.** Reports plug into the existing `/requests` tab
-  next to revocations and event requests. Sysadmin visibility follows the
-  same `isAdmin()` branch that `EventRequest` already uses in
-  `RequestController::index`.
+  (renamed to "Meldungen" / "Notifications" — same route). Sysadmin
+  visibility follows the same `isAdmin()` branch that `EventRequest`
+  already uses in `RequestController::index`.
+- **Photo delete is exposed inside the report card** with a mandatory
+  double confirmation. Rationale: reviewing owners want to close a
+  Guideline-1.2 concern in one place; forcing them into `/photos` for the
+  destructive step was busywork. The double-confirm keeps accidental
+  deletion friction high.
+- **Per-type open counts live on a global Inertia prop
+  (`pending_notifications`)** and drive both the sidebar badge and the
+  dashboard card, so the counts stay consistent everywhere without
+  page-level fetches.
 - **Reporter identity is never exposed to the reported uploader.** Enforce
   at API level.
 - **Auto-hide on report.** The reported photo becomes invisible to the
@@ -324,7 +333,8 @@ Deliver back to the app-side session:
 - No NSFW auto-classifier.
 - No backoffice dashboard, no assignment workflow, no status enum richer than
   `open` / `resolved`.
-- No delete-photo action inside the report UI.
+- ~~No delete-photo action inside the report UI.~~ Superseded: delete is now
+  the second card action, gated by two ConfirmDialogs.
 - No moderation of Photo-Game or Presentation albums — not visible in the app.
 - No recovery/undo for resolved reports.
 - No deploy triggered by the coding session. Human reviews and merges.
@@ -415,5 +425,7 @@ Deliver this to the mobile-app session as-is.
 
 _Newest first. One line per change. Format: `YYYY-MM-DD — what — commit sha (fill after commit)`._
 
-- 2026-07-08 — Backend implementation landed: migrations, models, API endpoints, Requests-hub wiring, retention command, privacy docs, tests. Docker was down locally so the suites still need to be run before the commit is finalised. Commit sha TBD.
+- 2026-07-08 — UX round two: renamed "Anfragen" to "Meldungen" (DE) / "Notifications" (EN); added global Inertia prop `pending_notifications` with per-type counts (revocations, event_requests, photo_reports) scoped by role + active event; sidebar nav item now shows an amber badge with the total; dashboard shows a dedicated card with per-type breakdown when anything is open; report card gained a destructive "Foto löschen" button behind two ConfirmDialogs that deletes the S3 blob + DB row and auto-resolves the report. Extended `RequestController` with `deletePhotoFromReport` (same auth rule as resolve). New tests cover delete-photo happy path + guards + the shared prop shape.
+- 2026-07-08 — CI fix on staging: `photo_reports_days` placeholder replacement had been lost from `LegalDocumentLoader::interpolatePlaceholders` (only 3 entries instead of 4), so the retention line stayed `{{retention.photo_reports_days}}` in the rendered markdown. Added the missing entry. Second fix: `PhotoReport::store` returned `status: null` because Eloquent does not read the DB-level default back into the in-memory instance after `INSERT` — added `protected $attributes = ['status' => 'open']` as the model-side default.
+- 2026-07-08 — Backend implementation landed: migrations, models, API endpoints, Requests-hub wiring, retention command, privacy docs, tests. Commit `0288994`.
 - 2026-07-08 — Plan drafted and committed. Backend implementation not yet started.

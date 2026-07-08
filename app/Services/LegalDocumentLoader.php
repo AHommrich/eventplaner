@@ -112,6 +112,7 @@ class LegalDocumentLoader
             '{{retention.invitation_tokens_days}}' => (string) config('retention.invitation_tokens_after_event_days'),
             '{{retention.declined_guests_days}}' => (string) config('retention.declined_guests_after_event_days'),
             '{{retention.guest_erasure_grace_days}}' => (string) config('retention.guest_erasure_grace_days'),
+            '{{retention.photo_reports_days}}' => (string) config('retention.photo_reports_after_event_days'),
         ];
 
         return strtr($body, $replacements);

@@ -16,6 +16,7 @@ use Tighten\Ziggy\Ziggy;
  *  - `active_event`         — session-based active event (see {@see \App\Http\Controllers\Controller::activeEvent()})
  *  - `accessible_events`    — all events the user has access to (owner + co-organizer); sidebar shows switcher when >1
  *  - `user_event_requests`  — pending/declined event access requests for the onboarding flow (non-admins only)
+ *  - `pending_notifications` — per-type open counts (revocations, event_requests, photo_reports, total) for sidebar badge + dashboard card
  *  - `ziggy`                — serialized route definitions for the frontend helper
  *  - `sidebarOpen`          — cookie-persisted sidebar state
  *
@@ -89,6 +90,49 @@ class HandleInertiaRequests extends Middleware
             ->toArray();
     }
 
+    /**
+     * Per-type open-notification counts for the sidebar badge and the
+     * dashboard card. Scope follows the /requests hub: revocations and photo
+     * reports are event-scoped for owners, cross-event for sysadmin; event
+     * requests are sysadmin-only.
+     */
+    private function resolvePendingNotifications(Request $request): array
+    {
+        $user = $request->user();
+        if (! $user) {
+            return ['revocations' => 0, 'event_requests' => 0, 'photo_reports' => 0, 'total' => 0];
+        }
+
+        $isAdmin = $user->isAdmin();
+        $activeEventId = $request->session()->get('active_event_id');
+
+        $revocations = 0;
+        $photoReports = 0;
+        if ($activeEventId) {
+            $revocations = \App\Models\Guest::where('event_id', $activeEventId)
+                ->where('rsvp_status', 'revocation_requested')
+                ->count();
+        }
+        if ($isAdmin) {
+            $photoReports = \App\Models\PhotoReport::where('status', 'open')->count();
+        } elseif ($activeEventId) {
+            $photoReports = \App\Models\PhotoReport::where('status', 'open')
+                ->where('event_id', $activeEventId)
+                ->count();
+        }
+
+        $eventRequests = $isAdmin
+            ? \App\Models\EventRequest::where('status', 'pending')->count()
+            : 0;
+
+        return [
+            'revocations' => $revocations,
+            'event_requests' => $eventRequests,
+            'photo_reports' => $photoReports,
+            'total' => $revocations + $eventRequests + $photoReports,
+        ];
+    }
+
     public function version(Request $request): ?string
     {
         return parent::version($request);
@@ -115,6 +159,7 @@ class HandleInertiaRequests extends Middleware
             'active_event' => $this->resolveActiveEvent($request),
             'accessible_events' => $this->resolveAccessibleEvents($request),
             'user_event_requests' => $this->resolveUserEventRequests($request),
+            'pending_notifications' => $this->resolvePendingNotifications($request),
             'ziggy' => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),

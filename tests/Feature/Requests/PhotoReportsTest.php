@@ -6,6 +6,7 @@ use App\Models\Photo;
 use App\Models\PhotoAlbum;
 use App\Models\PhotoReport;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 
 /*
  * /requests hub — photo report card.
@@ -158,4 +159,58 @@ it('rejects double-resolving with 422', function () {
 
     $this->post(route('requests.photo-reports.resolve', $report->id))
         ->assertStatus(422);
+});
+
+it('deletes the photo and resolves the report when owner triggers delete-photo', function () {
+    Storage::fake('s3');
+    $owner = actingAsOwner();
+    $event = $owner->ownedEvents->first();
+    $report = makePhotoReport($event);
+    $photoId = $report->photo_id;
+    $key = $report->photo->r2_key;
+    Storage::disk('s3')->put($key, 'binary');
+
+    $this->post(route('requests.photo-reports.delete-photo', $report->id))
+        ->assertRedirect('/requests');
+
+    expect(Photo::find($photoId))->toBeNull();
+    Storage::disk('s3')->assertMissing($key);
+    $fresh = $report->fresh();
+    expect($fresh->status)->toBe('resolved')
+        ->and($fresh->resolved_by_user_id)->toBe($owner->id);
+});
+
+it('forbids delete-photo on a foreign event', function () {
+    actingAsOwner();
+    $strangerEvent = Event::factory()->create();
+    $report = makePhotoReport($strangerEvent);
+
+    $this->post(route('requests.photo-reports.delete-photo', $report->id))
+        ->assertStatus(403);
+});
+
+it('rejects delete-photo on an already-resolved report', function () {
+    $owner = actingAsOwner();
+    $event = $owner->ownedEvents->first();
+    $report = makePhotoReport($event);
+    $report->update(['status' => 'resolved', 'resolved_at' => now(), 'resolved_by_user_id' => $owner->id]);
+
+    $this->post(route('requests.photo-reports.delete-photo', $report->id))
+        ->assertStatus(422);
+});
+
+it('exposes pending_notifications with per-type counts to inertia', function () {
+    $owner = actingAsOwner();
+    $event = $owner->ownedEvents->first();
+    makePhotoReport($event);
+    makePhotoReport($event);
+
+    $this->get('/requests')
+        ->assertOk()
+        ->assertInertia(function ($assert) {
+            $notifications = $assert->toArray()['props']['pending_notifications'];
+            $this->assertSame(2, $notifications['photo_reports']);
+            $this->assertSame(2, $notifications['total']);
+            $this->assertSame(0, $notifications['event_requests']);
+        });
 });

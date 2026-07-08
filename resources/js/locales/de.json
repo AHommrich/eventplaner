@@ -9,7 +9,7 @@
         "photos": "Fotos",
         "userManagement": "User-Verwaltung",
         "manageAccess": "Zugang verwalten",
-        "requests": "Anfragen",
+        "requests": "Meldungen",
         "eventSettings": "Event-Einstellungen",
         "requestEvent": "Event beantragen",
         "photoGame": "Fotospiel"
@@ -44,7 +44,12 @@
         "rsvpOpen": "Offen",
         "rsvpOfTotal": "von Gästen gesamt",
         "photos": "Fotos",
-        "photosInfo": "Fotos aus allen Alben zusammen (App-Galerie + Präsentation + Fotospiel)."
+        "photosInfo": "Fotos aus allen Alben zusammen (App-Galerie + Präsentation + Fotospiel).",
+        "notificationsTitle": "Offene Meldungen",
+        "notificationsPhotoReports": "Foto-Meldungen",
+        "notificationsRevocations": "Rücknahme-Anfragen",
+        "notificationsEventRequests": "Event-Anfragen",
+        "notificationsOpen": "Zu den Meldungen"
     },
     "event": {
         "search": "Event suchen...",
@@ -171,10 +176,11 @@
         "gameSettingsSaved": "Spieleinstellungen gespeichert",
         "eventRequestApproved": "Event wurde erstellt.",
         "eventRequestDeclined": "Anfrage abgelehnt.",
-        "photoReportResolved": "Meldung erledigt."
+        "photoReportResolved": "Meldung erledigt.",
+        "photoReportPhotoDeleted": "Foto gelöscht und Meldung erledigt."
     },
     "requests": {
-        "title": "Anfragen",
+        "title": "Meldungen",
         "revocationsTitle": "Rücknahme-Anfragen",
         "revocationsInfo": "Gäste, die einmal endgültig abgesagt haben, können die Absage nicht selbst rückgängig machen — sie stellen stattdessen eine Anfrage. Du entscheidest ob der Status auf 'offen' zurückgesetzt wird.",
         "revocationsDesc": "Gäste, die ihre endgültige Absage zurücknehmen möchten. Freigabe setzt den Status zurück auf offen.",
@@ -210,7 +216,13 @@
         "photoReportReasonPrivacy": "Persönlichkeitsrechte",
         "photoReportReasonOther": "Sonstiges",
         "confirmResolvePhotoReportTitle": "Meldung als erledigt markieren?",
-        "confirmResolvePhotoReportDesc": "Die Meldung wird geschlossen. Das Foto selbst wird dadurch nicht gelöscht — nutze dafür die Galerie."
+        "confirmResolvePhotoReportDesc": "Die Meldung wird geschlossen. Das Foto selbst bleibt in der Galerie.",
+        "photoReportDeletePhoto": "Foto löschen",
+        "photoReportDeletePhotoFinal": "Endgültig löschen",
+        "confirmDeletePhotoTitle1": "Foto wirklich löschen?",
+        "confirmDeletePhotoDesc1": "Das Foto wird aus der Galerie und aus dem Objekt-Speicher entfernt. Die Meldung wird gleichzeitig als erledigt markiert.",
+        "confirmDeletePhotoTitle2": "Letzte Bestätigung",
+        "confirmDeletePhotoDesc2": "Dieser Schritt ist unwiderruflich. Klicke „Endgültig löschen“, um das Foto endgültig zu entfernen."
     },
     "guest": {
         "firstName": "Vorname",

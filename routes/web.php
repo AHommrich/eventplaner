@@ -101,6 +101,7 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::post('/requests/event-requests/{eventRequest}/approve', [RequestController::class, 'approveEventRequest'])->name('requests.event-requests.approve');
     Route::post('/requests/event-requests/{eventRequest}/decline', [RequestController::class, 'declineEventRequest'])->name('requests.event-requests.decline');
     Route::post('/requests/photo-reports/{photoReport}/resolve', [RequestController::class, 'resolvePhotoReport'])->name('requests.photo-reports.resolve');
+    Route::post('/requests/photo-reports/{photoReport}/delete-photo', [RequestController::class, 'deletePhotoFromReport'])->name('requests.photo-reports.delete-photo');
 
     // Guests
     Route::post('/guests', [GuestController::class, 'store'])->name('guests.store');
