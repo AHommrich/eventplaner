@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\EventRequest;
 use App\Models\Guest;
+use App\Models\PhotoReport;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 /**
@@ -62,9 +64,46 @@ class RequestController extends Controller
                 ]);
         }
 
+        // photo reports (App Store Guideline 1.2). Sysadmin sees them across
+        // all events; regular owners are scoped to the active event.
+        $photoReportsQuery = PhotoReport::query()
+            ->where('status', 'open')
+            ->with(['photo.album', 'reporter', 'reportedGuest', 'event']);
+        if (! $isAdmin) {
+            $photoReportsQuery->where('event_id', $event->id);
+        }
+        $photoReports = $photoReportsQuery
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn (PhotoReport $r) => [
+                'id' => $r->id,
+                'type' => 'photo_report',
+                'event_id' => $r->event_id,
+                'event_name' => $isAdmin ? $r->event?->name : null,
+                'photo' => [
+                    'id' => $r->photo_id,
+                    'url' => $r->photo?->url,
+                    'album_slug' => $r->photo?->album?->slug,
+                ],
+                'reporter' => $r->reporter ? [
+                    'id' => $r->reporter->id,
+                    'firstname' => $r->reporter->firstname,
+                    'lastname' => $r->reporter->lastname,
+                ] : null,
+                'reported_uploader' => $r->reportedGuest ? [
+                    'id' => $r->reportedGuest->id,
+                    'firstname' => $r->reportedGuest->firstname,
+                    'lastname' => $r->reportedGuest->lastname,
+                ] : null,
+                'reason' => $r->reason,
+                'message' => $r->message,
+                'created_at' => $r->created_at->toIso8601String(),
+            ]);
+
         return Inertia::render('Requests/Index', [
             'revocations' => $revocations,
             'event_requests' => $eventRequests,
+            'photo_reports' => $photoReports,
         ]);
     }
 
@@ -138,6 +177,60 @@ class RequestController extends Controller
         abort_if($eventRequest->status !== 'pending', 422);
 
         $eventRequest->update(['status' => 'declined']);
+
+        return redirect()->route('requests.index');
+    }
+
+    /**
+     * POST /requests/photo-reports/{photoReport}/resolve
+     * Close a photo report. Allowed to sysadmin or the owner of the event the
+     * report belongs to.
+     */
+    public function resolvePhotoReport(Request $request, PhotoReport $photoReport)
+    {
+        $user = $request->user();
+        $isAdmin = $user->isAdmin();
+        $isEventOwner = $photoReport->event?->user_id === $user->id;
+        abort_unless($isAdmin || $isEventOwner, 403);
+        abort_if($photoReport->status !== 'open', 422);
+
+        $photoReport->update([
+            'status' => 'resolved',
+            'resolved_at' => now(),
+            'resolved_by_user_id' => $user->id,
+        ]);
+
+        return redirect()->route('requests.index');
+    }
+
+    /**
+     * POST /requests/photo-reports/{photoReport}/delete-photo
+     * Destructive shortcut: deletes the reported photo (object storage + DB)
+     * and closes the report in one round-trip. Guarded by the same rule as
+     * resolve. The frontend gates this with a double confirmation.
+     */
+    public function deletePhotoFromReport(Request $request, PhotoReport $photoReport)
+    {
+        $user = $request->user();
+        $isAdmin = $user->isAdmin();
+        $isEventOwner = $photoReport->event?->user_id === $user->id;
+        abort_unless($isAdmin || $isEventOwner, 403);
+        abort_if($photoReport->status !== 'open', 422);
+
+        $photo = $photoReport->photo;
+        if ($photo) {
+            $key = $photo->r2_key ?? ltrim((string) parse_url((string) $photo->url, PHP_URL_PATH), '/');
+            if ($key !== '') {
+                Storage::disk('s3')->delete($key);
+            }
+            $photo->delete();
+        }
+
+        $photoReport->update([
+            'status' => 'resolved',
+            'resolved_at' => now(),
+            'resolved_by_user_id' => $user->id,
+        ]);
 
         return redirect()->route('requests.index');
     }

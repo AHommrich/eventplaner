@@ -10,38 +10,49 @@ use League\CommonMark\CommonMarkConverter;
 /**
  * Public, unauthenticated legal pages — imprint (§5 DDG) and privacy policy (GDPR Art. 13).
  *
- * The privacy page reads its content from resources/legal/privacy.de.md via the
+ * The pages read their content from resources/legal/*.de.md via the
  * LegalDocumentLoader so the mobile app (which consumes the same source through
- * /api/legal/privacy) and the web page cannot drift apart. Markdown → HTML happens
- * server-side; the Vue template renders each section's HTML with v-html.
+ * /api/legal/*) and the web pages cannot drift apart. Markdown → HTML happens
+ * server-side; the Vue templates render each section's HTML with v-html.
  */
 class LegalController extends Controller
 {
-    public function __construct(private readonly LegalDocumentLoader $loader)
-    {
-    }
+    public function __construct(private readonly LegalDocumentLoader $loader) {}
 
     public function imprint(): Response
     {
-        return Inertia::render('Legal/Imprint');
+        $document = $this->loader->load('imprint', 'de');
+
+        return Inertia::render('Legal/Imprint', [
+            'updated_at' => $document['updated_at'],
+            'sections' => $this->toHtmlSections($document['sections']),
+        ]);
     }
 
     public function privacy(): Response
     {
         $document = $this->loader->load('privacy', 'de');
-        $converter = new CommonMarkConverter();
 
-        $sections = array_map(function (array $section) use ($converter): array {
+        return Inertia::render('Legal/Privacy', [
+            'updated_at' => $document['updated_at'],
+            'sections' => $this->toHtmlSections($document['sections']),
+        ]);
+    }
+
+    /**
+     * @param  list<array{id: string, heading: string, body_markdown: string}>  $sections
+     * @return list<array{id: string, heading: string, body_html: string}>
+     */
+    private function toHtmlSections(array $sections): array
+    {
+        $converter = new CommonMarkConverter;
+
+        return array_map(function (array $section) use ($converter): array {
             return [
                 'id' => $section['id'],
                 'heading' => $section['heading'],
                 'body_html' => (string) $converter->convert($section['body_markdown']),
             ];
-        }, $document['sections']);
-
-        return Inertia::render('Legal/Privacy', [
-            'updated_at' => $document['updated_at'],
-            'sections' => $sections,
-        ]);
+        }, $sections);
     }
 }

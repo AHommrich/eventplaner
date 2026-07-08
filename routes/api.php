@@ -5,9 +5,11 @@ use App\Http\Controllers\Api\EventInfoController;
 use App\Http\Controllers\Api\GuestApiController;
 use App\Http\Controllers\Api\GuestDataExportController;
 use App\Http\Controllers\Api\GuestErasureController;
+use App\Http\Controllers\Api\GuestContentHideController;
 use App\Http\Controllers\Api\LegalController;
 use App\Http\Controllers\Api\PhotoController;
 use App\Http\Controllers\Api\PhotoGameController as ApiPhotoGameController;
+use App\Http\Controllers\Api\PhotoReportController;
 use App\Http\Controllers\Api\QrAuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -23,6 +25,8 @@ use Illuminate\Support\Facades\Route;
 // Privacy policy: public, unauthenticated — the app renders it natively so
 // users can read it before they consent. Rate-limited to shrug off abuse.
 Route::get('/legal/privacy', [LegalController::class, 'privacy'])
+    ->middleware('throttle:30,1');
+Route::get('/legal/imprint', [LegalController::class, 'imprint'])
     ->middleware('throttle:30,1');
 
 // QR-code login: no auth needed, token in the URL identifies the guest
@@ -49,6 +53,15 @@ Route::post('/guest/erasure/revoke', [GuestErasureController::class, 'revoke'])
 Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureGuestHasAppAccess::class])->group(function () {
     Route::post('/photos', [PhotoController::class, 'store']);
     Route::get('/photos', [PhotoController::class, 'index']);
+
+    // Moderation (App Store Guideline 1.2): report a photo, hide/unhide another
+    // guest's uploads, list hidden guests. Report is rate-limited so a bad
+    // actor cannot spam an owner's inbox.
+    Route::post('/photos/{photo}/report', [PhotoReportController::class, 'store'])
+        ->middleware('throttle:10,60');
+    Route::post('/guests/{guest}/hide-content', [GuestContentHideController::class, 'store']);
+    Route::delete('/guests/{guest}/hide-content', [GuestContentHideController::class, 'destroy']);
+    Route::get('/guests/hidden-content', [GuestContentHideController::class, 'index']);
 
     // Event info (incl. rsvp_deadline)
     Route::get('/event/info', [EventInfoController::class, 'show']);

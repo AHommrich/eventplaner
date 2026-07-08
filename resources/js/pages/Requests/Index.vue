@@ -40,9 +40,33 @@ interface EventRequestItem {
     created_at: string;
 }
 
+interface PhotoReportGuest {
+    id: number;
+    firstname: string;
+    lastname: string;
+}
+
+interface PhotoReportItem {
+    id: number;
+    type: 'photo_report';
+    event_id: number;
+    event_name: string | null;
+    photo: {
+        id: number;
+        url: string | null;
+        album_slug: string | null;
+    };
+    reporter: PhotoReportGuest | null;
+    reported_uploader: PhotoReportGuest | null;
+    reason: 'inappropriate_content' | 'privacy' | 'other';
+    message: string | null;
+    created_at: string;
+}
+
 defineProps<{
     revocations: RevocationRequest[];
     event_requests: EventRequestItem[];
+    photo_reports: PhotoReportItem[];
 }>();
 
 const { t } = useI18n();
@@ -85,6 +109,65 @@ function doEventReqAction() {
     });
 }
 
+// --- Photo reports ---
+const photoReportConfirmOpen = ref(false);
+const photoReportPending = ref<PhotoReportItem | null>(null);
+
+function askResolvePhotoReport(item: PhotoReportItem) {
+    photoReportPending.value = item;
+    photoReportConfirmOpen.value = true;
+}
+
+function doResolvePhotoReport() {
+    if (!photoReportPending.value) return;
+    const item = photoReportPending.value;
+    useForm({}).post(route('requests.photo-reports.resolve', item.id), {
+        onSuccess: () => toast.success(t('toast.photoReportResolved')),
+    });
+}
+
+// destructive: delete the photo itself. Two confirmations because it's
+// irreversible (S3 blob + DB row + implicit report resolution).
+const deletePhotoConfirmOpen1 = ref(false);
+const deletePhotoConfirmOpen2 = ref(false);
+const deletePhotoPending = ref<PhotoReportItem | null>(null);
+
+function askDeletePhoto(item: PhotoReportItem) {
+    deletePhotoPending.value = item;
+    deletePhotoConfirmOpen1.value = true;
+}
+
+function askDeletePhotoStep2() {
+    deletePhotoConfirmOpen1.value = false;
+    deletePhotoConfirmOpen2.value = true;
+}
+
+function doDeletePhoto() {
+    if (!deletePhotoPending.value) return;
+    const item = deletePhotoPending.value;
+    useForm({}).post(route('requests.photo-reports.delete-photo', item.id), {
+        onSuccess: () => toast.success(t('toast.photoReportPhotoDeleted')),
+    });
+}
+
+function reasonLabel(reason: PhotoReportItem['reason']): string {
+    switch (reason) {
+        case 'inappropriate_content':
+            return t('requests.photoReportReasonInappropriate');
+        case 'privacy':
+            return t('requests.photoReportReasonPrivacy');
+        default:
+            return t('requests.photoReportReasonOther');
+    }
+}
+
+function uploaderLabel(item: PhotoReportItem): string {
+    if (item.reported_uploader) {
+        return `${item.reported_uploader.firstname} ${item.reported_uploader.lastname}`;
+    }
+    return t('requests.photoReportOwnerUpload');
+}
+
 function formatDate(iso: string | null): string {
     if (!iso) return '—';
     return new Date(iso).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -123,6 +206,60 @@ function setterName(item: RevocationRequest): string {
                             <div class="flex shrink-0 gap-2">
                                 <Button size="sm" @click="askEventReq(item, 'approve')">{{ t('requests.approveEvent') }}</Button>
                                 <Button size="sm" variant="outline" @click="askEventReq(item, 'decline')">{{ t('requests.declineEvent') }}</Button>
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <!-- Photo reports (App Store Guideline 1.2) -->
+            <Card v-if="photo_reports.length > 0">
+                <CardHeader>
+                    <CardTitle class="flex items-center gap-2">
+                        {{ t('requests.photoReportsTitle') }}
+                        <span class="inline-flex size-5 items-center justify-center rounded-full bg-amber-500 text-[11px] font-bold text-white">{{
+                            photo_reports.length
+                        }}</span>
+                        <InfoTooltip :text="t('requests.photoReportsInfo')" />
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p class="text-muted-foreground mb-4 text-sm">{{ t('requests.photoReportsDesc') }}</p>
+                    <div class="divide-y">
+                        <div v-for="item in photo_reports" :key="item.id" class="flex flex-col gap-3 py-4 sm:flex-row sm:items-start sm:gap-4">
+                            <a
+                                v-if="item.photo.url"
+                                :href="item.photo.url"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="block shrink-0"
+                                :title="t('requests.photoReportOpenPhoto')"
+                            >
+                                <img :src="item.photo.url" alt="" class="h-24 w-24 rounded object-cover" />
+                            </a>
+                            <div class="min-w-0 flex-1 space-y-1 text-sm">
+                                <p v-if="item.event_name" class="text-muted-foreground text-xs">
+                                    {{ t('requests.photoReportEvent') }}: {{ item.event_name }}
+                                </p>
+                                <p>
+                                    <span class="font-medium">{{ t('requests.photoReportReason') }}:</span>
+                                    {{ reasonLabel(item.reason) }}
+                                </p>
+                                <p>
+                                    <span class="font-medium">{{ t('requests.photoReportReported') }}:</span>
+                                    {{ uploaderLabel(item) }}
+                                </p>
+                                <p v-if="item.message" class="whitespace-pre-wrap">
+                                    <span class="font-medium">{{ t('requests.photoReportMessage') }}:</span>
+                                    {{ item.message }}
+                                </p>
+                                <p class="text-muted-foreground text-xs">{{ formatDate(item.created_at) }}</p>
+                            </div>
+                            <div class="flex shrink-0 flex-col gap-2 sm:flex-row">
+                                <Button size="sm" @click="askResolvePhotoReport(item)">{{ t('requests.photoReportResolve') }}</Button>
+                                <Button size="sm" variant="destructive" @click="askDeletePhoto(item)">
+                                    {{ t('requests.photoReportDeletePhoto') }}
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -187,6 +324,35 @@ function setterName(item: RevocationRequest): string {
             :confirm-label="eventReqPendingAction?.action === 'approve' ? t('requests.approveEvent') : t('requests.declineEvent')"
             :destructive="eventReqPendingAction?.action === 'decline'"
             @confirm="doEventReqAction"
+        />
+
+        <!-- Photo report resolve dialog -->
+        <ConfirmDialog
+            v-model:open="photoReportConfirmOpen"
+            :title="t('requests.confirmResolvePhotoReportTitle')"
+            :description="t('requests.confirmResolvePhotoReportDesc')"
+            :confirm-label="t('requests.photoReportResolve')"
+            @confirm="doResolvePhotoReport"
+        />
+
+        <!-- Delete photo — step 1 -->
+        <ConfirmDialog
+            v-model:open="deletePhotoConfirmOpen1"
+            :title="t('requests.confirmDeletePhotoTitle1')"
+            :description="t('requests.confirmDeletePhotoDesc1')"
+            :confirm-label="t('requests.photoReportDeletePhoto')"
+            destructive
+            @confirm="askDeletePhotoStep2"
+        />
+
+        <!-- Delete photo — step 2 -->
+        <ConfirmDialog
+            v-model:open="deletePhotoConfirmOpen2"
+            :title="t('requests.confirmDeletePhotoTitle2')"
+            :description="t('requests.confirmDeletePhotoDesc2')"
+            :confirm-label="t('requests.photoReportDeletePhotoFinal')"
+            destructive
+            @confirm="doDeletePhoto"
         />
     </AppLayout>
 </template>

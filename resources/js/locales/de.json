@@ -9,7 +9,7 @@
         "photos": "Fotos",
         "userManagement": "User-Verwaltung",
         "manageAccess": "Zugang verwalten",
-        "requests": "Anfragen",
+        "requests": "Meldungen",
         "eventSettings": "Event-Einstellungen",
         "requestEvent": "Event beantragen",
         "photoGame": "Fotospiel"
@@ -44,7 +44,12 @@
         "rsvpOpen": "Offen",
         "rsvpOfTotal": "von Gästen gesamt",
         "photos": "Fotos",
-        "photosInfo": "Fotos aus allen Alben zusammen (App-Galerie + Präsentation + Fotospiel)."
+        "photosInfo": "Fotos aus allen Alben zusammen (App-Galerie + Präsentation + Fotospiel).",
+        "notificationsTitle": "Offene Meldungen",
+        "notificationsPhotoReports": "Foto-Meldungen",
+        "notificationsRevocations": "Rücknahme-Anfragen",
+        "notificationsEventRequests": "Event-Anfragen",
+        "notificationsOpen": "Zu den Meldungen"
     },
     "event": {
         "search": "Event suchen...",
@@ -170,10 +175,12 @@
         "drinkLogsReset": "Getränke-Logs zurückgesetzt",
         "gameSettingsSaved": "Spieleinstellungen gespeichert",
         "eventRequestApproved": "Event wurde erstellt.",
-        "eventRequestDeclined": "Anfrage abgelehnt."
+        "eventRequestDeclined": "Anfrage abgelehnt.",
+        "photoReportResolved": "Meldung erledigt.",
+        "photoReportPhotoDeleted": "Foto gelöscht und Meldung erledigt."
     },
     "requests": {
-        "title": "Anfragen",
+        "title": "Meldungen",
         "revocationsTitle": "Rücknahme-Anfragen",
         "revocationsInfo": "Gäste, die einmal endgültig abgesagt haben, können die Absage nicht selbst rückgängig machen — sie stellen stattdessen eine Anfrage. Du entscheidest ob der Status auf 'offen' zurückgesetzt wird.",
         "revocationsDesc": "Gäste, die ihre endgültige Absage zurücknehmen möchten. Freigabe setzt den Status zurück auf offen.",
@@ -193,7 +200,29 @@
         "confirmApproveEventTitle": "Event erstellen?",
         "confirmApproveEventDesc": "Ein neues Event wird für diesen User angelegt.",
         "confirmDeclineEventTitle": "Anfrage ablehnen?",
-        "confirmDeclineEventDesc": "Der User kann danach eine neue Anfrage stellen."
+        "confirmDeclineEventDesc": "Der User kann danach eine neue Anfrage stellen.",
+        "photoReportsTitle": "Foto-Meldungen",
+        "photoReportsDesc": "Gäste haben Fotos gemeldet, die sie für nicht angemessen halten. Prüfe die Meldung und lösche das Foto in der Galerie falls nötig — der Reporter bleibt anonym.",
+        "photoReportsInfo": "Verpflichtender Meldeweg für den Apple App Store (Guideline 1.2). Der Name des meldenden Gastes wird bewusst nicht mit angezeigt, damit niemand vom Melden abgehalten wird.",
+        "photoReportReason": "Grund",
+        "photoReportMessage": "Nachricht",
+        "photoReportReporter": "Meldender Gast",
+        "photoReportReported": "Gemeldeter Upload",
+        "photoReportOwnerUpload": "Veranstalter-Upload",
+        "photoReportEvent": "Event",
+        "photoReportResolve": "Erledigt",
+        "photoReportOpenPhoto": "Foto ansehen",
+        "photoReportReasonInappropriate": "Unangemessener Inhalt",
+        "photoReportReasonPrivacy": "Persönlichkeitsrechte",
+        "photoReportReasonOther": "Sonstiges",
+        "confirmResolvePhotoReportTitle": "Meldung als erledigt markieren?",
+        "confirmResolvePhotoReportDesc": "Die Meldung wird geschlossen. Das Foto selbst bleibt in der Galerie.",
+        "photoReportDeletePhoto": "Foto löschen",
+        "photoReportDeletePhotoFinal": "Endgültig löschen",
+        "confirmDeletePhotoTitle1": "Foto wirklich löschen?",
+        "confirmDeletePhotoDesc1": "Das Foto wird aus der Galerie und aus dem Objekt-Speicher entfernt. Die Meldung wird gleichzeitig als erledigt markiert.",
+        "confirmDeletePhotoTitle2": "Letzte Bestätigung",
+        "confirmDeletePhotoDesc2": "Dieser Schritt ist unwiderruflich. Klicke „Endgültig löschen“, um das Foto endgültig zu entfernen."
     },
     "guest": {
         "firstName": "Vorname",
