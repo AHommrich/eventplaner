@@ -14,21 +14,24 @@ Email: andre-hommrich@web.de
 
 ## What Data We Collect {#datenerhebung}
 
-We process personal data only to provide the app's functionality: to operate a personal host account, to send system emails (verification, password reset, invitations), to manage guest lists and RSVPs, to collect photo uploads for the event, and to display a slideshow during the celebration on a device chosen by the host.
+We process personal data only to provide the app's functionality: to operate a personal host account, to send system emails (verification, password reset, invitations), to manage guest lists and RSVPs, to collect photo uploads for the event, to provide the photo game and optional drink logs, and to display a slideshow during the celebration on a device chosen by the host.
 
 Specifically, we process the following data categories:
 
 - **Host account:** name, email address, hashed password, timestamps of registration and email verification, consent to the privacy policy.
-- **Guest data:** first name, last name, food preferences, RSVP status, optional drink logs and photo-game submissions.
-- **Photo uploads:** the image file, an optional description, the uploader and the assignment to the event. Metadata contained in the file (in particular GPS coordinates, device model and original timestamps) is stripped automatically on upload; only the plain image is stored.
+- **RSVP and guest data:** first name, last name, food preferences, RSVP status, group assignment and invitation status.
+- **Photo gallery:** the image file, an optional description, the uploader and the assignment to the event. Metadata contained in the file (in particular GPS coordinates, device model and original timestamps) is stripped automatically on upload; only the plain image is stored.
+- **Photo game:** task status, assigned task, submitted image file, optional description and uploader.
+- **Drink log:** selected drink, quantity, timestamp and associated guest, if the host enables this feature and the guest uses it.
+- **Camera and photo library:** the app accesses the camera or photo library only if you allow this on your device and actively want to take or select a photo. Without your device consent, no access takes place.
 - **Technically required cookies:** session cookie for authentication and CSRF-protection cookie. These cookies are technically necessary and do not require separate consent.
 
-We do not process any special categories of personal data as defined in Art. 9 GDPR. Communication with the app takes place exclusively over encrypted HTTPS. Passwords are stored hashed (never in plaintext). No personal data is written to application logs.
+We do not process any special categories of personal data as defined in Art. 9 GDPR. Communication with the app takes place exclusively over encrypted HTTPS. Passwords are stored hashed (never in plaintext). No personal data is written to application logs. We do not show advertising and do not use tracking, third-party analytics or marketing profiles. Fonts are bundled locally with the application; no fonts are loaded from a CDN or external font provider.
 
 ## Legal Basis {#rechtsgrundlage}
 
 - **Art. 6 (1) (b) GDPR** — performance of a contract with hosts who register an account to organise their event.
-- **Art. 6 (1) (a) GDPR** — consent from guests who join an event via QR code and voluntarily contribute content (photos, RSVP, drink logs).
+- **Art. 6 (1) (a) GDPR** — consent from guests who join an event via QR code, allow camera or photo-library access and voluntarily contribute content (photos, RSVP, drink logs, photo-game submissions).
 - **Art. 6 (1) (f) GDPR** — legitimate interest in a stable, secure operation of the platform (technical error logging, abuse protection).
 
 ## Retention Periods {#speicherdauer}
@@ -37,6 +40,7 @@ We do not process any special categories of personal data as defined in Art. 9 G
 - Invitation tokens are removed {{retention.invitation_tokens_days}} days after the event date.
 - Declined guests without app access are removed {{retention.declined_guests_days}} days after the event date.
 - Personal access tokens (e.g. guest app login) expire after their validity window and are deleted daily.
+- Guests can submit an erasure request in the app. The record is marked for possible revocation for {{retention.guest_erasure_grace_days}} days and is then automatically deleted.
 - When an event is deleted, the associated photos are also removed from Object Storage.
 
 ## Your Rights {#rechte}
@@ -47,13 +51,13 @@ You have the right to:
 - **Rectification** (Art. 16 GDPR) — editable directly in Settings.
 - **Erasure** (Art. 17 GDPR) — via "Delete account" in Settings.
 - **Restriction of processing** (Art. 18 GDPR).
-- **Data portability** (Art. 20 GDPR) — covered by the JSON export.
+- **Data portability** (Art. 20 GDPR) — covered by the JSON data export in the app.
 - **Objection** to processing (Art. 21 GDPR).
 - **Complaint** to a data-protection authority. The competent authority is the State Commissioner for Data Protection and Freedom of Information of Rhineland-Palatinate (datenschutz.rlp.de) or the data-protection authority of your place of residence.
 
 ## Third Parties {#drittanbieter}
 
-We do not use tracking, analytics or third-party cookies. The app communicates exclusively with our own backend at eveplan.de.
+We do not use advertising, tracking, third-party analytics or third-party cookies. For its core functionality, the app communicates exclusively with our own backend at eveplan.de. Fonts are bundled locally; no font request is made to Google Fonts, Adobe Fonts or a CDN.
 
 To operate the service we use carefully selected data processors, each under a contract for order processing pursuant to Art. 28 GDPR. All processing of your data takes place within the European Union — the sole exception is the optional "Sign in with Google" feature, which you must actively trigger:
 

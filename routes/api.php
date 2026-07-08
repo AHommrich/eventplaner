@@ -24,6 +24,8 @@ use Illuminate\Support\Facades\Route;
 // users can read it before they consent. Rate-limited to shrug off abuse.
 Route::get('/legal/privacy', [LegalController::class, 'privacy'])
     ->middleware('throttle:30,1');
+Route::get('/legal/imprint', [LegalController::class, 'imprint'])
+    ->middleware('throttle:30,1');
 
 // QR-code login: no auth needed, token in the URL identifies the guest
 Route::get('/auth/qr/{token}', [QrAuthController::class, 'login']);
