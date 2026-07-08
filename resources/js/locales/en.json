@@ -170,7 +170,8 @@
         "drinkLogsReset": "Drink logs reset",
         "gameSettingsSaved": "Game settings saved",
         "eventRequestApproved": "Event created.",
-        "eventRequestDeclined": "Request declined."
+        "eventRequestDeclined": "Request declined.",
+        "photoReportResolved": "Report resolved."
     },
     "requests": {
         "title": "Requests",
@@ -193,7 +194,23 @@
         "confirmApproveEventTitle": "Create event?",
         "confirmApproveEventDesc": "A new event will be created for this user.",
         "confirmDeclineEventTitle": "Decline request?",
-        "confirmDeclineEventDesc": "The user can submit a new request afterwards."
+        "confirmDeclineEventDesc": "The user can submit a new request afterwards.",
+        "photoReportsTitle": "Photo reports",
+        "photoReportsDesc": "Guests have flagged photos as inappropriate. Review the report and delete the photo from the gallery if needed — the reporter stays anonymous.",
+        "photoReportsInfo": "Required moderation path for the Apple App Store (Guideline 1.2). The reporter's name is intentionally hidden so nobody is discouraged from flagging content.",
+        "photoReportReason": "Reason",
+        "photoReportMessage": "Message",
+        "photoReportReporter": "Reporter",
+        "photoReportReported": "Reported upload",
+        "photoReportOwnerUpload": "Host upload",
+        "photoReportEvent": "Event",
+        "photoReportResolve": "Resolve",
+        "photoReportOpenPhoto": "Open photo",
+        "photoReportReasonInappropriate": "Inappropriate content",
+        "photoReportReasonPrivacy": "Privacy rights",
+        "photoReportReasonOther": "Other",
+        "confirmResolvePhotoReportTitle": "Mark report as resolved?",
+        "confirmResolvePhotoReportDesc": "The report will be closed. The photo itself is not deleted — use the gallery for that."
     },
     "guest": {
         "firstName": "First name",

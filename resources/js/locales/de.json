@@ -170,7 +170,8 @@
         "drinkLogsReset": "Getränke-Logs zurückgesetzt",
         "gameSettingsSaved": "Spieleinstellungen gespeichert",
         "eventRequestApproved": "Event wurde erstellt.",
-        "eventRequestDeclined": "Anfrage abgelehnt."
+        "eventRequestDeclined": "Anfrage abgelehnt.",
+        "photoReportResolved": "Meldung erledigt."
     },
     "requests": {
         "title": "Anfragen",
@@ -193,7 +194,23 @@
         "confirmApproveEventTitle": "Event erstellen?",
         "confirmApproveEventDesc": "Ein neues Event wird für diesen User angelegt.",
         "confirmDeclineEventTitle": "Anfrage ablehnen?",
-        "confirmDeclineEventDesc": "Der User kann danach eine neue Anfrage stellen."
+        "confirmDeclineEventDesc": "Der User kann danach eine neue Anfrage stellen.",
+        "photoReportsTitle": "Foto-Meldungen",
+        "photoReportsDesc": "Gäste haben Fotos gemeldet, die sie für nicht angemessen halten. Prüfe die Meldung und lösche das Foto in der Galerie falls nötig — der Reporter bleibt anonym.",
+        "photoReportsInfo": "Verpflichtender Meldeweg für den Apple App Store (Guideline 1.2). Der Name des meldenden Gastes wird bewusst nicht mit angezeigt, damit niemand vom Melden abgehalten wird.",
+        "photoReportReason": "Grund",
+        "photoReportMessage": "Nachricht",
+        "photoReportReporter": "Meldender Gast",
+        "photoReportReported": "Gemeldeter Upload",
+        "photoReportOwnerUpload": "Veranstalter-Upload",
+        "photoReportEvent": "Event",
+        "photoReportResolve": "Erledigt",
+        "photoReportOpenPhoto": "Foto ansehen",
+        "photoReportReasonInappropriate": "Unangemessener Inhalt",
+        "photoReportReasonPrivacy": "Persönlichkeitsrechte",
+        "photoReportReasonOther": "Sonstiges",
+        "confirmResolvePhotoReportTitle": "Meldung als erledigt markieren?",
+        "confirmResolvePhotoReportDesc": "Die Meldung wird geschlossen. Das Foto selbst wird dadurch nicht gelöscht — nutze dafür die Galerie."
     },
     "guest": {
         "firstName": "Vorname",

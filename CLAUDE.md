@@ -38,6 +38,8 @@ develop → staging → production
 3. `git checkout production && git merge develop && git push origin production`
 4. `git checkout develop`
 
+**Agenten-Regel:** Wenn ein Agent Code- oder Doku-Änderungen macht, liefert er am Ende immer eine englische 3-Zeiler-Commit-Message im bestehenden Stil mit (`type(scope): summary` + Leerzeile + kurze Body-Zeilen). Der Mensch reviewt und committet danach selbst.
+
 **docker-compose.yml ist branch-spezifisch — NIE überschreiben beim Merge!**
 - `develop`: `Dockerfile` (artisan serve, Port 8080)
 - `staging` + `production`: `Dockerfile.prod` (nginx + php-fpm, expose 80)

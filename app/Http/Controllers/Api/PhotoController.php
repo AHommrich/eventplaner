@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\GuestContentHide;
 use App\Models\Photo;
 use App\Models\PhotoAlbum;
+use App\Models\PhotoHide;
 use App\Services\PhotoSanitizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -70,14 +72,33 @@ class PhotoController extends Controller
             ->where('slug', PhotoAlbum::APP_GALLERY)
             ->first();
 
+        // moderation filters — server-side, App-Store-Guideline-1.2
+        $hiddenGuestIds = GuestContentHide::where('viewer_guest_id', $guest->id)
+            ->pluck('hidden_guest_id')
+            ->all();
+        $hiddenPhotoIds = PhotoHide::where('viewer_guest_id', $guest->id)
+            ->pluck('photo_id')
+            ->all();
+
         $query = Photo::with('guest')->where('event_id', $guest->event_id);
         if ($album) {
             $query->where('album_id', $album->id);
+        }
+        // hide-content filter: owner uploads (guest_id null) stay visible
+        if (! empty($hiddenGuestIds)) {
+            $query->where(function ($q) use ($hiddenGuestIds) {
+                $q->whereNull('guest_id')
+                    ->orWhereNotIn('guest_id', $hiddenGuestIds);
+            });
+        }
+        if (! empty($hiddenPhotoIds)) {
+            $query->whereNotIn('id', $hiddenPhotoIds);
         }
 
         $photos = $query->latest()->get()->map(fn ($photo) => [
             'id' => $photo->id,
             'url' => $photo->url,
+            'guest_id' => $photo->guest_id,
             'guest_name' => $photo->guest?->firstname ?? $photo->uploaded_by ?? 'Admin',
             'created_at' => $photo->created_at,
         ]);

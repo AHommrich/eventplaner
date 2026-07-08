@@ -1,5 +1,5 @@
 ---
-updated_at: 2026-07-05T12:00:00Z
+updated_at: 2026-07-08T12:00:00Z
 ---
 
 ## Verantwortlicher {#verantwortlich}
@@ -22,6 +22,7 @@ Konkret verarbeiten wir folgende Datenkategorien:
 - **Foto-Galerie:** Die Bild-Datei, optionale Beschreibung, die hochladende Person sowie die Zuordnung zur Veranstaltung. Beim Upload werden enthaltene Metadaten (insbesondere GPS-Koordinaten, Gerätemodell und Originalzeitstempel) automatisch entfernt; gespeichert wird nur das reine Bild.
 - **Foto-Spiel:** Aufgabenstatus, zugewiesene Aufgabe, eingereichte Foto-Datei, optionale Beschreibung und die hochladende Person.
 - **Getränke-Log:** Ausgewähltes Getränk, Menge, Zeitpunkt und zugehöriger Gast, sofern der Veranstalter diese Funktion aktiviert und der Gast sie nutzt.
+- **Meldungen und Ausblendungen:** Wenn Du ein Foto meldest oder Inhalte eines anderen Gastes ausblendest, speichern wir die Foto- bzw. Gast-ID, den Zeitpunkt, den Meldungsgrund und Deine optionale Nachricht. Der gemeldete Gast erfährt niemals, wer ihn gemeldet hat.
 - **Kamera und Fotobibliothek:** Die App greift auf Kamera oder Fotobibliothek nur zu, wenn Du dies am Gerät erlaubst und aktiv ein Foto aufnehmen oder auswählen möchtest. Ohne Deine Geräte-Einwilligung erfolgt kein Zugriff.
 - **Technisch erforderliche Cookies:** Session-Cookie für die Anmeldung sowie CSRF-Schutz-Cookie. Diese Cookies sind technisch notwendig und benötigen keine separate Einwilligung.
 
@@ -40,6 +41,7 @@ Wir verarbeiten keine besonderen Kategorien personenbezogener Daten im Sinne von
 - Abgesagte Gäste ohne App-Zugang werden {{retention.declined_guests_days}} Tage nach dem Veranstaltungsdatum entfernt.
 - Persönliche Zugangstokens (z. B. App-Login der Gäste) verfallen nach Ablauf und werden täglich gelöscht.
 - Gäste können in der App einen Löschantrag stellen. Der Datensatz wird für {{retention.guest_erasure_grace_days}} Tage zur möglichen Rücknahme markiert und danach automatisch gelöscht.
+- Foto-Meldungen werden {{retention.photo_reports_days}} Tage nach dem Veranstaltungsdatum entfernt. Ausblendungen einzelner Gäste werden automatisch mit dem betroffenen Gast oder Foto gelöscht.
 - Beim Löschen einer Veranstaltung werden die zugehörigen Fotos auch im Object Storage entfernt.
 
 ## Deine Rechte {#rechte}

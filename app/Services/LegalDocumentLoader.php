@@ -17,8 +17,9 @@ use Symfony\Component\Yaml\Yaml;
  *
  * Retention numbers from config/retention.php are interpolated into the body
  * via {{retention.invitation_tokens_days}} / {{retention.declined_guests_days}}
- * / {{retention.guest_erasure_grace_days}} placeholders so the user-facing
- * text cannot drift from the actual scheduled command windows.
+ * / {{retention.guest_erasure_grace_days}} / {{retention.photo_reports_days}}
+ * placeholders so the user-facing text cannot drift from the actual scheduled
+ * command windows.
  *
  * Locale handling: unknown locales fall back to "de" (German is the
  * authoritative version because the primary audience and the legal
