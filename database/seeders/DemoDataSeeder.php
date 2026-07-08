@@ -17,7 +17,6 @@ use App\Models\PhotoGameAssignment;
 use App\Models\PhotoGameTaskCatalog;
 use App\Models\User;
 use App\Services\DrinkScoreService;
-use Faker\Factory as FakerFactory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -53,9 +52,6 @@ class DemoDataSeeder extends Seeder
         }
 
         DB::transaction(function () {
-            $faker = FakerFactory::create('de_DE');
-            $faker->seed(42); // deterministic — same demo state every run
-
             $user = User::create([
                 'name' => 'Demo Veranstalter',
                 'email' => self::EMAIL,
