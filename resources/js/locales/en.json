@@ -9,7 +9,7 @@
         "photos": "Photos",
         "userManagement": "User Management",
         "manageAccess": "Manage Access",
-        "requests": "Requests",
+        "requests": "Notifications",
         "eventSettings": "Event Settings",
         "requestEvent": "Request event",
         "photoGame": "Photo Game"
@@ -44,7 +44,12 @@
         "rsvpOpen": "Open",
         "rsvpOfTotal": "of total guests",
         "photos": "Photos",
-        "photosInfo": "Photos across all albums combined (App Gallery + Presentation + Photo Game)."
+        "photosInfo": "Photos across all albums combined (App Gallery + Presentation + Photo Game).",
+        "notificationsTitle": "Open notifications",
+        "notificationsPhotoReports": "Photo reports",
+        "notificationsRevocations": "Revocation requests",
+        "notificationsEventRequests": "Event requests",
+        "notificationsOpen": "Go to notifications"
     },
     "event": {
         "search": "Search event...",
@@ -171,10 +176,11 @@
         "gameSettingsSaved": "Game settings saved",
         "eventRequestApproved": "Event created.",
         "eventRequestDeclined": "Request declined.",
-        "photoReportResolved": "Report resolved."
+        "photoReportResolved": "Report resolved.",
+        "photoReportPhotoDeleted": "Photo deleted and report resolved."
     },
     "requests": {
-        "title": "Requests",
+        "title": "Notifications",
         "revocationsTitle": "Revocation Requests",
         "revocationsInfo": "Guests who have declined cannot undo it themselves — they submit a request instead. You decide whether to reset their status back to open.",
         "revocationsDesc": "Guests who want to revoke their final decline. Approving resets their status to open.",
@@ -210,7 +216,13 @@
         "photoReportReasonPrivacy": "Privacy rights",
         "photoReportReasonOther": "Other",
         "confirmResolvePhotoReportTitle": "Mark report as resolved?",
-        "confirmResolvePhotoReportDesc": "The report will be closed. The photo itself is not deleted — use the gallery for that."
+        "confirmResolvePhotoReportDesc": "The report will be closed. The photo itself stays in the gallery.",
+        "photoReportDeletePhoto": "Delete photo",
+        "photoReportDeletePhotoFinal": "Delete permanently",
+        "confirmDeletePhotoTitle1": "Really delete photo?",
+        "confirmDeletePhotoDesc1": "The photo will be removed from the gallery and object storage. The report is closed at the same time.",
+        "confirmDeletePhotoTitle2": "Final confirmation",
+        "confirmDeletePhotoDesc2": "This step cannot be undone. Click \"Delete permanently\" to remove the photo for good."
     },
     "guest": {
         "firstName": "First name",

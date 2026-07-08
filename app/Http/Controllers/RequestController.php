@@ -7,6 +7,7 @@ use App\Models\EventRequest;
 use App\Models\Guest;
 use App\Models\PhotoReport;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 /**
@@ -183,8 +184,7 @@ class RequestController extends Controller
     /**
      * POST /requests/photo-reports/{photoReport}/resolve
      * Close a photo report. Allowed to sysadmin or the owner of the event the
-     * report belongs to. Photo deletion is a separate action in /photos and
-     * intentionally not re-exposed here.
+     * report belongs to.
      */
     public function resolvePhotoReport(Request $request, PhotoReport $photoReport)
     {
@@ -193,6 +193,38 @@ class RequestController extends Controller
         $isEventOwner = $photoReport->event?->user_id === $user->id;
         abort_unless($isAdmin || $isEventOwner, 403);
         abort_if($photoReport->status !== 'open', 422);
+
+        $photoReport->update([
+            'status' => 'resolved',
+            'resolved_at' => now(),
+            'resolved_by_user_id' => $user->id,
+        ]);
+
+        return redirect()->route('requests.index');
+    }
+
+    /**
+     * POST /requests/photo-reports/{photoReport}/delete-photo
+     * Destructive shortcut: deletes the reported photo (object storage + DB)
+     * and closes the report in one round-trip. Guarded by the same rule as
+     * resolve. The frontend gates this with a double confirmation.
+     */
+    public function deletePhotoFromReport(Request $request, PhotoReport $photoReport)
+    {
+        $user = $request->user();
+        $isAdmin = $user->isAdmin();
+        $isEventOwner = $photoReport->event?->user_id === $user->id;
+        abort_unless($isAdmin || $isEventOwner, 403);
+        abort_if($photoReport->status !== 'open', 422);
+
+        $photo = $photoReport->photo;
+        if ($photo) {
+            $key = $photo->r2_key ?? ltrim((string) parse_url((string) $photo->url, PHP_URL_PATH), '/');
+            if ($key !== '') {
+                Storage::disk('s3')->delete($key);
+            }
+            $photo->delete();
+        }
 
         $photoReport->update([
             'status' => 'resolved',

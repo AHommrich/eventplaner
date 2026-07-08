@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import InfoTooltip from '@/components/InfoTooltip.vue';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, usePage } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Bell } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -21,6 +23,23 @@ const stats = computed(
         },
 );
 
+interface PendingNotifications {
+    revocations: number;
+    event_requests: number;
+    photo_reports: number;
+    total: number;
+}
+const notifications = computed(
+    () =>
+        ((page.props as any).pending_notifications ?? {
+            revocations: 0,
+            event_requests: 0,
+            photo_reports: 0,
+            total: 0,
+        }) as PendingNotifications,
+);
+const showNotifications = computed(() => notifications.value.total > 0);
+
 function pct(n: number): string {
     const total = stats.value.guest_total;
     if (!total) return '0 %';
@@ -31,7 +50,40 @@ function pct(n: number): string {
 <template>
     <Head :title="t('nav.forms')" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="m-4">
+        <div class="m-4 space-y-4">
+            <Card v-if="showNotifications" class="border-amber-500/50">
+                <CardHeader class="pb-2">
+                    <CardTitle class="flex items-center gap-2 text-base">
+                        <Bell class="size-4 text-amber-500" />
+                        {{ t('dashboard.notificationsTitle') }}
+                        <span class="inline-flex size-5 items-center justify-center rounded-full bg-amber-500 text-[11px] font-bold text-white">{{
+                            notifications.total > 99 ? '99+' : notifications.total
+                        }}</span>
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                        <div v-if="notifications.photo_reports > 0" class="rounded border p-3">
+                            <p class="text-2xl font-semibold">{{ notifications.photo_reports }}</p>
+                            <p class="text-muted-foreground text-sm">{{ t('dashboard.notificationsPhotoReports') }}</p>
+                        </div>
+                        <div v-if="notifications.revocations > 0" class="rounded border p-3">
+                            <p class="text-2xl font-semibold">{{ notifications.revocations }}</p>
+                            <p class="text-muted-foreground text-sm">{{ t('dashboard.notificationsRevocations') }}</p>
+                        </div>
+                        <div v-if="notifications.event_requests > 0" class="rounded border p-3">
+                            <p class="text-2xl font-semibold">{{ notifications.event_requests }}</p>
+                            <p class="text-muted-foreground text-sm">{{ t('dashboard.notificationsEventRequests') }}</p>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <Button as-child size="sm" variant="outline">
+                            <Link href="/requests">{{ t('dashboard.notificationsOpen') }}</Link>
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+
             <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
                 <Card>
                     <CardHeader class="pb-2"

@@ -126,6 +126,30 @@ function doResolvePhotoReport() {
     });
 }
 
+// destructive: delete the photo itself. Two confirmations because it's
+// irreversible (S3 blob + DB row + implicit report resolution).
+const deletePhotoConfirmOpen1 = ref(false);
+const deletePhotoConfirmOpen2 = ref(false);
+const deletePhotoPending = ref<PhotoReportItem | null>(null);
+
+function askDeletePhoto(item: PhotoReportItem) {
+    deletePhotoPending.value = item;
+    deletePhotoConfirmOpen1.value = true;
+}
+
+function askDeletePhotoStep2() {
+    deletePhotoConfirmOpen1.value = false;
+    deletePhotoConfirmOpen2.value = true;
+}
+
+function doDeletePhoto() {
+    if (!deletePhotoPending.value) return;
+    const item = deletePhotoPending.value;
+    useForm({}).post(route('requests.photo-reports.delete-photo', item.id), {
+        onSuccess: () => toast.success(t('toast.photoReportPhotoDeleted')),
+    });
+}
+
 function reasonLabel(reason: PhotoReportItem['reason']): string {
     switch (reason) {
         case 'inappropriate_content':
@@ -231,8 +255,11 @@ function setterName(item: RevocationRequest): string {
                                 </p>
                                 <p class="text-muted-foreground text-xs">{{ formatDate(item.created_at) }}</p>
                             </div>
-                            <div class="flex shrink-0 gap-2">
+                            <div class="flex shrink-0 flex-col gap-2 sm:flex-row">
                                 <Button size="sm" @click="askResolvePhotoReport(item)">{{ t('requests.photoReportResolve') }}</Button>
+                                <Button size="sm" variant="destructive" @click="askDeletePhoto(item)">
+                                    {{ t('requests.photoReportDeletePhoto') }}
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -306,6 +333,26 @@ function setterName(item: RevocationRequest): string {
             :description="t('requests.confirmResolvePhotoReportDesc')"
             :confirm-label="t('requests.photoReportResolve')"
             @confirm="doResolvePhotoReport"
+        />
+
+        <!-- Delete photo — step 1 -->
+        <ConfirmDialog
+            v-model:open="deletePhotoConfirmOpen1"
+            :title="t('requests.confirmDeletePhotoTitle1')"
+            :description="t('requests.confirmDeletePhotoDesc1')"
+            :confirm-label="t('requests.photoReportDeletePhoto')"
+            destructive
+            @confirm="askDeletePhotoStep2"
+        />
+
+        <!-- Delete photo — step 2 -->
+        <ConfirmDialog
+            v-model:open="deletePhotoConfirmOpen2"
+            :title="t('requests.confirmDeletePhotoTitle2')"
+            :description="t('requests.confirmDeletePhotoDesc2')"
+            :confirm-label="t('requests.photoReportDeletePhotoFinal')"
+            destructive
+            @confirm="doDeletePhoto"
         />
     </AppLayout>
 </template>

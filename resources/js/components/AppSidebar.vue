@@ -74,6 +74,22 @@ interface EventRequestItem {
 const userEventRequests = computed(() => ((page.props as any).user_event_requests ?? []) as EventRequestItem[]);
 const pendingRequest = computed(() => userEventRequests.value.find((r) => r.status === 'pending'));
 
+interface PendingNotifications {
+    revocations: number;
+    event_requests: number;
+    photo_reports: number;
+    total: number;
+}
+const pendingNotifications = computed(
+    () =>
+        ((page.props as any).pending_notifications ?? {
+            revocations: 0,
+            event_requests: 0,
+            photo_reports: 0,
+            total: 0,
+        }) as PendingNotifications,
+);
+
 // Admin: always dropdown. User with events: always dropdown. User without event: no dropdown (button instead).
 const showSwitcher = computed(() => isAdmin.value || accessibleEvents.value?.length > 0);
 
@@ -101,12 +117,12 @@ const mainNavItems = computed<NavItem[]>(() => [
 
 const adminNavItems = computed<NavItem[]>(() => [
     { title: t('nav.userManagement'), href: '/admin/users', icon: ShieldCheck },
-    { title: t('nav.requests'), href: '/requests', icon: Undo2 },
+    { title: t('nav.requests'), href: '/requests', icon: Undo2, badge: pendingNotifications.value.total },
 ]);
 
 const eventOwnerNavItems = computed<NavItem[]>(() => [
     { title: t('nav.manageAccess'), href: '/event/access', icon: KeyRound },
-    { title: t('nav.requests'), href: '/requests', icon: Undo2 },
+    { title: t('nav.requests'), href: '/requests', icon: Undo2, badge: pendingNotifications.value.total },
 ]);
 </script>
 

@@ -23,6 +23,15 @@ class PhotoReport extends Model
         'resolved_at' => 'datetime',
     ];
 
+    /**
+     * Model-side default so `create()` returns a hydrated status without a
+     * refresh — the DB-level default only kicks in after INSERT, but the
+     * response is built from the in-memory instance.
+     */
+    protected $attributes = [
+        'status' => 'open',
+    ];
+
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
