@@ -28,4 +28,12 @@ return [
      * recovery token; after that `app:purge-expired-erasures` removes the row.
      */
     'guest_erasure_grace_days' => (int) env('RETENTION_GUEST_ERASURE_DAYS', 30),
+
+    /*
+     * Photo reports (App Store Guideline 1.2 moderation trail) are kept this
+     * many days past the associated event date. `app:prune-photo-reports`
+     * removes older rows; photo_hides and guest_content_hides cascade via
+     * their guest/photo FKs and do not need a dedicated pruner.
+     */
+    'photo_reports_after_event_days' => (int) env('RETENTION_PHOTO_REPORTS_DAYS', 180),
 ];

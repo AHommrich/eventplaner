@@ -1,6 +1,6 @@
 # UGC Moderation Plan — Apple Guideline 1.2
 
-**Status:** planning — not yet implemented
+**Status:** implemented, awaiting local test run + review
 **Owner:** André
 **Scope:** Backend repo. App-side work happens in the separate mobile repo after backend endpoints are live.
 
@@ -335,30 +335,85 @@ Move items between sections as they land. Each change also gets a dated line
 in the Change Log below.
 
 ### Open
-- [ ] Migrations for `photo_reports`, `photo_hides`, `guest_content_hides`
-- [ ] `PhotoReport`, `PhotoHide`, `GuestContentHide` models with relationships
-- [ ] `POST /api/photos/{photo}/report` endpoint (+ mail to owner + auto-hide)
-- [ ] `POST /api/guests/{guest}/hide-content` endpoint
-- [ ] `DELETE /api/guests/{guest}/hide-content` endpoint
-- [ ] `GET /api/guests/hidden-content` endpoint
-- [ ] `GET /api/photos` filter extension (guest hides + photo hides)
-- [ ] `RequestController::index` photo-reports card + shape
-- [ ] `POST /requests/photo-reports/{report}/resolve` action
-- [ ] Retention config key + `app:prune-photo-reports` command + schedule
-- [ ] Privacy markdown DE/EN update + placeholder in `LegalDocumentLoader`
-- [ ] Feature tests (API)
-- [ ] Feature tests (Requests hub)
-- [ ] Unit test (LegalDocumentLoader placeholder)
-- [ ] Update this file and commit-message ready
+- [ ] Run `composer test` locally against `laravel_test` and confirm the new
+      moderation suites pass before committing (Docker/OrbStack needs to be up).
+- [ ] App-side work (mobile repo): report buttons in the photo detail modal,
+      hide-content toggle, hidden-content list in Settings, i18n keys.
+- [ ] ToS/EULA document (separate PR): required for Apple App Store submission
+      alongside this moderation stack.
 
 ### In progress
 _(none)_
 
 ### Done
-_(none)_
+- [x] Migrations `photo_reports`, `photo_hides`, `guest_content_hides`
+- [x] Models `PhotoReport`, `PhotoHide`, `GuestContentHide`
+- [x] `POST /api/photos/{photo}/report` (rate-limited, auto-hide, owner mail)
+- [x] `PhotoReportedMail` + blade view (reporter identity omitted)
+- [x] `POST /api/guests/{guest}/hide-content`, `DELETE`, `GET`
+- [x] `GET /api/photos` filters hidden guests + hidden photos + exposes
+      nullable `guest_id`
+- [x] Requests hub: `photo_reports` card, sysadmin cross-event view, resolve
+      endpoint (`requests.photo-reports.resolve`) + Vue card + i18n DE/EN
+- [x] Retention config + `app:prune-photo-reports` weekly schedule
+- [x] Privacy DE/EN markdown updated (reports + retention line);
+      `{{retention.photo_reports_days}}` placeholder in `LegalDocumentLoader`
+- [x] Feature tests: `tests/Feature/Api/PhotoModerationApiTest.php`,
+      `tests/Feature/Requests/PhotoReportsTest.php`
+- [x] Unit test: `LegalDocumentLoaderTest` covers the new placeholder
+
+## App handoff — actual endpoint contract (final)
+
+Deliver this to the mobile-app session as-is.
+
+### `POST /api/photos/{photo}/report`
+- Auth: Sanctum bearer, `EnsureGuestHasAppAccess`, `throttle:10,60`.
+- Body: `{ "reason": "inappropriate_content"|"privacy"|"other", "message"?: string(max:1000) }`.
+- 201 → `{ "id": number, "status": "open", "auto_hidden": true }`.
+- 404 if the photo is not in the caller's event or not in `app_gallery`.
+- 422 on validation errors.
+- 429 after 10 requests within 60 minutes.
+- Side effects: adds a row to `photo_hides` for the reporter (auto-hide) and
+  fires an anonymous `PhotoReportedMail` to the event owner.
+
+### `POST /api/guests/{guest}/hide-content`
+- Auth: same as above.
+- Body: none.
+- 201 → `{ "hidden_guest_id": number }` on first create; 200 with the same
+  shape on subsequent calls (idempotent).
+- 422 on self-hide or cross-event target.
+
+### `DELETE /api/guests/{guest}/hide-content`
+- Auth: same as above.
+- 204 always (idempotent even when nothing existed).
+
+### `GET /api/guests/hidden-content`
+- Auth: same as above.
+- 200 → `{ "hidden_guests": [{ "id": number, "firstname": string, "lastname": string }] }`.
+
+### `GET /api/photos` (extended)
+- Now returns `guest_id` per row (nullable). App uses `guest_id === null` to
+  hide the "hide this uploader" button for owner uploads.
+- Server-side filters (transparent to client): rows where `guest_id` is in
+  the caller's `guest_content_hides`, and rows in `photo_hides` for the
+  caller. Owner uploads always visible.
+- No new query params in this iteration. When the album switcher lands, a
+  future `?album=<slug>` will be added; the report/hide endpoints already
+  operate album-agnostically.
+
+### Anonymity guarantee
+- No endpoint exposes reporter identity to the reported uploader. The mail
+  to the event owner contains reason, message and photo preview — no
+  reporter name.
+
+### Where moderation happens
+- Existing `/requests` tab (Inertia page `Requests/Index.vue`). No new admin
+  route. Sysadmin sees reports across all events with `event_name`
+  populated; event owners only see reports of their active event.
 
 ## Change log
 
 _Newest first. One line per change. Format: `YYYY-MM-DD — what — commit sha (fill after commit)`._
 
+- 2026-07-08 — Backend implementation landed: migrations, models, API endpoints, Requests-hub wiring, retention command, privacy docs, tests. Docker was down locally so the suites still need to be run before the commit is finalised. Commit sha TBD.
 - 2026-07-08 — Plan drafted and committed. Backend implementation not yet started.

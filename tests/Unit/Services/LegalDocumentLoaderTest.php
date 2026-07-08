@@ -83,6 +83,7 @@ it('interpolates retention placeholders from config', function () {
     config()->set('retention.invitation_tokens_after_event_days', 42);
     config()->set('retention.declined_guests_after_event_days', 365);
     config()->set('retention.guest_erasure_grace_days', 14);
+    config()->set('retention.photo_reports_after_event_days', 90);
 
     $doc = (new LegalDocumentLoader)->load('privacy', 'de');
     $speicherdauer = collect($doc['sections'])->firstWhere('id', 'speicherdauer');
@@ -90,7 +91,8 @@ it('interpolates retention placeholders from config', function () {
     expect($speicherdauer['body_markdown'])
         ->toContain('42 Tage')
         ->and($speicherdauer['body_markdown'])->toContain('365 Tage')
-        ->and($speicherdauer['body_markdown'])->toContain('14 Tage');
+        ->and($speicherdauer['body_markdown'])->toContain('14 Tage')
+        ->and($speicherdauer['body_markdown'])->toContain('90 Tage');
 });
 
 it('leaves no placeholder tokens in the rendered markdown', function () {

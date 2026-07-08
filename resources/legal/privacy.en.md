@@ -1,5 +1,5 @@
 ---
-updated_at: 2026-07-05T12:00:00Z
+updated_at: 2026-07-08T12:00:00Z
 ---
 
 ## Data Controller {#verantwortlich}
@@ -23,6 +23,7 @@ Specifically, we process the following data categories:
 - **Photo gallery:** the image file, an optional description, the uploader and the assignment to the event. Metadata contained in the file (in particular GPS coordinates, device model and original timestamps) is stripped automatically on upload; only the plain image is stored.
 - **Photo game:** task status, assigned task, submitted image file, optional description and uploader.
 - **Drink log:** selected drink, quantity, timestamp and associated guest, if the host enables this feature and the guest uses it.
+- **Reports and hides:** if you report a photo or hide another guest's content, we store the photo or guest ID, the timestamp, the reason and your optional message. The reported guest is never told who flagged them.
 - **Camera and photo library:** the app accesses the camera or photo library only if you allow this on your device and actively want to take or select a photo. Without your device consent, no access takes place.
 - **Technically required cookies:** session cookie for authentication and CSRF-protection cookie. These cookies are technically necessary and do not require separate consent.
 
@@ -41,6 +42,7 @@ We do not process any special categories of personal data as defined in Art. 9 G
 - Declined guests without app access are removed {{retention.declined_guests_days}} days after the event date.
 - Personal access tokens (e.g. guest app login) expire after their validity window and are deleted daily.
 - Guests can submit an erasure request in the app. The record is marked for possible revocation for {{retention.guest_erasure_grace_days}} days and is then automatically deleted.
+- Photo reports are removed {{retention.photo_reports_days}} days after the event date. Per-guest hides are cascaded automatically when the affected guest or photo is deleted.
 - When an event is deleted, the associated photos are also removed from Object Storage.
 
 ## Your Rights {#rechte}
