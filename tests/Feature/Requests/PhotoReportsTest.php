@@ -17,11 +17,10 @@ use Illuminate\Support\Facades\Storage;
 
 function makePhotoReport(Event $event): PhotoReport
 {
-    $album = PhotoAlbum::create([
-        'event_id' => $event->id,
-        'slug' => PhotoAlbum::APP_GALLERY,
-        'name' => 'App-Galerie',
-    ]);
+    $album = PhotoAlbum::firstOrCreate(
+        ['event_id' => $event->id, 'slug' => PhotoAlbum::APP_GALLERY],
+        ['name' => 'App-Galerie'],
+    );
     $uploader = Guest::factory()->create(['event_id' => $event->id]);
     $reporter = Guest::factory()->create(['event_id' => $event->id]);
     $photo = Photo::create([

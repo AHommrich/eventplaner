@@ -56,8 +56,8 @@ class PhotoReportController extends Controller
 
         // notify the event owner. Anonymous — the mail contains no reporter
         // identity so guests are not deterred from flagging content.
-        if ($photo->event && $photo->event->user) {
-            Mail::to($photo->event->user->email)
+        if ($photo->event && $photo->event->owner) {
+            Mail::to($photo->event->owner->email)
                 ->send(new PhotoReportedMail($report, $photo->event));
         }
 
