@@ -37,3 +37,6 @@ yarn-error.log
 
 # private working notes — kept locally if the maintainer wants to reuse the format
 /docs/NEXT_SESSION.md
+
+# test runner artefacts
+/test-results/

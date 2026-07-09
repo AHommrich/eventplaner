@@ -205,8 +205,6 @@ Beyond this README the repo carries a small set of docs, each with a clear purpo
 - [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md) — bring the project up locally, including the common pitfalls
 - [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) — branch model, commit convention, doc-sync rule
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — subsystem internals (photo game, drink score, projector, color system)
-- [`docs/RUNBOOK.md`](docs/RUNBOOK.md) — operational playbook (Coolify, backups, incident checklists)
-- [`docs/security-rotations.md`](docs/security-rotations.md) — secret rotation log + per-secret procedures
 - [`SECURITY.md`](SECURITY.md) — vulnerability disclosure
 
 ---

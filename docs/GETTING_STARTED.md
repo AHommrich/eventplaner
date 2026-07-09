@@ -154,5 +154,4 @@ npx playwright install chromium
 - `CLAUDE.md` — project-wide conventions, data model, feature list
 - `docs/ARCHITECTURE.md` — subsystem internals
 - `docs/CONTRIBUTING.md` — branch model, commit convention, PR flow
-- `docs/RUNBOOK.md` — operational playbook (deploys, restore, incidents)
 - `SECURITY.md` — vulnerability disclosure

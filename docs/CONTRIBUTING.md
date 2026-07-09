@@ -24,9 +24,7 @@ feature-branch → develop → staging → production
 - **Never merge via the GitHub UI** on `staging` or `production` — the
   UI has no direction guard, and PR #4 (2026-07-07) already once
   overwrote `develop`'s dev compose with the prod version that way.
-- **Never redeploy staging and production in parallel.** The VPS has
-  4 GB RAM; parallel Coolify redeploys have taken it down (see
-  `docs/RUNBOOK.md` §5).
+- **Never redeploy staging and production in parallel.** Parallel Coolify redeploys exhaust the VPS RAM and have caused outages.
 
 ## Commit convention
 
@@ -96,7 +94,7 @@ updated in the same PR.
   on the author.
 - Vulnerabilities: private disclosure per `SECURITY.md`, not a public
   issue.
-- Secret rotations: log every rotation in `docs/security-rotations.md`.
+- Secret rotations: document every rotation in the maintainer's private operations log.
 
 ## Maintainer contact
 

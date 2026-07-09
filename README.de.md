@@ -139,7 +139,7 @@ git push origin production
 git checkout develop
 ```
 
-> ⚠️ **Nie staging und production parallel pushen.** Zwei parallele Coolify-Redeploys sprengen den 4-GB-VPS und triggern den OOM-Killer. Immer sequentiell: erst `staging` pushen, warten bis `beta.hommrich.app` antwortet, dann `production` pushen.
+> ⚠️ **Nie staging und production parallel pushen.** Zwei parallele Coolify-Redeploys erschöpfen das VPS-RAM. Immer sequentiell: erst `staging` pushen, warten bis `beta.hommrich.app` antwortet, dann `production` pushen.
 
 ---
 
@@ -205,8 +205,6 @@ Neben dieser README liegen einige gezielte Dokumente im Repo, jeweils mit klarem
 - [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md) — Projekt lokal aufsetzen inkl. der typischen Fußfallen
 - [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) — Branch-Modell, Commit-Konvention, Doc-Sync-Regel
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Subsystem-Deep-Dives (Fotospiel, Drink-Score, Projektor, Farbsystem)
-- [`docs/RUNBOOK.md`](docs/RUNBOOK.md) — Operational Playbook (Coolify, Backups, Incidents)
-- [`docs/security-rotations.md`](docs/security-rotations.md) — Secret-Rotation-Log + Prozeduren pro Secret
 - [`SECURITY.md`](SECURITY.md) — Sicherheits-Disclosure
 
 ---

@@ -46,7 +46,7 @@ develop → staging → production
 
 Coolify deployt automatisch nach Push. Migrations laufen automatisch.
 
-**⚠️ Redeploy-Disziplin:** Der 4-GB-VPS überlebt keine parallelen Coolify-Redeploys — beide Container zusammen sprengen das RAM und triggern den OOM-Killer. Deshalb bei Multi-Env-Changes (Env-Vars, Force-Pushes, APP_KEY-Rotation) **immer sequentiell**: erst staging, verify dass `beta.hommrich.app` grün ist, dann prod.
+**⚠️ Redeploy-Disziplin:** Nie staging und production gleichzeitig redeployen — beide Container zusammen erschöpfen das VPS-RAM. Deshalb bei Multi-Env-Changes (Env-Vars, Force-Pushes, APP_KEY-Rotation) **immer sequentiell**: erst staging, verify dass `beta.hommrich.app` grün ist, dann prod.
 
 ---
 
@@ -305,10 +305,6 @@ Alle Treffer die nicht historische Doku (`docs/gdpr/*`, `docs/showcase/*`) sind,
 - `docs/GETTING_STARTED.md` — Lokales Dev-Setup + typische Fußfallen
 - `docs/CONTRIBUTING.md` — Branch-Modell, Commit-Convention, Doc-Sync-Regel
 - `docs/ARCHITECTURE.md` — Subsystem-Deep-Dives (Photo-Game, Drink-Score, Projector, Color System)
-- `docs/RUNBOOK.md` — Ops-Playbook (Coolify, Backups, Incidents, Change-Log)
-- `docs/security-rotations.md` — Secret-Rotation-Log + Prozeduren pro Secret
-- `docs/AUDIT_ACTION_PLAN.md` — interne Audit-Punkte + Status
-- `docs/FOLLOWUP_2026-07-07.md` — Post-Audit-Backlog. Steps 1–3 + 5–11 sind gemergt; Step 4 (Restore-Drill) deferred bis erstes zahlendes Event
-- `docs/legal/sub-processors.md` — Sub-Processor-Register (authoritative)
 - `docs/GDPR_COMPLIANCE_PLAN.md` — DSGVO-Etappen 1–6 abgeschlossen; Stage 7 (Cookie-Consent) deferred
+- `docs/legal/sub-processors.md` — Sub-Processor-Register (authoritative)
 - `SECURITY.md` — Disclosure-Prozess
