@@ -73,6 +73,13 @@ function toggleAppAccess() {
     });
 }
 
+const resetAppLoginOpen = ref(false);
+function doResetAppLogin() {
+    router.delete(route('guests.app-login.reset', props.guest.id), {
+        onSuccess: () => toast.success(t('toast.appLoginReset')),
+    });
+}
+
 // Drinks access toggle
 const drinksAccessForm = useForm({ drinks_access: props.guest.drinks_access ?? true });
 function toggleDrinksAccess() {
@@ -144,22 +151,33 @@ function setterName(guest: any): string | null {
                     <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('guest.appAccess') }}</h3>
                     <InfoTooltip :text="t('guest.appAccessInfo')" />
                 </div>
-                <div class="flex items-center justify-between rounded-lg border bg-muted/30 px-4 py-3">
+                <div class="bg-muted/30 flex flex-col gap-3 rounded-lg border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                     <div class="text-sm">
                         <p class="font-medium">{{ appAccessForm.app_access ? t('guest.appAccessEnabled') : t('guest.appAccessDisabled') }}</p>
                         <p class="text-muted-foreground">{{ t('guest.appAccessDesc') }}</p>
+                        <p class="text-muted-foreground mt-1 text-xs">
+                            {{ t('guest.appLoginStatus') }}:
+                            <span :class="guest.is_active ? 'font-medium text-green-700 dark:text-green-400' : ''">
+                                {{ guest.is_active ? t('guest.appLoginActive') : t('guest.appLoginInactive') }}
+                            </span>
+                        </p>
                     </div>
-                    <Button
-                        size="sm"
-                        :variant="appAccessForm.app_access ? 'destructive' : 'default'"
-                        :disabled="appAccessForm.processing"
-                        @click="
-                            appAccessForm.app_access = !appAccessForm.app_access;
-                            toggleAppAccess();
-                        "
-                    >
-                        {{ appAccessForm.app_access ? t('guest.appAccessRevoke') : t('guest.appAccessGrant') }}
-                    </Button>
+                    <div class="flex flex-col gap-2 sm:flex-row">
+                        <Button size="sm" variant="outline" :disabled="!guest.is_active" @click="resetAppLoginOpen = true">
+                            {{ t('guest.appLoginReset') }}
+                        </Button>
+                        <Button
+                            size="sm"
+                            :variant="appAccessForm.app_access ? 'destructive' : 'default'"
+                            :disabled="appAccessForm.processing"
+                            @click="
+                                appAccessForm.app_access = !appAccessForm.app_access;
+                                toggleAppAccess();
+                            "
+                        >
+                            {{ appAccessForm.app_access ? t('guest.appAccessRevoke') : t('guest.appAccessGrant') }}
+                        </Button>
+                    </div>
                 </div>
             </div>
 
@@ -169,7 +187,7 @@ function setterName(guest: any): string | null {
                     <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('guest.drinksAccess') }}</h3>
                     <InfoTooltip :text="t('guest.drinksAccessInfo')" />
                 </div>
-                <div class="flex items-center justify-between rounded-lg border bg-muted/30 px-4 py-3">
+                <div class="bg-muted/30 flex items-center justify-between rounded-lg border px-4 py-3">
                     <div class="text-sm">
                         <p class="font-medium">
                             {{ drinksAccessForm.drinks_access ? t('guest.drinksAccessEnabled') : t('guest.drinksAccessDisabled') }}
@@ -200,7 +218,7 @@ function setterName(guest: any): string | null {
                 <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('guest.rsvpStatus') }}</h3>
 
                 <!-- Current status + who set it -->
-                <div class="space-y-1 rounded-lg border bg-muted/30 px-4 py-3 text-sm">
+                <div class="bg-muted/30 space-y-1 rounded-lg border px-4 py-3 text-sm">
                     <div class="flex items-center gap-2">
                         <span class="text-muted-foreground">{{ t('guest.rsvpStatus') }}:</span>
                         <span v-if="guest.rsvp_status" :class="['font-medium', rsvpClass[guest.rsvp_status]]">
@@ -209,7 +227,7 @@ function setterName(guest: any): string | null {
                         <span v-else class="text-muted-foreground">{{ t('guest.rsvpNull') }}</span>
                     </div>
                     <div v-if="setterName(guest)" class="text-muted-foreground">
-                        {{ t('guest.rsvpSetBy') }}: <span class="font-medium text-foreground">{{ setterName(guest) }}</span>
+                        {{ t('guest.rsvpSetBy') }}: <span class="text-foreground font-medium">{{ setterName(guest) }}</span>
                     </div>
                     <div v-if="guest.rsvp_set_at" class="text-muted-foreground">{{ t('guest.rsvpSetAt') }}: {{ formatDate(guest.rsvp_set_at) }}</div>
                 </div>
@@ -218,7 +236,7 @@ function setterName(guest: any): string | null {
                 <form @submit.prevent="submitRsvp" class="flex items-center gap-2">
                     <select
                         v-model="rsvpForm.rsvp_status"
-                        class="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                        class="border-input shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 flex h-9 rounded-md border bg-transparent px-3 py-1 text-sm outline-none focus-visible:ring-[3px]"
                     >
                         <option value="">{{ t('guest.rsvpNull') }}</option>
                         <option value="accepted_pending">{{ t('guest.rsvpAcceptedPending') }}</option>
@@ -236,7 +254,7 @@ function setterName(guest: any): string | null {
                 <h3 class="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('guest.invitationQR') }}</h3>
                 <template v-if="qrDataUrl">
                     <img :src="qrDataUrl" alt="QR-Code" class="rounded border" />
-                    <p class="mt-2 text-xs break-all text-gray-400">{{ qr_url }}</p>
+                    <p class="mt-2 break-all text-xs text-gray-400">{{ qr_url }}</p>
                     <div class="mt-3 flex gap-2">
                         <Button variant="outline" size="sm" @click="openPdf(qrDataUrl, `${guest.firstname} ${guest.lastname}`)">{{
                             t('invitation.downloadPdf')
@@ -254,6 +272,14 @@ function setterName(guest: any): string | null {
                 </template>
             </div>
         </div>
+        <ConfirmDialog
+            v-model:open="resetAppLoginOpen"
+            :title="t('guest.appLoginResetTitle')"
+            :description="t('guest.appLoginResetDesc')"
+            :confirm-label="t('guest.appLoginReset')"
+            destructive
+            @confirm="doResetAppLogin"
+        />
         <ConfirmDialog
             v-model:open="resetLogsOpen"
             :title="t('guest.drinksResetTitle')"

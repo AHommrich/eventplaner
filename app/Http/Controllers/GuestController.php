@@ -9,13 +9,15 @@ use App\Models\Guest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Laravel\Sanctum\PersonalAccessToken;
 
 /**
  * CRUD + admin actions for the guests of an event.
  *
  * Organizer view (Inertia): create / edit / delete, manual RSVP setting
  * (without deadline check, in contrast to {@see \App\Http\Controllers\Api\GuestApiController}),
- * toggles for `app_access` and `drinks_access`, reset of a guest's drink logs.
+ * toggles for `app_access` and `drinks_access`, reset of a guest's app login
+ * and drink logs.
  *
  * Cross-event guard: all mutating endpoints explicitly verify that the
  * target guest belongs to the active event (403 otherwise).
@@ -82,6 +84,7 @@ class GuestController extends Controller
         $guestData['rsvp_set_by_user'] = $guest->rsvpSetByUser
             ? ['id' => $guest->rsvpSetByUser->id, 'name' => $guest->rsvpSetByUser->name]
             : null;
+        $guestData['is_active'] = $this->hasActiveAppToken($guest);
 
         $qrToken = $guest->getQrToken();
         $qrUrl = $qrToken ? url('/api/auth/qr/'.$qrToken->token) : null;
@@ -159,6 +162,16 @@ class GuestController extends Controller
         return redirect()->route('guests.edit', $guest->id);
     }
 
+    public function resetAppLogin(Guest $guest)
+    {
+        $event = $this->activeEvent();
+        abort_if($guest->event_id !== $event?->id, 403);
+
+        $this->deleteAppTokens($guest);
+
+        return redirect()->route('guests.edit', $guest->id);
+    }
+
     public function updateDrinksAccess(Request $request, Guest $guest)
     {
         $event = $this->activeEvent();
@@ -181,5 +194,22 @@ class GuestController extends Controller
         DrinkLog::where('guest_id', $guest->id)->delete();
 
         return redirect()->route('guests.edit', $guest->id);
+    }
+
+    private function hasActiveAppToken(Guest $guest): bool
+    {
+        return PersonalAccessToken::where('tokenable_type', Guest::class)
+            ->where('tokenable_id', $guest->id)
+            ->where(function ($query) {
+                $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->exists();
+    }
+
+    private function deleteAppTokens(Guest $guest): void
+    {
+        PersonalAccessToken::where('tokenable_type', Guest::class)
+            ->where('tokenable_id', $guest->id)
+            ->delete();
     }
 }

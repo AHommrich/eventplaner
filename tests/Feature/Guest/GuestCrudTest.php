@@ -7,6 +7,7 @@ use App\Models\DrinkLog;
 use App\Models\Event;
 use App\Models\Group;
 use App\Models\Guest;
+use Laravel\Sanctum\PersonalAccessToken;
 
 it('creates a new guest in the active event', function () {
     $user = actingAsOwner();
@@ -82,6 +83,21 @@ it('toggles app_access for a guest', function () {
     expect($guest->fresh()->app_access)->toBeFalse();
 });
 
+it('resets app login tokens for a guest', function () {
+    $user = actingAsOwner();
+    $event = $user->ownedEvents()->first();
+    $guest = Guest::factory()->create(['event_id' => $event->id]);
+    $otherGuest = Guest::factory()->create(['event_id' => $event->id]);
+
+    $guest->createToken('guest-login', ['role:guest'], now()->addDays(90));
+    $otherGuest->createToken('guest-login', ['role:guest'], now()->addDays(90));
+
+    $this->delete(route('guests.app-login.reset', $guest))->assertRedirect();
+
+    expect(PersonalAccessToken::where('tokenable_type', Guest::class)->where('tokenable_id', $guest->id)->count())->toBe(0);
+    expect(PersonalAccessToken::where('tokenable_type', Guest::class)->where('tokenable_id', $otherGuest->id)->count())->toBe(1);
+});
+
 it('toggles drinks_access for a guest', function () {
     $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
@@ -99,6 +115,9 @@ it('rejects rsvp/access changes for guests from other events', function () {
     $foreign = Guest::factory()->create(['event_id' => $otherEvent->id]);
 
     $this->post(route('guests.admin-rsvp', $foreign), ['rsvp_status' => 'accepted'])
+        ->assertStatus(403);
+
+    $this->delete(route('guests.app-login.reset', $foreign))
         ->assertStatus(403);
 });
 
