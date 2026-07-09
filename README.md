@@ -139,7 +139,7 @@ git push origin production
 git checkout develop
 ```
 
-> ⚠️ **Never push staging and production at the same time.** Two Coolify redeploys in parallel exhaust the 4 GB VPS and trigger the OOM killer. Push `staging` first, wait until `beta.hommrich.app` responds, then push `production`.
+> ⚠️ **Never push staging and production at the same time.** Two parallel Coolify redeploys exhaust the VPS RAM. Push `staging` first, wait until `beta.hommrich.app` responds, then push `production`.
 
 ---
 
@@ -173,7 +173,7 @@ A detailed architecture description, including an ER diagram, auth layers, and s
 - ~25 backend test files / ~200 cases — every API endpoint, every core-feature web controller, services with edge cases, auth flows, permission middlewares
 - 4 frontend specs for ConfirmDialog, CreatableCombobox, InfoTooltip and the i18n plugin (16 cases)
 
-Test setup, coverage goals, and the strategy per layer are documented in `docs/SHOWCASE_PLAN.md` (internal working file, German).
+Test isolation is enforced at the database level: a `TestCase` guard rejects any run that is not connected to the dedicated `laravel_test` database.
 
 ---
 
