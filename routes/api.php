@@ -3,9 +3,9 @@
 use App\Http\Controllers\Api\DrinkLogController;
 use App\Http\Controllers\Api\EventInfoController;
 use App\Http\Controllers\Api\GuestApiController;
+use App\Http\Controllers\Api\GuestContentHideController;
 use App\Http\Controllers\Api\GuestDataExportController;
 use App\Http\Controllers\Api\GuestErasureController;
-use App\Http\Controllers\Api\GuestContentHideController;
 use App\Http\Controllers\Api\LegalController;
 use App\Http\Controllers\Api\PhotoController;
 use App\Http\Controllers\Api\PhotoGameController as ApiPhotoGameController;

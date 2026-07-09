@@ -5,7 +5,6 @@ use App\Models\Guest;
 use App\Models\Photo;
 use App\Models\PhotoAlbum;
 use App\Models\PhotoReport;
-use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 
 /*
