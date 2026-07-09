@@ -110,6 +110,7 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::put('/guests/{guest}', [GuestController::class, 'update'])->name('guests.update');
     Route::post('/guests/{guest}/rsvp', [GuestController::class, 'adminRsvp'])->name('guests.admin-rsvp');
     Route::patch('/guests/{guest}/app-access', [GuestController::class, 'updateAppAccess'])->name('guests.app-access');
+    Route::delete('/guests/{guest}/app-login', [GuestController::class, 'resetAppLogin'])->name('guests.app-login.reset');
     Route::patch('/guests/{guest}/drinks-access', [GuestController::class, 'updateDrinksAccess'])->name('guests.drinks-access');
     Route::delete('/guests/{guest}/drink-logs', [GuestController::class, 'resetDrinkLogs'])->name('guests.drink-logs.reset');
 });
