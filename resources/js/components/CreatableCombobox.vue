@@ -83,7 +83,7 @@ async function handleCreate(option: { label: string }) {
             </div>
         </template>
         <template #option="{ option }">
-            <span v-if="(option as any).__CREATE__" class="text-primary font-medium">
+            <span v-if="(option as any).__CREATE__" class="font-medium text-primary">
                 {{ hasExactMatch ? t('common.createItemAgain', { name: option.label }) : t('common.createItem', { name: option.label }) }}
             </span>
             <span v-else>{{ option.label }}</span>

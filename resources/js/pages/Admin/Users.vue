@@ -105,7 +105,7 @@ function doRemove() {
                 <CardContent class="space-y-0">
                     <!-- 1. Event selection -->
                     <div class="pb-4">
-                        <p class="text-muted-foreground mb-1.5 text-xs font-medium">{{ t('admin.selectEventLabel') }}</p>
+                        <p class="mb-1.5 text-xs font-medium text-muted-foreground">{{ t('admin.selectEventLabel') }}</p>
                         <select v-model="addForm.event_id" :class="selectClass + ' w-full'">
                             <option value="">{{ t('admin.selectEvent') }}</option>
                             <option v-for="event in events" :key="event.id" :value="String(event.id)">{{ event.name }}</option>
@@ -114,28 +114,28 @@ function doRemove() {
 
                     <!-- 2. Members list of the selected event -->
                     <template v-if="event_access">
-                        <div class="border-t pb-2 pt-4">
-                            <p class="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wide">{{ t('access.currentAccess') }}</p>
+                        <div class="border-t pt-4 pb-2">
+                            <p class="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">{{ t('access.currentAccess') }}</p>
                             <ul class="divide-y">
                                 <li v-if="event_access.owner" class="flex items-center justify-between py-2.5">
                                     <div>
                                         <p class="text-sm font-medium">{{ event_access.owner.name }}</p>
-                                        <p class="text-muted-foreground text-xs">{{ event_access.owner.email }}</p>
+                                        <p class="text-xs text-muted-foreground">{{ event_access.owner.email }}</p>
                                     </div>
-                                    <span class="bg-primary/10 text-primary rounded-full px-2.5 py-0.5 text-xs font-medium">{{
+                                    <span class="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">{{
                                         t('access.owner')
                                     }}</span>
                                 </li>
                                 <li v-for="member in event_access.members" :key="member.id" class="flex items-center justify-between py-2.5">
                                     <div>
                                         <p class="text-sm font-medium">{{ member.name }}</p>
-                                        <p class="text-muted-foreground text-xs">{{ member.email }}</p>
+                                        <p class="text-xs text-muted-foreground">{{ member.email }}</p>
                                     </div>
                                     <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="askRemove(member)"
                                         ><Trash2 class="h-4 w-4"
                                     /></Button>
                                 </li>
-                                <li v-if="event_access.members.length === 0" class="text-muted-foreground py-3 text-sm">
+                                <li v-if="event_access.members.length === 0" class="py-3 text-sm text-muted-foreground">
                                     {{ t('access.none') }}
                                 </li>
                             </ul>
@@ -143,17 +143,17 @@ function doRemove() {
 
                         <!-- 3. Add user -->
                         <div class="border-t pt-4">
-                            <p class="text-muted-foreground mb-1.5 text-xs font-medium">{{ t('admin.addToEvent') }}</p>
+                            <p class="mb-1.5 text-xs font-medium text-muted-foreground">{{ t('admin.addToEvent') }}</p>
                             <form @submit.prevent="addToEvent" class="flex gap-2">
                                 <Input v-model="addForm.email" type="email" :placeholder="t('admin.emailPlaceholder')" required class="flex-1" />
                                 <Button type="submit" :disabled="addForm.processing" class="whitespace-nowrap">{{ t('common.add') }}</Button>
                             </form>
-                            <p v-if="addForm.errors.email" class="text-destructive mt-1 text-xs">{{ addForm.errors.email }}</p>
-                            <p v-if="addForm.errors.event_id" class="text-destructive mt-1 text-xs">{{ addForm.errors.event_id }}</p>
+                            <p v-if="addForm.errors.email" class="mt-1 text-xs text-destructive">{{ addForm.errors.email }}</p>
+                            <p v-if="addForm.errors.event_id" class="mt-1 text-xs text-destructive">{{ addForm.errors.event_id }}</p>
                         </div>
                     </template>
 
-                    <div v-else class="text-muted-foreground border-t pb-2 pt-4 text-sm">
+                    <div v-else class="border-t pt-4 pb-2 text-sm text-muted-foreground">
                         {{ t('admin.selectEventHint') }}
                     </div>
                 </CardContent>
@@ -168,17 +168,17 @@ function doRemove() {
                     <table class="w-full text-sm">
                         <thead class="border-b">
                             <tr>
-                                <th class="text-muted-foreground h-10 px-6 text-left align-middle font-medium">{{ t('common.name') }}</th>
-                                <th class="text-muted-foreground h-10 px-6 text-left align-middle font-medium">{{ t('common.email') }}</th>
-                                <th class="text-muted-foreground h-10 px-6 text-left align-middle font-medium">{{ t('common.role') }}</th>
-                                <th class="text-muted-foreground h-10 px-6 text-left align-middle font-medium">{{ t('admin.registered') }}</th>
+                                <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('common.name') }}</th>
+                                <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('common.email') }}</th>
+                                <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('common.role') }}</th>
+                                <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('admin.registered') }}</th>
                                 <th class="h-10 px-6"></th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="user in approvedUsers" :key="user.id" class="hover:bg-muted/50 border-b transition-colors last:border-0">
+                            <tr v-for="user in approvedUsers" :key="user.id" class="border-b transition-colors last:border-0 hover:bg-muted/50">
                                 <td class="px-6 py-3 font-medium">{{ user.name }}</td>
-                                <td class="text-muted-foreground px-6 py-3">{{ user.email }}</td>
+                                <td class="px-6 py-3 text-muted-foreground">{{ user.email }}</td>
                                 <td class="px-6 py-3">
                                     <select
                                         :value="user.role"
@@ -189,7 +189,7 @@ function doRemove() {
                                         <option value="admin">{{ t('admin.admin') }}</option>
                                     </select>
                                 </td>
-                                <td class="text-muted-foreground px-6 py-3 text-xs">{{ new Date(user.created_at).toLocaleDateString('de-DE') }}</td>
+                                <td class="px-6 py-3 text-xs text-muted-foreground">{{ new Date(user.created_at).toLocaleDateString('de-DE') }}</td>
                                 <td class="px-6 py-3 text-right">
                                     <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="askDelete(user)"
                                         ><Trash2 class="h-4 w-4"

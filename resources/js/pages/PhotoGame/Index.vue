@@ -244,7 +244,7 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
                     <label class="text-sm font-medium">{{ t('photoGame.eventTypeCatalog') }}</label>
                     <select
                         :value="String(game?.catalog_id ?? '')"
-                        class="border-input bg-background focus:ring-ring h-9 rounded-md border px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1"
+                        class="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:ring-1 focus:ring-ring focus:outline-none"
                         @change="setCatalog(($event.target as HTMLSelectElement).value)"
                     >
                         <option value="">{{ t('photoGame.noEventType') }}</option>
@@ -256,7 +256,7 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
                             }}
                         </option>
                     </select>
-                    <p class="text-muted-foreground text-xs">{{ t('photoGame.eventTypeHint') }}</p>
+                    <p class="text-xs text-muted-foreground">{{ t('photoGame.eventTypeHint') }}</p>
                 </div>
 
                 <!-- Start/Stop Buttons -->
@@ -276,15 +276,15 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
                     <div class="flex items-center gap-2">
                         <h2 class="text-sm font-semibold">
                             {{ t('photoGame.taskPool') }}
-                            <span class="text-muted-foreground font-normal">({{ activeTaskCount() }} {{ t('photoGame.tasksCount') }})</span>
+                            <span class="font-normal text-muted-foreground">({{ activeTaskCount() }} {{ t('photoGame.tasksCount') }})</span>
                         </h2>
                         <InfoTooltip :text="t('photoGame.taskPoolInfo')" />
                     </div>
-                    <p class="text-muted-foreground mt-0.5 text-xs">{{ t('photoGame.taskPoolHint') }}</p>
+                    <p class="mt-0.5 text-xs text-muted-foreground">{{ t('photoGame.taskPoolHint') }}</p>
                 </div>
 
                 <div class="space-y-1">
-                    <p v-if="task_pool.length === 0" class="text-muted-foreground text-sm">
+                    <p v-if="task_pool.length === 0" class="text-sm text-muted-foreground">
                         {{ t('photoGame.noTasks') }}
                     </p>
 
@@ -343,7 +343,7 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
                                     >{{ task.state === 'modified' ? task.description : taskLabel(task) }}</span
                                 >
                                 <!-- Original text for modified -->
-                                <p v-if="task.state === 'modified' && task.original_text" class="text-muted-foreground mt-0.5 text-xs">
+                                <p v-if="task.state === 'modified' && task.original_text" class="mt-0.5 text-xs text-muted-foreground">
                                     {{ t('photoGame.originalText') }}: {{ originalLabel(task) }}
                                 </p>
                             </div>
@@ -365,7 +365,7 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
                             <DropdownMenu>
                                 <DropdownMenuTrigger as-child>
                                     <button
-                                        class="text-muted-foreground hover:bg-muted hover:text-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors"
+                                        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                                         @click.stop
                                     >
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -517,10 +517,10 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
             <div class="space-y-2">
                 <h2 class="text-sm font-semibold">
                     {{ t('photoGame.submissions') }}
-                    <span class="text-muted-foreground font-normal">({{ submissions.length }})</span>
+                    <span class="font-normal text-muted-foreground">({{ submissions.length }})</span>
                 </h2>
 
-                <p v-if="submissions.length === 0" class="text-muted-foreground text-sm">
+                <p v-if="submissions.length === 0" class="text-sm text-muted-foreground">
                     {{ t('photoGame.noSubmissions') }}
                 </p>
 
@@ -528,7 +528,7 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
                     <div
                         v-for="sub in submissions"
                         :key="sub.id"
-                        class="bg-muted group relative aspect-square cursor-pointer overflow-hidden rounded-lg border"
+                        class="group relative aspect-square cursor-pointer overflow-hidden rounded-lg border bg-muted"
                         @click="viewerPhoto = sub"
                     >
                         <img
@@ -537,7 +537,7 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
                             :alt="sub.guest_name"
                             class="h-full w-full object-cover transition-transform group-hover:scale-105"
                         />
-                        <div v-else class="text-muted-foreground flex h-full items-center justify-center p-2 text-center text-xs">
+                        <div v-else class="flex h-full items-center justify-center p-2 text-center text-xs text-muted-foreground">
                             {{ sub.task }}
                         </div>
                         <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-xs text-white">
@@ -545,7 +545,7 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
                             <div class="truncate opacity-75">{{ sub.task }}</div>
                         </div>
                         <button
-                            class="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-red-600 sm:hidden sm:group-hover:flex"
+                            class="absolute top-1.5 right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-red-600 sm:hidden sm:group-hover:flex"
                             @click.stop="askDeleteSubmission(sub.id)"
                         >
                             <svg
@@ -575,7 +575,7 @@ const activeTaskCount = () => props.task_pool.filter((t) => t.state !== 'hidden'
                     <p class="opacity-75">{{ viewerPhoto.task }}</p>
                 </div>
                 <button
-                    class="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
+                    class="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
                     @click="viewerPhoto = null"
                 >
                     ✕

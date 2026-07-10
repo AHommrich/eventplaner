@@ -13,10 +13,10 @@ const { t } = useI18n();
             <!-- Gradient glow -->
             <div class="pointer-events-none absolute inset-0">
                 <div
-                    class="absolute left-1/2 top-1/3 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600/20 blur-[130px]"
+                    class="absolute top-1/3 left-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600/20 blur-[130px]"
                 ></div>
-                <div class="absolute left-1/4 top-1/2 h-[400px] w-[400px] rounded-full bg-emerald-500/10 blur-[100px]"></div>
-                <div class="absolute right-1/4 top-2/3 h-[300px] w-[300px] rounded-full bg-green-700/15 blur-[80px]"></div>
+                <div class="absolute top-1/2 left-1/4 h-[400px] w-[400px] rounded-full bg-emerald-500/10 blur-[100px]"></div>
+                <div class="absolute top-2/3 right-1/4 h-[300px] w-[300px] rounded-full bg-green-700/15 blur-[80px]"></div>
             </div>
 
             <div class="relative z-10 mx-auto flex max-w-3xl flex-col items-center gap-8">
@@ -30,7 +30,7 @@ const { t } = useI18n();
                     >
                         eveplan
                     </h1>
-                    <p class="text-2xl font-light leading-snug text-gray-700 sm:text-3xl dark:text-white/80">
+                    <p class="text-2xl leading-snug font-light text-gray-700 sm:text-3xl dark:text-white/80">
                         {{ t('welcome.hero.tagline1') }}<br class="hidden sm:block" />
                         {{ t('welcome.hero.tagline2') }}
                     </p>
@@ -152,7 +152,7 @@ const { t } = useI18n();
             <!-- 6 cards: 3 columns -->
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 <div
-                    class="dark:hover:bg-white/8 rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5"
+                    class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8"
                 >
                     <div class="mb-4 text-3xl">👥</div>
                     <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.guestsTitle') }}</h3>
@@ -160,7 +160,7 @@ const { t } = useI18n();
                 </div>
 
                 <div
-                    class="dark:hover:bg-white/8 rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5"
+                    class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8"
                 >
                     <div class="mb-4 text-3xl">📲</div>
                     <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.qrTitle') }}</h3>
@@ -168,7 +168,7 @@ const { t } = useI18n();
                 </div>
 
                 <div
-                    class="dark:hover:bg-white/8 rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5"
+                    class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8"
                 >
                     <div class="mb-4 text-3xl">📸</div>
                     <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.galleryTitle') }}</h3>
@@ -176,7 +176,7 @@ const { t } = useI18n();
                 </div>
 
                 <div
-                    class="dark:hover:bg-white/8 rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5"
+                    class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8"
                 >
                     <div class="mb-4 text-3xl">🎞️</div>
                     <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.slideshowTitle') }}</h3>
@@ -184,7 +184,7 @@ const { t } = useI18n();
                 </div>
 
                 <div
-                    class="dark:hover:bg-white/8 rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5"
+                    class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8"
                 >
                     <div class="mb-4 text-3xl">🎯</div>
                     <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.photoGameTitle') }}</h3>
@@ -192,7 +192,7 @@ const { t } = useI18n();
                 </div>
 
                 <div
-                    class="dark:hover:bg-white/8 rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5"
+                    class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8"
                 >
                     <div class="mb-4 text-3xl">🍾</div>
                     <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.drinkGameTitle') }}</h3>
@@ -203,7 +203,7 @@ const { t } = useI18n();
             <!-- Last 2 cards: centered -->
             <div class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:mx-auto lg:max-w-[calc(66.666%+10px)]">
                 <div
-                    class="dark:hover:bg-white/8 rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5"
+                    class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8"
                 >
                     <div class="mb-4 text-3xl">🎨</div>
                     <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.lookTitle') }}</h3>
@@ -211,7 +211,7 @@ const { t } = useI18n();
                 </div>
 
                 <div
-                    class="dark:hover:bg-white/8 rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5"
+                    class="rounded-2xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8"
                 >
                     <div class="mb-4 text-3xl">📍</div>
                     <h3 class="mb-2 text-lg font-semibold">{{ t('welcome.features.infoTitle') }}</h3>
@@ -222,7 +222,7 @@ const { t } = useI18n();
 
         <!-- For whom -->
         <section class="mx-auto max-w-4xl px-6 py-20">
-            <div class="dark:bg-white/3 rounded-3xl border border-gray-200 bg-gray-50/50 p-10 text-center sm:p-14 dark:border-white/10">
+            <div class="rounded-3xl border border-gray-200 bg-gray-50/50 p-10 text-center sm:p-14 dark:border-white/10 dark:bg-white/3">
                 <h2 class="mb-6 text-3xl font-bold sm:text-4xl">{{ t('welcome.forWho.title') }}</h2>
                 <div class="mb-8 flex flex-wrap justify-center gap-3">
                     <span

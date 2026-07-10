@@ -104,17 +104,17 @@ function downloadPng(url: string, name: string) {
             <!-- Groups -->
             <section v-if="groups.length">
                 <div class="mb-3 flex items-center gap-2">
-                    <h2 class="text-muted-foreground text-sm font-medium uppercase tracking-wide">{{ t('invitation.groups') }}</h2>
+                    <h2 class="text-sm font-medium tracking-wide text-muted-foreground uppercase">{{ t('invitation.groups') }}</h2>
                     <InfoTooltip :text="t('invitation.groupsInfo')" />
                 </div>
                 <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                     <Card v-for="group in groups" :key="group.id" class="items-center gap-3 py-4">
                         <CardContent class="flex flex-col items-center gap-2 px-4">
                             <p class="text-center text-sm font-semibold">{{ group.name }}</p>
-                            <p class="text-muted-foreground text-center text-xs">{{ group.guests.join(', ') }}</p>
+                            <p class="text-center text-xs text-muted-foreground">{{ group.guests.join(', ') }}</p>
                             <img v-if="groupQrCodes[group.id]" :src="groupQrCodes[group.id]" alt="QR Code" class="h-36 w-36" />
                             <template v-else>
-                                <p class="text-muted-foreground text-xs italic">{{ t('invitation.noQR') }}</p>
+                                <p class="text-xs text-muted-foreground italic">{{ t('invitation.noQR') }}</p>
                                 <Button
                                     variant="outline"
                                     size="sm"
@@ -141,7 +141,7 @@ function downloadPng(url: string, name: string) {
             <!-- Solo guests -->
             <section v-if="soloGuests.length">
                 <div class="mb-3 flex items-center gap-2">
-                    <h2 class="text-muted-foreground text-sm font-medium uppercase tracking-wide">{{ t('invitation.solo') }}</h2>
+                    <h2 class="text-sm font-medium tracking-wide text-muted-foreground uppercase">{{ t('invitation.solo') }}</h2>
                     <InfoTooltip :text="t('invitation.soloInfo')" />
                 </div>
                 <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
@@ -150,7 +150,7 @@ function downloadPng(url: string, name: string) {
                             <p class="text-center text-sm font-semibold">{{ guest.name }}</p>
                             <img v-if="soloQrCodes[guest.id]" :src="soloQrCodes[guest.id]" alt="QR Code" class="h-36 w-36" />
                             <template v-else>
-                                <p class="text-muted-foreground text-xs italic">{{ t('invitation.noQR') }}</p>
+                                <p class="text-xs text-muted-foreground italic">{{ t('invitation.noQR') }}</p>
                                 <Button
                                     variant="outline"
                                     size="sm"
@@ -174,7 +174,7 @@ function downloadPng(url: string, name: string) {
                 </div>
             </section>
 
-            <p v-if="!groups.length && !soloGuests.length" class="text-muted-foreground text-sm">
+            <p v-if="!groups.length && !soloGuests.length" class="text-sm text-muted-foreground">
                 {{ t('invitation.none') }}
             </p>
         </div>

@@ -40,7 +40,7 @@ const submit = () => {
                 </div>
             </form>
 
-            <div class="text-muted-foreground space-x-1 text-center text-sm">
+            <div class="space-x-1 text-center text-sm text-muted-foreground">
                 <span>{{ t('auth.hasAccount') }}</span>
                 <TextLink :href="route('login')">{{ t('auth.login') }}</TextLink>
             </div>

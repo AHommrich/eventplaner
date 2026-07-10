@@ -171,7 +171,7 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
                                     v-model="search"
                                     type="text"
                                     :placeholder="t('event.search')"
-                                    class="border-input placeholder:text-muted-foreground w-full rounded-md border bg-transparent px-2 py-1 text-sm outline-none"
+                                    class="w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm outline-none placeholder:text-muted-foreground"
                                     @keydown.stop
                                 />
                             </div>
@@ -181,7 +181,7 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
                                 <span v-else class="mr-2 size-4" />
                                 {{ ev.name }}
                             </DropdownMenuItem>
-                            <p v-if="filteredEvents.length === 0" class="text-muted-foreground px-2 py-3 text-center text-xs">
+                            <p v-if="filteredEvents.length === 0" class="px-2 py-3 text-center text-xs text-muted-foreground">
                                 {{ t('event.notFound') }}
                             </p>
 
@@ -199,7 +199,7 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
                                     <CalendarPlus class="mr-2 size-4" />
                                     {{ t('nav.requestEvent') }}
                                 </DropdownMenuItem>
-                                <div v-else class="text-muted-foreground flex items-center gap-2 px-2 py-1.5 text-xs">
+                                <div v-else class="flex items-center gap-2 px-2 py-1.5 text-xs text-muted-foreground">
                                     <Clock class="size-3.5 shrink-0 text-amber-500" />
                                     <span class="truncate">{{ pendingRequest.event_name }} · {{ t('onboarding.pendingShort') }}</span>
                                 </div>
@@ -213,7 +213,7 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
             <SidebarMenu v-else-if="activeEvent">
                 <SidebarMenuItem>
                     <div class="flex items-center gap-2 px-2 py-1.5">
-                        <span class="text-sidebar-foreground/60 truncate text-sm">{{ activeEvent.name }}</span>
+                        <span class="truncate text-sm text-sidebar-foreground/60">{{ activeEvent.name }}</span>
                     </div>
                 </SidebarMenuItem>
             </SidebarMenu>
@@ -254,7 +254,7 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
                     {{ lang.toUpperCase() }}
                 </button>
             </div>
-            <div class="text-sidebar-foreground/40 flex justify-center gap-3 px-2 pb-1 text-[10px] group-data-[collapsible=icon]:hidden">
+            <div class="flex justify-center gap-3 px-2 pb-1 text-[10px] text-sidebar-foreground/40 group-data-[collapsible=icon]:hidden">
                 <a :href="route('legal.imprint')" class="hover:text-sidebar-foreground">Impressum</a>
                 <a :href="route('legal.privacy')" class="hover:text-sidebar-foreground">Datenschutz</a>
             </div>

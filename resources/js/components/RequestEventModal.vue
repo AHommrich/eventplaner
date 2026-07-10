@@ -65,12 +65,12 @@ function submit() {
                 </div>
             </div>
 
-            <p class="text-muted-foreground text-sm">{{ t('onboarding.requestDesc') }}</p>
+            <p class="text-sm text-muted-foreground">{{ t('onboarding.requestDesc') }}</p>
 
             <form @submit.prevent="submit" class="space-y-3">
                 <div>
                     <Input v-model="form.event_name" :placeholder="t('onboarding.placeholder')" required autofocus />
-                    <p v-if="form.errors.event_name" class="text-destructive mt-1 text-xs">{{ form.errors.event_name }}</p>
+                    <p v-if="form.errors.event_name" class="mt-1 text-xs text-destructive">{{ form.errors.event_name }}</p>
                 </div>
                 <div class="flex justify-end gap-2">
                     <Button type="button" variant="outline" @click="open = false">{{ t('common.cancel') }}</Button>

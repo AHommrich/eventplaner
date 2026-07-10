@@ -29,7 +29,7 @@ watch(internalValue, (val) => {
         <div class="relative mt-2">
             <!-- Button -->
             <ListboxButton
-                class="relative w-full cursor-default rounded-md bg-white py-2 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 sm:text-sm dark:bg-gray-900 dark:text-gray-100 dark:ring-gray-700"
+                class="relative w-full cursor-default rounded-md bg-white py-2 pr-10 pl-3 text-left text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset focus:ring-2 focus:ring-indigo-600 focus:outline-none sm:text-sm dark:bg-gray-900 dark:text-gray-100 dark:ring-gray-700"
             >
                 <span class="block truncate">
                     {{
@@ -55,7 +55,7 @@ watch(internalValue, (val) => {
                         <li
                             :class="[
                                 active ? 'bg-indigo-600 text-white' : 'text-gray-900 dark:text-gray-100',
-                                'relative cursor-default select-none py-2 pl-3 pr-9',
+                                'relative cursor-default py-2 pr-9 pl-3 select-none',
                             ]"
                         >
                             <span :class="[selected ? 'font-semibold' : 'font-normal', 'block truncate']">

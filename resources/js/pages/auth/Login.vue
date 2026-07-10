@@ -76,7 +76,7 @@ const submit = () => {
                 </Button>
             </div>
 
-            <div class="text-muted-foreground text-center text-sm">
+            <div class="text-center text-sm text-muted-foreground">
                 {{ t('auth.noAccount') }}
                 <TextLink :href="route('register')" :tabindex="5">{{ t('auth.signUp') }}</TextLink>
             </div>

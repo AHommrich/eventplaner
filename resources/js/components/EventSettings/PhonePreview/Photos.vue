@@ -45,7 +45,7 @@ function hintFilterClass(hint: string): string {
                             </div>
                             <!-- FAB with cFab color -->
                             <div
-                                class="absolute bottom-3 right-2 flex h-7 w-7 items-center justify-center rounded-full shadow-md"
+                                class="absolute right-2 bottom-3 flex h-7 w-7 items-center justify-center rounded-full shadow-md"
                                 :style="{ backgroundColor: cFab }"
                                 :class="hintBgClass('fab')"
                             >

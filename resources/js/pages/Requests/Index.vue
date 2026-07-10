@@ -195,13 +195,13 @@ function setterName(item: RevocationRequest): string {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p class="text-muted-foreground mb-4 text-sm">{{ t('requests.eventRequestsDesc') }}</p>
+                    <p class="mb-4 text-sm text-muted-foreground">{{ t('requests.eventRequestsDesc') }}</p>
                     <div class="divide-y">
                         <div v-for="item in event_requests" :key="item.id" class="flex items-center justify-between gap-4 py-3">
                             <div class="min-w-0">
                                 <p class="font-medium">{{ item.event_name }}</p>
-                                <p class="text-muted-foreground text-sm">{{ item.user_name }} · {{ item.user_email }}</p>
-                                <p class="text-muted-foreground text-xs">{{ formatDate(item.created_at) }}</p>
+                                <p class="text-sm text-muted-foreground">{{ item.user_name }} · {{ item.user_email }}</p>
+                                <p class="text-xs text-muted-foreground">{{ formatDate(item.created_at) }}</p>
                             </div>
                             <div class="flex shrink-0 gap-2">
                                 <Button size="sm" @click="askEventReq(item, 'approve')">{{ t('requests.approveEvent') }}</Button>
@@ -224,7 +224,7 @@ function setterName(item: RevocationRequest): string {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p class="text-muted-foreground mb-4 text-sm">{{ t('requests.photoReportsDesc') }}</p>
+                    <p class="mb-4 text-sm text-muted-foreground">{{ t('requests.photoReportsDesc') }}</p>
                     <div class="divide-y">
                         <div v-for="item in photo_reports" :key="item.id" class="flex flex-col gap-3 py-4 sm:flex-row sm:items-start sm:gap-4">
                             <a
@@ -238,7 +238,7 @@ function setterName(item: RevocationRequest): string {
                                 <img :src="item.photo.url" alt="" class="h-24 w-24 rounded object-cover" />
                             </a>
                             <div class="min-w-0 flex-1 space-y-1 text-sm">
-                                <p v-if="item.event_name" class="text-muted-foreground text-xs">
+                                <p v-if="item.event_name" class="text-xs text-muted-foreground">
                                     {{ t('requests.photoReportEvent') }}: {{ item.event_name }}
                                 </p>
                                 <p>
@@ -253,7 +253,7 @@ function setterName(item: RevocationRequest): string {
                                     <span class="font-medium">{{ t('requests.photoReportMessage') }}:</span>
                                     {{ item.message }}
                                 </p>
-                                <p class="text-muted-foreground text-xs">{{ formatDate(item.created_at) }}</p>
+                                <p class="text-xs text-muted-foreground">{{ formatDate(item.created_at) }}</p>
                             </div>
                             <div class="flex shrink-0 flex-col gap-2 sm:flex-row">
                                 <Button size="sm" @click="askResolvePhotoReport(item)">{{ t('requests.photoReportResolve') }}</Button>
@@ -280,9 +280,9 @@ function setterName(item: RevocationRequest): string {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p class="text-muted-foreground mb-4 text-sm">{{ t('requests.revocationsDesc') }}</p>
+                    <p class="mb-4 text-sm text-muted-foreground">{{ t('requests.revocationsDesc') }}</p>
 
-                    <div v-if="revocations.length === 0" class="text-muted-foreground py-8 text-center text-sm">
+                    <div v-if="revocations.length === 0" class="py-8 text-center text-sm text-muted-foreground">
                         {{ t('requests.empty') }}
                     </div>
 
@@ -290,8 +290,8 @@ function setterName(item: RevocationRequest): string {
                         <div v-for="item in revocations" :key="item.id" class="flex items-center justify-between gap-4 py-3">
                             <div class="min-w-0">
                                 <p class="font-medium">{{ item.firstname }} {{ item.lastname }}</p>
-                                <p v-if="item.group_name" class="text-muted-foreground text-sm">{{ item.group_name }}</p>
-                                <p class="text-muted-foreground text-xs">
+                                <p v-if="item.group_name" class="text-sm text-muted-foreground">{{ item.group_name }}</p>
+                                <p class="text-xs text-muted-foreground">
                                     {{ t('requests.requestedAt') }}: {{ formatDate(item.rsvp_set_at) }} · {{ t('requests.setBy') }}:
                                     {{ setterName(item) }}
                                 </p>

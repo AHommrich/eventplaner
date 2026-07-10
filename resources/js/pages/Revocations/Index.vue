@@ -73,9 +73,9 @@ function setterName(g: RevocationGuest): string {
                     <CardTitle>{{ t('revocation.title') }}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p class="text-muted-foreground mb-4 text-sm">{{ t('revocation.description') }}</p>
+                    <p class="mb-4 text-sm text-muted-foreground">{{ t('revocation.description') }}</p>
 
-                    <div v-if="guests.length === 0" class="text-muted-foreground py-8 text-center text-sm">
+                    <div v-if="guests.length === 0" class="py-8 text-center text-sm text-muted-foreground">
                         {{ t('revocation.empty') }}
                     </div>
 
@@ -83,8 +83,8 @@ function setterName(g: RevocationGuest): string {
                         <div v-for="g in guests" :key="g.id" class="flex items-center justify-between gap-4 py-3">
                             <div class="min-w-0">
                                 <p class="font-medium">{{ g.firstname }} {{ g.lastname }}</p>
-                                <p v-if="g.group_name" class="text-muted-foreground text-sm">{{ g.group_name }}</p>
-                                <p class="text-muted-foreground text-xs">
+                                <p v-if="g.group_name" class="text-sm text-muted-foreground">{{ g.group_name }}</p>
+                                <p class="text-xs text-muted-foreground">
                                     {{ t('revocation.requestedAt') }}: {{ formatDate(g.rsvp_set_at) }} · {{ t('revocation.setBy') }}:
                                     {{ setterName(g) }}
                                 </p>

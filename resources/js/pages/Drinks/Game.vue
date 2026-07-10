@@ -107,13 +107,13 @@ const guestTotals = computed(
                             <input
                                 v-model="endTime"
                                 type="datetime-local"
-                                class="border-input bg-background focus:ring-ring h-9 flex-1 rounded-md border px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1"
+                                class="h-9 flex-1 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:ring-1 focus:ring-ring focus:outline-none"
                             />
                             <Button size="sm" :disabled="savingEndTime" @click="saveEndTime">
                                 {{ savingEndTime ? '…' : t('common.save') }}
                             </Button>
                         </div>
-                        <p class="text-muted-foreground text-xs">{{ t('event.drinkGameEndTimeDesc') }}</p>
+                        <p class="text-xs text-muted-foreground">{{ t('event.drinkGameEndTimeDesc') }}</p>
                     </div>
                 </CardContent>
             </Card>
@@ -127,7 +127,7 @@ const guestTotals = computed(
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p v-if="eventDrinks.length === 0" class="text-muted-foreground text-sm">{{ t('game.empty') }}</p>
+                    <p v-if="eventDrinks.length === 0" class="text-sm text-muted-foreground">{{ t('game.empty') }}</p>
                     <ul v-else class="divide-y">
                         <li v-for="d in eventDrinks" :key="d.catalog_id" class="flex items-center justify-between gap-3 py-2.5">
                             <span class="shrink-0 text-sm font-medium">{{ drinkName(d.type, d.display_name) }}</span>
@@ -156,15 +156,15 @@ const guestTotals = computed(
                     <CardTitle>{{ t('game.leaderboard') }}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p v-if="guestTotals.length === 0" class="text-muted-foreground text-sm">{{ t('game.empty') }}</p>
+                    <p v-if="guestTotals.length === 0" class="text-sm text-muted-foreground">{{ t('game.empty') }}</p>
                     <ol v-else class="divide-y">
                         <li v-for="(row, i) in guestTotals" :key="row.guest_id" class="flex items-center justify-between py-2.5">
                             <div class="flex items-center gap-3">
-                                <span class="text-muted-foreground w-6 text-lg font-bold">{{ i + 1 }}</span>
+                                <span class="w-6 text-lg font-bold text-muted-foreground">{{ i + 1 }}</span>
                                 <span class="text-sm font-medium">{{ row.firstname }} {{ row.lastname }}</span>
                             </div>
                             <div class="flex items-center gap-2 text-right">
-                                <span class="text-muted-foreground text-xs">{{ row.total }}×</span>
+                                <span class="text-xs text-muted-foreground">{{ row.total }}×</span>
                                 <span class="text-sm font-bold">{{ row.points_total }} {{ t('game.points') }}</span>
                             </div>
                         </li>
@@ -178,17 +178,17 @@ const guestTotals = computed(
                     <CardTitle>{{ t('game.drinkTotals') }}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p v-if="eventTotals.length === 0" class="text-muted-foreground text-sm">{{ t('game.empty') }}</p>
+                    <p v-if="eventTotals.length === 0" class="text-sm text-muted-foreground">{{ t('game.empty') }}</p>
                     <ul v-else class="divide-y">
                         <li v-for="row in eventTotals" :key="row.catalog_id" class="flex items-center justify-between py-2.5">
                             <div class="flex items-center gap-2">
                                 <span class="text-sm font-medium">{{ drinkName(row.type, row.display_name) }}</span>
-                                <span class="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs"
+                                <span class="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
                                     >{{ row.points_each }} {{ t('game.points') }}/{{ t('game.glass') }}</span
                                 >
                             </div>
                             <div class="flex items-center gap-2 text-right">
-                                <span class="text-muted-foreground text-xs">{{ row.total }}×</span>
+                                <span class="text-xs text-muted-foreground">{{ row.total }}×</span>
                                 <span class="text-sm font-semibold">{{ row.points_total }} {{ t('game.points') }}</span>
                             </div>
                         </li>
@@ -201,7 +201,7 @@ const guestTotals = computed(
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         {{ drinkName(drink.type, drink.display_name) }}
-                        <span class="text-muted-foreground text-sm font-normal"
+                        <span class="text-sm font-normal text-muted-foreground"
                             >({{ drink.points_each }} {{ t('game.points') }}/{{ t('game.glass') }})</span
                         >
                     </CardTitle>
@@ -210,11 +210,11 @@ const guestTotals = computed(
                     <ol class="divide-y">
                         <li v-for="(row, i) in drink.top" :key="row.guest_id" class="flex items-center justify-between py-2.5">
                             <div class="flex items-center gap-3">
-                                <span class="text-muted-foreground w-6 text-lg font-bold">{{ i + 1 }}</span>
+                                <span class="w-6 text-lg font-bold text-muted-foreground">{{ i + 1 }}</span>
                                 <span class="text-sm">{{ row.firstname }} {{ row.lastname }}</span>
                             </div>
                             <div class="flex items-center gap-2 text-right">
-                                <span class="text-muted-foreground text-xs">{{ row.count }}×</span>
+                                <span class="text-xs text-muted-foreground">{{ row.count }}×</span>
                                 <span class="text-sm font-semibold">{{ row.points_total }} {{ t('game.points') }}</span>
                             </div>
                         </li>

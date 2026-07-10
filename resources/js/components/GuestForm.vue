@@ -62,13 +62,13 @@ function submit() {
         <div class="grid gap-1.5">
             <Label>{{ t('guest.firstName') }}</Label>
             <Input v-model="form.firstname" :placeholder="t('guest.firstName')" />
-            <p v-if="form.errors.firstname" class="text-destructive text-xs">{{ form.errors.firstname }}</p>
+            <p v-if="form.errors.firstname" class="text-xs text-destructive">{{ form.errors.firstname }}</p>
         </div>
 
         <div class="grid gap-1.5">
             <Label>{{ t('guest.lastName') }}</Label>
             <Input v-model="form.lastname" :placeholder="t('guest.lastName')" />
-            <p v-if="form.errors.lastname" class="text-destructive text-xs">{{ form.errors.lastname }}</p>
+            <p v-if="form.errors.lastname" class="text-xs text-destructive">{{ form.errors.lastname }}</p>
         </div>
 
         <div class="grid gap-1.5 sm:col-span-2">
@@ -89,7 +89,7 @@ function submit() {
                 create-field="name"
                 @created="onGroupCreated"
             />
-            <p v-if="form.errors.group_id" class="text-destructive text-xs">{{ form.errors.group_id }}</p>
+            <p v-if="form.errors.group_id" class="text-xs text-destructive">{{ form.errors.group_id }}</p>
         </div>
 
         <div class="grid gap-1.5 sm:col-span-2">
@@ -109,7 +109,7 @@ function submit() {
                 create-route="foodspecials.store"
                 create-field="name"
             />
-            <p v-if="form.errors.food_specials" class="text-destructive text-xs">{{ form.errors.food_specials }}</p>
+            <p v-if="form.errors.food_specials" class="text-xs text-destructive">{{ form.errors.food_specials }}</p>
         </div>
 
         <div class="flex justify-end sm:col-span-2">
