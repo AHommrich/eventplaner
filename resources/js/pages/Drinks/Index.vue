@@ -208,13 +208,13 @@ function formatSize(liter: number): string {
                     <CardTitle>{{ t('drink.forEvent') }}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div class="mb-3 flex items-start gap-2 rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+                    <div class="bg-muted/50 text-muted-foreground mb-3 flex items-start gap-2 rounded-md px-3 py-2 text-sm">
                         <span class="mt-px shrink-0 text-base leading-none">ℹ</span>
                         <p>
                             {{ t('drink.catalogHint') }}<template v-if="drinkGameEnabled"> {{ t('drink.gameHint') }}</template>
                         </p>
                     </div>
-                    <p v-if="eventDrinks.length === 0" class="text-sm text-muted-foreground">{{ t('drink.none') }}</p>
+                    <p v-if="eventDrinks.length === 0" class="text-muted-foreground text-sm">{{ t('drink.none') }}</p>
                     <ul v-else class="divide-y">
                         <li v-for="d in eventDrinks" :key="d.catalog_id" class="flex items-center justify-between gap-3 px-0 py-2.5">
                             <span class="shrink-0 text-sm font-medium">{{ drinkName(d.type, d.display_name) }}</span>
@@ -251,7 +251,7 @@ function formatSize(liter: number): string {
                 <CardContent class="space-y-4">
                     <Input v-model="search" :placeholder="t('drink.catalogSearch')" />
 
-                    <div v-if="filteredCategories.length === 0" class="text-sm text-muted-foreground">
+                    <div v-if="filteredCategories.length === 0" class="text-muted-foreground text-sm">
                         {{ t('drink.catalogEmpty') }}
                     </div>
 
@@ -259,7 +259,7 @@ function formatSize(liter: number): string {
                         <button
                             type="button"
                             @click="toggleCategory(cat)"
-                            class="flex w-full items-center justify-between py-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase transition-colors hover:text-foreground"
+                            class="text-muted-foreground hover:text-foreground flex w-full items-center justify-between py-1 text-xs font-semibold uppercase tracking-wide transition-colors"
                         >
                             <span>{{ categoryLabel(cat) }}</span>
                             <svg
@@ -323,8 +323,8 @@ function formatSize(liter: number): string {
             leave-from-class="opacity-100 translate-y-0"
             leave-to-class="opacity-0 translate-y-4"
         >
-            <div v-if="isDirty" class="fixed right-6 bottom-6 z-50 flex items-center gap-2 rounded-xl border bg-background px-4 py-3 shadow-lg">
-                <span class="mr-1 text-xs text-muted-foreground">{{ t('drink.unsavedChanges') }}</span>
+            <div v-if="isDirty" class="bg-background fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl border px-4 py-3 shadow-lg">
+                <span class="text-muted-foreground mr-1 text-xs">{{ t('drink.unsavedChanges') }}</span>
                 <Button variant="ghost" size="sm" :disabled="saving" @click="reset">{{ t('common.cancel') }}</Button>
                 <Button size="sm" :disabled="saving" @click="save">{{ saving ? '…' : t('common.save') }}</Button>
             </div>

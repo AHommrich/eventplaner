@@ -54,7 +54,7 @@ function doRemove() {
                     <CardTitle>{{ event.name }}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p class="text-sm text-muted-foreground">{{ t('access.description') }}</p>
+                    <p class="text-muted-foreground text-sm">{{ t('access.description') }}</p>
                 </CardContent>
             </Card>
 
@@ -67,7 +67,7 @@ function doRemove() {
                         <Input v-model="form.email" type="email" :placeholder="t('access.emailPlaceholder')" required />
                         <Button type="submit" :disabled="form.processing">{{ t('common.add') }}</Button>
                     </form>
-                    <p v-if="form.errors.email" class="mt-1.5 text-xs text-destructive">{{ form.errors.email }}</p>
+                    <p v-if="form.errors.email" class="text-destructive mt-1.5 text-xs">{{ form.errors.email }}</p>
                 </CardContent>
             </Card>
 
@@ -83,20 +83,20 @@ function doRemove() {
                         <li class="flex items-center justify-between py-2.5">
                             <div>
                                 <p class="text-sm font-medium">{{ owner.name }}</p>
-                                <p class="text-xs text-muted-foreground">{{ owner.email }}</p>
+                                <p class="text-muted-foreground text-xs">{{ owner.email }}</p>
                             </div>
-                            <span class="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">{{ t('access.owner') }}</span>
+                            <span class="bg-primary/10 text-primary rounded-full px-2.5 py-0.5 text-xs font-medium">{{ t('access.owner') }}</span>
                         </li>
                         <li v-for="member in members" :key="member.id" class="flex items-center justify-between py-2.5">
                             <div>
                                 <p class="text-sm font-medium">{{ member.name }}</p>
-                                <p class="text-xs text-muted-foreground">{{ member.email }}</p>
+                                <p class="text-muted-foreground text-xs">{{ member.email }}</p>
                             </div>
                             <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="askRemove(member)"
                                 ><Trash2 class="h-4 w-4"
                             /></Button>
                         </li>
-                        <li v-if="members.length === 0" class="py-4 text-center text-sm text-muted-foreground">
+                        <li v-if="members.length === 0" class="text-muted-foreground py-4 text-center text-sm">
                             {{ t('access.none') }}
                         </li>
                     </ul>

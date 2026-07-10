@@ -55,7 +55,7 @@ function hintFilterClass(hint: string): string {
                                 }"
                                 :class="[hintBgClass('cardBg'), hintBorderClass('border')]"
                             >
-                                <div class="px-2 pt-2 pb-1.5">
+                                <div class="px-2 pb-1.5 pt-2">
                                     <p
                                         class="text-[5px]"
                                         :style="{ color: cCardText + '88', fontFamily: previewFontFamily }"

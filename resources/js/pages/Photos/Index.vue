@@ -215,26 +215,26 @@ function updateProjectorNameMode(mode: string) {
             <div v-if="projectorUrl" class="overflow-hidden rounded-lg border">
                 <button
                     type="button"
-                    class="flex w-full items-center justify-between px-4 py-3 transition-colors hover:bg-muted/50"
+                    class="hover:bg-muted/50 flex w-full items-center justify-between px-4 py-3 transition-colors"
                     @click="slideshowOpen = !slideshowOpen"
                 >
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-semibold">{{ t('photo.slideshowTitle') }}</span>
                         <InfoTooltip :text="t('photo.slideshowInfo')" />
                     </div>
-                    <ChevronDown class="h-4 w-4 text-muted-foreground transition-transform duration-200" :class="{ 'rotate-180': slideshowOpen }" />
+                    <ChevronDown class="text-muted-foreground h-4 w-4 transition-transform duration-200" :class="{ 'rotate-180': slideshowOpen }" />
                 </button>
                 <div v-show="slideshowOpen" class="space-y-3 border-t px-4 py-3">
                     <div class="flex items-center gap-2">
-                        <code class="flex-1 truncate rounded bg-muted px-3 py-2 font-mono text-xs">{{ projectorUrl }}</code>
+                        <code class="bg-muted flex-1 truncate rounded px-3 py-2 font-mono text-xs">{{ projectorUrl }}</code>
                         <Button variant="outline" size="sm" @click="copyProjectorUrl">{{ t('photo.projectorCopy') }}</Button>
                         <Button variant="outline" size="sm" as="a" :href="projectorUrl" target="_blank">{{ t('common.open') }}</Button>
                     </div>
                     <div class="flex flex-wrap items-center gap-3">
-                        <span class="text-sm text-muted-foreground">{{ t('photo.projectorAlbum') }}:</span>
+                        <span class="text-muted-foreground text-sm">{{ t('photo.projectorAlbum') }}:</span>
                         <select
                             :value="projectorAlbumId"
-                            class="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:ring-1 focus:ring-ring focus:outline-none"
+                            class="border-input bg-background focus:ring-ring h-9 rounded-md border px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1"
                             @change="updateProjectorAlbum(($event.target as HTMLSelectElement).value)"
                         >
                             <option v-for="album in albums" :key="album.id" :value="String(album.id)">
@@ -249,14 +249,14 @@ function updateProjectorNameMode(mode: string) {
             <div class="overflow-hidden rounded-lg border">
                 <button
                     type="button"
-                    class="flex w-full items-center justify-between px-4 py-3 transition-colors hover:bg-muted/50"
+                    class="hover:bg-muted/50 flex w-full items-center justify-between px-4 py-3 transition-colors"
                     @click="albumsOpen = !albumsOpen"
                 >
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-semibold">{{ t('photo.albumsTitle') }}</span>
                         <InfoTooltip :text="t('photo.albumsInfo')" />
                     </div>
-                    <ChevronDown class="h-4 w-4 text-muted-foreground transition-transform duration-200" :class="{ 'rotate-180': albumsOpen }" />
+                    <ChevronDown class="text-muted-foreground h-4 w-4 transition-transform duration-200" :class="{ 'rotate-180': albumsOpen }" />
                 </button>
 
                 <div v-show="albumsOpen" class="border-t">
@@ -270,7 +270,7 @@ function updateProjectorNameMode(mode: string) {
                                 :class="
                                     activeTab === album.slug
                                         ? 'border-primary text-primary'
-                                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                                        : 'text-muted-foreground hover:text-foreground border-transparent'
                                 "
                                 @click="
                                     activeTab = album.slug;
@@ -278,10 +278,10 @@ function updateProjectorNameMode(mode: string) {
                                 "
                             >
                                 {{ album.name }}
-                                <span class="ml-1 text-xs text-muted-foreground">({{ album.photos.length }})</span>
+                                <span class="text-muted-foreground ml-1 text-xs">({{ album.photos.length }})</span>
                             </button>
                         </div>
-                        <div class="flex items-center gap-2 pr-2 pb-1">
+                        <div class="flex items-center gap-2 pb-1 pr-2">
                             <Button variant="outline" size="sm" @click="sortOrder = sortOrder === 'newest' ? 'oldest' : 'newest'">
                                 {{ sortOrder === 'newest' ? t('photo.sortNewest') : t('photo.sortOldest') }}
                             </Button>
@@ -306,7 +306,7 @@ function updateProjectorNameMode(mode: string) {
 
                     <!-- Tab description -->
                     <div class="space-y-2 px-4 py-3">
-                        <div class="flex items-start gap-2 rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+                        <div class="bg-muted/50 text-muted-foreground flex items-start gap-2 rounded-md px-3 py-2 text-sm">
                             <span class="mt-px shrink-0 text-base leading-none">ℹ</span>
                             <div>
                                 <template v-if="activeTab === 'presentation'">
@@ -320,10 +320,10 @@ function updateProjectorNameMode(mode: string) {
 
                         <!-- Name display setting only on app gallery -->
                         <div v-if="activeTab === 'app_gallery'" class="flex items-center gap-2">
-                            <span class="text-xs text-muted-foreground">{{ t('photo.projectorNameMode') }}:</span>
+                            <span class="text-muted-foreground text-xs">{{ t('photo.projectorNameMode') }}:</span>
                             <select
                                 :value="projectorNameMode"
-                                class="h-8 rounded-md border border-input bg-background px-2 py-0.5 text-xs shadow-sm focus:ring-1 focus:ring-ring focus:outline-none"
+                                class="border-input bg-background focus:ring-ring h-8 rounded-md border px-2 py-0.5 text-xs shadow-sm focus:outline-none focus:ring-1"
                                 @change="updateProjectorNameMode(($event.target as HTMLSelectElement).value)"
                             >
                                 <option value="first">{{ t('photo.projectorNameFirst') }}</option>
@@ -334,14 +334,14 @@ function updateProjectorNameMode(mode: string) {
                     </div>
 
                     <!-- Photo grid -->
-                    <p v-if="sortedPhotos.length === 0" class="px-4 pb-4 text-sm text-muted-foreground">{{ t('photo.none') }}</p>
+                    <p v-if="sortedPhotos.length === 0" class="text-muted-foreground px-4 pb-4 text-sm">{{ t('photo.none') }}</p>
 
                     <div v-else class="grid grid-cols-2 gap-3 px-4 pb-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                         <div
                             v-for="photo in sortedPhotos"
                             :key="photo.id"
-                            class="group relative aspect-square cursor-pointer overflow-hidden rounded-lg border bg-muted"
-                            :class="{ 'ring-2 ring-primary ring-offset-1': selectedIds.has(photo.id) }"
+                            class="bg-muted group relative aspect-square cursor-pointer overflow-hidden rounded-lg border"
+                            :class="{ 'ring-primary ring-2 ring-offset-1': selectedIds.has(photo.id) }"
                             @click="selectionMode ? toggleSelection(photo.id) : openPhoto(photo)"
                         >
                             <img
@@ -363,7 +363,7 @@ function updateProjectorNameMode(mode: string) {
                             <!-- Checkbox in selection mode -->
                             <div
                                 v-if="selectionMode"
-                                class="absolute top-2 left-2 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white transition-colors"
+                                class="absolute left-2 top-2 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white transition-colors"
                                 :class="selectedIds.has(photo.id) ? 'border-primary bg-primary' : 'bg-black/30'"
                             >
                                 <svg
@@ -400,7 +400,7 @@ function updateProjectorNameMode(mode: string) {
                         ><template v-else-if="selected?.organizer_role === 'co_organizer'"> ({{ t('photo.coOrganizer') }})</template>
                     </DialogTitle>
                     <p v-if="selected?.description" class="text-sm font-normal">{{ selected.description }}</p>
-                    <p class="text-sm text-muted-foreground">{{ selected?.created_at }}</p>
+                    <p class="text-muted-foreground text-sm">{{ selected?.created_at }}</p>
                 </DialogHeader>
                 <img v-if="selected" :src="selected.url" :alt="selected.guest_name ?? undefined" class="max-h-[65vh] w-full object-contain" />
                 <div class="flex justify-between border-t px-4 py-3">
@@ -445,7 +445,7 @@ function updateProjectorNameMode(mode: string) {
                             @keydown.enter="submitUploadWithDescription"
                             autofocus
                         />
-                        <p class="text-xs text-muted-foreground">{{ t('photo.uploadDescriptionHint') }}</p>
+                        <p class="text-muted-foreground text-xs">{{ t('photo.uploadDescriptionHint') }}</p>
                     </div>
                 </div>
                 <div class="flex justify-end gap-2">

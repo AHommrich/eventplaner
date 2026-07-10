@@ -78,14 +78,14 @@ onUnmounted(() => {
             />
         </Transition>
 
-        <div v-if="allPhotos.length === 0" class="text-2xl text-white/40 select-none">Noch keine Fotos vorhanden</div>
+        <div v-if="allPhotos.length === 0" class="select-none text-2xl text-white/40">Noch keine Fotos vorhanden</div>
 
         <!-- Context label (guest name / description / task) -->
         <Transition name="crossfade">
             <div
                 v-if="currentPhoto?.label && visible"
                 :key="'label-' + currentPhoto.id"
-                class="pointer-events-none absolute right-0 bottom-16 left-0 flex justify-center px-8"
+                class="pointer-events-none absolute bottom-16 left-0 right-0 flex justify-center px-8"
             >
                 <span class="max-w-2xl truncate rounded-full bg-black/60 px-6 py-2 text-center text-xl font-medium text-white backdrop-blur-sm">
                     {{ currentPhoto.label }}
@@ -94,13 +94,13 @@ onUnmounted(() => {
         </Transition>
 
         <!-- Photo counter -->
-        <div v-if="allPhotos.length > 0" class="absolute top-4 right-6 text-xs text-white/30 select-none">
+        <div v-if="allPhotos.length > 0" class="absolute right-6 top-4 select-none text-xs text-white/30">
             {{ currentIndex + 1 }} / {{ allPhotos.length }}
         </div>
 
         <!-- Info overlay (fades out after 4s) -->
         <Transition name="fade-slow">
-            <div v-if="infoVisible" class="absolute top-4 left-6 space-y-0.5 text-xs text-white/50 select-none">
+            <div v-if="infoVisible" class="absolute left-6 top-4 select-none space-y-0.5 text-xs text-white/50">
                 <p>Automatischer Wechsel alle 5 Sekunden</p>
                 <p>Neue Fotos werden alle 10 Sekunden geladen</p>
             </div>

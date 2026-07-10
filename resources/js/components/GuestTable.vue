@@ -118,10 +118,10 @@ function doDelete() {
         <CardContent class="space-y-3 pt-0">
             <Input v-model="search" :placeholder="t('guest.searchPlaceholder')" />
 
-            <p v-if="props.guests.length === 0" class="text-sm text-muted-foreground">
+            <p v-if="props.guests.length === 0" class="text-muted-foreground text-sm">
                 {{ t('guest.none') }}
             </p>
-            <p v-else-if="filteredGrouped.length === 0" class="text-sm text-muted-foreground">
+            <p v-else-if="filteredGrouped.length === 0" class="text-muted-foreground text-sm">
                 {{ t('common.noResults') }}
             </p>
 
@@ -129,7 +129,7 @@ function doDelete() {
                 <!-- Group header (clickable) -->
                 <button
                     type="button"
-                    class="flex w-full items-center justify-between py-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase transition-colors hover:text-foreground"
+                    class="text-muted-foreground hover:text-foreground flex w-full items-center justify-between py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors"
                     @click="toggleGroup(group.id)"
                 >
                     <span>
@@ -144,11 +144,11 @@ function doDelete() {
                     <table class="w-full text-sm">
                         <thead class="border-b">
                             <tr>
-                                <th class="h-8 px-4 text-left align-middle text-xs font-medium text-muted-foreground">
+                                <th class="text-muted-foreground h-8 px-4 text-left align-middle text-xs font-medium">
                                     {{ t('guest.firstName') }} / {{ t('guest.lastName') }}
                                 </th>
-                                <th class="h-8 px-4 text-left align-middle text-xs font-medium text-muted-foreground">{{ t('guest.rsvpStatus') }}</th>
-                                <th class="h-8 px-4 text-left align-middle text-xs font-medium text-muted-foreground">{{ t('guest.food') }}</th>
+                                <th class="text-muted-foreground h-8 px-4 text-left align-middle text-xs font-medium">{{ t('guest.rsvpStatus') }}</th>
+                                <th class="text-muted-foreground h-8 px-4 text-left align-middle text-xs font-medium">{{ t('guest.food') }}</th>
                                 <th class="h-8 px-4"></th>
                             </tr>
                         </thead>
@@ -156,7 +156,7 @@ function doDelete() {
                             <tr
                                 v-for="guest in group.guests"
                                 :key="guest.id"
-                                class="cursor-pointer border-b transition-colors last:border-0 hover:bg-muted/50"
+                                class="hover:bg-muted/50 cursor-pointer border-b transition-colors last:border-0"
                                 @click="router.visit(route('guests.edit', guest.id))"
                             >
                                 <td class="px-4 py-2.5 font-medium">{{ guest.firstname }} {{ guest.lastname }}</td>
@@ -167,9 +167,9 @@ function doDelete() {
                                     >
                                         {{ rsvpLabel[guest.rsvp_status] ?? guest.rsvp_status }}
                                     </span>
-                                    <span v-else class="text-xs text-muted-foreground">–</span>
+                                    <span v-else class="text-muted-foreground text-xs">–</span>
                                 </td>
-                                <td class="px-4 py-2.5 text-xs text-muted-foreground">
+                                <td class="text-muted-foreground px-4 py-2.5 text-xs">
                                     {{ guest.food_specials?.map((fs: any) => foodSpecialLabel(fs)).join(', ') || '–' }}
                                 </td>
                                 <td class="px-4 py-2.5 text-right">

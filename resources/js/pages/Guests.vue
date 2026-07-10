@@ -50,7 +50,7 @@ function doDeleteGroup() {
 
             <Card v-if="unusedGroups.length > 0">
                 <CardHeader class="pb-2">
-                    <CardTitle class="text-sm font-medium text-muted-foreground">{{ t('group.unused') }}</CardTitle>
+                    <CardTitle class="text-muted-foreground text-sm font-medium">{{ t('group.unused') }}</CardTitle>
                 </CardHeader>
                 <CardContent class="p-0">
                     <div v-for="group in unusedGroups" :key="group.id" class="flex items-center justify-between border-b px-6 py-2 last:border-0">

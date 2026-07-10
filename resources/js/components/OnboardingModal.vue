@@ -25,7 +25,7 @@ function createEvent() {
         <form @submit.prevent="createEvent" class="space-y-3">
             <div>
                 <Input v-model="form.name" :placeholder="t('onboarding.placeholder')" required autofocus />
-                <p v-if="form.errors.name" class="mt-1 text-xs text-destructive">{{ form.errors.name }}</p>
+                <p v-if="form.errors.name" class="text-destructive mt-1 text-xs">{{ form.errors.name }}</p>
             </div>
             <Input v-model="form.date" type="date" />
             <div class="flex justify-end gap-2">

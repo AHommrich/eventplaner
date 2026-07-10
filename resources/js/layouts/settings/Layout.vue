@@ -23,9 +23,9 @@ const currentPath = page.props.ziggy?.location ? new URL(page.props.ziggy.locati
     <div class="px-4 py-6">
         <Heading :title="t('user.settings')" :description="t('settings.manageDesc')" />
 
-        <div class="flex flex-col space-y-8 md:space-y-0 lg:flex-row lg:space-y-0 lg:space-x-12">
+        <div class="flex flex-col space-y-8 md:space-y-0 lg:flex-row lg:space-x-12 lg:space-y-0">
             <aside class="w-full max-w-xl lg:w-48">
-                <nav class="flex flex-col space-y-1 space-x-0">
+                <nav class="flex flex-col space-x-0 space-y-1">
                     <Button
                         v-for="item in sidebarNavItems"
                         :key="item.href"

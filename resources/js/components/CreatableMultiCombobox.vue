@@ -64,7 +64,7 @@ async function handleCreate(option: { label: string }) {
         @keydown="onKeydown"
     >
         <template #option="{ option }">
-            <span v-if="(option as any).__CREATE__" class="font-medium text-primary">{{ t('common.createItem', { name: option.label }) }}</span>
+            <span v-if="(option as any).__CREATE__" class="text-primary font-medium">{{ t('common.createItem', { name: option.label }) }}</span>
             <span v-else>{{ option.label }}</span>
         </template>
     </Multiselect>

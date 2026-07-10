@@ -87,7 +87,7 @@ function pct(n: number): string {
             <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
                 <Card>
                     <CardHeader class="pb-2"
-                        ><CardTitle class="text-sm font-medium text-muted-foreground">{{ t('dashboard.guestTotal') }}</CardTitle></CardHeader
+                        ><CardTitle class="text-muted-foreground text-sm font-medium">{{ t('dashboard.guestTotal') }}</CardTitle></CardHeader
                     >
                     <CardContent>
                         <p class="text-3xl font-bold">{{ stats.guest_total }}</p>
@@ -96,37 +96,37 @@ function pct(n: number): string {
 
                 <Card>
                     <CardHeader class="pb-2"
-                        ><CardTitle class="text-sm font-medium text-muted-foreground">{{ t('dashboard.rsvpAccepted') }}</CardTitle></CardHeader
+                        ><CardTitle class="text-muted-foreground text-sm font-medium">{{ t('dashboard.rsvpAccepted') }}</CardTitle></CardHeader
                     >
                     <CardContent>
                         <p class="text-3xl font-bold text-green-600 dark:text-green-400">{{ stats.rsvp_accepted }}</p>
-                        <p class="mt-1 text-xs text-muted-foreground">{{ pct(stats.rsvp_accepted) }} {{ t('dashboard.rsvpOfTotal') }}</p>
+                        <p class="text-muted-foreground mt-1 text-xs">{{ pct(stats.rsvp_accepted) }} {{ t('dashboard.rsvpOfTotal') }}</p>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader class="pb-2"
-                        ><CardTitle class="text-sm font-medium text-muted-foreground">{{ t('dashboard.rsvpDeclined') }}</CardTitle></CardHeader
+                        ><CardTitle class="text-muted-foreground text-sm font-medium">{{ t('dashboard.rsvpDeclined') }}</CardTitle></CardHeader
                     >
                     <CardContent>
                         <p class="text-3xl font-bold text-red-600 dark:text-red-400">{{ stats.rsvp_declined }}</p>
-                        <p class="mt-1 text-xs text-muted-foreground">{{ pct(stats.rsvp_declined) }} {{ t('dashboard.rsvpOfTotal') }}</p>
+                        <p class="text-muted-foreground mt-1 text-xs">{{ pct(stats.rsvp_declined) }} {{ t('dashboard.rsvpOfTotal') }}</p>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader class="pb-2"
-                        ><CardTitle class="text-sm font-medium text-muted-foreground">{{ t('dashboard.rsvpOpen') }}</CardTitle></CardHeader
+                        ><CardTitle class="text-muted-foreground text-sm font-medium">{{ t('dashboard.rsvpOpen') }}</CardTitle></CardHeader
                     >
                     <CardContent>
                         <p class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">{{ stats.rsvp_open }}</p>
-                        <p class="mt-1 text-xs text-muted-foreground">{{ pct(stats.rsvp_open) }} {{ t('dashboard.rsvpOfTotal') }}</p>
+                        <p class="text-muted-foreground mt-1 text-xs">{{ pct(stats.rsvp_open) }} {{ t('dashboard.rsvpOfTotal') }}</p>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader class="pb-2">
-                        <CardTitle class="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+                        <CardTitle class="text-muted-foreground flex items-center gap-1.5 text-sm font-medium">
                             {{ t('dashboard.photos') }}
                             <InfoTooltip :text="t('dashboard.photosInfo')" />
                         </CardTitle>
