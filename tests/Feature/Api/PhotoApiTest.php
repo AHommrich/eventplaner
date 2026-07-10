@@ -89,3 +89,164 @@ it('rejects upload when app_access is disabled', function () {
         ->assertStatus(403)
         ->assertJson(['code' => 'app_blocked']);
 });
+
+it('lets a guest delete their own app-gallery photo', function () {
+    $event = Event::factory()->create();
+    $guest = Guest::factory()->create(['event_id' => $event->id]);
+    $album = makeAppGalleryAlbum($event);
+    Storage::disk('s3')->put('photos/own.jpg', 'image-bytes');
+
+    $photo = Photo::create([
+        'event_id' => $event->id,
+        'album_id' => $album->id,
+        'guest_id' => $guest->id,
+        'url' => 'https://r2.example/own.jpg',
+        'r2_key' => 'photos/own.jpg',
+    ]);
+
+    actingAsGuest($guest)->deleteJson("/api/photos/{$photo->id}")
+        ->assertNoContent();
+
+    expect(Photo::find($photo->id))->toBeNull();
+    Storage::disk('s3')->assertMissing('photos/own.jpg');
+});
+
+it('removes a deleted guest photo from the gallery list', function () {
+    $event = Event::factory()->create();
+    $guest = Guest::factory()->create(['event_id' => $event->id]);
+    $album = makeAppGalleryAlbum($event);
+
+    $photo = Photo::create([
+        'event_id' => $event->id,
+        'album_id' => $album->id,
+        'guest_id' => $guest->id,
+        'url' => 'https://r2.example/own.jpg',
+        'r2_key' => 'photos/own.jpg',
+    ]);
+
+    actingAsGuest($guest)->deleteJson("/api/photos/{$photo->id}")
+        ->assertNoContent();
+
+    actingAsGuest($guest)->getJson('/api/photos')
+        ->assertOk()
+        ->assertJsonMissing(['id' => $photo->id]);
+});
+
+it('rejects deleting another guests photo from the same event', function () {
+    $event = Event::factory()->create();
+    $viewer = Guest::factory()->create(['event_id' => $event->id]);
+    $uploader = Guest::factory()->create(['event_id' => $event->id]);
+    $album = makeAppGalleryAlbum($event);
+
+    $photo = Photo::create([
+        'event_id' => $event->id,
+        'album_id' => $album->id,
+        'guest_id' => $uploader->id,
+        'url' => 'https://r2.example/other.jpg',
+        'r2_key' => 'photos/other.jpg',
+    ]);
+
+    actingAsGuest($viewer)->deleteJson("/api/photos/{$photo->id}")
+        ->assertForbidden();
+
+    expect(Photo::find($photo->id))->not->toBeNull();
+});
+
+it('returns not found when deleting a photo from another event', function () {
+    $ownEvent = Event::factory()->create();
+    $otherEvent = Event::factory()->create();
+    $guest = Guest::factory()->create(['event_id' => $ownEvent->id]);
+    $otherGuest = Guest::factory()->create(['event_id' => $otherEvent->id]);
+    $album = makeAppGalleryAlbum($otherEvent);
+
+    $photo = Photo::create([
+        'event_id' => $otherEvent->id,
+        'album_id' => $album->id,
+        'guest_id' => $otherGuest->id,
+        'url' => 'https://r2.example/other-event.jpg',
+        'r2_key' => 'photos/other-event.jpg',
+    ]);
+
+    actingAsGuest($guest)->deleteJson("/api/photos/{$photo->id}")
+        ->assertNotFound();
+
+    expect(Photo::find($photo->id))->not->toBeNull();
+});
+
+it('rejects deleting organizer photos', function () {
+    $event = Event::factory()->create();
+    $guest = Guest::factory()->create(['event_id' => $event->id]);
+    $album = makeAppGalleryAlbum($event);
+
+    $photo = Photo::create([
+        'event_id' => $event->id,
+        'album_id' => $album->id,
+        'guest_id' => null,
+        'uploaded_by' => 'Organizer',
+        'url' => 'https://r2.example/organizer.jpg',
+        'r2_key' => 'photos/organizer.jpg',
+    ]);
+
+    actingAsGuest($guest)->deleteJson("/api/photos/{$photo->id}")
+        ->assertForbidden();
+
+    expect(Photo::find($photo->id))->not->toBeNull();
+});
+
+it('does not let guests delete photo-game photos through the gallery endpoint', function () {
+    $event = Event::factory()->create();
+    $guest = Guest::factory()->create(['event_id' => $event->id]);
+    $album = PhotoAlbum::create([
+        'event_id' => $event->id,
+        'slug' => PhotoAlbum::PHOTO_GAME,
+        'name' => 'Foto-Spiel',
+    ]);
+
+    $photo = Photo::create([
+        'event_id' => $event->id,
+        'album_id' => $album->id,
+        'guest_id' => $guest->id,
+        'url' => 'https://r2.example/game.jpg',
+        'r2_key' => 'photos/game.jpg',
+    ]);
+
+    actingAsGuest($guest)->deleteJson("/api/photos/{$photo->id}")
+        ->assertNotFound();
+
+    expect(Photo::find($photo->id))->not->toBeNull();
+});
+
+it('rejects photo deletion without a bearer token', function () {
+    $event = Event::factory()->create();
+    $guest = Guest::factory()->create(['event_id' => $event->id]);
+    $album = makeAppGalleryAlbum($event);
+
+    $photo = Photo::create([
+        'event_id' => $event->id,
+        'album_id' => $album->id,
+        'guest_id' => $guest->id,
+        'url' => 'https://r2.example/own.jpg',
+        'r2_key' => 'photos/own.jpg',
+    ]);
+
+    $this->deleteJson("/api/photos/{$photo->id}")
+        ->assertUnauthorized();
+});
+
+it('rejects photo deletion when app_access is disabled', function () {
+    $event = Event::factory()->create();
+    $guest = Guest::factory()->withoutAppAccess()->create(['event_id' => $event->id]);
+    $album = makeAppGalleryAlbum($event);
+
+    $photo = Photo::create([
+        'event_id' => $event->id,
+        'album_id' => $album->id,
+        'guest_id' => $guest->id,
+        'url' => 'https://r2.example/own.jpg',
+        'r2_key' => 'photos/own.jpg',
+    ]);
+
+    actingAsGuest($guest)->deleteJson("/api/photos/{$photo->id}")
+        ->assertStatus(403)
+        ->assertJson(['code' => 'app_blocked']);
+});

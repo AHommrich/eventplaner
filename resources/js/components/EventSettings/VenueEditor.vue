@@ -3,10 +3,10 @@ import InfoTooltip from '@/components/InfoTooltip.vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
+import 'leaflet/dist/leaflet.css';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -390,8 +390,7 @@ onBeforeUnmount(() => {
     <!-- Venue name (optional) -->
     <div class="grid gap-2">
         <Label
-            >{{ t('event.venueName') }}
-            <span class="text-xs font-normal text-muted-foreground">({{ t('event.venueNameOptional') }})</span></Label
+            >{{ t('event.venueName') }} <span class="text-xs font-normal text-muted-foreground">({{ t('event.venueNameOptional') }})</span></Label
         >
         <div class="relative">
             <Input
@@ -428,11 +427,7 @@ onBeforeUnmount(() => {
                 type="button"
                 @click="venueDisplayMode = opt.key"
                 class="flex-1 rounded-lg border-2 px-2 py-1.5 text-center text-xs transition-colors"
-                :class="
-                    (venueDisplayMode ?? 'both') === opt.key
-                        ? 'border-ring bg-muted/20'
-                        : 'border-input hover:border-muted-foreground'
-                "
+                :class="(venueDisplayMode ?? 'both') === opt.key ? 'border-ring bg-muted/20' : 'border-input hover:border-muted-foreground'"
             >
                 {{ opt.label }}
             </button>
@@ -469,11 +464,7 @@ onBeforeUnmount(() => {
                         <Input
                             v-model="venueHouseNumber"
                             placeholder="26"
-                            :class="
-                                isFieldDirty('venue_house_number')
-                                    ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30'
-                                    : ''
-                            "
+                            :class="isFieldDirty('venue_house_number') ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30' : ''"
                         />
                         <button
                             v-if="isFieldDirty('venue_house_number')"
@@ -494,11 +485,7 @@ onBeforeUnmount(() => {
                         <Input
                             v-model="venuePostalCode"
                             placeholder="56218"
-                            :class="
-                                isFieldDirty('venue_postal_code')
-                                    ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30'
-                                    : ''
-                            "
+                            :class="isFieldDirty('venue_postal_code') ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30' : ''"
                         />
                         <button
                             v-if="isFieldDirty('venue_postal_code')"
@@ -579,11 +566,7 @@ onBeforeUnmount(() => {
                         <Input
                             v-model="venuePostalCode"
                             placeholder="10001"
-                            :class="
-                                isFieldDirty('venue_postal_code')
-                                    ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30'
-                                    : ''
-                            "
+                            :class="isFieldDirty('venue_postal_code') ? 'border-amber-400 pr-8 ring-2 ring-amber-400/30' : ''"
                         />
                         <button
                             v-if="isFieldDirty('venue_postal_code')"
@@ -599,8 +582,7 @@ onBeforeUnmount(() => {
             </div>
             <div class="grid gap-1.5">
                 <Label class="text-xs"
-                    >{{ t('event.venueState') }}
-                    <span class="font-normal text-muted-foreground">({{ t('event.venueOptional') }})</span></Label
+                    >{{ t('event.venueState') }} <span class="font-normal text-muted-foreground">({{ t('event.venueOptional') }})</span></Label
                 >
                 <div class="relative">
                     <Input
@@ -694,7 +676,16 @@ onBeforeUnmount(() => {
             :disabled="geocodingFromFields"
             @click="geocodeFromFields"
         >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
                 <circle cx="11" cy="11" r="8" />
                 <path d="m21 21-4.35-4.35" />
             </svg>

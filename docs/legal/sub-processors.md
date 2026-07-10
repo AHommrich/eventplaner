@@ -14,10 +14,9 @@ GDPR Art. 28 requires a written data-processing agreement with each processor. A
 - **Purpose:** Application server + managed MariaDB hosting + Object Storage for uploaded photos (S3-compatible API)
 - **Data categories:** Everything — user accounts, events, guests, sessions, log files, and photo binaries + object keys. EXIF, IPTC and XMP metadata are stripped server-side via `App\Services\PhotoSanitizer` before any bytes leave the app server. Verified by `tests/Feature/Photo/ExifStrippingTest.php`.
 - **Provider address:** Industriestr. 25, 91710 Gunzenhausen, Germany
-- **Customer number:** K0847634225
-- **Location of processing:** European Union — VPS in Falkenstein (Germany), primary Object Storage in Nürnberg (Germany, bucket `eveplan-photos-prod` at `nbg1.your-objectstorage.com`). Confirmed EU-only by §3 of the AVV. A Helsinki backup bucket is *prepared in code* (see `docs/RUNBOOK.md` §3.2b) but not yet provisioned — update this location entry to name Helsinki once `AWS_BACKUP_*` are set in Coolify.
+- **Location of processing:** European Union — VPS in Falkenstein (Germany), primary Object Storage in Nürnberg (Germany). Confirmed EU-only by §3 of the AVV.
 - **Data Processing Agreement:** Hetzner AVV v1.2, **signed 2026-06-30**. Covers all Hetzner services on the account, including Object Storage.
-  - Local filing: `~/legal/eventplaner/dpa-hetzner-2026-06-30.pdf` (EN) + `~/legal/eventplaner/dpa-hetzner-de-2026-06-30.pdf` (DE) + `~/legal/eventplaner/hetzner-tuev-audit-de-2026-06-30.pdf` (TÜV Art. 32 security audit annex).
+  - DPA on file with the maintainer (not in repository).
 - **Authorised sub-sub-processors per Annex 3 of the AVV:** Hetzner Finland Oy (EU). The US (Hetzner US LLC, NTT, QTS) and Singapore (Hetzner SG, NTT SG1) entries do not apply because our services are in EU locations — Annex 3 footnote: *„Soweit Sie sich für einen Serverstandort in der EU entschieden haben, werden Ihre Serverdaten ausschließlich innerhalb der EU verarbeitet."*
 - **Provider privacy notice:** https://www.hetzner.com/de/legal/privacy-policy
 
@@ -28,7 +27,7 @@ GDPR Art. 28 requires a written data-processing agreement with each processor. A
 - **Location of processing:** Ireland (`eu-west-1`). Email content and metadata stay within the EU while the EU sending region is used. Corporate-level Resend infrastructure is in the US, but no user data crosses the Atlantic during normal sending. Fallback to US SCCs stays in the Resend DPA in case Resend ever routes fail-over traffic outside the EU.
 - **Data Processing Agreement:** Resend DPA, last updated 2025-12-31
   - Resend states that the DPA "becomes legally binding upon Customer entering into the Agreement" — no separate signature step required for Self-Serve customers.
-  - Local filing: `~/legal/eventplaner/dpa-resend-2026-06-30.pdf` (snapshot saved 2026-06-30).
+  - DPA on file with the maintainer (not in repository).
 - **Provider privacy notice / source of DPA:** https://resend.com/legal/dpa
 
 ### Google LLC (only for "Sign in with Google" users)
@@ -44,10 +43,10 @@ GDPR Art. 28 requires a written data-processing agreement with each processor. A
   - *Backend:* Exception messages, stack traces (with argument values via `zend.exception_ignore_args=Off`), request URL, HTTP method, application environment name.
   - *Frontend:* Exception messages, JavaScript stack traces, current URL path, browser + OS strings that Sentry derives from the User-Agent, application environment name.
   - **No personally identifying data by default** — `send_default_pii` defaults to `false` on both the Laravel side (`config/sentry.php`) and the Vue side (`resources/js/app.ts`). This suppresses IP addresses, session cookies, authenticated-user context, and request headers. No browser session-replay is captured. Guest names, email addresses, and photo binaries never travel to Sentry.
-- **Location of processing:** European Union — Sentry EU region, Frankfurt (`de.sentry.io`, ingestion endpoint `o4511683645997056.ingest.de.sentry.io`). Region was chosen explicitly at account creation; Sentry does not permit region migration afterwards. Both projects sit in the same EU organisation.
+- **Location of processing:** European Union — Sentry EU region, Frankfurt (`de.sentry.io`). Region was chosen explicitly at account creation; Sentry does not permit region migration afterwards. Both projects sit in the same EU organisation.
 - **Data Processing Agreement:** Sentry Data Processing Addendum v5.1.0 (29 May 2024), self-serve, binding upon account creation. Covers all projects under the organisation.
   - Provider link: https://sentry.io/legal/dpa/
-  - Local filing: `~/legal/eventplaner/dpa-sentry-2026-07-05.pdf` (browser-print snapshot of the DPA page, taken 2026-07-07).
+  - DPA on file with the maintainer (not in repository).
 - **Free-tier limits enforced:** 5 000 error events/month, 10 000 trace spans/month, 30-day event retention — shared across both projects. `SENTRY_TRACES_SAMPLE_RATE=0.1` (backend) and `VITE_SENTRY_TRACES_SAMPLE_RATE=0.05` (frontend) keep ingest inside the tier.
 - **Provider privacy notice:** https://sentry.io/privacy/
 
@@ -65,7 +64,7 @@ GDPR Art. 28 requires a written data-processing agreement with each processor. A
 ### Cloudflare R2 (removed 2026-07-01)
 - **Removal reason:** Consolidation onto a single EU-based provider (Hetzner). Photos migrated to Hetzner Object Storage in Nürnberg. See [`hetzner-object-storage-migration.md`](hetzner-object-storage-migration.md) for the migration record.
 - **Data returned/deleted:** All ~36 objects copied 1:1 to Hetzner Object Storage; original R2 bucket deleted after 24h stabilisation window. Cloudflare account itself kept only if used for other services (DNS/proxy) — otherwise cancelled.
-- **DPA on file:** Cloudflare DPA v6.4 remains in the vault at `~/legal/eventplaner/dpa-cloudflare-2026-06-30.pdf` as historical record.
+- **DPA on file:** Cloudflare DPA v6.4 remains on file with the maintainer as historical record.
 
 When a processor is removed (e.g. switching mail providers), keep the historical entry here with the removal date — it helps answer "did you ever share my data with X" requests after the fact.
 
@@ -76,7 +75,7 @@ When a processor is removed (e.g. switching mail providers), keep the historical
 Follow this checklist **before** the integration code goes live:
 
 1. **Document here first.** Add an entry above with purpose, data categories, location of processing, DPA status, and provider's privacy notice link.
-2. **Sign the DPA.** Download the signed PDF, file it under `~/legal/eventplaner/dpa-<provider>-<YYYY-MM-DD>.pdf` (or your equivalent vault path).
+2. **Sign the DPA.** Download the signed PDF and file it in your legal vault (never commit signed contracts to the repository).
 3. **Update the privacy policy.** Edit `resources/js/pages/Legal/Privacy.vue` section 5 ("Empfänger und Auftragsverarbeiter") so the user-facing list matches.
 4. **Then merge the integration code.** Not before. The privacy policy and reality must agree at all times.
 
@@ -95,5 +94,5 @@ Where personal data can end up in logs (IP addresses in nginx access logs, reque
 
 ## Known gaps (tracked for follow-up)
 
-- **Cross-region photo backup — deferred pending budget.** The in-bucket weekly snapshot to `snapshots/YYYY-MM-DD/` (`docs/RUNBOOK.md` §3.2) is in place and protects against accidental deletion. A Helsinki cross-region backup is *prepared in code* (`photos:backup-to-prefix --target=hel1`, `s3_backup` filesystem disk, scheduler `when()`-gated on `AWS_BACKUP_BUCKET`) but the target bucket has not been provisioned. Activation is a conscious cost-vs-value decision: at current data volumes (~2 GB) it would add a small monthly bucket + egress fee for a single-owner wedding site. Revisit when the platform hosts third-party events (not just the maintainer's own wedding). When activated, this register's location line and Privacy §5 must be updated in the same commit.
+- **Cross-region photo backup — deferred pending budget.** An in-bucket weekly snapshot (`photos:backup-to-prefix`) is in place and protects against accidental deletion. A Helsinki cross-region backup is *prepared in code* (`photos:backup-to-prefix --target=hel1`, `s3_backup` filesystem disk, scheduler `when()`-gated on `AWS_BACKUP_BUCKET`) but the target bucket has not been provisioned. Activation is a conscious cost-vs-value decision: at current data volumes it would add a small monthly bucket + egress fee for a single-owner wedding site. Revisit when the platform hosts third-party events. When activated, this register's location line and Privacy §5 must be updated in the same commit.
 - **Bucket-level versioning / object-lock** on the primary bucket. Long-term follow-up. Blocked on Hetzner Object Storage feature availability.

@@ -27,11 +27,7 @@ export const DEFAULT_PALETTE: Palette = {
     tertiary: '#ffffff',
 };
 
-export function buildPalette(
-    primary?: string | null,
-    secondary?: string | null,
-    tertiary?: string | null,
-): Palette {
+export function buildPalette(primary?: string | null, secondary?: string | null, tertiary?: string | null): Palette {
     return {
         primary: primary || DEFAULT_PALETTE.primary,
         secondary: secondary || DEFAULT_PALETTE.secondary,
@@ -39,11 +35,7 @@ export function buildPalette(
     };
 }
 
-export function resolveRole(
-    role: string | null | undefined,
-    fallback: PaletteKey,
-    palette: Palette,
-): string {
+export function resolveRole(role: string | null | undefined, fallback: PaletteKey, palette: Palette): string {
     const key = ((role as PaletteKey) ?? fallback) as PaletteKey;
     return palette[key] ?? palette[fallback];
 }

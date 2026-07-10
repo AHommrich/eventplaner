@@ -3,9 +3,9 @@
 use App\Http\Controllers\Api\DrinkLogController;
 use App\Http\Controllers\Api\EventInfoController;
 use App\Http\Controllers\Api\GuestApiController;
+use App\Http\Controllers\Api\GuestContentHideController;
 use App\Http\Controllers\Api\GuestDataExportController;
 use App\Http\Controllers\Api\GuestErasureController;
-use App\Http\Controllers\Api\GuestContentHideController;
 use App\Http\Controllers\Api\LegalController;
 use App\Http\Controllers\Api\PhotoController;
 use App\Http\Controllers\Api\PhotoGameController as ApiPhotoGameController;
@@ -53,6 +53,7 @@ Route::post('/guest/erasure/revoke', [GuestErasureController::class, 'revoke'])
 Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureGuestHasAppAccess::class])->group(function () {
     Route::post('/photos', [PhotoController::class, 'store']);
     Route::get('/photos', [PhotoController::class, 'index']);
+    Route::delete('/photos/{photo}', [PhotoController::class, 'destroy']);
 
     // Moderation (App Store Guideline 1.2): report a photo, hide/unhide another
     // guest's uploads, list hidden guests. Report is rate-limited so a bad

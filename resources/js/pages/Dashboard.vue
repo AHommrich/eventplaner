@@ -65,15 +65,15 @@ function pct(n: number): string {
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
                         <div v-if="notifications.photo_reports > 0" class="rounded border p-3">
                             <p class="text-2xl font-semibold">{{ notifications.photo_reports }}</p>
-                            <p class="text-muted-foreground text-sm">{{ t('dashboard.notificationsPhotoReports') }}</p>
+                            <p class="text-sm text-muted-foreground">{{ t('dashboard.notificationsPhotoReports') }}</p>
                         </div>
                         <div v-if="notifications.revocations > 0" class="rounded border p-3">
                             <p class="text-2xl font-semibold">{{ notifications.revocations }}</p>
-                            <p class="text-muted-foreground text-sm">{{ t('dashboard.notificationsRevocations') }}</p>
+                            <p class="text-sm text-muted-foreground">{{ t('dashboard.notificationsRevocations') }}</p>
                         </div>
                         <div v-if="notifications.event_requests > 0" class="rounded border p-3">
                             <p class="text-2xl font-semibold">{{ notifications.event_requests }}</p>
-                            <p class="text-muted-foreground text-sm">{{ t('dashboard.notificationsEventRequests') }}</p>
+                            <p class="text-sm text-muted-foreground">{{ t('dashboard.notificationsEventRequests') }}</p>
                         </div>
                     </div>
                     <div class="mt-3">

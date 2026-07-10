@@ -10,7 +10,7 @@ Trade-off accepted: Hetzner Object Storage has no built-in CDN. For a wedding ap
 
 ## Result
 
-- Hetzner Object Storage bucket `eveplan-photos-prod` in Nürnberg (`nbg1.your-objectstorage.com`), public-read.
+- Hetzner Object Storage bucket `&lt;bucket-name&gt;` in Nürnberg (`&lt;region&gt;.your-objectstorage.com`), public-read.
 - 36 objects (all `covers/*` and `photos/*` prefixes) copied 1:1 from R2. `rclone check` reports 0 differences.
 - All production URLs in the `photos.url` and `events.cover_image_url` columns rewritten from the R2 `pub-<hash>.r2.dev` host to the Hetzner bucket URL.
 - Coolify staging + production env vars (`AWS_ENDPOINT`, `AWS_BUCKET`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_URL`, `AWS_DEFAULT_REGION`) point at the new bucket.
@@ -25,7 +25,7 @@ The `photos.r2_key` column name is historical — the value is now a Hetzner obj
 Cloudflare Cloud Console → Storage → Object Storage → Create bucket.
 
 - Location: same as the app server (Nürnberg / nbg1 in our case). Latency and cost both benefit.
-- Name: globally unique, immutable. We used `eveplan-photos-prod`.
+- Name: globally unique, immutable. We used `&lt;bucket-name&gt;`.
 - Object Lock: **off**. WORM would conflict with GDPR Art. 17 (right to erasure).
 - Save the generated access key ID + secret key — shown only once.
 
@@ -61,11 +61,11 @@ rclone check "r2:$AWS_BUCKET" "hetzner:$HETZNER_S3_BUCKET"
 
 Per environment (staging first, prod second):
 
-- `AWS_ENDPOINT=https://nbg1.your-objectstorage.com` (region-level, not per-bucket)
-- `AWS_BUCKET=eveplan-photos-prod`
+- `AWS_ENDPOINT=https://&lt;region&gt;.your-objectstorage.com` (region-level, not per-bucket)
+- `AWS_BUCKET=&lt;bucket-name&gt;`
 - `AWS_ACCESS_KEY_ID=<Hetzner key>`
 - `AWS_SECRET_ACCESS_KEY=<Hetzner secret>`
-- `AWS_URL=https://eveplan-photos-prod.nbg1.your-objectstorage.com` (public read URL prefix)
+- `AWS_URL=https://&lt;bucket-name&gt;.&lt;region&gt;.your-objectstorage.com` (public read URL prefix)
 - `AWS_DEFAULT_REGION=nbg1`
 
 Redeploy each environment. Verify with a fresh photo upload — the resulting URL should point at Hetzner.
@@ -76,8 +76,8 @@ Old rows still have R2 `pub-*.r2.dev` URLs. Run once per environment in the app 
 
 ```bash
 php artisan tinker --execute="
-\DB::update(\"UPDATE photos SET url = REPLACE(url, 'https://pub-a2a31e651f4448e7983507b7c20e576a.r2.dev', 'https://eveplan-photos-prod.nbg1.your-objectstorage.com') WHERE url LIKE 'https://pub-a2a31e651f4448e7983507b7c20e576a.r2.dev/%'\");
-\DB::update(\"UPDATE events SET cover_image_url = REPLACE(cover_image_url, 'https://pub-a2a31e651f4448e7983507b7c20e576a.r2.dev', 'https://eveplan-photos-prod.nbg1.your-objectstorage.com') WHERE cover_image_url LIKE 'https://pub-a2a31e651f4448e7983507b7c20e576a.r2.dev/%'\");
+\DB::update(\"UPDATE photos SET url = REPLACE(url, 'https://&lt;r2-public-bucket&gt;.r2.dev', 'https://&lt;bucket-name&gt;.&lt;region&gt;.your-objectstorage.com') WHERE url LIKE 'https://&lt;r2-public-bucket&gt;.r2.dev/%'\");
+\DB::update(\"UPDATE events SET cover_image_url = REPLACE(cover_image_url, 'https://&lt;r2-public-bucket&gt;.r2.dev', 'https://&lt;bucket-name&gt;.&lt;region&gt;.your-objectstorage.com') WHERE cover_image_url LIKE 'https://&lt;r2-public-bucket&gt;.r2.dev/%'\");
 "
 ```
 

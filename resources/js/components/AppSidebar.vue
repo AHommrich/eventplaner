@@ -254,9 +254,7 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
                     {{ lang.toUpperCase() }}
                 </button>
             </div>
-            <div
-                class="flex justify-center gap-3 px-2 pb-1 text-[10px] text-sidebar-foreground/40 group-data-[collapsible=icon]:hidden"
-            >
+            <div class="flex justify-center gap-3 px-2 pb-1 text-[10px] text-sidebar-foreground/40 group-data-[collapsible=icon]:hidden">
                 <a :href="route('legal.imprint')" class="hover:text-sidebar-foreground">Impressum</a>
                 <a :href="route('legal.privacy')" class="hover:text-sidebar-foreground">Datenschutz</a>
             </div>
