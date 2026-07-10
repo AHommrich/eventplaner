@@ -1,11 +1,15 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/vue-starter-kit",
+    "name": "andrehommrich/eventplaner",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Wedding and event planning platform with QR guest login, RSVP, photo sharing, photo game, and projector slideshow.",
     "keywords": [
+        "event-planning",
         "laravel",
-        "framework"
+        "vue",
+        "inertia",
+        "sanctum",
+        "portfolio"
     ],
     "license": "proprietary",
     "require": {

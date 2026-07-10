@@ -139,9 +139,7 @@ function hintFilterClass(hint: string): string {
                                 </svg>
                             </p>
                             <template v-if="dresscode">
-                                <p class="mt-0.5 text-center text-[6px]" :style="{ color: colorHomeText || '#ffffff', opacity: 0.7 }">
-                                    Dresscode:
-                                </p>
+                                <p class="mt-0.5 text-center text-[6px]" :style="{ color: colorHomeText || '#ffffff', opacity: 0.7 }">Dresscode:</p>
                                 <p class="text-center text-[6px]" :style="{ color: colorHomeText || '#ffffff', opacity: 0.7 }">
                                     {{ dresscode }}
                                 </p>
@@ -160,25 +158,14 @@ function hintFilterClass(hint: string): string {
                                     :stroke-width="tab.strokeWidth ?? 2"
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
-                                    :stroke="
-                                        i === 0
-                                            ? colorHomeText || '#ffffff'
-                                            : colorHomeText
-                                              ? colorHomeText + '77'
-                                              : 'rgba(255,255,255,0.45)'
-                                    "
+                                    :stroke="i === 0 ? colorHomeText || '#ffffff' : colorHomeText ? colorHomeText + '77' : 'rgba(255,255,255,0.45)'"
                                 >
                                     <path v-for="(p, pi) in tab.paths" :key="pi" :d="p" />
                                 </svg>
                                 <span
                                     class="text-[5px]"
                                     :style="{
-                                        color:
-                                            i === 0
-                                                ? colorHomeText || '#ffffff'
-                                                : colorHomeText
-                                                  ? colorHomeText + '77'
-                                                  : 'rgba(255,255,255,0.45)',
+                                        color: i === 0 ? colorHomeText || '#ffffff' : colorHomeText ? colorHomeText + '77' : 'rgba(255,255,255,0.45)',
                                         fontWeight: i === 0 ? '700' : '400',
                                     }"
                                     >{{ tab.label }}</span
@@ -199,7 +186,10 @@ function hintFilterClass(hint: string): string {
                         </div>
                         <div class="flex flex-1 flex-col items-center justify-center px-2.5 pb-1">
                             <p class="text-center text-[6px]" :style="{ color: cCardText }">Willkommen, Max!</p>
-                            <p class="mt-0.5 text-center text-[9px] leading-tight font-bold" :style="{ color: cCardText, fontFamily: previewFontFamily }">
+                            <p
+                                class="mt-0.5 text-center text-[9px] leading-tight font-bold"
+                                :style="{ color: cCardText, fontFamily: previewFontFamily }"
+                            >
                                 {{ eventName || 'Event-Name' }}
                             </p>
                             <p class="mt-0.5 text-center text-[5.5px]" :style="{ color: cCardText }">
@@ -207,10 +197,7 @@ function hintFilterClass(hint: string): string {
                             </p>
                             <!-- Venue: both → name+icon, then address without icon -->
                             <template v-if="venueDisplayMode === 'both'">
-                                <span
-                                    class="mt-0.5 flex items-center justify-center gap-0.5 text-center text-[6px]"
-                                    :style="{ color: cCardText }"
-                                >
+                                <span class="mt-0.5 flex items-center justify-center gap-0.5 text-center text-[6px]" :style="{ color: cCardText }">
                                     {{ previewVenueName }}
                                     <svg
                                         width="5"

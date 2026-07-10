@@ -67,9 +67,7 @@ const groupMembers = [
                                     <span class="text-[7px] font-semibold" :style="{ color: cCardText }" :class="hintFilterClass('cardText')"
                                         >Max Mustermann</span
                                     >
-                                    <span
-                                        class="rounded-full px-1 py-0.5 text-[4px] font-semibold text-white"
-                                        style="background-color: #4a7c59"
+                                    <span class="rounded-full px-1 py-0.5 text-[4px] font-semibold text-white" style="background-color: #4a7c59"
                                         >Zugesagt</span
                                     >
                                 </div>
@@ -113,9 +111,9 @@ const groupMembers = [
                                     :class="hintBorderClass('border')"
                                 >
                                     <div class="flex items-center justify-between">
-                                        <span class="text-[6px] font-semibold" :style="{ color: cCardText }" :class="hintFilterClass('cardText')"
-                                            >{{ member.name }}</span
-                                        >
+                                        <span class="text-[6px] font-semibold" :style="{ color: cCardText }" :class="hintFilterClass('cardText')">{{
+                                            member.name
+                                        }}</span>
                                         <div class="flex items-center gap-0.5">
                                             <span
                                                 class="rounded-full px-1 py-0.5 text-[4px] font-semibold"

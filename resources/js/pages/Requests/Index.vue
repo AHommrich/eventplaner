@@ -224,7 +224,7 @@ function setterName(item: RevocationRequest): string {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p class="text-muted-foreground mb-4 text-sm">{{ t('requests.photoReportsDesc') }}</p>
+                    <p class="mb-4 text-sm text-muted-foreground">{{ t('requests.photoReportsDesc') }}</p>
                     <div class="divide-y">
                         <div v-for="item in photo_reports" :key="item.id" class="flex flex-col gap-3 py-4 sm:flex-row sm:items-start sm:gap-4">
                             <a
@@ -238,7 +238,7 @@ function setterName(item: RevocationRequest): string {
                                 <img :src="item.photo.url" alt="" class="h-24 w-24 rounded object-cover" />
                             </a>
                             <div class="min-w-0 flex-1 space-y-1 text-sm">
-                                <p v-if="item.event_name" class="text-muted-foreground text-xs">
+                                <p v-if="item.event_name" class="text-xs text-muted-foreground">
                                     {{ t('requests.photoReportEvent') }}: {{ item.event_name }}
                                 </p>
                                 <p>
@@ -253,7 +253,7 @@ function setterName(item: RevocationRequest): string {
                                     <span class="font-medium">{{ t('requests.photoReportMessage') }}:</span>
                                     {{ item.message }}
                                 </p>
-                                <p class="text-muted-foreground text-xs">{{ formatDate(item.created_at) }}</p>
+                                <p class="text-xs text-muted-foreground">{{ formatDate(item.created_at) }}</p>
                             </div>
                             <div class="flex shrink-0 flex-col gap-2 sm:flex-row">
                                 <Button size="sm" @click="askResolvePhotoReport(item)">{{ t('requests.photoReportResolve') }}</Button>

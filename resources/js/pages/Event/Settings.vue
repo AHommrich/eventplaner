@@ -6,7 +6,6 @@ import PhonePreviewPhotos from '@/components/EventSettings/PhonePreview/Photos.v
 import PhonePreviewRsvp from '@/components/EventSettings/PhonePreview/Rsvp.vue';
 import PhonePreviewSettings from '@/components/EventSettings/PhonePreview/Settings.vue';
 import VenueEditor from '@/components/EventSettings/VenueEditor.vue';
-import InfoTooltip from '@/components/InfoTooltip.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -250,7 +249,6 @@ watch(
     { immediate: true },
 );
 
-
 const isGermanyForm = computed(() => {
     const c = (form.venue_country || 'Deutschland').toLowerCase().trim();
     return c === 'deutschland' || c === 'germany' || c === 'de';
@@ -266,7 +264,6 @@ const previewVenueAddress = computed(() => {
     }
     return [form.venue_street, form.venue_city].filter(Boolean).join(', ');
 });
-
 
 // Palette + role resolution — pure logic in resources/js/lib/colorResolver.ts
 const palette = computed(() => buildPalette(form.color_primary, form.color_secondary, form.color_tertiary));

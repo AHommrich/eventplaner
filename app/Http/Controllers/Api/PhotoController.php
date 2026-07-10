@@ -105,4 +105,20 @@ class PhotoController extends Controller
 
         return response()->json(['data' => $photos]);
     }
+
+    public function destroy(Request $request, Photo $photo)
+    {
+        $guest = $request->user();
+
+        abort_if($photo->event_id !== $guest->event_id, 404);
+
+        $album = $photo->album;
+        abort_if(! $album || $album->slug !== PhotoAlbum::APP_GALLERY, 404);
+
+        abort_if($photo->guest_id !== $guest->id, 403);
+
+        $photo->delete();
+
+        return response()->json(null, 204);
+    }
 }

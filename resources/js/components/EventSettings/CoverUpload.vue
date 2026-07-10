@@ -176,13 +176,7 @@ watch(cover, (val) => {
         @dragleave.self="isDraggingCover = false"
         @drop.prevent="onCoverDrop"
     >
-        <input
-            type="file"
-            class="hidden"
-            accept="image/jpeg,image/png,image/heic,image/heif"
-            @change="onFileSelect"
-            :disabled="coverConverting"
-        />
+        <input type="file" class="hidden" accept="image/jpeg,image/png,image/heic,image/heif" @change="onFileSelect" :disabled="coverConverting" />
         <svg
             class="h-6 w-6 text-muted-foreground"
             :class="{ 'animate-bounce': isDraggingCover }"
@@ -218,29 +212,20 @@ watch(cover, (val) => {
     <div v-if="displayCoverUrl" class="grid gap-1.5 pt-1">
         <span class="text-xs text-muted-foreground">{{ t('event.colorHomeText') }}</span>
         <div class="flex items-center gap-2">
-            <input
-                type="color"
-                v-model="colorHomeText"
-                class="h-9 w-10 shrink-0 cursor-pointer rounded border border-input bg-transparent p-0.5"
-            />
+            <input type="color" v-model="colorHomeText" class="h-9 w-10 shrink-0 cursor-pointer rounded border border-input bg-transparent p-0.5" />
             <Input v-model="colorHomeText" class="px-2 font-mono text-xs uppercase" maxlength="7" placeholder="#ffffff" />
         </div>
     </div>
     <div v-if="displayCoverUrl" class="grid gap-2">
         <Label>{{ t('event.colorHomeShadow') }}</Label>
         <div class="flex items-center gap-2">
-            <input
-                type="color"
-                v-model="colorHomeShadow"
-                class="h-9 w-10 shrink-0 cursor-pointer rounded border border-input bg-transparent p-0.5"
-            />
+            <input type="color" v-model="colorHomeShadow" class="h-9 w-10 shrink-0 cursor-pointer rounded border border-input bg-transparent p-0.5" />
             <Input v-model="colorHomeShadow" maxlength="7" class="font-mono uppercase" placeholder="#000000" />
         </div>
     </div>
     <div v-if="displayCoverUrl" class="grid gap-2">
         <Label
-            >{{ t('event.homeShadowOpacity') }}
-            <span class="text-xs font-normal text-muted-foreground">{{ homeShadowOpacity }}%</span></Label
+            >{{ t('event.homeShadowOpacity') }} <span class="text-xs font-normal text-muted-foreground">{{ homeShadowOpacity }}%</span></Label
         >
         <input type="range" v-model.number="homeShadowOpacity" min="0" max="100" step="5" class="w-full" />
         <p class="-mt-1 text-xs text-muted-foreground">{{ t('event.homeShadowOpacityHint') }}</p>

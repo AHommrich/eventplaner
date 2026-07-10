@@ -1,12 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-    contrastRatio,
-    meetsAA,
-    meetsAAA,
-    WCAG_AA_LARGE,
-    WCAG_AA_NORMAL,
-    WCAG_AAA_NORMAL,
-} from '../colorContrast';
+import { contrastRatio, meetsAA, meetsAAA, WCAG_AA_LARGE, WCAG_AA_NORMAL, WCAG_AAA_NORMAL } from '../colorContrast';
 
 describe('contrastRatio', () => {
     it('returns 21 for pure black on white (the theoretical maximum)', () => {

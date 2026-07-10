@@ -80,13 +80,7 @@ const submit = () => {
                 </div>
 
                 <label class="flex items-start gap-2 text-sm">
-                    <input
-                        type="checkbox"
-                        class="mt-1"
-                        v-model="form.privacy_accepted"
-                        required
-                        :tabindex="5"
-                    />
+                    <input type="checkbox" class="mt-1" v-model="form.privacy_accepted" required :tabindex="5" />
                     <span class="text-muted-foreground">
                         {{ t('auth.privacyConsentPrefix') }}
                         <a :href="route('legal.privacy')" target="_blank" class="underline">

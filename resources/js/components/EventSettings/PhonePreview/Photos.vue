@@ -41,12 +41,7 @@ function hintFilterClass(hint: string): string {
                         </div>
                         <div class="relative flex-1 px-0.5 pt-1">
                             <div class="grid grid-cols-3 gap-0.5">
-                                <div
-                                    v-for="n in 6"
-                                    :key="n"
-                                    class="rounded-sm"
-                                    style="background-color: #d4cfc8; aspect-ratio: 1"
-                                />
+                                <div v-for="n in 6" :key="n" class="rounded-sm" style="background-color: #d4cfc8; aspect-ratio: 1" />
                             </div>
                             <!-- FAB with cFab color -->
                             <div
@@ -65,9 +60,7 @@ function hintFilterClass(hint: string): string {
                                     stroke-linejoin="round"
                                     :class="hintFilterClass('fabIcon')"
                                 >
-                                    <path
-                                        d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
-                                    />
+                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
                                     <circle cx="12" cy="13" r="4" />
                                 </svg>
                             </div>

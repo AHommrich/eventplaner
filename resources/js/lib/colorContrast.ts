@@ -31,9 +31,13 @@ interface Rgb {
 
 function parseHex(hex: string): Rgb {
     const stripped = hex.trim().replace(/^#/, '');
-    const expanded = stripped.length === 3
-        ? stripped.split('').map((c) => c + c).join('')
-        : stripped;
+    const expanded =
+        stripped.length === 3
+            ? stripped
+                  .split('')
+                  .map((c) => c + c)
+                  .join('')
+            : stripped;
 
     if (!/^[0-9a-fA-F]{6}$/.test(expanded)) {
         throw new Error(`Invalid hex color: ${hex}`);
