@@ -18,6 +18,7 @@ it('creates a station for the active event with an appended sort order', functio
     $this->post(route('schedule.store'), [
         'title' => 'Registry office',
         'starts_at' => '12:00',
+        'ends_at' => '13:00',
         'location_city' => 'Koblenz',
         'location_lat' => 50.3569,
         'location_lng' => 7.5890,
@@ -28,6 +29,15 @@ it('creates a station for the active event with an appended sort order', functio
     expect($created->event_id)->toBe($event->id);
     expect($created->sort_order)->toBe(1);
     expect($created->location_city)->toBe('Koblenz');
+    expect((string) $created->starts_at)->toContain('12:00');
+    expect((string) $created->ends_at)->toContain('13:00');
+});
+
+it('rejects an invalid end time format', function () {
+    actingAsOwner();
+
+    $this->post(route('schedule.store'), ['title' => 'X', 'ends_at' => '99:99'])
+        ->assertSessionHasErrors('ends_at');
 });
 
 it('rejects a station without a title', function () {

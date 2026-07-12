@@ -11,8 +11,8 @@ use App\Models\ScheduleItem;
 function stationsFor(Event $event): array
 {
     return [
-        ScheduleItem::create(['event_id' => $event->id, 'title' => 'Registry office', 'starts_at' => '12:00', 'sort_order' => 0]),
-        ScheduleItem::create(['event_id' => $event->id, 'title' => 'Lunch', 'starts_at' => '13:30', 'sort_order' => 1]),
+        ScheduleItem::create(['event_id' => $event->id, 'title' => 'Registry office', 'starts_at' => '12:00', 'ends_at' => '13:00', 'sort_order' => 0]),
+        ScheduleItem::create(['event_id' => $event->id, 'title' => 'Lunch', 'starts_at' => '13:30', 'ends_at' => '15:00', 'sort_order' => 1]),
         ScheduleItem::create(['event_id' => $event->id, 'title' => 'Party', 'starts_at' => '19:00', 'sort_order' => 2]),
     ];
 }
@@ -26,7 +26,9 @@ it('returns all stations to a guest without a group', function () {
         ->assertOk()
         ->assertJsonCount(3, 'schedule_stations')
         ->assertJsonPath('schedule_stations.0.title', 'Registry office')
-        ->assertJsonPath('schedule_stations.0.starts_at', '12:00');
+        ->assertJsonPath('schedule_stations.0.starts_at', '12:00')
+        ->assertJsonPath('schedule_stations.0.ends_at', '13:00')
+        ->assertJsonPath('schedule_stations.2.ends_at', null);
 });
 
 it('returns all stations to a group with nothing hidden', function () {

@@ -23,6 +23,7 @@ interface ScheduleItem {
     id: number;
     title: string;
     starts_at: string | null;
+    ends_at: string | null;
     sort_order: number;
     location_name: string | null;
     location_street: string | null;
@@ -52,6 +53,7 @@ const editingId = ref<number | null>(null);
 const form = useForm({
     title: '',
     starts_at: '',
+    ends_at: '',
     location_name: '',
     location_street: '',
     location_house_number: '',
@@ -74,6 +76,7 @@ function openEdit(item: ScheduleItem) {
     editingId.value = item.id;
     form.title = item.title;
     form.starts_at = item.starts_at ?? '';
+    form.ends_at = item.ends_at ?? '';
     form.location_name = item.location_name ?? '';
     form.location_street = item.location_street ?? '';
     form.location_house_number = item.location_house_number ?? '';
@@ -142,6 +145,11 @@ function doDelete() {
 }
 
 // ─── Display helpers ────────────────────────────────────────────────────────
+
+function timeRange(item: ScheduleItem): string {
+    if (!item.starts_at) return '';
+    return item.ends_at ? `${item.starts_at}–${item.ends_at}` : item.starts_at;
+}
 
 function locationSummary(item: ScheduleItem): string {
     const parts: string[] = [];
@@ -219,8 +227,8 @@ function toggleStationVisibility(group: GroupVisibility, stationId: number, visi
                         </div>
 
                         <!-- Time -->
-                        <div class="w-14 shrink-0 text-center">
-                            <span v-if="item.starts_at" class="font-mono text-sm font-semibold">{{ item.starts_at }}</span>
+                        <div class="w-24 shrink-0 text-center">
+                            <span v-if="item.starts_at" class="font-mono text-sm font-semibold whitespace-nowrap">{{ timeRange(item) }}</span>
                             <span v-else class="text-xs text-muted-foreground">{{ t('schedule.noTime') }}</span>
                         </div>
 
@@ -328,13 +336,20 @@ function toggleStationVisibility(group: GroupVisibility, stationId: number, visi
                         <Input v-model="form.title" :placeholder="t('schedule.stationTitlePlaceholder')" required />
                         <p v-if="form.errors.title" class="text-xs text-destructive">{{ form.errors.title }}</p>
                     </div>
-                    <div class="grid gap-2">
-                        <Label
-                            >{{ t('schedule.time') }}
-                            <span class="text-xs font-normal text-muted-foreground">({{ t('schedule.timeOptional') }})</span></Label
-                        >
-                        <Input v-model="form.starts_at" type="time" class="w-40" />
-                        <p v-if="form.errors.starts_at" class="text-xs text-destructive">{{ form.errors.starts_at }}</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="grid gap-2">
+                            <Label>{{ t('schedule.startTime') }}</Label>
+                            <Input v-model="form.starts_at" type="time" />
+                            <p v-if="form.errors.starts_at" class="text-xs text-destructive">{{ form.errors.starts_at }}</p>
+                        </div>
+                        <div class="grid gap-2">
+                            <Label
+                                >{{ t('schedule.endTime') }}
+                                <span class="text-xs font-normal text-muted-foreground">({{ t('schedule.timeOptional') }})</span></Label
+                            >
+                            <Input v-model="form.ends_at" type="time" />
+                            <p v-if="form.errors.ends_at" class="text-xs text-destructive">{{ form.errors.ends_at }}</p>
+                        </div>
                     </div>
 
                     <div class="grid gap-2">

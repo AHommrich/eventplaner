@@ -90,6 +90,7 @@ class ScheduleController extends Controller
         return $request->validate([
             'title' => 'required|string|max:255',
             'starts_at' => 'nullable|date_format:H:i',
+            'ends_at' => 'nullable|date_format:H:i',
             'location_name' => 'nullable|string|max:255',
             'location_street' => 'nullable|string|max:255',
             'location_house_number' => 'nullable|string|max:20',
@@ -118,6 +119,7 @@ class ScheduleController extends Controller
             'title' => $item->title,
             // Trim the DB "HH:MM:SS" down to the "HH:MM" the <input type="time"> uses.
             'starts_at' => $item->starts_at ? substr($item->starts_at, 0, 5) : null,
+            'ends_at' => $item->ends_at ? substr($item->ends_at, 0, 5) : null,
             'sort_order' => $item->sort_order,
             'location_name' => $item->location_name,
             'location_street' => $item->location_street,

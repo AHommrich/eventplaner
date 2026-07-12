@@ -19,6 +19,7 @@ class ScheduleItem extends Model
         'event_id',
         'title',
         'starts_at',
+        'ends_at',
         'sort_order',
         'location_name',
         'location_street',

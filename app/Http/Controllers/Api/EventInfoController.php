@@ -59,6 +59,7 @@ class EventInfoController extends Controller
                 'title' => $s->title,
                 // "HH:MM" — the guest app composes the absolute moment with `date`.
                 'starts_at' => $s->starts_at ? substr($s->starts_at, 0, 5) : null,
+                'ends_at' => $s->ends_at ? substr($s->ends_at, 0, 5) : null,
                 'location_name' => $s->location_name,
                 'address' => $this->assembleAddress(
                     $s->location_street,

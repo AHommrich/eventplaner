@@ -26,6 +26,8 @@
         "stationTitle": "Titel",
         "stationTitlePlaceholder": "z. B. Standesamt",
         "time": "Uhrzeit",
+        "startTime": "Beginn",
+        "endTime": "Ende",
         "timeOptional": "optional",
         "location": "Ort",
         "noTime": "Ohne Uhrzeit",
