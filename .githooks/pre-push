@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# Pre-push safety net for eventplaner. Enable once per clone:
+#   git config core.hooksPath .githooks
+#
+# Blocks force-push / history rewrites and branch deletion on
+# develop/staging/production. Requires typed confirmation for any
+# push to production, since that has to run synchronously in a
+# terminal a human is sitting at.
+#
+# Emergency bypass (deliberate, not accidental):
+#   git -c core.hooksPath=/dev/null push ...
+
+set -euo pipefail
+
+protected_branches=(develop staging production)
+zero_sha="0000000000000000000000000000000000000000"
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  branch="${remote_ref#refs/heads/}"
+
+  for protected in "${protected_branches[@]}"; do
+    if [ "$branch" != "$protected" ]; then
+      continue
+    fi
+
+    if [ "$local_sha" = "$zero_sha" ]; then
+      echo "BLOCKED: deleting protected branch '$branch' via push is disabled." >&2
+      echo "If this is intentional: git -c core.hooksPath=/dev/null push origin --delete $branch" >&2
+      exit 1
+    fi
+
+    if [ "$remote_sha" != "$zero_sha" ] && ! git merge-base --is-ancestor "$remote_sha" "$local_sha" 2>/dev/null; then
+      echo "BLOCKED: force-push / history rewrite on protected branch '$branch' is disabled." >&2
+      echo "If this is intentional: git -c core.hooksPath=/dev/null push --force ..." >&2
+      exit 1
+    fi
+
+    if [ "$branch" = "production" ]; then
+      echo "You are about to push to PRODUCTION." >&2
+      read -r -p "Type 'PRODUCTION' to confirm: " confirm < /dev/tty
+      if [ "$confirm" != "PRODUCTION" ]; then
+        echo "Aborted." >&2
+        exit 1
+      fi
+    fi
+  done
+done
+
+exit 0

@@ -41,4 +41,28 @@ class GroupController extends Controller
 
         return redirect()->back()->with('success', 'Gruppe gelöscht.');
     }
+
+    /**
+     * Sets which stations are hidden from this group. The guest app then shows
+     * every station except these. Empty = the group sees everything. Station
+     * ids from other events are ignored.
+     */
+    public function updateScheduleVisibility(Request $request, Group $group)
+    {
+        $event = $this->activeEvent();
+        abort_if($group->event_id !== $event?->id, 403);
+
+        $data = $request->validate([
+            'hidden_station_ids' => 'array',
+            'hidden_station_ids.*' => 'integer',
+        ]);
+
+        $validIds = $event->scheduleItems()
+            ->whereIn('id', $data['hidden_station_ids'] ?? [])
+            ->pluck('id');
+
+        $group->hiddenScheduleItems()->sync($validIds);
+
+        return redirect()->back()->with('success', true);
+    }
 }

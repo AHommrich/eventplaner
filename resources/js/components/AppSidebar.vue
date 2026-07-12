@@ -22,6 +22,7 @@ import { setLocale } from '@/plugins/i18n';
 import { type NavItem } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import {
+    CalendarClock,
     CalendarDays,
     CalendarPlus,
     Camera,
@@ -108,6 +109,7 @@ const mainNavItems = computed<NavItem[]>(() => [
     { title: t('nav.forms'), href: '/dashboard', icon: LayoutDashboard },
     { title: t('nav.guests'), href: '/guests', icon: Users },
     { title: t('nav.invitations'), href: '/invitations', icon: QrCode },
+    { title: t('nav.schedule'), href: '/schedule', icon: CalendarClock },
     { title: t('nav.drinks'), href: '/drinks', icon: GlassWater },
     ...(activeEvent.value?.drink_game_enabled ? [{ title: t('nav.drinkGame'), href: '/drinks/game', icon: Trophy }] : []),
     { title: t('nav.photos'), href: '/photos', icon: Images },
