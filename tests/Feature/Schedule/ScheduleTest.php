@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Event;
+use App\Models\Group;
 use App\Models\ScheduleItem;
 
 it('shows the schedule index page', function () {
@@ -100,4 +101,35 @@ it('forbids editing a station that belongs to another event', function () {
     $this->delete(route('schedule.destroy', $foreign))->assertNotFound();
 
     expect($foreign->fresh()->title)->toBe('Theirs');
+});
+
+it('sets a group schedule visibility cutoff', function () {
+    $user = actingAsOwner();
+    $event = $user->ownedEvents()->first();
+    $group = Group::factory()->create(['event_id' => $event->id]);
+
+    $this->patch(route('groups.schedule-visibility', $group), ['schedule_visible_from' => '19:00'])
+        ->assertRedirect();
+
+    expect((string) $group->fresh()->schedule_visible_from)->toContain('19:00');
+});
+
+it('clears a group schedule visibility cutoff with null', function () {
+    $user = actingAsOwner();
+    $event = $user->ownedEvents()->first();
+    $group = Group::factory()->create(['event_id' => $event->id, 'schedule_visible_from' => '19:00']);
+
+    $this->patch(route('groups.schedule-visibility', $group), ['schedule_visible_from' => null])
+        ->assertRedirect();
+
+    expect($group->fresh()->schedule_visible_from)->toBeNull();
+});
+
+it('forbids setting visibility on a group of another event', function () {
+    actingAsOwner();
+    $otherEvent = Event::factory()->create();
+    $foreign = Group::factory()->create(['event_id' => $otherEvent->id]);
+
+    $this->patch(route('groups.schedule-visibility', $foreign), ['schedule_visible_from' => '19:00'])
+        ->assertForbidden();
 });

@@ -22,8 +22,17 @@ class ScheduleController extends Controller
             ? $event->scheduleItems()->get()->map(fn (ScheduleItem $i) => $this->present($i))
             : collect();
 
+        $groups = $event
+            ? $event->groups()->orderBy('name')->get()->map(fn ($g) => [
+                'id' => $g->id,
+                'name' => $g->name,
+                'schedule_visible_from' => $g->schedule_visible_from ? substr($g->schedule_visible_from, 0, 5) : null,
+            ])
+            : collect();
+
         return Inertia::render('Schedule/Index', [
             'items' => $items->values(),
+            'groups' => $groups->values(),
         ]);
     }
 

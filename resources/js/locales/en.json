@@ -35,7 +35,13 @@
         "deleteTitle": "Delete station?",
         "deleteConfirm": "\"{title}\" will be permanently removed from the schedule.",
         "saved": "Schedule saved.",
-        "deleted": "Station deleted."
+        "deleted": "Station deleted.",
+        "visibilityTitle": "Visibility per group",
+        "visibilityIntro": "Set from which station a group sees the schedule. For example, work colleagues only see the evening party, not the registry office at noon.",
+        "visibilitySeesAll": "Sees everything",
+        "visibilityFrom": "from {time}",
+        "visibilityNeedsTimes": "Add stations with a time first to control visibility.",
+        "visibilityNoGroups": "No groups yet. You create groups in the guest list."
     },
     "common": {
         "create": "Create",

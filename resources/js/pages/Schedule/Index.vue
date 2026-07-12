@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
-import { ChevronDown, ChevronUp, MapPin, Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { ChevronDown, ChevronUp, MapPin, Pencil, Plus, Trash2, Users } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
@@ -35,7 +35,14 @@ interface ScheduleItem {
     location_lng: number | null;
 }
 
+interface GroupVisibility {
+    id: number;
+    name: string;
+    schedule_visible_from: string | null;
+}
+
 const items = computed(() => page.props.items as ScheduleItem[]);
+const groups = computed(() => page.props.groups as GroupVisibility[]);
 
 // ─── Station editor (create + edit share one form) ──────────────────────────
 
@@ -144,6 +151,39 @@ function locationSummary(item: ScheduleItem): string {
     if (city) parts.push(city);
     return parts.join(', ');
 }
+
+// ─── Per-group visibility ─────────────────────────────────────────────────────
+
+// A cutoff option per distinct station time — picking one means "this group is
+// invited from that station on".
+const stationTimeOptions = computed(() => {
+    const seen = new Set<string>();
+    const opts: { value: string; label: string }[] = [];
+    for (const item of items.value) {
+        if (item.starts_at && !seen.has(item.starts_at)) {
+            seen.add(item.starts_at);
+            opts.push({ value: item.starts_at, label: `${t('schedule.visibilityFrom', { time: item.starts_at })} · ${item.title}` });
+        }
+    }
+    return opts.sort((a, b) => a.value.localeCompare(b.value));
+});
+
+// Keep a stored cutoff selectable even if its station was later removed/retimed.
+function optionsForGroup(group: GroupVisibility) {
+    const opts = [...stationTimeOptions.value];
+    if (group.schedule_visible_from && !opts.some((o) => o.value === group.schedule_visible_from)) {
+        opts.push({ value: group.schedule_visible_from, label: t('schedule.visibilityFrom', { time: group.schedule_visible_from }) });
+    }
+    return opts;
+}
+
+function setGroupVisibility(group: GroupVisibility, value: string) {
+    router.patch(
+        route('groups.schedule-visibility', group.id),
+        { schedule_visible_from: value || null },
+        { preserveScroll: true, onSuccess: () => toast.success(t('schedule.saved')) },
+    );
+}
 </script>
 
 <template>
@@ -230,6 +270,37 @@ function locationSummary(item: ScheduleItem): string {
                 <Plus class="mr-2 size-4" />
                 {{ t('schedule.addStation') }}
             </Button>
+
+            <!-- Per-group visibility -->
+            <Card class="mt-6">
+                <CardContent class="space-y-3 p-4">
+                    <div class="flex items-center gap-2">
+                        <Users class="size-4 text-muted-foreground" />
+                        <h2 class="font-semibold">{{ t('schedule.visibilityTitle') }}</h2>
+                    </div>
+                    <p class="text-sm text-muted-foreground">{{ t('schedule.visibilityIntro') }}</p>
+
+                    <p v-if="!groups.length" class="rounded-md bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+                        {{ t('schedule.visibilityNoGroups') }}
+                    </p>
+                    <p v-else-if="!stationTimeOptions.length" class="rounded-md bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+                        {{ t('schedule.visibilityNeedsTimes') }}
+                    </p>
+                    <div v-else class="divide-y">
+                        <div v-for="group in groups" :key="group.id" class="flex items-center justify-between gap-3 py-2">
+                            <span class="min-w-0 flex-1 truncate text-sm">{{ group.name }}</span>
+                            <select
+                                :value="group.schedule_visible_from ?? ''"
+                                class="h-9 rounded-md border border-input bg-transparent px-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                                @change="setGroupVisibility(group, ($event.target as HTMLSelectElement).value)"
+                            >
+                                <option value="">{{ t('schedule.visibilitySeesAll') }}</option>
+                                <option v-for="opt in optionsForGroup(group)" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                            </select>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
 
         <!-- Station editor dialog -->
@@ -266,6 +337,7 @@ function locationSummary(item: ScheduleItem): string {
                             v-model:lng="form.location_lng"
                             :show-name="false"
                             :show-display-mode="false"
+                            :teleport="false"
                         />
                     </div>
 

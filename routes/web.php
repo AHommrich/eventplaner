@@ -60,6 +60,7 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::post('photos/projector-token/regenerate', [PhotoController::class, 'regenerateProjectorToken'])->name('photos.projector-token.regenerate');
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
     Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
+    Route::patch('/groups/{group}/schedule-visibility', [GroupController::class, 'updateScheduleVisibility'])->name('groups.schedule-visibility');
     Route::delete('/groups/{group}', [GroupController::class, 'destroy'])->name('groups.destroy');
     Route::post('/foodspecials', [FoodSpecialController::class, 'store'])->name('foodspecials.store');
 

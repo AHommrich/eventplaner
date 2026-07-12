@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\ScheduleItem;
 use App\Services\ColorRoleResolver;
+use App\Services\ScheduleVisibilityService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,7 +23,10 @@ use Illuminate\Http\Request;
  */
 class EventInfoController extends Controller
 {
-    public function __construct(private readonly ColorRoleResolver $colors) {}
+    public function __construct(
+        private readonly ColorRoleResolver $colors,
+        private readonly ScheduleVisibilityService $schedule,
+    ) {}
 
     /**
      * GET /api/event/info
@@ -36,6 +41,8 @@ class EventInfoController extends Controller
 
         $colors = $this->colors->resolve($event);
 
+        $stations = $this->schedule->visibleStations($event, $guest->group);
+
         return response()->json([
             'name' => $event->name,
             'date' => $event->date ? Carbon::parse($event->date)->toIso8601String() : null,
@@ -47,6 +54,23 @@ class EventInfoController extends Controller
             'venue_lng' => $event->venue_lng,
             'dresscode' => $event->dresscode,
             'schedule' => $event->schedule,
+            'schedule_stations' => $stations->map(fn (ScheduleItem $s) => [
+                'id' => $s->id,
+                'title' => $s->title,
+                // "HH:MM" — the guest app composes the absolute moment with `date`.
+                'starts_at' => $s->starts_at ? substr($s->starts_at, 0, 5) : null,
+                'location_name' => $s->location_name,
+                'address' => $this->assembleAddress(
+                    $s->location_street,
+                    $s->location_house_number,
+                    $s->location_postal_code,
+                    $s->location_city,
+                    $s->location_state,
+                    $s->location_country,
+                ),
+                'lat' => $s->location_lat,
+                'lng' => $s->location_lng,
+            ])->values(),
             // palette
             'color_primary' => $colors['palette']['primary'],
             'color_secondary' => $colors['palette']['secondary'],
@@ -75,29 +99,44 @@ class EventInfoController extends Controller
 
     private function assembleVenueAddress(\App\Models\Event $event): ?string
     {
-        $isGermany = ! $event->venue_country ||
-            in_array(strtolower($event->venue_country), ['deutschland', 'germany', 'de']);
+        return $this->assembleAddress(
+            $event->venue_street,
+            $event->venue_house_number,
+            $event->venue_postal_code,
+            $event->venue_city,
+            $event->venue_state,
+            $event->venue_country,
+            // fallback to legacy free-text field
+        ) ?? ($event->venue_address ?: null);
+    }
 
-        if ($event->venue_street || $event->venue_city) {
-            $street = trim(($event->venue_street ?? '').' '.($event->venue_house_number ?? ''));
-
-            if ($isGermany) {
-                $city = trim(($event->venue_postal_code ?? '').' '.($event->venue_city ?? ''));
-                $parts = array_filter([$street, $city]);
-            } else {
-                $parts = array_filter([
-                    $street,
-                    $event->venue_city,
-                    $event->venue_state,
-                    $event->venue_postal_code,
-                    $event->venue_country,
-                ]);
-            }
-
-            return implode(', ', $parts) ?: null;
+    /**
+     * Assembles a display address from structured fields. DE order
+     * ("Street 1, 12345 City") differs from the international order.
+     * Returns null when there is nothing to show.
+     */
+    private function assembleAddress(
+        ?string $street,
+        ?string $houseNumber,
+        ?string $postalCode,
+        ?string $city,
+        ?string $state,
+        ?string $country,
+    ): ?string {
+        if (! $street && ! $city) {
+            return null;
         }
 
-        // fallback to legacy free-text field
-        return $event->venue_address ?: null;
+        $isGermany = ! $country || in_array(strtolower($country), ['deutschland', 'germany', 'de']);
+        $streetLine = trim(($street ?? '').' '.($houseNumber ?? ''));
+
+        if ($isGermany) {
+            $cityLine = trim(($postalCode ?? '').' '.($city ?? ''));
+            $parts = array_filter([$streetLine, $cityLine]);
+        } else {
+            $parts = array_filter([$streetLine, $city, $state, $postalCode, $country]);
+        }
+
+        return implode(', ', $parts) ?: null;
     }
 }

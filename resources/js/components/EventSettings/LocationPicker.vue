@@ -47,11 +47,17 @@ const props = withDefaults(
         // Per-field ↺ reset UX tied to a single-page dirty guard (Settings.vue).
         // Off for modal/inline editors that save/cancel wholesale.
         enableFieldReset?: boolean;
+        // Teleport the search/country dropdowns to <body> to escape overflow
+        // clipping on a scrolling page. Turn OFF inside a modal dialog, where a
+        // body-teleported dropdown is treated as an outside click and can't be
+        // selected — inline absolute positioning is used instead.
+        teleport?: boolean;
     }>(),
     {
         showName: true,
         showDisplayMode: true,
         enableFieldReset: false,
+        teleport: true,
     },
 );
 
@@ -652,11 +658,14 @@ onBeforeUnmount(() => {
                 >
                     ↺
                 </button>
-                <Teleport to="body">
+                <Teleport to="body" :disabled="!teleport">
                     <div
                         v-if="countryOpen && filteredCountries.length"
-                        class="fixed z-[9999] max-h-52 overflow-y-auto rounded-md border bg-popover shadow-lg"
-                        :style="countryDropdownStyle"
+                        :class="[
+                            'z-[9999] max-h-52 overflow-y-auto rounded-md border bg-popover shadow-lg',
+                            teleport ? 'fixed' : 'absolute top-full right-0 left-0 mt-1',
+                        ]"
+                        :style="teleport ? countryDropdownStyle : undefined"
                     >
                         <button
                             v-for="c in filteredCountries"
@@ -746,11 +755,14 @@ onBeforeUnmount(() => {
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                 </svg>
             </div>
-            <Teleport to="body">
+            <Teleport to="body" :disabled="!teleport">
                 <div
                     v-if="mapSearchOpen && mapSearchResults.length"
-                    class="fixed z-[9999] max-h-60 overflow-y-auto rounded-md border bg-popover shadow-lg"
-                    :style="mapSearchDropdownStyle"
+                    :class="[
+                        'z-[9999] max-h-60 overflow-y-auto rounded-md border bg-popover shadow-lg',
+                        teleport ? 'fixed' : 'absolute top-full right-0 left-0 mt-1',
+                    ]"
+                    :style="teleport ? mapSearchDropdownStyle : undefined"
                 >
                     <button
                         v-for="r in mapSearchResults"
