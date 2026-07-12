@@ -8,27 +8,27 @@ use Illuminate\Support\Collection;
 
 /**
  * Decides which schedule stations a guest may see, based on their group's
- * visibility cutoff (groups.schedule_visible_from).
+ * hidden-station set (group_schedule_item_hidden).
  *
  * Rule:
- *  - A null cutoff (family, close friends, solo guests without a group) sees
- *    every station.
- *  - A set cutoff (e.g. work colleagues invited from 19:00) sees only stations
- *    with a defined time at/after the cutoff. Timeless stations stay hidden
- *    from restricted groups, so a forgotten time can never leak an earlier
- *    stop (like the registry office and its address).
+ *  - No group (family, close friends, solo guests without a group) sees every
+ *    station.
+ *  - A group sees every station except the ones explicitly hidden from it. This
+ *    supports arbitrary gaps — e.g. invited to the ceremony and the party but
+ *    not the lunch in between — which a single "from time X" cutoff could not.
  */
 class ScheduleVisibilityService
 {
     public function visibleStations(Event $event, ?Group $group): Collection
     {
-        $cutoff = $group?->schedule_visible_from;
+        $stations = $event->scheduleItems()->get();
 
-        return $event->scheduleItems()
-            ->when(
-                $cutoff !== null,
-                fn ($q) => $q->whereNotNull('starts_at')->where('starts_at', '>=', $cutoff),
-            )
-            ->get();
+        if ($group === null) {
+            return $stations;
+        }
+
+        $hidden = $group->hiddenScheduleItems()->pluck('schedule_items.id')->all();
+
+        return $stations->reject(fn ($station) => in_array($station->id, $hidden, true))->values();
     }
 }

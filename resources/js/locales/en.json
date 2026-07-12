@@ -37,11 +37,10 @@
         "saved": "Schedule saved.",
         "deleted": "Station deleted.",
         "visibilityTitle": "Visibility per group",
-        "visibilityIntro": "Set from which station a group sees the schedule. For example, work colleagues only see the evening party, not the registry office at noon.",
-        "visibilitySeesAll": "Sees everything",
-        "visibilityFrom": "from {time}",
-        "visibilityNeedsTimes": "Add stations with a time first to control visibility.",
-        "visibilityNoGroups": "No groups yet. You create groups in the guest list."
+        "visibilityIntro": "Tick which stations a group sees. Default: all. Untick to hide a station from a group — e.g. work colleagues only for the party, or guests without the lunch.",
+        "visibilityNeedsStations": "Add stations first to control visibility.",
+        "visibilityNoGroups": "No groups yet. You create groups in the guest list.",
+        "visibilityHiddenCount": "{count} hidden"
     },
     "common": {
         "create": "Create",

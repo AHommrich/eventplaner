@@ -103,26 +103,43 @@ it('forbids editing a station that belongs to another event', function () {
     expect($foreign->fresh()->title)->toBe('Theirs');
 });
 
-it('sets a group schedule visibility cutoff', function () {
+it('hides stations from a group', function () {
     $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
     $group = Group::factory()->create(['event_id' => $event->id]);
+    $a = ScheduleItem::create(['event_id' => $event->id, 'title' => 'A', 'sort_order' => 0]);
+    $b = ScheduleItem::create(['event_id' => $event->id, 'title' => 'B', 'sort_order' => 1]);
 
-    $this->patch(route('groups.schedule-visibility', $group), ['schedule_visible_from' => '19:00'])
+    $this->patch(route('groups.schedule-visibility', $group), ['hidden_station_ids' => [$a->id, $b->id]])
         ->assertRedirect();
 
-    expect((string) $group->fresh()->schedule_visible_from)->toContain('19:00');
+    expect($group->hiddenScheduleItems()->pluck('schedule_items.id')->all())
+        ->toEqualCanonicalizing([$a->id, $b->id]);
 });
 
-it('clears a group schedule visibility cutoff with null', function () {
+it('clears the hidden set with an empty array', function () {
     $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
-    $group = Group::factory()->create(['event_id' => $event->id, 'schedule_visible_from' => '19:00']);
+    $group = Group::factory()->create(['event_id' => $event->id]);
+    $item = ScheduleItem::create(['event_id' => $event->id, 'title' => 'A', 'sort_order' => 0]);
+    $group->hiddenScheduleItems()->sync([$item->id]);
 
-    $this->patch(route('groups.schedule-visibility', $group), ['schedule_visible_from' => null])
+    $this->patch(route('groups.schedule-visibility', $group), ['hidden_station_ids' => []])
         ->assertRedirect();
 
-    expect($group->fresh()->schedule_visible_from)->toBeNull();
+    expect($group->hiddenScheduleItems()->count())->toBe(0);
+});
+
+it('ignores station ids from another event when hiding', function () {
+    $user = actingAsOwner();
+    $event = $user->ownedEvents()->first();
+    $group = Group::factory()->create(['event_id' => $event->id]);
+    $foreignStation = ScheduleItem::create(['event_id' => Event::factory()->create()->id, 'title' => 'X', 'sort_order' => 0]);
+
+    $this->patch(route('groups.schedule-visibility', $group), ['hidden_station_ids' => [$foreignStation->id]])
+        ->assertRedirect();
+
+    expect($group->hiddenScheduleItems()->count())->toBe(0);
 });
 
 it('forbids setting visibility on a group of another event', function () {
@@ -130,6 +147,6 @@ it('forbids setting visibility on a group of another event', function () {
     $otherEvent = Event::factory()->create();
     $foreign = Group::factory()->create(['event_id' => $otherEvent->id]);
 
-    $this->patch(route('groups.schedule-visibility', $foreign), ['schedule_visible_from' => '19:00'])
+    $this->patch(route('groups.schedule-visibility', $foreign), ['hidden_station_ids' => []])
         ->assertForbidden();
 });

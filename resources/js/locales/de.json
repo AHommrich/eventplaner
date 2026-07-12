@@ -37,11 +37,10 @@
         "saved": "Zeitplan gespeichert.",
         "deleted": "Station gelöscht.",
         "visibilityTitle": "Sichtbarkeit pro Gruppe",
-        "visibilityIntro": "Lege fest, ab welcher Station eine Gruppe den Zeitplan sieht. So sehen z. B. Arbeitskollegen nur die Abendfeier, nicht das Standesamt am Mittag.",
-        "visibilitySeesAll": "Sieht alles",
-        "visibilityFrom": "ab {time}",
-        "visibilityNeedsTimes": "Lege zuerst Stationen mit Uhrzeit an, um die Sichtbarkeit zu steuern.",
-        "visibilityNoGroups": "Noch keine Gruppen angelegt. Gruppen erstellst du bei den Gästen."
+        "visibilityIntro": "Hake an, welche Stationen eine Gruppe sieht. Standard: alle. Entferne den Haken, um eine Station für eine Gruppe zu verbergen – z. B. Arbeitskollegen nur zur Feier, oder Gäste ohne Mittagessen.",
+        "visibilityNeedsStations": "Lege zuerst Stationen an, um die Sichtbarkeit zu steuern.",
+        "visibilityNoGroups": "Noch keine Gruppen angelegt. Gruppen erstellst du bei den Gästen.",
+        "visibilityHiddenCount": "{count} verborgen"
     },
     "common": {
         "create": "Erstellen",

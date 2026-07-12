@@ -43,8 +43,9 @@ class GroupController extends Controller
     }
 
     /**
-     * Sets a group's schedule visibility cutoff — the guest app then only
-     * shows this group stations at/after the given time. Null = sees all.
+     * Sets which stations are hidden from this group. The guest app then shows
+     * every station except these. Empty = the group sees everything. Station
+     * ids from other events are ignored.
      */
     public function updateScheduleVisibility(Request $request, Group $group)
     {
@@ -52,10 +53,15 @@ class GroupController extends Controller
         abort_if($group->event_id !== $event?->id, 403);
 
         $data = $request->validate([
-            'schedule_visible_from' => 'nullable|date_format:H:i',
+            'hidden_station_ids' => 'array',
+            'hidden_station_ids.*' => 'integer',
         ]);
 
-        $group->update(['schedule_visible_from' => $data['schedule_visible_from'] ?? null]);
+        $validIds = $event->scheduleItems()
+            ->whereIn('id', $data['hidden_station_ids'] ?? [])
+            ->pluck('id');
+
+        $group->hiddenScheduleItems()->sync($validIds);
 
         return redirect()->back()->with('success', true);
     }

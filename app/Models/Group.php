@@ -9,7 +9,7 @@ class Group extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['event_id', 'name', 'schedule_visible_from'];
+    protected $fillable = ['event_id', 'name'];
 
     public function event()
     {
@@ -19,6 +19,14 @@ class Group extends Model
     public function guests()
     {
         return $this->hasMany(Guest::class);
+    }
+
+    /**
+     * Schedule stations this group must NOT see. Empty = sees every station.
+     */
+    public function hiddenScheduleItems()
+    {
+        return $this->belongsToMany(ScheduleItem::class, 'group_schedule_item_hidden');
     }
 
     public function invitationToken()

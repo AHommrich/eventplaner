@@ -23,10 +23,10 @@ class ScheduleController extends Controller
             : collect();
 
         $groups = $event
-            ? $event->groups()->orderBy('name')->get()->map(fn ($g) => [
+            ? $event->groups()->orderBy('name')->with('hiddenScheduleItems:id')->get()->map(fn ($g) => [
                 'id' => $g->id,
                 'name' => $g->name,
-                'schedule_visible_from' => $g->schedule_visible_from ? substr($g->schedule_visible_from, 0, 5) : null,
+                'hidden_station_ids' => $g->hiddenScheduleItems->pluck('id')->values(),
             ])
             : collect();
 

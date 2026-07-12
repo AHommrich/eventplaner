@@ -11,7 +11,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { ChevronDown, ChevronUp, MapPin, Pencil, Plus, Trash2, Users } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
@@ -38,7 +38,7 @@ interface ScheduleItem {
 interface GroupVisibility {
     id: number;
     name: string;
-    schedule_visible_from: string | null;
+    hidden_station_ids: number[];
 }
 
 const items = computed(() => page.props.items as ScheduleItem[]);
@@ -154,33 +154,26 @@ function locationSummary(item: ScheduleItem): string {
 
 // ─── Per-group visibility ─────────────────────────────────────────────────────
 
-// A cutoff option per distinct station time — picking one means "this group is
-// invited from that station on".
-const stationTimeOptions = computed(() => {
-    const seen = new Set<string>();
-    const opts: { value: string; label: string }[] = [];
-    for (const item of items.value) {
-        if (item.starts_at && !seen.has(item.starts_at)) {
-            seen.add(item.starts_at);
-            opts.push({ value: item.starts_at, label: `${t('schedule.visibilityFrom', { time: item.starts_at })} · ${item.title}` });
-        }
-    }
-    return opts.sort((a, b) => a.value.localeCompare(b.value));
-});
+// Each group is an accordion panel, collapsed by default.
+const expandedGroups = reactive(new Set<number>());
 
-// Keep a stored cutoff selectable even if its station was later removed/retimed.
-function optionsForGroup(group: GroupVisibility) {
-    const opts = [...stationTimeOptions.value];
-    if (group.schedule_visible_from && !opts.some((o) => o.value === group.schedule_visible_from)) {
-        opts.push({ value: group.schedule_visible_from, label: t('schedule.visibilityFrom', { time: group.schedule_visible_from }) });
-    }
-    return opts;
+function toggleGroupPanel(id: number) {
+    if (expandedGroups.has(id)) expandedGroups.delete(id);
+    else expandedGroups.add(id);
 }
 
-function setGroupVisibility(group: GroupVisibility, value: string) {
+// A group sees every station except the ones in its hidden set. Checked = the
+// group is invited to that station; unchecking hides it (default: all visible).
+function toggleStationVisibility(group: GroupVisibility, stationId: number, visible: boolean) {
+    const hidden = new Set(group.hidden_station_ids);
+    if (visible) {
+        hidden.delete(stationId);
+    } else {
+        hidden.add(stationId);
+    }
     router.patch(
         route('groups.schedule-visibility', group.id),
-        { schedule_visible_from: value || null },
+        { hidden_station_ids: [...hidden] },
         { preserveScroll: true, onSuccess: () => toast.success(t('schedule.saved')) },
     );
 }
@@ -283,20 +276,40 @@ function setGroupVisibility(group: GroupVisibility, value: string) {
                     <p v-if="!groups.length" class="rounded-md bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
                         {{ t('schedule.visibilityNoGroups') }}
                     </p>
-                    <p v-else-if="!stationTimeOptions.length" class="rounded-md bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
-                        {{ t('schedule.visibilityNeedsTimes') }}
+                    <p v-else-if="!items.length" class="rounded-md bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+                        {{ t('schedule.visibilityNeedsStations') }}
                     </p>
                     <div v-else class="divide-y">
-                        <div v-for="group in groups" :key="group.id" class="flex items-center justify-between gap-3 py-2">
-                            <span class="min-w-0 flex-1 truncate text-sm">{{ group.name }}</span>
-                            <select
-                                :value="group.schedule_visible_from ?? ''"
-                                class="h-9 rounded-md border border-input bg-transparent px-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-                                @change="setGroupVisibility(group, ($event.target as HTMLSelectElement).value)"
+                        <div v-for="group in groups" :key="group.id">
+                            <!-- Group header (clickable) -->
+                            <button
+                                type="button"
+                                class="flex w-full items-center justify-between gap-2 py-2.5 text-left transition-colors hover:text-foreground"
+                                @click="toggleGroupPanel(group.id)"
                             >
-                                <option value="">{{ t('schedule.visibilitySeesAll') }}</option>
-                                <option v-for="opt in optionsForGroup(group)" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-                            </select>
+                                <span class="min-w-0 flex-1 truncate text-sm font-medium">{{ group.name }}</span>
+                                <span v-if="group.hidden_station_ids.length" class="shrink-0 text-xs text-muted-foreground">
+                                    {{ t('schedule.visibilityHiddenCount', { count: group.hidden_station_ids.length }) }}
+                                </span>
+                                <ChevronDown
+                                    class="size-4 shrink-0 text-muted-foreground transition-transform duration-200"
+                                    :class="{ 'rotate-180': expandedGroups.has(group.id) }"
+                                />
+                            </button>
+
+                            <!-- Station checkboxes (expanded) -->
+                            <div v-if="expandedGroups.has(group.id)" class="space-y-1.5 pb-3">
+                                <label v-for="item in items" :key="item.id" class="flex cursor-pointer items-center gap-2.5 text-sm">
+                                    <input
+                                        type="checkbox"
+                                        class="size-4 shrink-0 accent-primary"
+                                        :checked="!group.hidden_station_ids.includes(item.id)"
+                                        @change="toggleStationVisibility(group, item.id, ($event.target as HTMLInputElement).checked)"
+                                    />
+                                    <span class="w-12 shrink-0 font-mono text-xs text-muted-foreground">{{ item.starts_at ?? '—' }}</span>
+                                    <span class="min-w-0 truncate">{{ item.title }}</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </CardContent>
