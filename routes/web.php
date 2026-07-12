@@ -18,6 +18,7 @@ use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\PhotoGameController;
 use App\Http\Controllers\ProjectorController;
 use App\Http\Controllers\RequestController;
+use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\TableController;
 use Inertia\Inertia;
 
@@ -66,6 +67,13 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::get('/event/access', [EventAccessController::class, 'index'])->name('event.access');
     Route::post('/event/access/invite', [EventAccessController::class, 'invite'])->name('event.access.invite');
     Route::delete('/event/access/{user}', [EventAccessController::class, 'remove'])->name('event.access.remove');
+
+    // Schedule (stations shown in the guest app)
+    Route::get('/schedule', [ScheduleController::class, 'index'])->name('schedule.index');
+    Route::post('/schedule', [ScheduleController::class, 'store'])->name('schedule.store');
+    Route::patch('/schedule/reorder', [ScheduleController::class, 'reorder'])->name('schedule.reorder');
+    Route::patch('/schedule/{scheduleItem}', [ScheduleController::class, 'update'])->name('schedule.update');
+    Route::delete('/schedule/{scheduleItem}', [ScheduleController::class, 'destroy'])->name('schedule.destroy');
 
     // Drinks
     Route::get('/drinks', [DrinkController::class, 'index'])->name('drinks.index');

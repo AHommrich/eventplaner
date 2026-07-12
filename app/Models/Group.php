@@ -9,7 +9,7 @@ class Group extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['event_id', 'name'];
+    protected $fillable = ['event_id', 'name', 'schedule_visible_from'];
 
     public function event()
     {
