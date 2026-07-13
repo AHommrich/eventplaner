@@ -160,3 +160,30 @@ it('forbids setting visibility on a group of another event', function () {
     $this->patch(route('groups.schedule-visibility', $foreign), ['hidden_station_ids' => []])
         ->assertForbidden();
 });
+
+it('updates the event venue from the schedule page', function () {
+    $user = actingAsOwner();
+    $event = $user->ownedEvents()->first();
+
+    $this->patch(route('schedule.venue'), [
+        'venue_name' => 'Grillhütte',
+        'venue_street' => 'Am Wald',
+        'venue_house_number' => '5',
+        'venue_city' => 'Montabaur',
+        'venue_display_mode' => 'both',
+        'venue_lat' => 50.4386,
+        'venue_lng' => 7.8231,
+    ])->assertRedirect();
+
+    $fresh = $event->fresh();
+    expect($fresh->venue_name)->toBe('Grillhütte');
+    expect($fresh->venue_city)->toBe('Montabaur');
+    expect((float) $fresh->venue_lat)->toBe(50.4386);
+});
+
+it('rejects an out-of-range venue latitude', function () {
+    actingAsOwner();
+
+    $this->patch(route('schedule.venue'), ['venue_lat' => 999])
+        ->assertSessionHasErrors('venue_lat');
+});

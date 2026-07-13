@@ -1,16 +1,12 @@
 <?php
 
-use App\Models\Event;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
-
 it('shows the event settings page', function () {
     actingAsOwner();
 
     $this->get(route('event.settings'))->assertOk();
 });
 
-it('updates basic event fields (name, date, dresscode, schedule)', function () {
+it('updates core event fields (name, date, dresscode)', function () {
     $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
 
@@ -18,7 +14,6 @@ it('updates basic event fields (name, date, dresscode, schedule)', function () {
         'name' => 'Brandneuer Name',
         'date' => '2027-08-15',
         'dresscode' => 'Smart Casual',
-        'schedule' => '14:00 Trauung • 16:00 Sektempfang',
     ])->assertRedirect(route('event.settings'));
 
     $fresh = $event->fresh();
@@ -26,48 +21,19 @@ it('updates basic event fields (name, date, dresscode, schedule)', function () {
     expect($fresh->dresscode)->toBe('Smart Casual');
 });
 
-it('updates all color palette and role fields', function () {
+it('updates the feature toggles', function () {
     $user = actingAsOwner();
     $event = $user->ownedEvents()->first();
 
     $this->post(route('event.settings.update'), [
-        'name' => 'Test',
-        'color_primary' => '#112233',
-        'color_secondary' => '#445566',
-        'color_tertiary' => '#778899',
-        'role_screen_bg' => 'secondary',
-        'role_card_bg' => 'tertiary',
-        'role_card_text' => 'primary',
+        'name' => $event->name,
+        'drink_game_enabled' => true,
+        'photo_game_enabled' => true,
     ])->assertRedirect();
 
     $fresh = $event->fresh();
-    expect($fresh->color_primary)->toBe('#112233');
-    expect($fresh->role_screen_bg)->toBe('secondary');
-    expect($fresh->role_card_text)->toBe('primary');
-});
-
-it('rejects invalid hex colors', function () {
-    actingAsOwner();
-
-    $this->post(route('event.settings.update'), [
-        'name' => 'Test',
-        'color_primary' => 'not-a-hex',
-    ])->assertSessionHasErrors(['color_primary']);
-});
-
-it('uploads a cover image to object storage', function () {
-    Storage::fake('s3');
-    $user = actingAsOwner();
-    $event = $user->ownedEvents()->first();
-
-    $this->post(route('event.settings.update'), [
-        'name' => 'Test',
-        'cover' => UploadedFile::fake()->image('cover.jpg', 800, 600),
-    ])->assertRedirect();
-
-    $fresh = $event->fresh();
-    expect($fresh->cover_image_r2_key)->toStartWith('covers/');
-    Storage::disk('s3')->assertExists($fresh->cover_image_r2_key);
+    expect($fresh->drink_game_enabled)->toBeTrue();
+    expect($fresh->photo_game_enabled)->toBeTrue();
 });
 
 it('rejects update without event access (no active event)', function () {

@@ -13,11 +13,17 @@
         "requests": "Meldungen",
         "eventSettings": "Event-Einstellungen",
         "requestEvent": "Event beantragen",
-        "photoGame": "Fotospiel"
+        "photoGame": "Fotospiel",
+        "appSection": "App",
+        "appDesign": "Design"
     },
     "schedule": {
         "title": "Zeitplan",
         "intro": "Lege die Stationen deines Events an – z. B. Standesamt, Mittagessen, Feier. Jede Station hat eine Uhrzeit und einen Ort und erscheint in der Begleit-App der Gäste.",
+        "venueTitle": "Hauptlocation",
+        "venueIntro": "Der zentrale Ort deines Events. Er dient als Fallback in der Gäste-App, wenn keine Stationen angelegt sind.",
+        "venueNotSet": "Noch nicht gesetzt – zum Bearbeiten aufklappen",
+        "useVenue": "Hauptlocation übernehmen",
         "infoHint": "Gäste sehen nur die Stationen, zu denen sie eingeladen sind. Ab wann eine Gruppe den Zeitplan sieht, legst du bei der jeweiligen Gruppe fest.",
         "empty": "Noch keine Stationen. Füge die erste hinzu.",
         "addStation": "Station hinzufügen",
