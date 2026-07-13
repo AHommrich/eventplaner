@@ -48,6 +48,8 @@ Coolify deployt automatisch nach Push. Migrations laufen automatisch.
 
 **⚠️ Redeploy-Disziplin:** Nie staging und production gleichzeitig redeployen — beide Container zusammen erschöpfen das VPS-RAM. Deshalb bei Multi-Env-Changes (Env-Vars, Force-Pushes, APP_KEY-Rotation) **immer sequentiell**: erst staging, verify dass `beta.hommrich.app` grün ist, dann prod.
 
+**Sicherheitshebel gegen destruktive Ops (tool-übergreifend, auch für Codex/OpenCode):** `.githooks/pre-push` blockt Force-Push/History-Rewrite und Branch-Löschung auf `develop`/`staging`/`production` und verlangt eine Tipp-Bestätigung bei jedem Push auf `production`. Einmaliges Setup pro Clone: `git config core.hooksPath .githooks`. Details + manuelle GitHub-Branch-Protection-Checkliste in `docs/SAFETY_LEVER.md`. Nicht-triviale Entscheidungen/Erkenntnisse gehören ins append-only `docs/DECISIONS.md`, damit sie ein Session-Limit überleben — siehe auch `AGENTS.md` für die tool-übergreifende Kurzfassung dieser Regeln.
+
 ---
 
 ## Datenmodelle

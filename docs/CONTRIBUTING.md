@@ -25,6 +25,10 @@ feature-branch → develop → staging → production
   UI has no direction guard, and PR #4 (2026-07-07) already once
   overwrote `develop`'s dev compose with the prod version that way.
 - **Never redeploy staging and production in parallel.** Parallel Coolify redeploys exhaust the VPS RAM and have caused outages.
+- **Force-push and branch deletion on `develop`/`staging`/`production` are
+  blocked by `.githooks/pre-push`** (enable once via `git config
+  core.hooksPath .githooks`, see `docs/SAFETY_LEVER.md`). It doesn't
+  interfere with the promotion merges above — only with history rewrites.
 
 ## Commit convention
 

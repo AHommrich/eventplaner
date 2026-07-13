@@ -98,4 +98,9 @@ class Event extends Model
     {
         return $this->hasOne(EventPhotoGame::class);
     }
+
+    public function scheduleItems()
+    {
+        return $this->hasMany(ScheduleItem::class)->orderBy('sort_order');
+    }
 }

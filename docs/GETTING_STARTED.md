@@ -26,7 +26,13 @@ database live inside the Docker network.
 git clone git@github.com:AHommrich/eventplaner.git
 cd eventplaner
 cp .env.example .env
+git config core.hooksPath .githooks
 ```
+
+The last line enables the pre-push safety net (blocks force-push /
+branch deletion on `develop`/`staging`/`production`, confirms before
+any push to `production`). It's a local git config, not something a
+clone inherits automatically — see `docs/SAFETY_LEVER.md`.
 
 The default `.env` boots against the bundled MariaDB container, uses a
 throwaway `APP_KEY` placeholder, and disables all outbound integrations
@@ -154,4 +160,5 @@ npx playwright install chromium
 - `CLAUDE.md` — project-wide conventions, data model, feature list
 - `docs/ARCHITECTURE.md` — subsystem internals
 - `docs/CONTRIBUTING.md` — branch model, commit convention, PR flow
+- `docs/SAFETY_LEVER.md` — pre-push hook, decisions log, branch protection
 - `SECURITY.md` — vulnerability disclosure
