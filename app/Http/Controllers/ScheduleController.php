@@ -33,7 +33,40 @@ class ScheduleController extends Controller
         return Inertia::render('Schedule/Index', [
             'items' => $items->values(),
             'groups' => $groups->values(),
+            'venue' => $event ? $event->only([
+                'venue_name', 'venue_lat', 'venue_lng',
+                'venue_street', 'venue_house_number',
+                'venue_postal_code', 'venue_city', 'venue_state', 'venue_country',
+                'venue_display_mode',
+            ]) : null,
         ]);
+    }
+
+    /**
+     * Persist the event's main location. The venue is the fallback shown in the
+     * guest app when no stations exist, and doubles as the "main station".
+     */
+    public function updateVenue(Request $request)
+    {
+        $event = $this->activeEvent();
+        abort_if(! $event, 404);
+
+        $data = $request->validate([
+            'venue_name' => 'nullable|string|max:255',
+            'venue_lat' => 'nullable|numeric|between:-90,90',
+            'venue_lng' => 'nullable|numeric|between:-180,180',
+            'venue_street' => 'nullable|string|max:255',
+            'venue_house_number' => 'nullable|string|max:20',
+            'venue_postal_code' => 'nullable|string|max:20',
+            'venue_city' => 'nullable|string|max:255',
+            'venue_state' => 'nullable|string|max:255',
+            'venue_country' => 'nullable|string|max:100',
+            'venue_display_mode' => ['nullable', \Illuminate\Validation\Rule::in(['address', 'name', 'both'])],
+        ]);
+
+        $event->update($data);
+
+        return redirect()->back()->with('success', true);
     }
 
     public function store(Request $request)

@@ -71,6 +71,7 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
 
     // Schedule (stations shown in the guest app)
     Route::get('/schedule', [ScheduleController::class, 'index'])->name('schedule.index');
+    Route::patch('/schedule/venue', [ScheduleController::class, 'updateVenue'])->name('schedule.venue');
     Route::post('/schedule', [ScheduleController::class, 'store'])->name('schedule.store');
     Route::patch('/schedule/reorder', [ScheduleController::class, 'reorder'])->name('schedule.reorder');
     Route::patch('/schedule/{scheduleItem}', [ScheduleController::class, 'update'])->name('schedule.update');
@@ -84,9 +85,13 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::get('/drinks/game', [DrinkController::class, 'game'])->name('drinks.game');
     Route::patch('/drinks/game', [DrinkController::class, 'updateGameSettings'])->name('drinks.game.update');
 
-    // event settings
+    // event settings (slim: core data + feature toggles)
     Route::get('/event/settings', [EventSettingsController::class, 'show'])->name('event.settings');
     Route::post('/event/settings', [EventSettingsController::class, 'update'])->name('event.settings.update');
+
+    // app → design (cover, colors, font, style presets, preview)
+    Route::get('/app/design', [EventSettingsController::class, 'design'])->name('app.design');
+    Route::post('/app/design', [EventSettingsController::class, 'updateDesign'])->name('app.design.update');
     Route::post('/event/settings/cover', [EventSettingsController::class, 'uploadCover'])->name('event.settings.cover');
     Route::delete('/event/settings/cover', [EventSettingsController::class, 'deleteCover'])->name('event.settings.cover.delete');
 

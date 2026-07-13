@@ -13,11 +13,17 @@
         "requests": "Notifications",
         "eventSettings": "Event Settings",
         "requestEvent": "Request event",
-        "photoGame": "Photo Game"
+        "photoGame": "Photo Game",
+        "appSection": "App",
+        "appDesign": "Design"
     },
     "schedule": {
         "title": "Schedule",
         "intro": "Add the stations of your event — e.g. registry office, lunch, party. Each station has a time and a location and appears in the guests' companion app.",
+        "venueTitle": "Main location",
+        "venueIntro": "The central place of your event. It is used as a fallback in the guest app when no stations are set up.",
+        "venueNotSet": "Not set yet – expand to edit",
+        "useVenue": "Use main location",
         "infoHint": "Guests only see the stations they are invited to. When a group starts seeing the schedule is configured on that group.",
         "empty": "No stations yet. Add the first one.",
         "addStation": "Add station",

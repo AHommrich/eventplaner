@@ -9,12 +9,18 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 /**
- * Editing of event master data (Inertia settings page).
+ * Editing of event master data, split across two Inertia pages:
  *
- *  - `show()`        → settings page with style presets
- *  - `update()`      → validates and persists ALL fields: address, colors (palette + 9 roles),
- *                      cover (incl. HEIC→JPEG via Imagick), drink-game / photo-game flags
- *  - `uploadCover()` / `deleteCover()` → standalone cover endpoints (object-storage cleanup on delete)
+ *  - `show()` / `update()`             → slim "Event settings": core data (name, date,
+ *                                        RSVP deadline, dresscode) + feature toggles
+ *                                        (drink game, photo game) + projector token.
+ *  - `design()` / `updateDesign()`     → "App → Design": cover (incl. HEIC→JPEG via
+ *                                        Imagick), home text/shadow, colors (palette + 9
+ *                                        roles), heading font, with style presets + preview.
+ *  - `uploadCover()` / `deleteCover()` → standalone cover endpoints (object-storage cleanup).
+ *
+ * The venue/location lives on the schedule page now (the main venue is the first
+ * station) — see {@see ScheduleController}.
  *
  * Color roles store palette keys (`primary` / `secondary` / `tertiary`), not hex —
  * resolution is handled by {@see \App\Services\ColorRoleResolver} for the API response.
@@ -29,22 +35,55 @@ class EventSettingsController extends Controller
         return Inertia::render('Event/Settings', [
             'event' => $event->only([
                 'id', 'name', 'date', 'rsvp_deadline',
+                'dresscode',
+                'drink_game_enabled',
+                'drink_game_end_time',
+                'photo_game_enabled',
+                'projector_token',
+            ]),
+        ]);
+    }
+
+    public function update(Request $request)
+    {
+        $event = $this->activeEvent();
+        abort_if(! $event, 404);
+
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'date' => 'nullable|date',
+            'rsvp_deadline' => 'nullable|date',
+            'dresscode' => 'nullable|string|max:1000',
+            'drink_game_enabled' => 'boolean',
+            'drink_game_end_time' => 'nullable|date',
+            'photo_game_enabled' => 'boolean',
+        ]);
+
+        $event->update($data);
+
+        return redirect()->route('event.settings')->with('success', 'Einstellungen gespeichert.');
+    }
+
+    public function design()
+    {
+        $event = $this->activeEvent();
+        abort_if(! $event, 404);
+
+        return Inertia::render('App/Design', [
+            'event' => $event->only([
+                'id', 'name', 'date', 'dresscode',
                 'cover_image_url',
-                'venue_name', 'venue_lat', 'venue_lng',
-                'venue_street', 'venue_house_number',
-                'venue_postal_code', 'venue_city', 'venue_state', 'venue_country',
+                // Read-only preview context (edited on other pages):
                 'venue_display_mode',
-                'dresscode', 'schedule',
+                'venue_name', 'venue_street', 'venue_house_number',
+                'venue_postal_code', 'venue_city', 'venue_country',
+                // Design fields:
                 'color_primary', 'color_secondary', 'color_tertiary', 'color_home_text',
                 'color_home_shadow', 'home_shadow_opacity',
                 'role_screen_bg', 'role_card_bg', 'role_card_text',
                 'role_card_button', 'role_card_button_text',
                 'role_tab_tint', 'role_border', 'role_fab', 'role_fab_icon',
                 'font_heading',
-                'drink_game_enabled',
-                'drink_game_end_time',
-                'photo_game_enabled',
-                'projector_token',
             ]),
             'stylePresets' => $event->stylePresets()
                 ->orderBy('created_at', 'desc')
@@ -59,27 +98,12 @@ class EventSettingsController extends Controller
         ]);
     }
 
-    public function update(Request $request, PhotoSanitizer $sanitizer)
+    public function updateDesign(Request $request, PhotoSanitizer $sanitizer)
     {
         $event = $this->activeEvent();
         abort_if(! $event, 404);
 
         $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'date' => 'nullable|date',
-            'rsvp_deadline' => 'nullable|date',
-            'venue_name' => 'nullable|string|max:255',
-            'venue_lat' => 'nullable|numeric|between:-90,90',
-            'venue_lng' => 'nullable|numeric|between:-180,180',
-            'venue_street' => 'nullable|string|max:255',
-            'venue_house_number' => 'nullable|string|max:20',
-            'venue_postal_code' => 'nullable|string|max:20',
-            'venue_city' => 'nullable|string|max:255',
-            'venue_state' => 'nullable|string|max:255',
-            'venue_country' => 'nullable|string|max:100',
-            'venue_display_mode' => ['nullable', \Illuminate\Validation\Rule::in(['address', 'name', 'both'])],
-            'dresscode' => 'nullable|string|max:1000',
-            'schedule' => 'nullable|string|max:5000',
             'color_primary' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'color_secondary' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'color_tertiary' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
@@ -99,35 +123,38 @@ class EventSettingsController extends Controller
                 'playfair', 'cormorant', 'cinzel', 'dancing',
                 'great_vibes', 'raleway', 'lora', 'josefin',
             ])],
-            'drink_game_enabled' => 'boolean',
-            'drink_game_end_time' => 'nullable|date',
-            'photo_game_enabled' => 'boolean',
             'cover' => 'nullable|file|mimes:jpeg,jpg,png,heic,heif|max:10240',
         ]);
 
         $event->update(collect($data)->except('cover')->all());
 
         if ($request->hasFile('cover')) {
-            $file = $request->file('cover');
-
-            // Re-encode to JPEG without EXIF — see PhotoSanitizer.
-            $contents = $sanitizer->toJpegWithoutExif($file->getPathname());
-
-            if ($event->cover_image_r2_key) {
-                Storage::disk('s3')->delete($event->cover_image_r2_key);
-            }
-
-            $key = 'covers/'.Str::uuid().'.jpg';
-            Storage::disk('s3')->put($key, $contents, 'public');
-            $url = Storage::disk('s3')->url($key);
-
-            $event->update([
-                'cover_image_url' => $url,
-                'cover_image_r2_key' => $key,
-            ]);
+            $this->storeCover($event, $request->file('cover'), $sanitizer);
         }
 
-        return redirect()->route('event.settings')->with('success', 'Einstellungen gespeichert.');
+        return redirect()->route('app.design')->with('success', 'Einstellungen gespeichert.');
+    }
+
+    /**
+     * Re-encode an uploaded cover to EXIF-free JPEG, replace any existing blob
+     * in object storage and persist the new URL/key on the event.
+     */
+    private function storeCover($event, \Illuminate\Http\UploadedFile $file, PhotoSanitizer $sanitizer): void
+    {
+        // Re-encode to JPEG without EXIF — see PhotoSanitizer.
+        $contents = $sanitizer->toJpegWithoutExif($file->getPathname());
+
+        if ($event->cover_image_r2_key) {
+            Storage::disk('s3')->delete($event->cover_image_r2_key);
+        }
+
+        $key = 'covers/'.Str::uuid().'.jpg';
+        Storage::disk('s3')->put($key, $contents, 'public');
+
+        $event->update([
+            'cover_image_url' => Storage::disk('s3')->url($key),
+            'cover_image_r2_key' => $key,
+        ]);
     }
 
     public function uploadCover(Request $request, PhotoSanitizer $sanitizer)
@@ -139,26 +166,9 @@ class EventSettingsController extends Controller
         $event = $this->activeEvent();
         abort_if(! $event, 404);
 
-        $file = $request->file('cover');
+        $this->storeCover($event, $request->file('cover'), $sanitizer);
 
-        // Re-encode to JPEG without EXIF — see PhotoSanitizer.
-        $contents = $sanitizer->toJpegWithoutExif($file->getPathname());
-
-        // delete old cover
-        if ($event->cover_image_r2_key) {
-            Storage::disk('s3')->delete($event->cover_image_r2_key);
-        }
-
-        $key = 'covers/'.Str::uuid().'.jpg';
-        Storage::disk('s3')->put($key, $contents, 'public');
-        $url = Storage::disk('s3')->url($key);
-
-        $event->update([
-            'cover_image_url' => $url,
-            'cover_image_r2_key' => $key,
-        ]);
-
-        return response()->json(['cover_image_url' => $url]);
+        return response()->json(['cover_image_url' => $event->cover_image_url]);
     }
 
     /** WCAG contrast ratio between two hex colors (#rrggbb) */
