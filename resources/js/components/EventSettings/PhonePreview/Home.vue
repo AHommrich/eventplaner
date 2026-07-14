@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import PreviewTabBar from './PreviewTabBar.vue';
+
 interface TabDef {
     label: string;
     viewBox?: string;
@@ -20,11 +22,13 @@ const props = defineProps<{
     previewVenueAddress: string;
     previewCountdown: string | null;
     cScreenBg: string;
+    cCardBg: string;
     cCardText: string;
     cTabTint: string;
     cBorder: string;
     tabDefs: TabDef[];
     activeHint: string | null;
+    designPreset: string;
 }>();
 
 function hintBgClass(hint: string): string {
@@ -148,30 +152,17 @@ function hintFilterClass(hint: string): string {
                                 {{ previewCountdown || 'Noch 6T 11Std 22Min 30Sek' }}
                             </p>
                         </div>
-                        <div class="relative flex h-[26px] w-full items-end justify-around border-t border-white/15 bg-black/30 pb-1.5">
-                            <div v-for="(tab, i) in tabDefs" :key="'h' + i" class="flex flex-col items-center gap-0.5">
-                                <svg
-                                    width="9"
-                                    height="9"
-                                    :viewBox="tab.viewBox ?? '0 0 24 24'"
-                                    fill="none"
-                                    :stroke-width="tab.strokeWidth ?? 2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    :stroke="i === 0 ? colorHomeText || '#ffffff' : colorHomeText ? colorHomeText + '77' : 'rgba(255,255,255,0.45)'"
-                                >
-                                    <path v-for="(p, pi) in tab.paths" :key="pi" :d="p" />
-                                </svg>
-                                <span
-                                    class="text-[5px]"
-                                    :style="{
-                                        color: i === 0 ? colorHomeText || '#ffffff' : colorHomeText ? colorHomeText + '77' : 'rgba(255,255,255,0.45)',
-                                        fontWeight: i === 0 ? '700' : '400',
-                                    }"
-                                    >{{ tab.label }}</span
-                                >
-                            </div>
-                        </div>
+                        <PreviewTabBar
+                            :tab-defs="tabDefs"
+                            :active-index="0"
+                            :design-preset="designPreset"
+                            :c-screen-bg="cScreenBg"
+                            :c-card-bg="cCardBg"
+                            :c-tab-tint="cTabTint"
+                            :c-border="cBorder"
+                            :over-cover="true"
+                            :color-home-text="colorHomeText"
+                        />
                     </div>
                     <!-- Without cover: normal app colors -->
                     <div
@@ -268,37 +259,16 @@ function hintFilterClass(hint: string): string {
                                 {{ previewCountdown || 'Noch 6T 11Std 22Min 30Sek' }}
                             </p>
                         </div>
-                        <div
-                            class="flex h-[26px] w-full items-end justify-around border-t pb-1.5"
-                            :style="{ backgroundColor: cScreenBg, borderColor: cBorder + '33' }"
-                        >
-                            <div
-                                v-for="(tab, i) in tabDefs"
-                                :key="'hn' + i"
-                                class="flex flex-col items-center gap-0.5"
-                                :class="hintFilterClass('tabTint')"
-                            >
-                                <svg
-                                    width="9"
-                                    height="9"
-                                    :viewBox="tab.viewBox ?? '0 0 24 24'"
-                                    fill="none"
-                                    :stroke-width="tab.strokeWidth ?? 2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    :stroke="i === 0 ? cTabTint : cTabTint + '55'"
-                                >
-                                    <path v-for="(p, pi) in tab.paths" :key="pi" :d="p" />
-                                </svg>
-                                <span
-                                    class="text-[5px]"
-                                    :style="{
-                                        color: i === 0 ? cTabTint : cTabTint + '55',
-                                        fontWeight: i === 0 ? '700' : '400',
-                                    }"
-                                    >{{ tab.label }}</span
-                                >
-                            </div>
+                        <div :class="hintFilterClass('tabTint')">
+                            <PreviewTabBar
+                                :tab-defs="tabDefs"
+                                :active-index="0"
+                                :design-preset="designPreset"
+                                :c-screen-bg="cScreenBg"
+                                :c-card-bg="cCardBg"
+                                :c-tab-tint="cTabTint"
+                                :c-border="cBorder"
+                            />
                         </div>
                     </div>
                 </div>

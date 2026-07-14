@@ -91,6 +91,7 @@ class EventInfoController extends Controller
             'color_home_shadow' => $colors['cover']['home_shadow'],
             'home_shadow_opacity' => $colors['cover']['home_shadow_opacity'],
             'font_heading' => $event->font_heading,
+            'design_preset' => $event->design_preset ?? 'classic',
             'venue_display_mode' => $event->venue_display_mode ?? 'both',
             'drink_game_enabled' => (bool) $event->drink_game_enabled,
             'drink_game_end_time' => $event->drink_game_end_time ? Carbon::parse($event->drink_game_end_time)->toIso8601String() : null,

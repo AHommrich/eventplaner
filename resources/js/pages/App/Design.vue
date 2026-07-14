@@ -50,6 +50,7 @@ interface EventData {
     role_fab: string | null;
     role_fab_icon: string | null;
     font_heading: string | null;
+    design_preset: string | null;
 }
 
 interface StylePreset {
@@ -97,8 +98,24 @@ const form = useForm({
     role_fab: props.event.role_fab ?? 'primary',
     role_fab_icon: props.event.role_fab_icon ?? 'tertiary',
     font_heading: props.event.font_heading ?? '',
+    design_preset: props.event.design_preset ?? 'classic',
     cover: null as File | null,
 });
+
+// App design preset — the "form language" (radius, glass, shadows, animations)
+// the guest app renders on top of the colours. Orthogonal to the palette.
+const designPresets = [
+    {
+        key: 'classic',
+        label: 'Classic',
+        description: 'Klare Karten, dezente Ränder — der bisherige Look.',
+    },
+    {
+        key: 'soft-luxury',
+        label: 'Soft Luxury',
+        description: 'Weiche Rundungen, Milchglas, Verläufe & Animationen.',
+    },
+] as const;
 
 const skipGuard = ref(false);
 const isDirty = computed(() => form.isDirty);
@@ -484,10 +501,33 @@ function importStyle(e: Event) {
                             </CardContent>
                         </Card>
 
-                        <!-- Design: font + colors -->
+                        <!-- Design: preset + font + colors -->
                         <Card>
                             <CardContent>
                                 <div class="space-y-4 pt-4">
+                                    <!-- Design preset (form language) -->
+                                    <div class="grid gap-2">
+                                        <Label>App-Design</Label>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <button
+                                                v-for="preset in designPresets"
+                                                :key="preset.key"
+                                                type="button"
+                                                @click="form.design_preset = preset.key"
+                                                class="rounded-lg border-2 px-3 py-3 text-left transition-colors"
+                                                :class="
+                                                    form.design_preset === preset.key
+                                                        ? 'border-ring bg-muted/20'
+                                                        : 'border-input hover:border-muted-foreground'
+                                                "
+                                            >
+                                                <div class="text-sm font-semibold">{{ preset.label }}</div>
+                                                <div class="text-muted-foreground mt-0.5 text-xs leading-tight">
+                                                    {{ preset.description }}
+                                                </div>
+                                            </button>
+                                        </div>
+                                    </div>
                                     <!-- Font -->
                                     <div class="grid gap-2">
                                         <Label>{{ t('event.fontHeading') }}</Label>
@@ -714,11 +754,13 @@ function importStyle(e: Event) {
                                 :preview-venue-address="previewVenueAddress"
                                 :preview-countdown="previewCountdown"
                                 :c-screen-bg="cScreenBg"
+                                :c-card-bg="cCardBg"
                                 :c-card-text="cCardText"
                                 :c-tab-tint="cTabTint"
                                 :c-border="cBorder"
                                 :tab-defs="tabDefs"
                                 :active-hint="activeHint"
+                                :design-preset="form.design_preset"
                             />
                             <!-- ===== END HOME (extracted to PhonePreview/Home.vue) ===== -->
 
@@ -732,18 +774,21 @@ function importStyle(e: Event) {
                                 :c-border="cBorder"
                                 :tab-defs="tabDefs"
                                 :active-hint="activeHint"
+                                :design-preset="form.design_preset"
                             />
 
                             <!-- ===== SCREEN 3: FOTOS ===== -->
                             <PhonePreviewPhotos
                                 :preview-font-family="previewFontFamily"
                                 :c-screen-bg="cScreenBg"
+                                :c-card-bg="cCardBg"
                                 :c-fab="cFab"
                                 :c-fab-icon="cFabIcon"
                                 :c-tab-tint="cTabTint"
                                 :c-border="cBorder"
                                 :tab-defs="tabDefs"
                                 :active-hint="activeHint"
+                                :design-preset="form.design_preset"
                             />
 
                             <!-- ===== SCREEN 4: EINSTELLUNGEN ===== -->
@@ -758,6 +803,7 @@ function importStyle(e: Event) {
                                 :c-border="cBorder"
                                 :tab-defs="tabDefs"
                                 :active-hint="activeHint"
+                                :design-preset="form.design_preset"
                             />
                         </div>
                         <!-- /flex or grid -->

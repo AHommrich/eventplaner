@@ -24,6 +24,7 @@ class Event extends Model
         'role_card_button', 'role_card_button_text',
         'role_tab_tint', 'role_border', 'role_fab', 'role_fab_icon',
         'font_heading',
+        'design_preset',
         'drink_game_enabled',
         'drink_game_end_time',
         'photo_game_enabled',

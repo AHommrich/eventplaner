@@ -54,7 +54,7 @@ Coolify deployt automatisch nach Push. Migrations laufen automatisch.
 
 ## Datenmodelle
 
-- **Event** — user_id (Owner), name, slug, date, rsvp_deadline, cover_image_url, cover_image_r2_key, venue_name, venue_street, venue_house_number, venue_postal_code, venue_city, venue_state, venue_country, venue_display_mode (`'both'|'name'|'address'`), venue_lat, venue_lng, dresscode, schedule, font_heading, drink_game_enabled, drink_game_end_time, photo_game_enabled, projector_token, projector_album_id, projector_name_mode (`'first'|'full'|'none'`, default `'first'`)
+- **Event** — user_id (Owner), name, slug, date, rsvp_deadline, cover_image_url, cover_image_r2_key, venue_name, venue_street, venue_house_number, venue_postal_code, venue_city, venue_state, venue_country, venue_display_mode (`'both'|'name'|'address'`), venue_lat, venue_lng, dresscode, schedule, font_heading, design_preset (`'classic'|'soft-luxury'`, default `'classic'`), drink_game_enabled, drink_game_end_time, photo_game_enabled, projector_token, projector_album_id, projector_name_mode (`'first'|'full'|'none'`, default `'first'`)
   - Legacy-Feld `venue_address` bleibt in DB (Fallback in EventInfoController)
 - **Event Farbsystem** — 3 Palette-Felder (`color_primary`, `color_secondary`, `color_tertiary`) + 9 Rollen-Felder die Keys `'primary'|'secondary'|'tertiary'` speichern: `role_screen_bg`, `role_card_bg`, `role_card_text`, `role_card_button`, `role_card_button_text`, `role_tab_tint`, `role_border`, `role_fab`, `role_fab_icon`. Dazu `color_home_text`, `color_home_shadow`, `home_shadow_opacity` (Cover-Overlay, nur relevant wenn Cover gesetzt).
 - **User** — role: `admin` (Superadmin = André) oder null (Event-Owner)
@@ -117,7 +117,7 @@ Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
 - `color_primary`, `color_secondary`, `color_tertiary` — Palette
 - `color_screen_bg`, `color_card`, `color_card_text`, `color_card_button`, `color_card_button_text`, `color_tab_tint`, `color_border`, `color_fab`, `color_fab_icon` — aufgelöste Rollen (fertige Hex-Werte)
 - `color_home_text`, `color_home_shadow`, `home_shadow_opacity` — Cover-Overlay (können `null` sein wenn kein Cover)
-- `font_heading`, `drink_game_enabled`, `drink_game_end_time`
+- `font_heading`, `design_preset` (`'classic'|'soft-luxury'`, App-Formsprache), `drink_game_enabled`, `drink_game_end_time`
 
 ### QR-Login Flow
 
