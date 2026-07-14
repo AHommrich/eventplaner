@@ -69,9 +69,11 @@ const mutedColor = computed(() =>
                         <path v-for="(p, pi) in tab.paths" :key="pi" :d="p" />
                     </svg>
                 </div>
-                <span class="text-[4px]" :style="{ color: i === activeIndex ? activeColor : mutedColor, fontWeight: i === activeIndex ? '700' : '400' }">{{
-                    tab.label
-                }}</span>
+                <span
+                    class="text-[4px]"
+                    :style="{ color: i === activeIndex ? activeColor : mutedColor, fontWeight: i === activeIndex ? '700' : '400' }"
+                    >{{ tab.label }}</span
+                >
             </div>
         </div>
     </div>
@@ -99,9 +101,11 @@ const mutedColor = computed(() =>
             >
                 <path v-for="(p, pi) in tab.paths" :key="pi" :d="p" />
             </svg>
-            <span class="text-[5px]" :style="{ color: i === activeIndex ? activeColor : mutedColor, fontWeight: i === activeIndex ? '700' : '400' }">{{
-                tab.label
-            }}</span>
+            <span
+                class="text-[5px]"
+                :style="{ color: i === activeIndex ? activeColor : mutedColor, fontWeight: i === activeIndex ? '700' : '400' }"
+                >{{ tab.label }}</span
+            >
         </div>
     </div>
 </template>

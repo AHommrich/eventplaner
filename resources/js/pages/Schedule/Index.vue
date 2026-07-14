@@ -293,7 +293,7 @@ function toggleStationVisibility(group: GroupVisibility, stationId: number, visi
                     <h1 class="text-xl font-semibold">{{ t('schedule.title') }}</h1>
                     <InfoTooltip :text="t('schedule.infoHint')" />
                 </div>
-                <p class="text-muted-foreground text-sm">{{ t('schedule.intro') }}</p>
+                <p class="text-sm text-muted-foreground">{{ t('schedule.intro') }}</p>
             </div>
 
             <!-- Main location (venue) — collapsed by default; the full editor is
@@ -301,15 +301,15 @@ function toggleStationVisibility(group: GroupVisibility, stationId: number, visi
             <Card>
                 <CardContent class="p-4">
                     <button type="button" class="flex w-full items-center gap-3 text-left" @click="venueExpanded = !venueExpanded">
-                        <Home class="text-muted-foreground size-4 shrink-0" />
+                        <Home class="size-4 shrink-0 text-muted-foreground" />
                         <div class="min-w-0 flex-1">
                             <p class="font-medium">{{ t('schedule.venueTitle') }}</p>
-                            <p class="text-muted-foreground truncate text-xs">
+                            <p class="truncate text-xs text-muted-foreground">
                                 {{ venueSummary || t('schedule.venueNotSet') }}
                             </p>
                         </div>
                         <ChevronDown
-                            class="text-muted-foreground size-4 shrink-0 transition-transform duration-200"
+                            class="size-4 shrink-0 text-muted-foreground transition-transform duration-200"
                             :class="{ 'rotate-180': venueExpanded }"
                         />
                     </button>
@@ -365,18 +365,18 @@ function toggleStationVisibility(group: GroupVisibility, stationId: number, visi
 
                         <!-- Time -->
                         <div class="w-24 shrink-0 text-center">
-                            <span v-if="item.starts_at" class="whitespace-nowrap font-mono text-sm font-semibold">{{ timeRange(item) }}</span>
-                            <span v-else class="text-muted-foreground text-xs">{{ t('schedule.noTime') }}</span>
+                            <span v-if="item.starts_at" class="font-mono text-sm font-semibold whitespace-nowrap">{{ timeRange(item) }}</span>
+                            <span v-else class="text-xs text-muted-foreground">{{ t('schedule.noTime') }}</span>
                         </div>
 
                         <!-- Title + location -->
                         <div class="min-w-0 flex-1">
                             <p class="truncate font-medium">{{ item.title }}</p>
-                            <p v-if="locationSummary(item)" class="text-muted-foreground flex items-center gap-1 truncate text-xs">
+                            <p v-if="locationSummary(item)" class="flex items-center gap-1 truncate text-xs text-muted-foreground">
                                 <MapPin class="size-3 shrink-0" />
                                 {{ locationSummary(item) }}
                             </p>
-                            <p v-else class="text-muted-foreground/70 text-xs">{{ t('schedule.noLocation') }}</p>
+                            <p v-else class="text-xs text-muted-foreground/70">{{ t('schedule.noLocation') }}</p>
                         </div>
 
                         <!-- Actions -->
@@ -399,7 +399,7 @@ function toggleStationVisibility(group: GroupVisibility, stationId: number, visi
             </div>
 
             <!-- Empty state -->
-            <div v-else class="text-muted-foreground rounded-lg border border-dashed p-8 text-center text-sm">
+            <div v-else class="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
                 {{ t('schedule.empty') }}
             </div>
 
@@ -413,15 +413,15 @@ function toggleStationVisibility(group: GroupVisibility, stationId: number, visi
             <Card class="mt-6">
                 <CardContent class="space-y-3 p-4">
                     <div class="flex items-center gap-2">
-                        <Users class="text-muted-foreground size-4" />
+                        <Users class="size-4 text-muted-foreground" />
                         <h2 class="font-semibold">{{ t('schedule.visibilityTitle') }}</h2>
                     </div>
-                    <p class="text-muted-foreground text-sm">{{ t('schedule.visibilityIntro') }}</p>
+                    <p class="text-sm text-muted-foreground">{{ t('schedule.visibilityIntro') }}</p>
 
-                    <p v-if="!groups.length" class="bg-muted/40 text-muted-foreground rounded-md px-3 py-2 text-sm">
+                    <p v-if="!groups.length" class="rounded-md bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
                         {{ t('schedule.visibilityNoGroups') }}
                     </p>
-                    <p v-else-if="!items.length" class="bg-muted/40 text-muted-foreground rounded-md px-3 py-2 text-sm">
+                    <p v-else-if="!items.length" class="rounded-md bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
                         {{ t('schedule.visibilityNeedsStations') }}
                     </p>
                     <div v-else class="divide-y">
@@ -429,15 +429,15 @@ function toggleStationVisibility(group: GroupVisibility, stationId: number, visi
                             <!-- Group header (clickable) -->
                             <button
                                 type="button"
-                                class="hover:text-foreground flex w-full items-center justify-between gap-2 py-2.5 text-left transition-colors"
+                                class="flex w-full items-center justify-between gap-2 py-2.5 text-left transition-colors hover:text-foreground"
                                 @click="toggleGroupPanel(group.id)"
                             >
                                 <span class="min-w-0 flex-1 truncate text-sm font-medium">{{ group.name }}</span>
-                                <span v-if="group.hidden_station_ids.length" class="text-muted-foreground shrink-0 text-xs">
+                                <span v-if="group.hidden_station_ids.length" class="shrink-0 text-xs text-muted-foreground">
                                     {{ t('schedule.visibilityHiddenCount', { count: group.hidden_station_ids.length }) }}
                                 </span>
                                 <ChevronDown
-                                    class="text-muted-foreground size-4 shrink-0 transition-transform duration-200"
+                                    class="size-4 shrink-0 text-muted-foreground transition-transform duration-200"
                                     :class="{ 'rotate-180': expandedGroups.has(group.id) }"
                                 />
                             </button>
@@ -447,11 +447,11 @@ function toggleStationVisibility(group: GroupVisibility, stationId: number, visi
                                 <label v-for="item in items" :key="item.id" class="flex cursor-pointer items-center gap-2.5 text-sm">
                                     <input
                                         type="checkbox"
-                                        class="accent-primary size-4 shrink-0"
+                                        class="size-4 shrink-0 accent-primary"
                                         :checked="!group.hidden_station_ids.includes(item.id)"
                                         @change="toggleStationVisibility(group, item.id, ($event.target as HTMLInputElement).checked)"
                                     />
-                                    <span class="text-muted-foreground w-12 shrink-0 font-mono text-xs">{{ item.starts_at ?? '—' }}</span>
+                                    <span class="w-12 shrink-0 font-mono text-xs text-muted-foreground">{{ item.starts_at ?? '—' }}</span>
                                     <span class="min-w-0 truncate">{{ item.title }}</span>
                                 </label>
                             </div>
@@ -471,21 +471,21 @@ function toggleStationVisibility(group: GroupVisibility, stationId: number, visi
                     <div class="grid gap-2">
                         <Label>{{ t('schedule.stationTitle') }}</Label>
                         <Input v-model="form.title" :placeholder="t('schedule.stationTitlePlaceholder')" required />
-                        <p v-if="form.errors.title" class="text-destructive text-xs">{{ form.errors.title }}</p>
+                        <p v-if="form.errors.title" class="text-xs text-destructive">{{ form.errors.title }}</p>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div class="grid gap-2">
                             <Label>{{ t('schedule.startTime') }}</Label>
                             <Input v-model="form.starts_at" type="time" />
-                            <p v-if="form.errors.starts_at" class="text-destructive text-xs">{{ form.errors.starts_at }}</p>
+                            <p v-if="form.errors.starts_at" class="text-xs text-destructive">{{ form.errors.starts_at }}</p>
                         </div>
                         <div class="grid gap-2">
                             <Label
                                 >{{ t('schedule.endTime') }}
-                                <span class="text-muted-foreground text-xs font-normal">({{ t('schedule.timeOptional') }})</span></Label
+                                <span class="text-xs font-normal text-muted-foreground">({{ t('schedule.timeOptional') }})</span></Label
                             >
                             <Input v-model="form.ends_at" type="time" />
-                            <p v-if="form.errors.ends_at" class="text-destructive text-xs">{{ form.errors.ends_at }}</p>
+                            <p v-if="form.errors.ends_at" class="text-xs text-destructive">{{ form.errors.ends_at }}</p>
                         </div>
                     </div>
 
@@ -495,7 +495,7 @@ function toggleStationVisibility(group: GroupVisibility, stationId: number, visi
                             <button
                                 v-if="hasVenue"
                                 type="button"
-                                class="text-primary hover:bg-primary/5 border-primary/50 flex items-center gap-1 rounded-md border border-dashed px-2 py-1 text-xs transition-colors"
+                                class="flex items-center gap-1 rounded-md border border-dashed border-primary/50 px-2 py-1 text-xs text-primary transition-colors hover:bg-primary/5"
                                 @click="useVenueForStation"
                             >
                                 <Home class="size-3" />
