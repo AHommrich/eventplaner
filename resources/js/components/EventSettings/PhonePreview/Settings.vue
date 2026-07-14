@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import PreviewTabBar from './PreviewTabBar.vue';
+
 interface TabDef {
     label: string;
     viewBox?: string;
@@ -17,7 +20,15 @@ const props = defineProps<{
     cBorder: string;
     tabDefs: TabDef[];
     activeHint: string | null;
+    designPreset: string;
 }>();
+
+const isSoft = computed(() => props.designPreset === 'soft-luxury');
+const softCardStyle = computed(() =>
+    isSoft.value
+        ? { backgroundColor: props.cCardBg, boxShadow: '0 4px 10px -3px rgba(90,50,55,0.28)' }
+        : { backgroundColor: props.cCardBg, borderWidth: '1px', borderStyle: 'solid', borderColor: props.cBorder + '33' },
+);
 
 function hintBgClass(hint: string): string {
     return props.activeHint === hint ? 'preview-hint-bg' : '';
@@ -46,14 +57,9 @@ function hintFilterClass(hint: string): string {
                         </div>
                         <div class="flex flex-1 flex-col items-start px-2 pt-3">
                             <div
-                                class="w-full rounded-xl shadow-sm"
-                                :style="{
-                                    backgroundColor: cCardBg,
-                                    borderWidth: '1px',
-                                    borderStyle: 'solid',
-                                    borderColor: cBorder + '33',
-                                }"
-                                :class="[hintBgClass('cardBg'), hintBorderClass('border')]"
+                                class="w-full shadow-sm"
+                                :class="[hintBgClass('cardBg'), hintBorderClass('border'), isSoft ? 'rounded-[16px]' : 'rounded-xl']"
+                                :style="softCardStyle"
                             >
                                 <div class="px-2 pt-2 pb-1.5">
                                     <p
@@ -87,15 +93,19 @@ function hintFilterClass(hint: string): string {
                                     >
                                         Sprache
                                     </p>
-                                    <div class="flex rounded-lg border" :style="{ borderColor: cBorder + '55' }" :class="hintBorderClass('border')">
+                                    <div
+                                        class="flex overflow-hidden border"
+                                        :style="{ borderColor: cBorder + '55' }"
+                                        :class="[hintBorderClass('border'), isSoft ? 'rounded-full' : 'rounded-lg']"
+                                    >
                                         <div
-                                            class="flex-1 rounded-l-lg py-0.5 text-center text-[5px] font-semibold"
+                                            class="flex-1 py-0.5 text-center text-[5px] font-semibold"
+                                            :class="[hintBgClass('cardButton'), isSoft ? '' : 'rounded-l-lg']"
                                             :style="{
                                                 backgroundColor: cCardButton,
                                                 color: cCardButtonText,
                                                 fontFamily: previewFontFamily,
                                             }"
-                                            :class="hintBgClass('cardButton')"
                                         >
                                             <span :class="hintFilterClass('cardButtonText')">Deutsch</span>
                                         </div>
@@ -113,49 +123,28 @@ function hintFilterClass(hint: string): string {
                                 </div>
                                 <div class="mx-2 border-t" :style="{ borderColor: cBorder + '33' }" :class="hintBgClass('border')"></div>
                                 <div
-                                    class="mx-2 my-1.5 rounded-lg py-1 text-center text-[6px] font-semibold"
+                                    class="mx-2 my-1.5 py-1 text-center text-[6px] font-semibold"
                                     :style="{
                                         backgroundColor: cCardButton,
                                         color: cCardButtonText,
                                         fontFamily: previewFontFamily,
                                     }"
-                                    :class="hintBgClass('cardButton')"
+                                    :class="[hintBgClass('cardButton'), isSoft ? 'rounded-full' : 'rounded-lg']"
                                 >
                                     <span :class="hintFilterClass('cardButtonText')">Ausloggen</span>
                                 </div>
                             </div>
                         </div>
-                        <div
-                            class="flex h-[26px] w-full items-end justify-around border-t pb-1.5"
-                            :style="{ backgroundColor: cScreenBg, borderColor: cBorder + '33' }"
-                        >
-                            <div
-                                v-for="(tab, i) in tabDefs"
-                                :key="'e' + i"
-                                class="flex flex-col items-center gap-0.5"
-                                :class="hintFilterClass('tabTint')"
-                            >
-                                <svg
-                                    width="9"
-                                    height="9"
-                                    :viewBox="tab.viewBox ?? '0 0 24 24'"
-                                    fill="none"
-                                    :stroke-width="tab.strokeWidth ?? 2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    :stroke="i === 4 ? cTabTint : cTabTint + '55'"
-                                >
-                                    <path v-for="(p, pi) in tab.paths" :key="pi" :d="p" />
-                                </svg>
-                                <span
-                                    class="text-[5px]"
-                                    :style="{
-                                        color: i === 4 ? cTabTint : cTabTint + '55',
-                                        fontWeight: i === 4 ? '700' : '400',
-                                    }"
-                                    >{{ tab.label }}</span
-                                >
-                            </div>
+                        <div :class="hintFilterClass('tabTint')">
+                            <PreviewTabBar
+                                :tab-defs="tabDefs"
+                                :active-index="4"
+                                :design-preset="designPreset"
+                                :c-screen-bg="cScreenBg"
+                                :c-card-bg="cCardBg"
+                                :c-tab-tint="cTabTint"
+                                :c-border="cBorder"
+                            />
                         </div>
                     </div>
                 </div>

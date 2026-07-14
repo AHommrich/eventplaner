@@ -140,7 +140,7 @@
         "colorHomeShadow": "Home screen shadow color",
         "homeShadowOpacity": "Shadow intensity",
         "homeShadowOpacityHint": "Opacity of the shadow behind the text (0 = none, 100 = solid)",
-        "colorHint": "App design",
+        "colorHint": "App colours",
         "colorSystemInfo": "Define 3 base colors (Primary, Secondary, Tertiary). Then assign one of these colors to each app element. The preview on the right updates in real time. The ★ buttons next to the roles highlight the corresponding element in the preview.",
         "colorHintSub": "3 base colors → assign 9 roles → preview",
         "roleScreenBg": "Screen background",
