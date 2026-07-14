@@ -461,7 +461,7 @@ onBeforeUnmount(() => {
     <!-- Location name (optional) -->
     <div v-if="showName" class="grid gap-2">
         <Label
-            >{{ t('event.venueName') }} <span class="text-muted-foreground text-xs font-normal">({{ t('event.venueNameOptional') }})</span></Label
+            >{{ t('event.venueName') }} <span class="text-xs font-normal text-muted-foreground">({{ t('event.venueNameOptional') }})</span></Label
         >
         <div class="relative">
             <Input
@@ -473,13 +473,13 @@ onBeforeUnmount(() => {
                 v-if="isFieldDirty('name')"
                 type="button"
                 @click="resetField('name')"
-                class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
+                class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
                 title="Zurücksetzen"
             >
                 ↺
             </button>
         </div>
-        <p class="text-muted-foreground -mt-1 text-xs">{{ t('event.venueNameHint') }}</p>
+        <p class="-mt-1 text-xs text-muted-foreground">{{ t('event.venueNameHint') }}</p>
     </div>
     <!-- Venue display on the home screen -->
     <div v-if="showDisplayMode" class="grid gap-2">
@@ -506,7 +506,7 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- Structured address -->
-    <div class="border-input grid gap-3 rounded-lg border p-3">
+    <div class="grid gap-3 rounded-lg border border-input p-3">
         <!-- DE form -->
         <template v-if="isGermanyForm">
             <div class="grid grid-cols-[1fr_80px] gap-2">
@@ -522,7 +522,7 @@ onBeforeUnmount(() => {
                             v-if="isFieldDirty('street')"
                             type="button"
                             @click="resetField('street')"
-                            class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
+                            class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
                             title="Zurücksetzen"
                         >
                             ↺
@@ -541,7 +541,7 @@ onBeforeUnmount(() => {
                             v-if="isFieldDirty('house_number')"
                             type="button"
                             @click="resetField('house_number')"
-                            class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
+                            class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
                             title="Zurücksetzen"
                         >
                             ↺
@@ -562,7 +562,7 @@ onBeforeUnmount(() => {
                             v-if="isFieldDirty('postal_code')"
                             type="button"
                             @click="resetField('postal_code')"
-                            class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
+                            class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
                             title="Zurücksetzen"
                         >
                             ↺
@@ -581,7 +581,7 @@ onBeforeUnmount(() => {
                             v-if="isFieldDirty('city')"
                             type="button"
                             @click="resetField('city')"
-                            class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
+                            class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
                             title="Zurücksetzen"
                         >
                             ↺
@@ -604,7 +604,7 @@ onBeforeUnmount(() => {
                         v-if="isFieldDirty('street')"
                         type="button"
                         @click="resetField('street')"
-                        class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
+                        class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
                         title="Zurücksetzen"
                     >
                         ↺
@@ -624,7 +624,7 @@ onBeforeUnmount(() => {
                             v-if="isFieldDirty('city')"
                             type="button"
                             @click="resetField('city')"
-                            class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
+                            class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
                             title="Zurücksetzen"
                         >
                             ↺
@@ -643,7 +643,7 @@ onBeforeUnmount(() => {
                             v-if="isFieldDirty('postal_code')"
                             type="button"
                             @click="resetField('postal_code')"
-                            class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
+                            class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
                             title="Zurücksetzen"
                         >
                             ↺
@@ -653,7 +653,7 @@ onBeforeUnmount(() => {
             </div>
             <div class="grid gap-1.5">
                 <Label class="text-xs"
-                    >{{ t('event.venueState') }} <span class="text-muted-foreground font-normal">({{ t('event.venueOptional') }})</span></Label
+                    >{{ t('event.venueState') }} <span class="font-normal text-muted-foreground">({{ t('event.venueOptional') }})</span></Label
                 >
                 <div class="relative">
                     <Input
@@ -665,7 +665,7 @@ onBeforeUnmount(() => {
                         v-if="isFieldDirty('state')"
                         type="button"
                         @click="resetField('state')"
-                        class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
+                        class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
                         title="Zurücksetzen"
                     >
                         ↺
@@ -697,7 +697,7 @@ onBeforeUnmount(() => {
                     v-if="isFieldDirty('country')"
                     type="button"
                     @click="resetField('country')"
-                    class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
+                    class="absolute top-1/2 right-2 -translate-y-1/2 text-amber-500 hover:text-amber-700"
                     title="Zurücksetzen"
                 >
                     ↺
@@ -706,8 +706,8 @@ onBeforeUnmount(() => {
                     <div
                         v-if="countryOpen && filteredCountries.length"
                         :class="[
-                            'bg-popover z-[9999] max-h-52 overflow-y-auto rounded-md border shadow-lg',
-                            teleport ? 'fixed' : 'absolute left-0 right-0 top-full mt-1',
+                            'z-[9999] max-h-52 overflow-y-auto rounded-md border bg-popover shadow-lg',
+                            teleport ? 'fixed' : 'absolute top-full right-0 left-0 mt-1',
                         ]"
                         :style="teleport ? countryDropdownStyle : undefined"
                     >
@@ -715,7 +715,7 @@ onBeforeUnmount(() => {
                             v-for="c in filteredCountries"
                             :key="c"
                             type="button"
-                            class="hover:bg-accent flex w-full items-center px-3 py-2 text-sm"
+                            class="flex w-full items-center px-3 py-2 text-sm hover:bg-accent"
                             :class="country === c ? 'bg-muted font-medium' : ''"
                             @mousedown.prevent="selectCountry(c)"
                         >
@@ -730,10 +730,10 @@ onBeforeUnmount(() => {
     <div class="grid gap-2">
         <div class="flex items-center justify-between">
             <Label>{{ t('event.venueMap') }}</Label>
-            <span v-if="reverseGeocoding || geocodingFromFields" class="text-muted-foreground animate-pulse text-xs">{{
+            <span v-if="reverseGeocoding || geocodingFromFields" class="animate-pulse text-xs text-muted-foreground">{{
                 t('event.venueGeocoding')
             }}</span>
-            <button v-else-if="lat && lng" type="button" class="text-muted-foreground hover:text-destructive text-xs" @click="clearMapCoords">
+            <button v-else-if="lat && lng" type="button" class="text-xs text-muted-foreground hover:text-destructive" @click="clearMapCoords">
                 {{ t('event.venueMapReset') }}
             </button>
         </div>
@@ -741,7 +741,7 @@ onBeforeUnmount(() => {
         <button
             v-if="hasAddressInput && !geocodingFromFields"
             type="button"
-            class="border-primary/50 text-primary hover:bg-primary/5 flex items-center gap-1.5 rounded-md border border-dashed px-3 py-1.5 text-sm disabled:opacity-40"
+            class="flex items-center gap-1.5 rounded-md border border-dashed border-primary/50 px-3 py-1.5 text-sm text-primary hover:bg-primary/5 disabled:opacity-40"
             :disabled="geocodingFromFields"
             @click="geocodeFromFields"
         >
@@ -782,7 +782,7 @@ onBeforeUnmount(() => {
             </svg>
             <span>{{ t('event.venueMapConfirmHint') }}</span>
         </div>
-        <p v-else class="text-muted-foreground -mt-1 text-xs">{{ t('event.venueMapHint') }}</p>
+        <p v-else class="-mt-1 text-xs text-muted-foreground">{{ t('event.venueMapHint') }}</p>
         <!-- Map search -->
         <div ref="mapSearchInputRef" class="relative">
             <Input
@@ -793,8 +793,8 @@ onBeforeUnmount(() => {
                 @focus="mapSearchResults.length && (mapSearchOpen = true)"
                 @blur="deferCloseMapSearch"
             />
-            <div v-if="mapSearching" class="absolute right-2.5 top-1/2 -translate-y-1/2">
-                <svg class="text-muted-foreground h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <div v-if="mapSearching" class="absolute top-1/2 right-2.5 -translate-y-1/2">
+                <svg class="h-4 w-4 animate-spin text-muted-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                 </svg>
@@ -803,8 +803,8 @@ onBeforeUnmount(() => {
                 <div
                     v-if="mapSearchOpen && mapSearchResults.length"
                     :class="[
-                        'bg-popover z-[9999] max-h-60 overflow-y-auto rounded-md border shadow-lg',
-                        teleport ? 'fixed' : 'absolute left-0 right-0 top-full mt-1',
+                        'z-[9999] max-h-60 overflow-y-auto rounded-md border bg-popover shadow-lg',
+                        teleport ? 'fixed' : 'absolute top-full right-0 left-0 mt-1',
                     ]"
                     :style="teleport ? mapSearchDropdownStyle : undefined"
                 >
@@ -812,16 +812,16 @@ onBeforeUnmount(() => {
                         v-for="r in mapSearchResults"
                         :key="r.place_id"
                         type="button"
-                        class="hover:bg-accent flex w-full flex-col px-3 py-2 text-left text-sm"
+                        class="flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-accent"
                         @mousedown.prevent="selectMapResult(r)"
                     >
                         <span class="truncate font-medium">{{ r.name || r.display_name.split(', ')[0] }}</span>
-                        <span class="text-muted-foreground truncate text-xs">{{ r.display_name }}</span>
+                        <span class="truncate text-xs text-muted-foreground">{{ r.display_name }}</span>
                     </button>
                 </div>
             </Teleport>
         </div>
-        <div ref="mapContainer" class="border-input h-56 w-full overflow-hidden rounded-lg border" style="z-index: 0" />
-        <p v-if="lat && lng" class="text-muted-foreground text-xs">✓ {{ lat.toFixed(6) }}, {{ lng.toFixed(6) }}</p>
+        <div ref="mapContainer" class="h-56 w-full overflow-hidden rounded-lg border border-input" style="z-index: 0" />
+        <p v-if="lat && lng" class="text-xs text-muted-foreground">✓ {{ lat.toFixed(6) }}, {{ lng.toFixed(6) }}</p>
     </div>
 </template>

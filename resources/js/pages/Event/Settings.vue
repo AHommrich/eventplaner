@@ -104,7 +104,7 @@ function submit() {
                         ><CardTitle>{{ t('event.settings') }}</CardTitle></CardHeader
                     >
                     <CardContent>
-                        <p class="text-muted-foreground mb-4 text-sm">{{ t('event.settingsDesc') }}</p>
+                        <p class="mb-4 text-sm text-muted-foreground">{{ t('event.settingsDesc') }}</p>
                         <div class="space-y-4">
                             <div class="grid gap-2">
                                 <Label>{{ t('event.name') }}</Label>
@@ -121,12 +121,12 @@ function submit() {
                             <div class="grid gap-2">
                                 <Label
                                     >{{ t('event.dresscode') }}
-                                    <span class="text-muted-foreground text-xs font-normal">({{ t('event.venueOptional') }})</span></Label
+                                    <span class="text-xs font-normal text-muted-foreground">({{ t('event.venueOptional') }})</span></Label
                                 >
                                 <textarea
                                     v-model="form.dresscode"
                                     rows="2"
-                                    class="border-input shadow-xs placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 flex min-h-[60px] w-full rounded-md border bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-[3px]"
+                                    class="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                                     :placeholder="t('event.dresscode')"
                                 />
                             </div>
@@ -141,7 +141,7 @@ function submit() {
                             <div class="flex items-center justify-between gap-4">
                                 <div>
                                     <Label class="text-sm font-medium">{{ t('event.drinkGameEnabled') }}</Label>
-                                    <p class="text-muted-foreground text-xs">{{ t('event.drinkGameEnabledDesc') }}</p>
+                                    <p class="text-xs text-muted-foreground">{{ t('event.drinkGameEnabledDesc') }}</p>
                                 </div>
                                 <button
                                     type="button"
@@ -149,13 +149,13 @@ function submit() {
                                     :aria-checked="form.drink_game_enabled"
                                     @click="form.drink_game_enabled = !form.drink_game_enabled"
                                     :class="[
-                                        'focus-visible:ring-ring relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                                        'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                                         form.drink_game_enabled ? 'bg-primary' : 'bg-input',
                                     ]"
                                 >
                                     <span
                                         :class="[
-                                            'bg-background pointer-events-none block h-5 w-5 rounded-full shadow-lg ring-0 transition-transform',
+                                            'pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform',
                                             form.drink_game_enabled ? 'translate-x-5' : 'translate-x-0',
                                         ]"
                                     />
@@ -172,7 +172,7 @@ function submit() {
                             <div class="flex items-center justify-between gap-4">
                                 <div>
                                     <Label class="text-sm font-medium">{{ t('event.photoGameEnabled') }}</Label>
-                                    <p class="text-muted-foreground text-xs">{{ t('event.photoGameEnabledDesc') }}</p>
+                                    <p class="text-xs text-muted-foreground">{{ t('event.photoGameEnabledDesc') }}</p>
                                 </div>
                                 <button
                                     type="button"
@@ -180,13 +180,13 @@ function submit() {
                                     :aria-checked="form.photo_game_enabled"
                                     @click="form.photo_game_enabled = !form.photo_game_enabled"
                                     :class="[
-                                        'focus-visible:ring-ring relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                                        'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                                         form.photo_game_enabled ? 'bg-primary' : 'bg-input',
                                     ]"
                                 >
                                     <span
                                         :class="[
-                                            'bg-background pointer-events-none block h-5 w-5 rounded-full shadow-lg ring-0 transition-transform',
+                                            'pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform',
                                             form.photo_game_enabled ? 'translate-x-5' : 'translate-x-0',
                                         ]"
                                     />
@@ -202,13 +202,13 @@ function submit() {
                         <div class="space-y-3 pt-4">
                             <div>
                                 <Label class="text-sm font-medium">{{ t('event.projectorToken') }}</Label>
-                                <p class="text-muted-foreground text-xs">{{ t('event.projectorTokenDesc') }}</p>
+                                <p class="text-xs text-muted-foreground">{{ t('event.projectorTokenDesc') }}</p>
                             </div>
                             <div class="flex items-center gap-2">
-                                <code v-if="props.event.projector_token" class="bg-muted flex-1 truncate rounded px-3 py-1.5 font-mono text-xs">
+                                <code v-if="props.event.projector_token" class="flex-1 truncate rounded bg-muted px-3 py-1.5 font-mono text-xs">
                                     {{ props.event.projector_token }}
                                 </code>
-                                <span v-else class="text-muted-foreground flex-1 text-xs italic">{{ t('event.projectorTokenNone') }}</span>
+                                <span v-else class="flex-1 text-xs text-muted-foreground italic">{{ t('event.projectorTokenNone') }}</span>
                                 <Button
                                     type="button"
                                     variant="outline"
@@ -239,8 +239,8 @@ function submit() {
             leave-from-class="opacity-100 translate-y-0"
             leave-to-class="opacity-0 translate-y-4"
         >
-            <div v-if="isDirty" class="bg-background fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl border px-4 py-3 shadow-lg">
-                <span class="text-muted-foreground mr-1 text-xs">{{ t('drink.unsavedChanges') }}</span>
+            <div v-if="isDirty" class="fixed right-6 bottom-6 z-50 flex items-center gap-2 rounded-xl border bg-background px-4 py-3 shadow-lg">
+                <span class="mr-1 text-xs text-muted-foreground">{{ t('drink.unsavedChanges') }}</span>
                 <Button variant="ghost" size="sm" :disabled="form.processing" @click="discard">
                     {{ t('common.cancel') }}
                 </Button>
