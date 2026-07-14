@@ -97,7 +97,7 @@ function hintFilterClass(hint: string): string {
                         <div class="relative flex flex-1 flex-col items-center justify-center px-2.5 pb-1">
                             <p class="text-center text-[6px]" :style="{ color: colorHomeText || '#ffffff', ...welcomeExtra }">Willkommen, Max!</p>
                             <p
-                                class="mt-0.5 text-center text-[9px] font-bold leading-tight"
+                                class="mt-0.5 text-center text-[9px] leading-tight font-bold"
                                 :style="{ color: colorHomeText || '#ffffff', fontFamily: previewFontFamily, ...titleExtra }"
                             >
                                 {{ eventName || 'Event-Name' }}
@@ -214,7 +214,7 @@ function hintFilterClass(hint: string): string {
                         <div class="flex flex-1 flex-col items-center justify-center px-2.5 pb-1">
                             <p class="text-center text-[6px]" :style="{ color: cCardText, ...welcomeExtra }">Willkommen, Max!</p>
                             <p
-                                class="mt-0.5 text-center text-[9px] font-bold leading-tight"
+                                class="mt-0.5 text-center text-[9px] leading-tight font-bold"
                                 :style="{ color: cCardText, fontFamily: previewFontFamily, ...titleExtra }"
                             >
                                 {{ eventName || 'Event-Name' }}

@@ -72,7 +72,7 @@ function hintFilterClass(hint: string): string {
                         </div>
                         <div class="flex flex-1 flex-col items-start px-2 pt-3">
                             <div class="w-full" :class="[hintBgClass('cardBg'), hintBorderClass('border')]" :style="cardStyle">
-                                <div class="px-2 pb-1.5 pt-2">
+                                <div class="px-2 pt-2 pb-1.5">
                                     <p
                                         class="text-[5px]"
                                         :style="{ color: cCardText + '88', fontFamily: previewFontFamily }"
