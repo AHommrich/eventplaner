@@ -83,6 +83,7 @@ class EventSettingsController extends Controller
                 'role_screen_bg', 'role_card_bg', 'role_card_text',
                 'role_card_button', 'role_card_button_text',
                 'role_tab_tint', 'role_border', 'role_fab', 'role_fab_icon',
+                'role_nav_bg',
                 'font_heading',
                 'design_preset',
             ]),
@@ -94,6 +95,7 @@ class EventSettingsController extends Controller
                     'role_screen_bg', 'role_card_bg', 'role_card_text',
                     'role_card_button', 'role_card_button_text',
                     'role_tab_tint', 'role_border', 'role_fab', 'role_fab_icon',
+                    'role_nav_bg',
                     'font_heading',
                 ]),
         ]);
@@ -120,6 +122,7 @@ class EventSettingsController extends Controller
             'role_border' => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
             'role_fab' => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
             'role_fab_icon' => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
+            'role_nav_bg' => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
             'font_heading' => ['nullable', \Illuminate\Validation\Rule::in([
                 'playfair', 'cormorant', 'cinzel', 'dancing',
                 'great_vibes', 'raleway', 'lora', 'josefin',

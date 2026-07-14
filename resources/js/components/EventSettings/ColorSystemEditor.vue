@@ -19,6 +19,7 @@ const roleTabTint = defineModel<string>('roleTabTint', { default: 'primary' });
 const roleBorder = defineModel<string>('roleBorder', { default: 'primary' });
 const roleFab = defineModel<string>('roleFab', { default: 'primary' });
 const roleFabIcon = defineModel<string>('roleFabIcon', { default: 'tertiary' });
+const roleNavBg = defineModel<string>('roleNavBg', { default: 'secondary' });
 
 const emit = defineEmits<{
     'show-hint': [hint: string];
@@ -230,7 +231,33 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
                     </button>
                 </div>
             </div>
-            <!-- Navbar color -->
+            <!-- Navbar background -->
+            <div class="grid gap-1.5">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-muted-foreground">{{ t('event.roleNavBg') }}</span
+                    ><button
+                        type="button"
+                        @click="emit('show-hint', 'navBg')"
+                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
+                    >
+                        ?
+                    </button>
+                </div>
+                <div class="flex gap-2">
+                    <button
+                        v-for="opt in colorOptions"
+                        :key="'nav' + opt.key"
+                        type="button"
+                        @click="roleNavBg = opt.key"
+                        class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
+                        :class="radioClass(roleNavBg, opt.key, 'secondary')"
+                    >
+                        <div class="h-6 w-6 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
+                        <span>{{ opt.label }}</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Navbar icons/text -->
             <div class="grid gap-1.5">
                 <div class="flex items-center justify-between">
                     <span class="text-xs text-muted-foreground">{{ t('event.roleTabTint') }}</span

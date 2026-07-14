@@ -30,6 +30,7 @@ class EventStylePresetController extends Controller
             'role_border' => ['nullable', Rule::in(['primary', 'secondary', 'tertiary'])],
             'role_fab' => ['nullable', Rule::in(['primary', 'secondary', 'tertiary'])],
             'role_fab_icon' => ['nullable', Rule::in(['primary', 'secondary', 'tertiary'])],
+            'role_nav_bg' => ['nullable', Rule::in(['primary', 'secondary', 'tertiary'])],
             'font_heading' => ['nullable', Rule::in([
                 'playfair', 'cormorant', 'cinzel', 'dancing',
                 'great_vibes', 'raleway', 'lora', 'josefin',

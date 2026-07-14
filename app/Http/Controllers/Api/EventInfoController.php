@@ -17,7 +17,7 @@ use Illuminate\Http\Request;
  *  - Address is assembled from the structured venue fields
  *    (DE order differs from international). Legacy fallback to
  *    `venue_address` (free text).
- *  - Colors: palette unchanged + all 9 roles already resolved to hex
+ *  - Colors: palette unchanged + all 10 roles already resolved to hex
  *    (see {@see ColorRoleResolver}) so clients don't need to map anything.
  *  - Date fields as ISO-8601.
  */
@@ -86,6 +86,7 @@ class EventInfoController extends Controller
             'color_border' => $colors['roles']['role_border'],
             'color_fab' => $colors['roles']['role_fab'],
             'color_fab_icon' => $colors['roles']['role_fab_icon'],
+            'color_nav_bg' => $colors['roles']['role_nav_bg'],
             // cover overlay
             'color_home_text' => $colors['cover']['home_text'],
             'color_home_shadow' => $colors['cover']['home_shadow'],

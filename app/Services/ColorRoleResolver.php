@@ -9,7 +9,7 @@ use App\Models\Event;
  *
  * Data model:
  *  - 3 palette fields on the event — `color_primary` / `color_secondary` / `color_tertiary` (hex)
- *  - 9 role fields on the event    — store keys (`primary` | `secondary` | `tertiary`),
+ *  - 10 role fields on the event   — store keys (`primary` | `secondary` | `tertiary`),
  *                                    NOT hex values. So on a palette change
  *                                    every role follows automatically.
  *
@@ -38,6 +38,9 @@ class ColorRoleResolver
         'role_border' => 'primary',
         'role_fab' => 'primary',
         'role_fab_icon' => 'tertiary',
+        // Bottom tab bar background. Default `secondary` (screen tone) so classic
+        // events look unchanged; the tab-tint role stays the foreground.
+        'role_nav_bg' => 'secondary',
     ];
 
     /**

@@ -49,6 +49,7 @@ interface EventData {
     role_border: string | null;
     role_fab: string | null;
     role_fab_icon: string | null;
+    role_nav_bg: string | null;
     font_heading: string | null;
     design_preset: string | null;
 }
@@ -71,6 +72,7 @@ interface StylePreset {
     role_border: string | null;
     role_fab: string | null;
     role_fab_icon: string | null;
+    role_nav_bg: string | null;
     font_heading: string | null;
 }
 
@@ -97,6 +99,7 @@ const form = useForm({
     role_border: props.event.role_border ?? 'primary',
     role_fab: props.event.role_fab ?? 'primary',
     role_fab_icon: props.event.role_fab_icon ?? 'tertiary',
+    role_nav_bg: props.event.role_nav_bg ?? 'secondary',
     font_heading: props.event.font_heading ?? '',
     design_preset: props.event.design_preset ?? 'classic',
     cover: null as File | null,
@@ -263,6 +266,7 @@ const cTabTint = computed(() => resolve(form.role_tab_tint, 'primary'));
 const cBorder = computed(() => resolve(form.role_border, 'primary'));
 const cFab = computed(() => resolve(form.role_fab, 'primary'));
 const cFabIcon = computed(() => resolve(form.role_fab_icon, 'tertiary'));
+const cNavBg = computed(() => resolve(form.role_nav_bg, 'secondary'));
 
 // Font
 const fontOptions = [
@@ -348,6 +352,7 @@ function loadPreset(preset: StylePreset) {
     form.role_border = preset.role_border ?? form.role_border;
     form.role_fab = preset.role_fab ?? form.role_fab;
     form.role_fab_icon = preset.role_fab_icon ?? form.role_fab_icon;
+    form.role_nav_bg = preset.role_nav_bg ?? form.role_nav_bg;
     form.font_heading = preset.font_heading ?? form.font_heading;
 }
 
@@ -368,6 +373,7 @@ const presetForm = useForm({
     role_border: '',
     role_fab: '',
     role_fab_icon: '',
+    role_nav_bg: '',
     font_heading: '',
 });
 
@@ -388,6 +394,7 @@ function savePreset() {
     presetForm.role_border = form.role_border;
     presetForm.role_fab = form.role_fab;
     presetForm.role_fab_icon = form.role_fab_icon;
+    presetForm.role_nav_bg = form.role_nav_bg;
     presetForm.font_heading = form.font_heading;
     presetForm.post(route('event.style-presets.store'), {
         preserveScroll: true,
@@ -422,6 +429,7 @@ const STYLE_FIELDS = [
     'role_border',
     'role_fab',
     'role_fab_icon',
+    'role_nav_bg',
     'font_heading',
 ] as const;
 
@@ -570,6 +578,7 @@ function importStyle(e: Event) {
                                         v-model:role-border="form.role_border"
                                         v-model:role-fab="form.role_fab"
                                         v-model:role-fab-icon="form.role_fab_icon"
+                                        v-model:role-nav-bg="form.role_nav_bg"
                                         @show-hint="showHint"
                                     />
                                 </div>
@@ -754,10 +763,13 @@ function importStyle(e: Event) {
                                 :preview-venue-address="previewVenueAddress"
                                 :preview-countdown="previewCountdown"
                                 :c-screen-bg="cScreenBg"
+                                :c-primary="form.color_primary"
                                 :c-card-bg="cCardBg"
                                 :c-card-text="cCardText"
+                                :c-card-button-text="cCardButtonText"
                                 :c-tab-tint="cTabTint"
                                 :c-border="cBorder"
+                                :c-nav-bg="cNavBg"
                                 :tab-defs="tabDefs"
                                 :active-hint="activeHint"
                                 :design-preset="form.design_preset"
@@ -768,10 +780,12 @@ function importStyle(e: Event) {
                             <PhonePreviewRsvp
                                 :preview-font-family="previewFontFamily"
                                 :c-screen-bg="cScreenBg"
+                                :c-primary="form.color_primary"
                                 :c-card-bg="cCardBg"
                                 :c-card-text="cCardText"
                                 :c-tab-tint="cTabTint"
                                 :c-border="cBorder"
+                                :c-nav-bg="cNavBg"
                                 :tab-defs="tabDefs"
                                 :active-hint="activeHint"
                                 :design-preset="form.design_preset"
@@ -781,11 +795,13 @@ function importStyle(e: Event) {
                             <PhonePreviewPhotos
                                 :preview-font-family="previewFontFamily"
                                 :c-screen-bg="cScreenBg"
+                                :c-primary="form.color_primary"
                                 :c-card-bg="cCardBg"
                                 :c-fab="cFab"
                                 :c-fab-icon="cFabIcon"
                                 :c-tab-tint="cTabTint"
                                 :c-border="cBorder"
+                                :c-nav-bg="cNavBg"
                                 :tab-defs="tabDefs"
                                 :active-hint="activeHint"
                                 :design-preset="form.design_preset"
@@ -795,12 +811,14 @@ function importStyle(e: Event) {
                             <PhonePreviewSettings
                                 :preview-font-family="previewFontFamily"
                                 :c-screen-bg="cScreenBg"
+                                :c-primary="form.color_primary"
                                 :c-card-bg="cCardBg"
                                 :c-card-text="cCardText"
                                 :c-card-button="cCardButton"
                                 :c-card-button-text="cCardButtonText"
                                 :c-tab-tint="cTabTint"
                                 :c-border="cBorder"
+                                :c-nav-bg="cNavBg"
                                 :tab-defs="tabDefs"
                                 :active-hint="activeHint"
                                 :design-preset="form.design_preset"
