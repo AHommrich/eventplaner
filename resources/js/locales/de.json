@@ -140,7 +140,7 @@
         "colorHomeShadow": "Home-Screen Schattenfarbe",
         "homeShadowOpacity": "Schatten-Stärke",
         "homeShadowOpacityHint": "Deckkraft des Schattens hinter dem Text (0 = unsichtbar, 100 = voll)",
-        "colorHint": "App-Design",
+        "colorHint": "App-Farben",
         "colorSystemInfo": "Definiere 3 Basisfarben (Primär, Sekundär, Tertiär). Dann lege für jedes App-Element fest, welche dieser Farben verwendet wird. Die Vorschau rechts zeigt das Ergebnis in Echtzeit. Die ★-Buttons bei den Rollen heben die jeweilige Stelle in der Vorschau hervor.",
         "colorHintSub": "3 Basisfarben → 9 Rollen zuweisen → Vorschau",
         "roleScreenBg": "App-Hintergrund",

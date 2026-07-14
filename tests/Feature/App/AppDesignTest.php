@@ -36,6 +36,25 @@ it('rejects invalid hex colors', function () {
     ])->assertSessionHasErrors(['color_primary']);
 });
 
+it('updates the design preset', function () {
+    $user = actingAsOwner();
+    $event = $user->ownedEvents()->first();
+
+    $this->post(route('app.design.update'), [
+        'design_preset' => 'soft-luxury',
+    ])->assertRedirect(route('app.design'));
+
+    expect($event->fresh()->design_preset)->toBe('soft-luxury');
+});
+
+it('rejects an unknown design preset', function () {
+    actingAsOwner();
+
+    $this->post(route('app.design.update'), [
+        'design_preset' => 'bogus',
+    ])->assertSessionHasErrors(['design_preset']);
+});
+
 it('uploads a cover image to object storage', function () {
     Storage::fake('s3');
     $user = actingAsOwner();

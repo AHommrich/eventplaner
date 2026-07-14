@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import PreviewTabBar from './PreviewTabBar.vue';
+
 interface TabDef {
     label: string;
     viewBox?: string;
@@ -9,13 +12,17 @@ interface TabDef {
 const props = defineProps<{
     previewFontFamily: string;
     cScreenBg: string;
+    cCardBg: string;
     cFab: string;
     cFabIcon: string;
     cTabTint: string;
     cBorder: string;
     tabDefs: TabDef[];
     activeHint: string | null;
+    designPreset: string;
 }>();
+
+const isSoft = computed(() => props.designPreset === 'soft-luxury');
 
 function hintBgClass(hint: string): string {
     return props.activeHint === hint ? 'preview-hint-bg' : '';
@@ -39,15 +46,20 @@ function hintFilterClass(hint: string): string {
                         <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                             <span>9:41</span><span style="font-size: 6px">▲▲ ▐</span>
                         </div>
-                        <div class="relative flex-1 px-0.5 pt-1">
-                            <div class="grid grid-cols-3 gap-0.5">
-                                <div v-for="n in 6" :key="n" class="rounded-sm" style="background-color: #d4cfc8; aspect-ratio: 1" />
+                        <div class="relative flex-1 px-0.5 pt-1" :class="{ 'px-1': isSoft }">
+                            <div class="grid grid-cols-3" :class="isSoft ? 'gap-1' : 'gap-0.5'">
+                                <div
+                                    v-for="n in 6"
+                                    :key="n"
+                                    :class="isSoft ? 'rounded-md' : 'rounded-sm'"
+                                    style="background-color: #d4cfc8; aspect-ratio: 1"
+                                />
                             </div>
                             <!-- FAB with cFab color -->
                             <div
-                                class="absolute right-2 bottom-3 flex h-7 w-7 items-center justify-center rounded-full shadow-md"
-                                :style="{ backgroundColor: cFab }"
-                                :class="hintBgClass('fab')"
+                                class="absolute right-2 flex h-7 w-7 items-center justify-center rounded-full shadow-md"
+                                :class="[hintBgClass('fab'), isSoft ? 'bottom-9' : 'bottom-3']"
+                                :style="{ backgroundColor: cFab, boxShadow: isSoft ? `0 4px 10px -2px ${cFab}` : undefined }"
                             >
                                 <svg
                                     width="12"
@@ -65,37 +77,16 @@ function hintFilterClass(hint: string): string {
                                 </svg>
                             </div>
                         </div>
-                        <div
-                            class="flex h-[26px] w-full items-end justify-around border-t pb-1.5"
-                            :style="{ backgroundColor: cScreenBg, borderColor: cBorder + '33' }"
-                        >
-                            <div
-                                v-for="(tab, i) in tabDefs"
-                                :key="'f' + i"
-                                class="flex flex-col items-center gap-0.5"
-                                :class="hintFilterClass('tabTint')"
-                            >
-                                <svg
-                                    width="9"
-                                    height="9"
-                                    :viewBox="tab.viewBox ?? '0 0 24 24'"
-                                    fill="none"
-                                    :stroke-width="tab.strokeWidth ?? 2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    :stroke="i === 2 ? cTabTint : cTabTint + '55'"
-                                >
-                                    <path v-for="(p, pi) in tab.paths" :key="pi" :d="p" />
-                                </svg>
-                                <span
-                                    class="text-[5px]"
-                                    :style="{
-                                        color: i === 2 ? cTabTint : cTabTint + '55',
-                                        fontWeight: i === 2 ? '700' : '400',
-                                    }"
-                                    >{{ tab.label }}</span
-                                >
-                            </div>
+                        <div :class="hintFilterClass('tabTint')">
+                            <PreviewTabBar
+                                :tab-defs="tabDefs"
+                                :active-index="2"
+                                :design-preset="designPreset"
+                                :c-screen-bg="cScreenBg"
+                                :c-card-bg="cCardBg"
+                                :c-tab-tint="cTabTint"
+                                :c-border="cBorder"
+                            />
                         </div>
                     </div>
                 </div>

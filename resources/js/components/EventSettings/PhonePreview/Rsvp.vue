@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import PreviewTabBar from './PreviewTabBar.vue';
+
 interface TabDef {
     label: string;
     viewBox?: string;
@@ -15,7 +18,21 @@ const props = defineProps<{
     cBorder: string;
     tabDefs: TabDef[];
     activeHint: string | null;
+    designPreset: string;
 }>();
+
+const isSoft = computed(() => props.designPreset === 'soft-luxury');
+// Soft-luxury card look: larger radius, soft shadow, no hard border.
+const softCardStyle = computed(() =>
+    isSoft.value
+        ? { backgroundColor: props.cCardBg, borderRadius: '14px', boxShadow: '0 4px 10px -3px rgba(90,50,55,0.28)' }
+        : {
+              backgroundColor: props.cCardBg,
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              borderColor: props.cBorder + '33',
+          },
+);
 
 function hintBgClass(hint: string): string {
     return props.activeHint === hint ? 'preview-hint-bg' : '';
@@ -52,12 +69,7 @@ const groupMembers = [
                             <!-- Card 1 -->
                             <div
                                 class="rounded-lg p-1.5 shadow-sm"
-                                :style="{
-                                    backgroundColor: cCardBg,
-                                    borderWidth: '1px',
-                                    borderStyle: 'solid',
-                                    borderColor: cBorder + '33',
-                                }"
+                                :style="softCardStyle"
                                 :class="[hintBgClass('cardBg'), hintBorderClass('border')]"
                             >
                                 <p class="mb-0.5 text-[5px]" :style="{ color: cCardText + '77' }" :class="hintFilterClass('cardText')">
@@ -73,13 +85,15 @@ const groupMembers = [
                                 </div>
                                 <div class="mt-1 flex gap-0.5">
                                     <div
-                                        class="flex-1 rounded py-0.5 text-center text-[5px] font-semibold text-white"
+                                        class="flex-1 py-0.5 text-center text-[5px] font-semibold text-white"
+                                        :class="isSoft ? 'rounded-full' : 'rounded'"
                                         style="background-color: #4a7c59"
                                     >
                                         Zusagen
                                     </div>
                                     <div
-                                        class="flex-1 rounded py-0.5 text-center text-[5px] font-semibold text-white"
+                                        class="flex-1 py-0.5 text-center text-[5px] font-semibold text-white"
+                                        :class="isSoft ? 'rounded-full' : 'rounded'"
                                         style="background-color: #b45a3c"
                                     >
                                         Absagen
@@ -89,12 +103,7 @@ const groupMembers = [
                             <!-- Card 2 -->
                             <div
                                 class="rounded-lg p-1.5 shadow-sm"
-                                :style="{
-                                    backgroundColor: cCardBg,
-                                    borderWidth: '1px',
-                                    borderStyle: 'solid',
-                                    borderColor: cBorder + '33',
-                                }"
+                                :style="softCardStyle"
                                 :class="[hintBgClass('cardBg'), hintBorderClass('border')]"
                             >
                                 <p class="text-[7px] font-semibold" :style="{ color: cCardText }" :class="hintFilterClass('cardText')">
@@ -144,37 +153,16 @@ const groupMembers = [
                                 </div>
                             </div>
                         </div>
-                        <div
-                            class="flex h-[26px] w-full items-end justify-around border-t pb-1.5"
-                            :style="{ backgroundColor: cScreenBg, borderColor: cBorder + '33' }"
-                        >
-                            <div
-                                v-for="(tab, i) in tabDefs"
-                                :key="'z' + i"
-                                class="flex flex-col items-center gap-0.5"
-                                :class="hintFilterClass('tabTint')"
-                            >
-                                <svg
-                                    width="9"
-                                    height="9"
-                                    :viewBox="tab.viewBox ?? '0 0 24 24'"
-                                    fill="none"
-                                    :stroke-width="tab.strokeWidth ?? 2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    :stroke="i === 1 ? cTabTint : cTabTint + '55'"
-                                >
-                                    <path v-for="(p, pi) in tab.paths" :key="pi" :d="p" />
-                                </svg>
-                                <span
-                                    class="text-[5px]"
-                                    :style="{
-                                        color: i === 1 ? cTabTint : cTabTint + '55',
-                                        fontWeight: i === 1 ? '700' : '400',
-                                    }"
-                                    >{{ tab.label }}</span
-                                >
-                            </div>
+                        <div :class="hintFilterClass('tabTint')">
+                            <PreviewTabBar
+                                :tab-defs="tabDefs"
+                                :active-index="1"
+                                :design-preset="designPreset"
+                                :c-screen-bg="cScreenBg"
+                                :c-card-bg="cCardBg"
+                                :c-tab-tint="cTabTint"
+                                :c-border="cBorder"
+                            />
                         </div>
                     </div>
                 </div>
