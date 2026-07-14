@@ -49,6 +49,7 @@ interface EventData {
     role_border: string | null;
     role_fab: string | null;
     role_fab_icon: string | null;
+    role_nav_bg: string | null;
     font_heading: string | null;
     design_preset: string | null;
 }
@@ -71,6 +72,7 @@ interface StylePreset {
     role_border: string | null;
     role_fab: string | null;
     role_fab_icon: string | null;
+    role_nav_bg: string | null;
     font_heading: string | null;
 }
 
@@ -97,6 +99,7 @@ const form = useForm({
     role_border: props.event.role_border ?? 'primary',
     role_fab: props.event.role_fab ?? 'primary',
     role_fab_icon: props.event.role_fab_icon ?? 'tertiary',
+    role_nav_bg: props.event.role_nav_bg ?? 'secondary',
     font_heading: props.event.font_heading ?? '',
     design_preset: props.event.design_preset ?? 'classic',
     cover: null as File | null,
@@ -263,6 +266,7 @@ const cTabTint = computed(() => resolve(form.role_tab_tint, 'primary'));
 const cBorder = computed(() => resolve(form.role_border, 'primary'));
 const cFab = computed(() => resolve(form.role_fab, 'primary'));
 const cFabIcon = computed(() => resolve(form.role_fab_icon, 'tertiary'));
+const cNavBg = computed(() => resolve(form.role_nav_bg, 'secondary'));
 
 // Font
 const fontOptions = [
@@ -348,6 +352,7 @@ function loadPreset(preset: StylePreset) {
     form.role_border = preset.role_border ?? form.role_border;
     form.role_fab = preset.role_fab ?? form.role_fab;
     form.role_fab_icon = preset.role_fab_icon ?? form.role_fab_icon;
+    form.role_nav_bg = preset.role_nav_bg ?? form.role_nav_bg;
     form.font_heading = preset.font_heading ?? form.font_heading;
 }
 
@@ -368,6 +373,7 @@ const presetForm = useForm({
     role_border: '',
     role_fab: '',
     role_fab_icon: '',
+    role_nav_bg: '',
     font_heading: '',
 });
 
@@ -388,6 +394,7 @@ function savePreset() {
     presetForm.role_border = form.role_border;
     presetForm.role_fab = form.role_fab;
     presetForm.role_fab_icon = form.role_fab_icon;
+    presetForm.role_nav_bg = form.role_nav_bg;
     presetForm.font_heading = form.font_heading;
     presetForm.post(route('event.style-presets.store'), {
         preserveScroll: true,
@@ -422,6 +429,7 @@ const STYLE_FIELDS = [
     'role_border',
     'role_fab',
     'role_fab_icon',
+    'role_nav_bg',
     'font_heading',
 ] as const;
 
@@ -482,7 +490,7 @@ function importStyle(e: Event) {
         <!-- Split screen: mobile = preview on top (shrink-0) / form below (scroll); desktop = form left / preview right -->
         <div class="flex h-[calc(100dvh-4rem)] flex-col overflow-hidden lg:grid lg:h-[calc(100vh-4rem)] lg:grid-cols-2 lg:gap-6 lg:px-4 lg:pt-4">
             <!-- Form — after preview on mobile (order-last, flex-1 scroll), on the left on desktop -->
-            <div class="order-last min-h-0 flex-1 overflow-y-auto px-4 pt-2 pb-24 lg:order-first lg:px-0 lg:pt-0">
+            <div class="order-last min-h-0 flex-1 overflow-y-auto px-4 pb-24 pt-2 lg:order-first lg:px-0 lg:pt-0">
                 <div class="space-y-4">
                     <!-- Left column: form -->
                     <form @submit.prevent="submit" class="space-y-4">
@@ -522,7 +530,7 @@ function importStyle(e: Event) {
                                                 "
                                             >
                                                 <div class="text-sm font-semibold">{{ preset.label }}</div>
-                                                <div class="mt-0.5 text-xs leading-tight text-muted-foreground">
+                                                <div class="text-muted-foreground mt-0.5 text-xs leading-tight">
                                                     {{ preset.description }}
                                                 </div>
                                             </button>
@@ -570,6 +578,7 @@ function importStyle(e: Event) {
                                         v-model:role-border="form.role_border"
                                         v-model:role-fab="form.role_fab"
                                         v-model:role-fab-icon="form.role_fab_icon"
+                                        v-model:role-nav-bg="form.role_nav_bg"
                                         @show-hint="showHint"
                                     />
                                 </div>
@@ -585,7 +594,7 @@ function importStyle(e: Event) {
                                     <div class="flex items-center gap-1">
                                         <button
                                             type="button"
-                                            class="rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                                            class="text-muted-foreground hover:bg-muted hover:text-foreground rounded px-2 py-1 text-xs transition-colors"
                                             title="Aktuellen Stil als Datei exportieren"
                                             @click="exportStyle()"
                                         >
@@ -593,7 +602,7 @@ function importStyle(e: Event) {
                                         </button>
                                         <button
                                             type="button"
-                                            class="rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                                            class="text-muted-foreground hover:bg-muted hover:text-foreground rounded px-2 py-1 text-xs transition-colors"
                                             title="Stil aus Datei importieren & speichern"
                                             @click="importFileInput?.click()"
                                         >
@@ -614,7 +623,7 @@ function importStyle(e: Event) {
                                     <div
                                         v-for="preset in stylePresets"
                                         :key="preset.id"
-                                        class="flex items-center gap-2 rounded-lg border border-input bg-muted/20 px-3 py-2"
+                                        class="border-input bg-muted/20 flex items-center gap-2 rounded-lg border px-3 py-2"
                                     >
                                         <div class="flex shrink-0 gap-0.5">
                                             <div
@@ -633,7 +642,7 @@ function importStyle(e: Event) {
                                         <span class="flex-1 truncate text-sm">{{ preset.name }}</span>
                                         <button
                                             type="button"
-                                            class="shrink-0 rounded px-2 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                                            class="text-muted-foreground hover:bg-muted hover:text-foreground shrink-0 rounded px-2 py-0.5 text-xs transition-colors"
                                             title="Exportieren"
                                             @click="exportStyle(preset)"
                                         >
@@ -641,29 +650,29 @@ function importStyle(e: Event) {
                                         </button>
                                         <button
                                             type="button"
-                                            class="shrink-0 rounded border border-input px-2 py-0.5 text-xs transition-colors hover:bg-muted"
+                                            class="border-input hover:bg-muted shrink-0 rounded border px-2 py-0.5 text-xs transition-colors"
                                             @click="loadPreset(preset)"
                                         >
                                             Laden
                                         </button>
                                         <button
                                             type="button"
-                                            class="shrink-0 rounded px-1.5 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                                            class="text-muted-foreground hover:bg-destructive/10 hover:text-destructive shrink-0 rounded px-1.5 py-0.5 text-xs transition-colors"
                                             @click="deletePreset(preset.id)"
                                         >
                                             ✕
                                         </button>
                                     </div>
 
-                                    <p v-if="!stylePresets.length" class="py-1 text-xs text-muted-foreground">Noch keine Stile gespeichert.</p>
+                                    <p v-if="!stylePresets.length" class="text-muted-foreground py-1 text-xs">Noch keine Stile gespeichert.</p>
                                 </div>
 
                                 <!-- Save new style -->
-                                <div class="mt-3 border-t border-input pt-3">
+                                <div class="border-input mt-3 border-t pt-3">
                                     <div v-if="!showPresetInput">
                                         <button
                                             type="button"
-                                            class="w-full rounded-lg border border-dashed border-input py-2 text-xs text-muted-foreground transition-colors hover:border-ring hover:text-foreground"
+                                            class="border-input text-muted-foreground hover:border-ring hover:text-foreground w-full rounded-lg border border-dashed py-2 text-xs transition-colors"
                                             @click="showPresetInput = true"
                                         >
                                             + Aktuellen Stil speichern
@@ -754,10 +763,13 @@ function importStyle(e: Event) {
                                 :preview-venue-address="previewVenueAddress"
                                 :preview-countdown="previewCountdown"
                                 :c-screen-bg="cScreenBg"
+                                :c-primary="form.color_primary"
                                 :c-card-bg="cCardBg"
                                 :c-card-text="cCardText"
+                                :c-card-button-text="cCardButtonText"
                                 :c-tab-tint="cTabTint"
                                 :c-border="cBorder"
+                                :c-nav-bg="cNavBg"
                                 :tab-defs="tabDefs"
                                 :active-hint="activeHint"
                                 :design-preset="form.design_preset"
@@ -768,10 +780,12 @@ function importStyle(e: Event) {
                             <PhonePreviewRsvp
                                 :preview-font-family="previewFontFamily"
                                 :c-screen-bg="cScreenBg"
+                                :c-primary="form.color_primary"
                                 :c-card-bg="cCardBg"
                                 :c-card-text="cCardText"
                                 :c-tab-tint="cTabTint"
                                 :c-border="cBorder"
+                                :c-nav-bg="cNavBg"
                                 :tab-defs="tabDefs"
                                 :active-hint="activeHint"
                                 :design-preset="form.design_preset"
@@ -781,11 +795,13 @@ function importStyle(e: Event) {
                             <PhonePreviewPhotos
                                 :preview-font-family="previewFontFamily"
                                 :c-screen-bg="cScreenBg"
+                                :c-primary="form.color_primary"
                                 :c-card-bg="cCardBg"
                                 :c-fab="cFab"
                                 :c-fab-icon="cFabIcon"
                                 :c-tab-tint="cTabTint"
                                 :c-border="cBorder"
+                                :c-nav-bg="cNavBg"
                                 :tab-defs="tabDefs"
                                 :active-hint="activeHint"
                                 :design-preset="form.design_preset"
@@ -795,12 +811,14 @@ function importStyle(e: Event) {
                             <PhonePreviewSettings
                                 :preview-font-family="previewFontFamily"
                                 :c-screen-bg="cScreenBg"
+                                :c-primary="form.color_primary"
                                 :c-card-bg="cCardBg"
                                 :c-card-text="cCardText"
                                 :c-card-button="cCardButton"
                                 :c-card-button-text="cCardButtonText"
                                 :c-tab-tint="cTabTint"
                                 :c-border="cBorder"
+                                :c-nav-bg="cNavBg"
                                 :tab-defs="tabDefs"
                                 :active-hint="activeHint"
                                 :design-preset="form.design_preset"
@@ -823,8 +841,8 @@ function importStyle(e: Event) {
             leave-from-class="opacity-100 translate-y-0"
             leave-to-class="opacity-0 translate-y-4"
         >
-            <div v-if="isDirty" class="fixed right-6 bottom-6 z-50 flex items-center gap-2 rounded-xl border bg-background px-4 py-3 shadow-lg">
-                <span class="mr-1 text-xs text-muted-foreground">{{ t('drink.unsavedChanges') }}</span>
+            <div v-if="isDirty" class="bg-background fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl border px-4 py-3 shadow-lg">
+                <span class="text-muted-foreground mr-1 text-xs">{{ t('drink.unsavedChanges') }}</span>
                 <Button variant="ghost" size="sm" :disabled="form.processing" @click="discard">
                     {{ t('common.cancel') }}
                 </Button>

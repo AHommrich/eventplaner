@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { getDesignVariant } from '@/lib/designVariants';
+import { isSoft, previewScreenGradient } from '@/lib/previewStyles';
+import { computed } from 'vue';
 import PreviewTabBar from './PreviewTabBar.vue';
 
 interface TabDef {
@@ -22,14 +25,44 @@ const props = defineProps<{
     previewVenueAddress: string;
     previewCountdown: string | null;
     cScreenBg: string;
+    cPrimary: string;
     cCardBg: string;
     cCardText: string;
+    cCardButtonText: string;
     cTabTint: string;
     cBorder: string;
+    cNavBg: string;
     tabDefs: TabDef[];
     activeHint: string | null;
     designPreset: string;
 }>();
+
+const variant = computed(() => getDesignVariant(props.designPreset));
+const soft = computed(() => isSoft(variant.value));
+
+// Soft-luxury no-cover background: the diagonal screen gradient.
+const screenBg = computed(() => {
+    const gradient = previewScreenGradient(variant.value, props.cScreenBg, props.cPrimary);
+    return gradient ? { background: gradient } : { backgroundColor: props.cScreenBg };
+});
+
+// Soft-luxury typography: uppercase spaced welcome + a larger, airier title.
+const welcomeExtra = computed(() => (soft.value ? { textTransform: 'uppercase' as const, letterSpacing: '0.4px', opacity: 0.9 } : {}));
+const titleExtra = computed(() => (soft.value ? { fontSize: '10px', letterSpacing: '0.3px' } : {}));
+
+// Countdown pill — the app always renders the countdown inside a pill: classic
+// solid (primary / dark-on-cover), soft-luxury a frosted chip with a hairline.
+const plainPill = computed(() =>
+    soft.value
+        ? { style: { backgroundColor: props.cCardBg + 'cc', border: `1px solid ${props.cBorder}33` }, color: props.cCardText }
+        : { style: { backgroundColor: props.cPrimary }, color: props.cCardButtonText },
+);
+const coverPill = computed(() => {
+    const homeText = props.colorHomeText || '#ffffff';
+    return soft.value
+        ? { style: { backgroundColor: 'rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.4)' }, color: '#ffffff' }
+        : { style: { backgroundColor: 'rgba(0,0,0,0.35)' }, color: homeText };
+});
 
 function hintBgClass(hint: string): string {
     return props.activeHint === hint ? 'preview-hint-bg' : '';
@@ -62,10 +95,10 @@ function hintFilterClass(hint: string): string {
                             <span>9:41</span><span style="font-size: 6px">▲▲ ▐</span>
                         </div>
                         <div class="relative flex flex-1 flex-col items-center justify-center px-2.5 pb-1">
-                            <p class="text-center text-[6px]" :style="{ color: colorHomeText || '#ffffff' }">Willkommen, Max!</p>
+                            <p class="text-center text-[6px]" :style="{ color: colorHomeText || '#ffffff', ...welcomeExtra }">Willkommen, Max!</p>
                             <p
-                                class="mt-0.5 text-center text-[9px] leading-tight font-bold"
-                                :style="{ color: colorHomeText || '#ffffff', fontFamily: previewFontFamily }"
+                                class="mt-0.5 text-center text-[9px] font-bold leading-tight"
+                                :style="{ color: colorHomeText || '#ffffff', fontFamily: previewFontFamily, ...titleExtra }"
                             >
                                 {{ eventName || 'Event-Name' }}
                             </p>
@@ -148,9 +181,11 @@ function hintFilterClass(hint: string): string {
                                     {{ dresscode }}
                                 </p>
                             </template>
-                            <p class="mt-1.5 text-center text-[6px] font-bold" :style="{ color: colorHomeText || '#ffffff' }">
-                                {{ previewCountdown || 'Noch 6T 11Std 22Min 30Sek' }}
-                            </p>
+                            <div class="mt-1.5 flex justify-center">
+                                <span class="rounded-full px-1.5 py-0.5 text-[6px] font-bold" :style="{ ...coverPill.style, color: coverPill.color }">
+                                    {{ previewCountdown || 'Noch 6T 11Std 22Min 30Sek' }}
+                                </span>
+                            </div>
                         </div>
                         <PreviewTabBar
                             :tab-defs="tabDefs"
@@ -160,6 +195,7 @@ function hintFilterClass(hint: string): string {
                             :c-card-bg="cCardBg"
                             :c-tab-tint="cTabTint"
                             :c-border="cBorder"
+                            :c-nav-bg="cNavBg"
                             :over-cover="true"
                             :color-home-text="colorHomeText"
                         />
@@ -169,17 +205,17 @@ function hintFilterClass(hint: string): string {
                         v-else
                         class="flex flex-col"
                         style="height: 244px"
-                        :style="{ backgroundColor: cScreenBg, fontFamily: previewFontFamily }"
+                        :style="{ ...screenBg, fontFamily: previewFontFamily }"
                         :class="hintBgClass('screenBg')"
                     >
                         <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
                             <span>9:41</span><span style="font-size: 6px">▲▲ ▐</span>
                         </div>
                         <div class="flex flex-1 flex-col items-center justify-center px-2.5 pb-1">
-                            <p class="text-center text-[6px]" :style="{ color: cCardText }">Willkommen, Max!</p>
+                            <p class="text-center text-[6px]" :style="{ color: cCardText, ...welcomeExtra }">Willkommen, Max!</p>
                             <p
-                                class="mt-0.5 text-center text-[9px] leading-tight font-bold"
-                                :style="{ color: cCardText, fontFamily: previewFontFamily }"
+                                class="mt-0.5 text-center text-[9px] font-bold leading-tight"
+                                :style="{ color: cCardText, fontFamily: previewFontFamily, ...titleExtra }"
                             >
                                 {{ eventName || 'Event-Name' }}
                             </p>
@@ -255,9 +291,11 @@ function hintFilterClass(hint: string): string {
                                 <p class="mt-0.5 text-center text-[6px]" :style="{ color: cCardText, opacity: 0.7 }">Dresscode:</p>
                                 <p class="text-center text-[6px]" :style="{ color: cCardText, opacity: 0.7 }">{{ dresscode }}</p>
                             </template>
-                            <p class="mt-1.5 text-center text-[6px] font-bold" :style="{ color: cCardText }">
-                                {{ previewCountdown || 'Noch 6T 11Std 22Min 30Sek' }}
-                            </p>
+                            <div class="mt-1.5 flex justify-center">
+                                <span class="rounded-full px-1.5 py-0.5 text-[6px] font-bold" :style="{ ...plainPill.style, color: plainPill.color }">
+                                    {{ previewCountdown || 'Noch 6T 11Std 22Min 30Sek' }}
+                                </span>
+                            </div>
                         </div>
                         <div :class="hintFilterClass('tabTint')">
                             <PreviewTabBar
@@ -268,6 +306,8 @@ function hintFilterClass(hint: string): string {
                                 :c-card-bg="cCardBg"
                                 :c-tab-tint="cTabTint"
                                 :c-border="cBorder"
+                                :c-nav-bg="cNavBg"
+                                :active-hint="activeHint"
                             />
                         </div>
                     </div>

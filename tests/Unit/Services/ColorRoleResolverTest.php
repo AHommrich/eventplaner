@@ -12,7 +12,7 @@ function makeEvent(array $attrs = []): Event
     ], $attrs));
 }
 
-it('resolves all nine roles to hex colors from palette', function () {
+it('resolves all ten roles to hex colors from palette', function () {
     $event = makeEvent([
         'role_screen_bg' => 'secondary',
         'role_card_bg' => 'tertiary',
@@ -23,6 +23,7 @@ it('resolves all nine roles to hex colors from palette', function () {
         'role_border' => 'secondary',
         'role_fab' => 'primary',
         'role_fab_icon' => 'tertiary',
+        'role_nav_bg' => 'secondary',
     ]);
 
     $resolved = (new ColorRoleResolver)->resolve($event);
@@ -37,6 +38,7 @@ it('resolves all nine roles to hex colors from palette', function () {
         'role_border' => '#00bb00',
         'role_fab' => '#aa0000',
         'role_fab_icon' => '#0000cc',
+        'role_nav_bg' => '#00bb00',
     ]);
 });
 
