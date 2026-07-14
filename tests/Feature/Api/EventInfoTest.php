@@ -26,6 +26,24 @@ it('returns palette and resolved role colors as hex', function () {
         ]);
 });
 
+it('defaults the design preset to classic', function () {
+    $event = Event::factory()->create();
+    $guest = Guest::factory()->create(['event_id' => $event->id]);
+
+    actingAsGuest($guest)->getJson('/api/event/info')
+        ->assertOk()
+        ->assertJsonPath('design_preset', 'classic');
+});
+
+it('returns the selected design preset', function () {
+    $event = Event::factory()->create(['design_preset' => 'soft-luxury']);
+    $guest = Guest::factory()->create(['event_id' => $event->id]);
+
+    actingAsGuest($guest)->getJson('/api/event/info')
+        ->assertOk()
+        ->assertJsonPath('design_preset', 'soft-luxury');
+});
+
 it('returns null cover home_text when no cover is set', function () {
     $event = Event::factory()->create();
     $guest = Guest::factory()->create(['event_id' => $event->id]);

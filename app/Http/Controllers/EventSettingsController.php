@@ -84,6 +84,7 @@ class EventSettingsController extends Controller
                 'role_card_button', 'role_card_button_text',
                 'role_tab_tint', 'role_border', 'role_fab', 'role_fab_icon',
                 'font_heading',
+                'design_preset',
             ]),
             'stylePresets' => $event->stylePresets()
                 ->orderBy('created_at', 'desc')
@@ -123,6 +124,7 @@ class EventSettingsController extends Controller
                 'playfair', 'cormorant', 'cinzel', 'dancing',
                 'great_vibes', 'raleway', 'lora', 'josefin',
             ])],
+            'design_preset' => ['nullable', \Illuminate\Validation\Rule::in(['classic', 'soft-luxury'])],
             'cover' => 'nullable|file|mimes:jpeg,jpg,png,heic,heif|max:10240',
         ]);
 
