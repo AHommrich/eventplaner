@@ -89,7 +89,7 @@ function hintFilterClass(hint: string): string {
                                 </svg>
                             </div>
                         </div>
-                        <div :class="hintFilterClass('tabTint')">
+                        <div>
                             <PreviewTabBar
                                 :tab-defs="tabDefs"
                                 :active-index="2"
