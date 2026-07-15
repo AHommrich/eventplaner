@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import RoleSelector from '@/components/EventSettings/RoleSelector.vue';
 import InfoTooltip from '@/components/InfoTooltip.vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,8 +44,10 @@ const cardContrast = computed(() => contrastRatio(cardText.value, cardBg.value))
 const cardContrastFailsAA = computed(() => cardContrast.value < WCAG_AA_NORMAL);
 const cardContrastLabel = computed(() => cardContrast.value.toFixed(1));
 
-const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKey) =>
-    (formRole ?? fallback) === optKey ? 'border-ring bg-muted/20' : 'border-input hover:border-muted-foreground';
+// Forward a role control's highlight request up to Design.vue's hint system.
+function hint(key: string) {
+    emit('show-hint', key);
+}
 </script>
 
 <template>
@@ -92,275 +95,90 @@ const radioClass = (formRole: string | null, optKey: string, fallback: PaletteKe
             </div>
         </div>
 
-        <!-- Radio selectors -->
+        <!-- Role selectors — one RoleSelector per role, each independently set. -->
         <div class="space-y-3 pt-1">
-            <!-- Screen background -->
-            <div class="grid gap-1.5">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs text-muted-foreground">{{ t('event.roleScreenBg') }}</span
-                    ><button
-                        type="button"
-                        @click="emit('show-hint', 'screenBg')"
-                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
-                    >
-                        ?
-                    </button>
-                </div>
-                <div class="flex gap-2">
-                    <button
-                        v-for="opt in colorOptions"
-                        :key="'sb' + opt.key"
-                        type="button"
-                        @click="roleScreenBg = opt.key"
-                        class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
-                        :class="radioClass(roleScreenBg, opt.key, 'secondary')"
-                    >
-                        <div class="h-6 w-6 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
-                        <span>{{ opt.label }}</span>
-                    </button>
-                </div>
-            </div>
-            <!-- Card background -->
-            <div class="grid gap-1.5">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs text-muted-foreground">{{ t('event.roleCardBg') }}</span
-                    ><button
-                        type="button"
-                        @click="emit('show-hint', 'cardBg')"
-                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
-                    >
-                        ?
-                    </button>
-                </div>
-                <div class="flex gap-2">
-                    <button
-                        v-for="opt in colorOptions"
-                        :key="'cb' + opt.key"
-                        type="button"
-                        @click="roleCardBg = opt.key"
-                        class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
-                        :class="radioClass(roleCardBg, opt.key, 'tertiary')"
-                    >
-                        <div class="h-6 w-6 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
-                        <span>{{ opt.label }}</span>
-                    </button>
-                </div>
-            </div>
-            <!-- Text on cards -->
-            <div class="grid gap-1.5">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs text-muted-foreground">{{ t('event.roleCardText') }}</span
-                    ><button
-                        type="button"
-                        @click="emit('show-hint', 'cardText')"
-                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
-                    >
-                        ?
-                    </button>
-                </div>
-                <div class="flex gap-2">
-                    <button
-                        v-for="opt in colorOptions"
-                        :key="'ct' + opt.key"
-                        type="button"
-                        @click="roleCardText = opt.key"
-                        class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
-                        :class="radioClass(roleCardText, opt.key, 'primary')"
-                    >
-                        <div class="h-6 w-6 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
-                        <span>{{ opt.label }}</span>
-                    </button>
-                </div>
+            <RoleSelector
+                :label="t('event.roleScreenBg')"
+                hint-key="screenBg"
+                fallback="secondary"
+                :options="colorOptions"
+                v-model="roleScreenBg"
+                @hint="hint"
+            />
+            <RoleSelector
+                :label="t('event.roleCardBg')"
+                hint-key="cardBg"
+                fallback="tertiary"
+                :options="colorOptions"
+                v-model="roleCardBg"
+                @hint="hint"
+            />
+            <div>
+                <RoleSelector
+                    :label="t('event.roleCardText')"
+                    hint-key="cardText"
+                    fallback="primary"
+                    :options="colorOptions"
+                    v-model="roleCardText"
+                    @hint="hint"
+                />
                 <p
                     v-if="cardContrastFailsAA"
                     role="alert"
-                    class="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-[11px] leading-snug text-amber-800 dark:text-amber-200"
+                    class="mt-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-[11px] leading-snug text-amber-800 dark:text-amber-200"
                 >
                     {{ t('event.contrastWarning', { ratio: cardContrastLabel }) }}
                 </p>
             </div>
-            <!-- Button on cards -->
-            <div class="grid gap-1.5">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs text-muted-foreground">{{ t('event.roleCardButton') }}</span
-                    ><button
-                        type="button"
-                        @click="emit('show-hint', 'cardButton')"
-                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
-                    >
-                        ?
-                    </button>
-                </div>
-                <div class="flex gap-2">
-                    <button
-                        v-for="opt in colorOptions"
-                        :key="'cbt' + opt.key"
-                        type="button"
-                        @click="roleCardButton = opt.key"
-                        class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
-                        :class="radioClass(roleCardButton, opt.key, 'primary')"
-                    >
-                        <div class="h-6 w-6 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
-                        <span>{{ opt.label }}</span>
-                    </button>
-                </div>
-            </div>
-            <!-- Text on card buttons -->
-            <div class="grid gap-1.5">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs text-muted-foreground">{{ t('event.roleCardButtonText') }}</span
-                    ><button
-                        type="button"
-                        @click="emit('show-hint', 'cardButtonText')"
-                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
-                    >
-                        ?
-                    </button>
-                </div>
-                <div class="flex gap-2">
-                    <button
-                        v-for="opt in colorOptions"
-                        :key="'cbtx' + opt.key"
-                        type="button"
-                        @click="roleCardButtonText = opt.key"
-                        class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
-                        :class="radioClass(roleCardButtonText, opt.key, 'tertiary')"
-                    >
-                        <div class="h-6 w-6 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
-                        <span>{{ opt.label }}</span>
-                    </button>
-                </div>
-            </div>
-            <!-- Navbar background -->
-            <div class="grid gap-1.5">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs text-muted-foreground">{{ t('event.roleNavBg') }}</span
-                    ><button
-                        type="button"
-                        @click="emit('show-hint', 'navBg')"
-                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
-                    >
-                        ?
-                    </button>
-                </div>
-                <div class="flex gap-2">
-                    <button
-                        v-for="opt in colorOptions"
-                        :key="'nav' + opt.key"
-                        type="button"
-                        @click="roleNavBg = opt.key"
-                        class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
-                        :class="radioClass(roleNavBg, opt.key, 'secondary')"
-                    >
-                        <div class="h-6 w-6 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
-                        <span>{{ opt.label }}</span>
-                    </button>
-                </div>
-            </div>
-            <!-- Navbar icons/text -->
-            <div class="grid gap-1.5">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs text-muted-foreground">{{ t('event.roleTabTint') }}</span
-                    ><button
-                        type="button"
-                        @click="emit('show-hint', 'tabTint')"
-                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
-                    >
-                        ?
-                    </button>
-                </div>
-                <div class="flex gap-2">
-                    <button
-                        v-for="opt in colorOptions"
-                        :key="'tt' + opt.key"
-                        type="button"
-                        @click="roleTabTint = opt.key"
-                        class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
-                        :class="radioClass(roleTabTint, opt.key, 'primary')"
-                    >
-                        <div class="h-6 w-6 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
-                        <span>{{ opt.label }}</span>
-                    </button>
-                </div>
-            </div>
-            <!-- Border color -->
-            <div class="grid gap-1.5">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs text-muted-foreground">{{ t('event.roleBorder') }}</span
-                    ><button
-                        type="button"
-                        @click="emit('show-hint', 'border')"
-                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
-                    >
-                        ?
-                    </button>
-                </div>
-                <div class="flex gap-2">
-                    <button
-                        v-for="opt in colorOptions"
-                        :key="'br' + opt.key"
-                        type="button"
-                        @click="roleBorder = opt.key"
-                        class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
-                        :class="radioClass(roleBorder, opt.key, 'primary')"
-                    >
-                        <div class="h-6 w-6 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
-                        <span>{{ opt.label }}</span>
-                    </button>
-                </div>
-            </div>
-            <!-- FAB button -->
-            <div class="grid gap-1.5">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs text-muted-foreground">{{ t('event.roleFab') }}</span
-                    ><button
-                        type="button"
-                        @click="emit('show-hint', 'fab')"
-                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
-                    >
-                        ?
-                    </button>
-                </div>
-                <div class="flex gap-2">
-                    <button
-                        v-for="opt in colorOptions"
-                        :key="'fab' + opt.key"
-                        type="button"
-                        @click="roleFab = opt.key"
-                        class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
-                        :class="radioClass(roleFab, opt.key, 'primary')"
-                    >
-                        <div class="h-6 w-6 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
-                        <span>{{ opt.label }}</span>
-                    </button>
-                </div>
-            </div>
-            <!-- Icon color inside FAB -->
-            <div class="grid gap-1.5">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs text-muted-foreground">{{ t('event.roleFabIcon') }}</span
-                    ><button
-                        type="button"
-                        @click="emit('show-hint', 'fabIcon')"
-                        class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-500/60 text-[11px] font-bold text-amber-500 hover:bg-amber-500/10"
-                    >
-                        ?
-                    </button>
-                </div>
-                <div class="flex gap-2">
-                    <button
-                        v-for="opt in colorOptions"
-                        :key="'fabi' + opt.key"
-                        type="button"
-                        @click="roleFabIcon = opt.key"
-                        class="flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs transition-colors"
-                        :class="radioClass(roleFabIcon, opt.key, 'tertiary')"
-                    >
-                        <div class="h-6 w-6 rounded-full border border-black/10 shadow-sm" :style="{ backgroundColor: opt.value }" />
-                        <span>{{ opt.label }}</span>
-                    </button>
-                </div>
-            </div>
+            <RoleSelector
+                :label="t('event.roleCardButton')"
+                hint-key="cardButton"
+                fallback="primary"
+                :options="colorOptions"
+                v-model="roleCardButton"
+                @hint="hint"
+            />
+            <RoleSelector
+                :label="t('event.roleCardButtonText')"
+                hint-key="cardButtonText"
+                fallback="tertiary"
+                :options="colorOptions"
+                v-model="roleCardButtonText"
+                @hint="hint"
+            />
+            <RoleSelector
+                :label="t('event.roleNavBg')"
+                hint-key="navBg"
+                fallback="secondary"
+                :options="colorOptions"
+                v-model="roleNavBg"
+                @hint="hint"
+            />
+            <RoleSelector
+                :label="t('event.roleTabTint')"
+                hint-key="tabTint"
+                fallback="primary"
+                :options="colorOptions"
+                v-model="roleTabTint"
+                @hint="hint"
+            />
+            <RoleSelector
+                :label="t('event.roleBorder')"
+                hint-key="border"
+                fallback="primary"
+                :options="colorOptions"
+                v-model="roleBorder"
+                @hint="hint"
+            />
+            <RoleSelector :label="t('event.roleFab')" hint-key="fab" fallback="primary" :options="colorOptions" v-model="roleFab" @hint="hint" />
+            <RoleSelector
+                :label="t('event.roleFabIcon')"
+                hint-key="fabIcon"
+                fallback="tertiary"
+                :options="colorOptions"
+                v-model="roleFabIcon"
+                @hint="hint"
+            />
         </div>
     </div>
 </template>
