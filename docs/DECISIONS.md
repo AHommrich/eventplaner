@@ -76,3 +76,17 @@ took real effort to discover.
   and contrast rather than from fixed palette slot names.
   **Why:** a custom secondary colour may be dark or saturated; assigning it to
   the app background solely by slot produces unusable, visually heavy designs.
+
+- **2026-07-16** — (P0.5) Change the `events.user_id` FK from `ON DELETE
+  CASCADE` to `RESTRICT`, and split user-deletion behaviour by actor: an admin
+  deleting *another* user is refused while that user owns an event
+  (`Admin/UserController::destroy`); a user deleting *their own* account has
+  their owned events removed explicitly first
+  (`Settings/ProfileController::destroy`).
+  **Why:** the cascade let an admin (or, once co-ownership lands, any deletion)
+  silently wipe a whole event — guests, photos, drink logs — and would strip
+  equal co-owners of it. RESTRICT makes accidental destruction impossible.
+  Self-service deletion is the deliberate opposite (GDPR Art. 17 erasure of
+  one's own data), so it must still succeed and therefore removes owned events
+  on purpose. Also guards against deleting the last superadmin. First slice of
+  the P0 multi-tenancy hardening (see `docs/EVENT_MANAGER_ROLE_PLAN.md`).

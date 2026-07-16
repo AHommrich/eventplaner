@@ -63,6 +63,20 @@ class UserController extends Controller
             return redirect()->back()->with('error', 'Du kannst dich nicht selbst löschen.');
         }
 
+        // Never let the platform end up without a superadmin.
+        if ($user->isAdmin() && User::where('role', 'admin')->count() <= 1) {
+            return redirect()->back()->with('error', 'Der letzte Administrator kann nicht gelöscht werden.');
+        }
+
+        // A user who owns an event must not be deleted: with the RESTRICT FK
+        // (see the 2026_07_16 migration) this would fail at the DB anyway, and
+        // conceptually the event's ownership has to be transferred — or the
+        // event deleted — first. Shared-event memberships (event_user) cascade
+        // away automatically, so only ownership blocks deletion.
+        if ($user->ownedEvents()->exists()) {
+            return redirect()->back()->with('error', 'Dieser Nutzer ist Eigentümer eines Events. Übertrage zuerst die Eigentümerschaft oder lösche das Event.');
+        }
+
         $user->delete();
 
         return redirect()->back()->with('success', 'User gelöscht.');

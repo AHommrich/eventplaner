@@ -53,6 +53,16 @@ class ProfileController extends Controller
 
         Auth::logout();
 
+        // The events.user_id FK is now RESTRICT (P0.5) so an admin can't
+        // accidentally cascade a user's events away. Self-service account
+        // deletion is the opposite case — a deliberate erasure of one's own
+        // data (GDPR Art. 17) — so remove the user's owned events explicitly
+        // first (their child rows cascade via their own FKs). In P0 an event
+        // has a single owner, so this deletes only the leaving user's events.
+        foreach ($user->ownedEvents as $event) {
+            $event->delete();
+        }
+
         $user->delete();
 
         $request->session()->invalidate();
