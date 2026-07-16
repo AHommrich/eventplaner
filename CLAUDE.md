@@ -56,7 +56,8 @@ Coolify deployt automatisch nach Push. Migrations laufen automatisch.
 
 - **Event** — user_id (Owner), name, slug, date, rsvp_deadline, cover_image_url, cover_image_r2_key, venue_name, venue_street, venue_house_number, venue_postal_code, venue_city, venue_state, venue_country, venue_display_mode (`'both'|'name'|'address'`), venue_lat, venue_lng, dresscode, schedule, font_heading, design_preset (`'classic'|'soft-luxury'`, default `'classic'`), drink_game_enabled, drink_game_end_time, photo_game_enabled, projector_token, projector_album_id, projector_name_mode (`'first'|'full'|'none'`, default `'first'`)
   - Legacy-Feld `venue_address` bleibt in DB (Fallback in EventInfoController)
-- **Event Farbsystem** — 3 Palette-Felder (`color_primary`, `color_secondary`, `color_tertiary`) + 9 Rollen-Felder die Keys `'primary'|'secondary'|'tertiary'` speichern: `role_screen_bg`, `role_card_bg`, `role_card_text`, `role_card_button`, `role_card_button_text`, `role_tab_tint`, `role_border`, `role_fab`, `role_fab_icon`. Dazu `color_home_text`, `color_home_shadow`, `home_shadow_opacity` (Cover-Overlay, nur relevant wenn Cover gesetzt).
+- **Event Farbsystem** — 3 Palette-Felder (`color_primary`, `color_secondary`, `color_tertiary`) + 10 Rollen-Felder die Keys `'primary'|'secondary'|'tertiary'` speichern: `role_screen_bg`, `role_card_bg`, `role_card_text`, `role_card_button`, `role_card_button_text`, `role_tab_tint`, `role_border`, `role_fab`, `role_fab_icon`, `role_nav_bg`. Dazu `color_home_text`, `color_home_shadow`, `home_shadow_opacity` (Cover-Overlay, nur relevant wenn Cover gesetzt).
+  - **`role_nav_bg`** (default `secondary`) = Hintergrund der Bottom-Navbar — eigene Rolle statt Ableitung. Vorher zog classic die `screen_bg`- und soft-luxury die `card`-Farbe, was beim Preset-Swap inkonsistent war; jetzt nutzen beide `role_nav_bg` (classic solid, soft-luxury frosted), und `role_tab_tint` bleibt der Vordergrund (Icons/Text/aktive Disc).
 - **User** — role: `admin` (Superadmin = André) oder null (Event-Owner)
 - **Guest** — event_id, category_id, group_id, beer/wine, likelihood, invite, app_access (bool), drinks_access (bool)
 - **Group** — event_id (früher Family)
@@ -115,7 +116,7 @@ Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
 - `name`, `date`, `rsvp_deadline`, `dresscode`, `schedule`
 - `cover_image_url`, `venue_name`, `venue_address` (zusammengesetzt aus Adressfeldern), `venue_lat`, `venue_lng`, `venue_display_mode`
 - `color_primary`, `color_secondary`, `color_tertiary` — Palette
-- `color_screen_bg`, `color_card`, `color_card_text`, `color_card_button`, `color_card_button_text`, `color_tab_tint`, `color_border`, `color_fab`, `color_fab_icon` — aufgelöste Rollen (fertige Hex-Werte)
+- `color_screen_bg`, `color_card`, `color_card_text`, `color_card_button`, `color_card_button_text`, `color_tab_tint`, `color_border`, `color_fab`, `color_fab_icon`, `color_nav_bg` — aufgelöste Rollen (fertige Hex-Werte)
 - `color_home_text`, `color_home_shadow`, `home_shadow_opacity` — Cover-Overlay (können `null` sein wenn kein Cover)
 - `font_heading`, `design_preset` (`'classic'|'soft-luxury'`, App-Formsprache), `drink_game_enabled`, `drink_game_end_time`
 
@@ -160,7 +161,7 @@ Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
   - Language-Switcher (DE/EN) in `AppSidebar.vue` oben links.
 - **Event-Einstellungen** (`pages/Event/Settings.vue`) — Split-Screen (Preview rechts / Formular links, auf Mobile collapsed). Formular-Reihenfolge: Textfelder → Veranstaltungsort (strukturierte Adressfelder + Nominatim-Autocomplete + Leaflet-Map) → Cover-Upload (+ Home-Textfarbe + Shadow-Picker) → Design-Card (Schrift + Farbsystem).
   - **Nominatim**: `dedupe=0` im Request-Parameter, damit auch gleichnamige Adressen in verschiedenen Orten erscheinen.
-  - **Farbsystem**: 3 Palette-Picker (Primär/Sekundär/Tertiär) + 9 Radio-Selektoren die Keys speichern. `palette` + `resolve()` computed, `cScreenBg` … `cFabIcon` als Convenience-Computeds für Preview.
+  - **Farbsystem**: 3 Palette-Picker (Primär/Sekundär/Tertiär) + 10 Radio-Selektoren die Keys speichern. `palette` + `resolve()` computed, `cScreenBg` … `cNavBg` als Convenience-Computeds für Preview.
   - **Phone-Preview**: 4 simulierte App-Screens (Home, Zusage, Fotos, Einstellungen) — reagieren live auf alle Farb-/Font-Änderungen. Auf Mobile einklappbar.
   - **Dirty-Guard**: `router.on('before', ...)` zeigt `window.confirm()` bei ungespeicherten Änderungen. Floating Save Bar unten rechts wenn `isDirty`.
 - **Getränke-Tracking** — Gäste können Getränke loggen; Trinkspiel mit Rangliste + Punkte. Aktivierbar pro Event (`drink_game_enabled`), optionales Spielende-Datum.

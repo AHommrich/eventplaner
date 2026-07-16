@@ -68,3 +68,42 @@ it('uploads a cover image to object storage', function () {
     expect($fresh->cover_image_r2_key)->toStartWith('covers/');
     Storage::disk('s3')->assertExists($fresh->cover_image_r2_key);
 });
+
+it('removes a cover only when the design form is saved', function () {
+    Storage::fake('s3');
+    $user = actingAsOwner();
+    $event = $user->ownedEvents()->first();
+    $key = 'covers/current-cover.jpg';
+    Storage::disk('s3')->put($key, 'cover');
+    $event->update([
+        'cover_image_url' => Storage::disk('s3')->url($key),
+        'cover_image_r2_key' => $key,
+    ]);
+
+    $this->post(route('app.design.update'), [
+        'remove_cover' => true,
+    ])->assertRedirect(route('app.design'));
+
+    expect($event->fresh()->cover_image_url)->toBeNull();
+    expect($event->fresh()->cover_image_r2_key)->toBeNull();
+    Storage::disk('s3')->assertMissing($key);
+});
+
+it('keeps the current cover when remove_cover is not submitted', function () {
+    Storage::fake('s3');
+    $user = actingAsOwner();
+    $event = $user->ownedEvents()->first();
+    $key = 'covers/current-cover.jpg';
+    Storage::disk('s3')->put($key, 'cover');
+    $event->update([
+        'cover_image_url' => Storage::disk('s3')->url($key),
+        'cover_image_r2_key' => $key,
+    ]);
+
+    $this->post(route('app.design.update'), [
+        'color_primary' => '#112233',
+    ])->assertRedirect(route('app.design'));
+
+    expect($event->fresh()->cover_image_r2_key)->toBe($key);
+    Storage::disk('s3')->assertExists($key);
+});

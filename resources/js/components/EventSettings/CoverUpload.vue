@@ -2,7 +2,6 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import axios from 'axios';
 import heic2any from 'heic2any';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -13,6 +12,7 @@ const props = defineProps<{
 }>();
 
 const cover = defineModel<File | null>('cover', { default: null });
+const removeCover = defineModel<boolean>('removeCover', { default: false });
 const colorHomeText = defineModel<string>('colorHomeText', { default: '#ffffff' });
 const colorHomeShadow = defineModel<string>('colorHomeShadow', { default: '#000000' });
 const homeShadowOpacity = defineModel<number>('homeShadowOpacity', { default: 50 });
@@ -32,7 +32,6 @@ watch(
 );
 
 const coverPreview = ref<string | null>(null);
-const coverRemoving = ref(false);
 const coverConverting = ref(false);
 const isDraggingCover = ref(false);
 
@@ -86,6 +85,7 @@ async function processCoverFile(file: File) {
     }
 
     cover.value = file;
+    removeCover.value = false;
     if (coverPreview.value) URL.revokeObjectURL(coverPreview.value);
     coverPreview.value = URL.createObjectURL(file);
 }
@@ -109,24 +109,19 @@ function clearSelectedFile() {
     coverPreview.value = null;
 }
 
-async function removeCover() {
-    coverRemoving.value = true;
-    try {
-        await axios.delete(route('event.settings.cover.delete'));
-        coverUrl.value = null;
-        clearSelectedFile();
-        toast.success(t('toast.coverRemoved'));
-    } catch {
-        toast.error(t('toast.coverError'));
-    } finally {
-        coverRemoving.value = false;
-    }
+function requestCoverRemoval() {
+    coverUrl.value = null;
+    clearSelectedFile();
+    removeCover.value = true;
+    toast.success(t('toast.coverRemoved'));
 }
 
 // Called by the parent after form.reset() / submit onSuccess to drop any in-flight preview blob.
 function resetPreview() {
     if (coverPreview.value) URL.revokeObjectURL(coverPreview.value);
     coverPreview.value = null;
+    coverUrl.value = props.initialCoverUrl;
+    removeCover.value = false;
 }
 defineExpose({ resetPreview });
 
@@ -153,15 +148,8 @@ watch(cover, (val) => {
         <Button v-if="coverPreview" variant="ghost" size="sm" class="shrink-0" @click="clearSelectedFile">
             {{ t('common.remove') }}
         </Button>
-        <Button
-            v-else
-            variant="ghost"
-            size="sm"
-            class="shrink-0 text-destructive hover:text-destructive"
-            :disabled="coverRemoving"
-            @click="removeCover"
-        >
-            {{ coverRemoving ? '…' : t('common.remove') }}
+        <Button v-else variant="ghost" size="sm" class="shrink-0 text-destructive hover:text-destructive" @click="requestCoverRemoval">
+            {{ t('common.remove') }}
         </Button>
     </div>
 

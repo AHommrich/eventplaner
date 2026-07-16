@@ -23,6 +23,7 @@ it('returns palette and resolved role colors as hex', function () {
             'color_screen_bg' => '#00bb00',
             'color_card' => '#0000cc',
             'color_card_text' => '#aa0000',
+            'color_nav_bg' => '#00bb00',
         ]);
 });
 

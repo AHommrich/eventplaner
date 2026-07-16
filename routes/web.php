@@ -97,6 +97,7 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
 
     // style presets
     Route::post('/event/settings/style-presets', [EventStylePresetController::class, 'store'])->name('event.style-presets.store');
+    Route::put('/event/settings/style-presets/{preset}', [EventStylePresetController::class, 'update'])->name('event.style-presets.update');
     Route::delete('/event/settings/style-presets/{preset}', [EventStylePresetController::class, 'destroy'])->name('event.style-presets.destroy');
 
     // photo game

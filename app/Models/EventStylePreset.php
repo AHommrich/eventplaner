@@ -13,7 +13,10 @@ class EventStylePreset extends Model
         'role_screen_bg', 'role_card_bg', 'role_card_text',
         'role_card_button', 'role_card_button_text',
         'role_tab_tint', 'role_border', 'role_fab', 'role_fab_icon',
+        'role_nav_bg',
         'font_heading',
+        'design_preset',
+        'role_config_version',
     ];
 
     public function event()

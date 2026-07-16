@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { getDesignVariant, SEMANTIC_COLORS } from '@/lib/designVariants';
+import { isSoft, previewButtonRadius, previewCardStyle, previewScreenGradient, previewSheen } from '@/lib/previewStyles';
 import { computed } from 'vue';
 import PreviewTabBar from './PreviewTabBar.vue';
 
@@ -12,27 +14,35 @@ interface TabDef {
 const props = defineProps<{
     previewFontFamily: string;
     cScreenBg: string;
+    cPrimary: string;
     cCardBg: string;
     cCardText: string;
     cTabTint: string;
     cBorder: string;
+    cNavBg: string;
     tabDefs: TabDef[];
     activeHint: string | null;
     designPreset: string;
 }>();
 
-const isSoft = computed(() => props.designPreset === 'soft-luxury');
-// Soft-luxury card look: larger radius, soft shadow, no hard border.
-const softCardStyle = computed(() =>
-    isSoft.value
-        ? { backgroundColor: props.cCardBg, borderRadius: '14px', boxShadow: '0 4px 10px -3px rgba(90,50,55,0.28)' }
-        : {
-              backgroundColor: props.cCardBg,
-              borderWidth: '1px',
-              borderStyle: 'solid',
-              borderColor: props.cBorder + '33',
-          },
-);
+const variant = computed(() => getDesignVariant(props.designPreset));
+// Screen background: soft-luxury gets the diagonal gradient (like ScreenGradient),
+// classic stays a flat screen colour.
+const screenBg = computed(() => {
+    const gradient = previewScreenGradient(variant.value, props.cScreenBg, props.cPrimary);
+    return gradient ? { background: gradient } : { backgroundColor: props.cScreenBg };
+});
+// List card: classic = bordered, no shadow; soft = glass + soft shadow.
+const cardStyle = computed(() => previewCardStyle(variant.value, props.cCardBg, props.cBorder));
+// Accept/decline use the app's semantic colours; soft-luxury adds the sheen.
+function actionBtnStyle(color: string) {
+    return {
+        borderRadius: previewButtonRadius(variant.value),
+        ...(isSoft(variant.value) ? { background: previewSheen(color) } : { backgroundColor: color }),
+    };
+}
+const acceptBtnStyle = computed(() => actionBtnStyle(SEMANTIC_COLORS.sage));
+const declineBtnStyle = computed(() => actionBtnStyle(SEMANTIC_COLORS.error));
 
 function hintBgClass(hint: string): string {
     return props.activeHint === hint ? 'preview-hint-bg' : '';
@@ -59,7 +69,7 @@ const groupMembers = [
                     <div
                         class="flex flex-col"
                         style="height: 244px"
-                        :style="{ backgroundColor: cScreenBg, fontFamily: previewFontFamily }"
+                        :style="{ ...screenBg, fontFamily: previewFontFamily }"
                         :class="hintBgClass('screenBg')"
                     >
                         <div class="flex items-center justify-between px-2 pt-1.5 text-[7px] font-semibold text-gray-900">
@@ -67,11 +77,7 @@ const groupMembers = [
                         </div>
                         <div class="flex flex-1 flex-col gap-1.5 overflow-hidden px-1.5 pt-1">
                             <!-- Card 1 -->
-                            <div
-                                class="rounded-lg p-1.5 shadow-sm"
-                                :style="softCardStyle"
-                                :class="[hintBgClass('cardBg'), hintBorderClass('border')]"
-                            >
+                            <div :style="cardStyle" :class="[hintBgClass('cardBg'), hintBorderClass('border')]">
                                 <p class="mb-0.5 text-[5px]" :style="{ color: cCardText + '77' }" :class="hintFilterClass('cardText')">
                                     Bitte antworte bis 25. März.
                                 </p>
@@ -79,33 +85,19 @@ const groupMembers = [
                                     <span class="text-[7px] font-semibold" :style="{ color: cCardText }" :class="hintFilterClass('cardText')"
                                         >Max Mustermann</span
                                     >
-                                    <span class="rounded-full px-1 py-0.5 text-[4px] font-semibold text-white" style="background-color: #4a7c59"
+                                    <span
+                                        class="rounded-full px-1 py-0.5 text-[4px] font-semibold text-white"
+                                        :style="{ backgroundColor: SEMANTIC_COLORS.sage }"
                                         >Zugesagt</span
                                     >
                                 </div>
                                 <div class="mt-1 flex gap-0.5">
-                                    <div
-                                        class="flex-1 py-0.5 text-center text-[5px] font-semibold text-white"
-                                        :class="isSoft ? 'rounded-full' : 'rounded'"
-                                        style="background-color: #4a7c59"
-                                    >
-                                        Zusagen
-                                    </div>
-                                    <div
-                                        class="flex-1 py-0.5 text-center text-[5px] font-semibold text-white"
-                                        :class="isSoft ? 'rounded-full' : 'rounded'"
-                                        style="background-color: #b45a3c"
-                                    >
-                                        Absagen
-                                    </div>
+                                    <div class="flex-1 py-0.5 text-center text-[5px] font-semibold text-white" :style="acceptBtnStyle">Zusagen</div>
+                                    <div class="flex-1 py-0.5 text-center text-[5px] font-semibold text-white" :style="declineBtnStyle">Absagen</div>
                                 </div>
                             </div>
                             <!-- Card 2 -->
-                            <div
-                                class="rounded-lg p-1.5 shadow-sm"
-                                :style="softCardStyle"
-                                :class="[hintBgClass('cardBg'), hintBorderClass('border')]"
-                            >
+                            <div :style="cardStyle" :class="[hintBgClass('cardBg'), hintBorderClass('border')]">
                                 <p class="text-[7px] font-semibold" :style="{ color: cCardText }" :class="hintFilterClass('cardText')">
                                     Deine Gruppe
                                 </p>
@@ -127,7 +119,7 @@ const groupMembers = [
                                             <span
                                                 class="rounded-full px-1 py-0.5 text-[4px] font-semibold"
                                                 :style="{
-                                                    backgroundColor: member.red ? '#b45a3c' : '#4a7c59',
+                                                    backgroundColor: member.red ? SEMANTIC_COLORS.error : SEMANTIC_COLORS.sage,
                                                     color: '#ffffff',
                                                 }"
                                                 >{{ member.status }}</span
@@ -153,7 +145,7 @@ const groupMembers = [
                                 </div>
                             </div>
                         </div>
-                        <div :class="hintFilterClass('tabTint')">
+                        <div>
                             <PreviewTabBar
                                 :tab-defs="tabDefs"
                                 :active-index="1"
@@ -162,6 +154,8 @@ const groupMembers = [
                                 :c-card-bg="cCardBg"
                                 :c-tab-tint="cTabTint"
                                 :c-border="cBorder"
+                                :c-nav-bg="cNavBg"
+                                :active-hint="activeHint"
                             />
                         </div>
                     </div>
