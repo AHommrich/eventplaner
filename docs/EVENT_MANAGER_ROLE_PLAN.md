@@ -1,10 +1,56 @@
 # Event Manager Role — Implementation Plan
 
-Status: **Planning** · Author: André + Claude · Created: 2026-07-16
+Status: **P0 in progress** · Author: André + Claude · Created: 2026-07-16
 
 A large extension that turns the existing (undifferentiated) "Mitveranstalter / co-organizer"
 concept into a scoped **Event Manager** role, and adds a **Notes & ToDos** subsystem with
 **owner → manager assignment + push notifications**, plus **in-app photo deletion** for both roles.
+
+---
+
+## Handoff / current status (read this first)
+
+**For a fresh agent (new session or another tool) picking up this work.** Your memory of earlier
+turns is gone — this section + `AGENTS.md` + the plan below are the whole context.
+
+**Where we are:** implementing **P0** (multi-tenancy cleanup) in the ordered commit checkpoints from
+§11. Each checkpoint = one green-CI commit, safe to push on its own.
+
+- ✅ **Checkpoint A — P0.5 (user deletion / FK RESTRICT)** — DONE, CI green, **not yet committed**
+  (André commits/pushes himself). Files: migration `2026_07_16_120000_restrict_events_user_id_on_delete.php`,
+  `Admin/UserController::destroy`, `Settings/ProfileController::destroy`,
+  `tests/Feature/Admin/UserDeletionTest.php`, +1 test in `Settings/ProfileUpdateTest.php`,
+  `docs/DECISIONS.md`, `CLAUDE.md`. Commit message already handed over.
+- ⏭️ **Next: Checkpoint B — P0.2** (`DrinkController::destroy` cross-event guard), then C (P0.4 photo
+  `uploader_role` snapshot), then **D (P0.1 food_specials/categories delta migration) which MUST
+  precede E (P0.3 GuestController reference validation)**.
+
+**Locked decisions not to re-open:** delta/template model for `food_specials` (`event_id` nullable,
+null = global read-only template, FK `cascadeOnDelete` NOT `nullOnDelete`) vs `categories.event_id`
+NOT NULL; role model, `changeAccess` checkpoint, per-request management-token revalidation. Full
+rationale + 6 review rounds in §12/§13.x.
+
+**Operational rules a new agent MUST know (these are not obvious from the code):**
+- **Never commit, push, or deploy.** Hand back an English `type(scope): summary` commit message;
+  André commits. (Full hard rules: `AGENTS.md`.)
+- **Tests run ONLY against `laravel_test`** (a `TestCase::setUp()` guard throws otherwise). Run inside
+  the `laravel-app` Docker container, and pass an APP_KEY because the tracked `.env.testing` has an
+  **empty** `APP_KEY` (else `MissingAppKeyException`):
+  ```
+  docker exec laravel-app sh -c 'APP_KEY="base64:WbW7jGEyKUY4O+DvQYyOZ8nteSTHdQ4VDYCcpqJwdHs=" ./vendor/bin/pest'
+  ```
+  PHP formatting: `docker exec laravel-app ./vendor/bin/pint --test <files>`.
+- **Frontend checks need the right Node:** run `source ~/.nvm/nvm.sh && nvm use && …` first (host
+  default Node 16 breaks prettier/eslint/vue-tsc), or use the `eventplaner-vite-1` (Node 20)
+  container. P0 is backend-only so far, so no Vue checks have been needed yet.
+- **Verify CI green (pest + pint, and prettier/eslint/vue-tsc once Vue changes land) BEFORE handing
+  over a commit message.**
+- **`npm run build` fails locally** (esbuild macOS↔Linux) — known pre-existing, use `npm run
+  typecheck` instead.
+
+*(Recommendation for André, not done unasked: `.env.testing` is committed with an empty `APP_KEY` —
+adding a throwaway base64 test key there would remove the per-run override and unbreak `composer
+test` out of the box.)*
 
 ---
 
