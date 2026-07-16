@@ -64,7 +64,7 @@ Coolify deployt automatisch nach Push. Migrations laufen automatisch.
 - **Group** — event_id (früher Family)
 - **Category** — (früher Badge)
 - **InvitationToken** — group_id oder guest_id, token (32-char random)
-- **Photo** — event_id, album_id, guest_id, uploaded_by, uploader_user_id (FK users, nullable), url, r2_key, description (nullable, für Präsentationsfotos)
+- **Photo** — event_id, album_id, guest_id, uploaded_by, uploader_user_id (FK users, nullable), uploader_role (nullable, Snapshot der Uploader-Rolle bei Upload — `owner|event_admin|event_manager|superadmin`; null = Gast-Upload. P0.4: Badge liest die Spalte statt dynamischer Ableitung; P0-Write nutzt primary-owner-Heuristik owner/event_manager, P1 ersetzt durch `roleOn()`), url, r2_key, description (nullable, für Präsentationsfotos)
 - **PhotoAlbum** — event_id, slug (`app_gallery`|`presentation`|`photo_game`), name, sort_order
 - **FoodSpecial**, **GuestDrink** — Pivot-Tabellen
 - **Drink** — event_id, name (Getränke-Katalog pro Event)

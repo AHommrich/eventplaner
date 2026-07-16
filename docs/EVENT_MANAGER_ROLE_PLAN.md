@@ -16,14 +16,23 @@ turns is gone — this section + `AGENTS.md` + the plan below are the whole cont
 **Where we are:** implementing **P0** (multi-tenancy cleanup) in the ordered commit checkpoints from
 §11. Each checkpoint = one green-CI commit, safe to push on its own.
 
-- ✅ **Checkpoint A — P0.5 (user deletion / FK RESTRICT)** — DONE, CI green, **not yet committed**
-  (André commits/pushes himself). Files: migration `2026_07_16_120000_restrict_events_user_id_on_delete.php`,
-  `Admin/UserController::destroy`, `Settings/ProfileController::destroy`,
-  `tests/Feature/Admin/UserDeletionTest.php`, +1 test in `Settings/ProfileUpdateTest.php`,
-  `docs/DECISIONS.md`, `CLAUDE.md`. Commit message already handed over.
-- ⏭️ **Next: Checkpoint B — P0.2** (`DrinkController::destroy` cross-event guard), then C (P0.4 photo
-  `uploader_role` snapshot), then **D (P0.1 food_specials/categories delta migration) which MUST
-  precede E (P0.3 GuestController reference validation)**.
+- ✅ **Checkpoint A — P0.5 (user deletion / FK RESTRICT)** — DONE & COMMITTED (`cb1fe74`).
+- ✅ **Checkpoint B — P0.2 (`DrinkController::destroy` cross-event guard)** — DONE, CI green,
+  **not yet committed** (André commits himself). Files: `DrinkController::destroy` (added
+  `abort_if($drink->event_id !== $this->activeEvent()?->id, 403)`),
+  `tests/Feature/Drinks/DrinkCatalogTest.php` (+1 test). Commit message handed over below.
+- ✅ **Checkpoint C — P0.4 (photo `uploader_role` snapshot)** — DONE, CI green, **not yet committed**.
+  Files: migration `2026_07_17_120000_add_uploader_role_to_photos.php` (nullable column + primary-owner
+  backfill), `app/Models/Photo.php` (fillable), `PhotoController` (`store` writes snapshot; `index`
+  badge reads the column, `$ownerId` removed), `resources/js/pages/Photos/Index.vue` (union +
+  `organizerLabel()` helper), `tests/Feature/Photo/PhotoWebTest.php` (+3 tests), `CLAUDE.md`
+  (Photo data model). **Note:** the P0 write uses the primary-owner heuristic (owner vs.
+  `event_manager`, the P1 pivot default); the column union already allows the full
+  `owner|event_admin|event_manager|superadmin` set. **P1 must replace the write with `roleOn()`**
+  (superadmin-precedence + real tier), and decide the superadmin-on-foreign-event label.
+  Commit message handed over below.
+- ⏭️ **Next: Checkpoint D — P0.1** (food_specials/categories delta migration + controller/read
+  scoping — the big one) which **MUST precede E (P0.3 GuestController reference validation)**.
 
 **Locked decisions not to re-open:** delta/template model for `food_specials` (`event_id` nullable,
 null = global read-only template, FK `cascadeOnDelete` NOT `nullOnDelete`) vs `categories.event_id`
