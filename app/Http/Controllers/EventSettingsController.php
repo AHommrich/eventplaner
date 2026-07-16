@@ -97,6 +97,8 @@ class EventSettingsController extends Controller
                     'role_tab_tint', 'role_border', 'role_fab', 'role_fab_icon',
                     'role_nav_bg',
                     'font_heading',
+                    'design_preset',
+                    'role_config_version',
                 ]),
         ]);
     }
@@ -129,12 +131,15 @@ class EventSettingsController extends Controller
             ])],
             'design_preset' => ['nullable', \Illuminate\Validation\Rule::in(['classic', 'soft-luxury'])],
             'cover' => 'nullable|file|mimes:jpeg,jpg,png,heic,heif|max:10240',
+            'remove_cover' => 'nullable|boolean',
         ]);
 
-        $event->update(collect($data)->except('cover')->all());
+        $event->update(collect($data)->except(['cover', 'remove_cover'])->all());
 
         if ($request->hasFile('cover')) {
             $this->storeCover($event, $request->file('cover'), $sanitizer);
+        } elseif ($request->boolean('remove_cover')) {
+            $this->removeCover($event);
         }
 
         return redirect()->route('app.design')->with('success', 'Einstellungen gespeichert.');
@@ -207,12 +212,17 @@ class EventSettingsController extends Controller
         $event = $this->activeEvent();
         abort_if(! $event, 404);
 
+        $this->removeCover($event);
+
+        return response()->json(['ok' => true]);
+    }
+
+    private function removeCover($event): void
+    {
         if ($event->cover_image_r2_key) {
             Storage::disk('s3')->delete($event->cover_image_r2_key);
         }
 
         $event->update(['cover_image_url' => null, 'cover_image_r2_key' => null]);
-
-        return response()->json(['ok' => true]);
     }
 }

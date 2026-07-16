@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { contrastRatio, meetsAA, meetsAAA, WCAG_AA_LARGE, WCAG_AA_NORMAL, WCAG_AAA_NORMAL } from '../colorContrast';
+import { contrastRatio, findBrightnessContrastCandidate, meetsAA, meetsAAA, WCAG_AA_LARGE, WCAG_AA_NORMAL, WCAG_AAA_NORMAL } from '../colorContrast';
 
 describe('contrastRatio', () => {
     it('returns 21 for pure black on white (the theoretical maximum)', () => {
@@ -26,6 +26,21 @@ describe('contrastRatio', () => {
     it('throws on malformed input', () => {
         expect(() => contrastRatio('#zzz', '#ffffff')).toThrow(/Invalid hex/);
         expect(() => contrastRatio('#12345', '#ffffff')).toThrow(/Invalid hex/);
+    });
+});
+
+describe('findBrightnessContrastCandidate', () => {
+    it('finds a WCAG-compliant brightness variant without replacing the colour', () => {
+        const candidate = findBrightnessContrastCandidate('#7c2d3e', '#8b857e', WCAG_AA_NORMAL);
+
+        expect(candidate).not.toBeNull();
+        expect(candidate).not.toBe('#000000');
+        expect(candidate).not.toBe('#ffffff');
+        expect(contrastRatio(candidate!, '#8b857e')).toBeGreaterThanOrEqual(WCAG_AA_NORMAL);
+    });
+
+    it('keeps an already accessible colour unchanged', () => {
+        expect(findBrightnessContrastCandidate('#7c2d3e', '#ffffff', WCAG_AA_NORMAL)).toBe('#7C2D3E');
     });
 });
 

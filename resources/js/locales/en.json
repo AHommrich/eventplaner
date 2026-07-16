@@ -142,7 +142,46 @@
         "homeShadowOpacityHint": "Opacity of the shadow behind the text (0 = none, 100 = solid)",
         "colorHint": "App colours",
         "colorSystemInfo": "Define 3 base colors (Primary, Secondary, Tertiary). Then assign one of these colors to each app element. The preview on the right updates in real time. The ★ buttons next to the roles highlight the corresponding element in the preview.",
-        "colorHintSub": "3 base colors → assign 9 roles → preview",
+        "advancedAdjustment": "Fine-tuning",
+        "savedStyles": "Saved styles",
+        "styleLibrary": "Styles & colour worlds",
+        "yourSavedStyles": "Your saved styles",
+        "applyStyle": "Apply",
+        "appAppearance": "App appearance",
+        "editStyle": "Edit",
+        "updateStyle": "Update style",
+        "additionalActions": "More actions",
+        "export": "↓ Export",
+        "import": "↑ Import",
+        "exportStyle": "Export the current style as a file",
+        "importStyle": "Import and save a style from a file",
+        "noSavedStyles": "No styles saved yet.",
+        "saveCurrentStyle": "+ Save current style",
+        "styleNamePlaceholder": "Style name…",
+        "previewHome": "Home",
+        "previewRsvp": "RSVP",
+        "previewPhotos": "Photos",
+        "previewSettings": "Settings",
+        "previewAll": "All views",
+        "previewFocus": "Single view",
+        "previewSizeLabel": "Preview size",
+        "previewSizeMini": "Mini",
+        "previewSizeCompact": "Compact",
+        "previewSizeStandard": "Standard",
+        "previewSizeLarge": "Large",
+        "colorWorlds": "Colour worlds",
+        "colorWorldsHint": "A readable starting point for colours and app areas. You can fine-tune everything afterwards.",
+        "colorWorld": {
+            "bordeaux-ivory": "Bordeaux & ivory",
+            "sage-linen": "Sage & linen",
+            "midnight-champagne": "Midnight & champagne"
+        },
+        "fontGroup": {
+            "elegant": "Elegant",
+            "script": "Expressive",
+            "modern": "Modern"
+        },
+        "colorHintSub": "3 base colors → assign 10 roles → preview",
         "roleScreenBg": "Screen background",
         "roleCardBg": "Card background",
         "roleCardText": "Text on cards",
@@ -153,7 +192,52 @@
         "roleBorder": "Border color",
         "roleFab": "Photo button (FAB)",
         "roleFabIcon": "Icon color in photo button",
-        "contrastWarning": "Contrast {ratio}:1 — too low for WCAG AA (4.5:1). Text is hard to read for guests with reduced vision.",
+        "contrastWarning": "Contrast {ratio}:1 — the target is at least {target}:1.",
+        "contrastAllGood": "Contrast checked: cards, buttons, navigation and photo button are readable.",
+        "contrastCheckSuggestion": "Review suggestion",
+        "contrastDialogTitle": "Improve contrast",
+        "contrastDialogDescription": "{pair} is currently at {ratio}:1 contrast. Target: at least {target}:1.",
+        "contrastPair": {
+            "card": "card text and card background",
+            "button": "button text and button",
+            "navigation": "navigation icons/text and navigation background",
+            "fab": "photo-button icon and photo button"
+        },
+        "contrastSamePaletteKey": "Both elements use the same base colour. Adjusting that shared colour's brightness cannot resolve their contrast. Assign a different base colour to one element in fine-tuning.",
+        "contrastSuggestion": "Suggested brightness level",
+        "contrastBrightnessOnly": "Hue and saturation stay intact; only brightness changes.",
+        "contrastAffectedRoles": "These areas use the same base colour and will change too: {roles}.",
+        "contrastIntroducedIssues": "Note: also check these pairs afterwards: {pairs}.",
+        "contrastNoSuggestion": "There is no suitable brightness-only value for this base colour within the displayable gamut. Please change the role assignment in fine-tuning.",
+        "contrastApply": "Correct colour",
+        "roleGroup": {
+            "recommended": "Contrast-based",
+            "adjusted": "Custom assignment",
+            "reset": "Reset to recommendation",
+            "resetAll": "Apply all recommendations",
+            "screen": {
+                "title": "App background",
+                "description": "The surface behind every page and card."
+            },
+            "cards": {
+                "title": "Cards",
+                "description": "Surface, text and border for content."
+            },
+            "buttons": {
+                "title": "Buttons",
+                "description": "RSVPs and other actions on cards."
+            },
+            "navigation": {
+                "title": "Navigation",
+                "description": "The bottom bar with icons and labels."
+            },
+            "fab": {
+                "title": "Photo button",
+                "description": "The round button used to take a photo."
+            }
+        },
+        "roleGroupHint": "The contrast-based assignment uses light colours for surfaces and dark colours for readable text and actions. You can still change every role freely.",
+        "undoLastChange": "Undo last change",
         "venueDisplayMode": "Venue display",
         "venueDisplayModeHint": "Controls what guests see on the app home screen: venue name only, address only, or both stacked.",
         "venueDisplayModeAddress": "Address only",

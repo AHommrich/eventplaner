@@ -142,7 +142,46 @@
         "homeShadowOpacityHint": "Deckkraft des Schattens hinter dem Text (0 = unsichtbar, 100 = voll)",
         "colorHint": "App-Farben",
         "colorSystemInfo": "Definiere 3 Basisfarben (Primär, Sekundär, Tertiär). Dann lege für jedes App-Element fest, welche dieser Farben verwendet wird. Die Vorschau rechts zeigt das Ergebnis in Echtzeit. Die ★-Buttons bei den Rollen heben die jeweilige Stelle in der Vorschau hervor.",
-        "colorHintSub": "3 Basisfarben → 9 Rollen zuweisen → Vorschau",
+        "advancedAdjustment": "Feinabstimmung",
+        "savedStyles": "Gespeicherte Stile",
+        "styleLibrary": "Stile & Farbwelten",
+        "yourSavedStyles": "Deine gespeicherten Stile",
+        "applyStyle": "Anwenden",
+        "appAppearance": "App-Erscheinungsbild",
+        "editStyle": "Bearbeiten",
+        "updateStyle": "Stil aktualisieren",
+        "additionalActions": "Weitere Aktionen",
+        "export": "↓ Exportieren",
+        "import": "↑ Importieren",
+        "exportStyle": "Aktuellen Stil als Datei exportieren",
+        "importStyle": "Stil aus Datei importieren und speichern",
+        "noSavedStyles": "Noch keine Stile gespeichert.",
+        "saveCurrentStyle": "+ Aktuellen Stil speichern",
+        "styleNamePlaceholder": "Name des Stils…",
+        "previewHome": "Start",
+        "previewRsvp": "Zusage",
+        "previewPhotos": "Fotos",
+        "previewSettings": "Einstellungen",
+        "previewAll": "Alle Ansichten",
+        "previewFocus": "Einzelansicht",
+        "previewSizeLabel": "Vorschaugröße",
+        "previewSizeMini": "Mini",
+        "previewSizeCompact": "Kompakt",
+        "previewSizeStandard": "Normal",
+        "previewSizeLarge": "Groß",
+        "colorWorlds": "Farbwelten",
+        "colorWorldsHint": "Ein lesbarer Startpunkt für Farben und App-Bereiche. Danach kannst du alles in der Feinabstimmung anpassen.",
+        "colorWorld": {
+            "bordeaux-ivory": "Bordeaux & Elfenbein",
+            "sage-linen": "Salbei & Leinen",
+            "midnight-champagne": "Mitternacht & Champagner"
+        },
+        "fontGroup": {
+            "elegant": "Elegant",
+            "script": "Verspielt",
+            "modern": "Modern"
+        },
+        "colorHintSub": "3 Basisfarben → 10 Rollen zuweisen → Vorschau",
         "roleScreenBg": "App-Hintergrund",
         "roleCardBg": "Karten-Hintergrund",
         "roleCardText": "Karten-Text",
@@ -153,7 +192,52 @@
         "roleBorder": "Rahmenfarbe",
         "roleFab": "Foto-Button (FAB)",
         "roleFabIcon": "Icon-Farbe im Foto-Button",
-        "contrastWarning": "Kontrast {ratio}:1 — zu niedrig für WCAG AA (4,5:1). Text ist für sehbeeinträchtigte Gäste schwer lesbar.",
+        "contrastWarning": "Kontrast {ratio}:1 — Ziel sind mindestens {target}:1.",
+        "contrastAllGood": "Kontrast geprüft: Karten, Buttons, Navigation und Foto-Button sind gut lesbar.",
+        "contrastCheckSuggestion": "Vorschlag prüfen",
+        "contrastDialogTitle": "Kontrast verbessern",
+        "contrastDialogDescription": "{pair} hat aktuell {ratio}:1 Kontrast. Ziel: mindestens {target}:1.",
+        "contrastPair": {
+            "card": "Karten-Text und Karten-Hintergrund",
+            "button": "Button-Text und Button",
+            "navigation": "Navbar-Icons/Text und Navbar-Hintergrund",
+            "fab": "Foto-Button-Icon und Foto-Button"
+        },
+        "contrastSamePaletteKey": "Beide Elemente verwenden dieselbe Basisfarbe. Eine Helligkeitsänderung dieser gemeinsamen Farbe kann ihren gegenseitigen Kontrast nicht lösen. Bitte ordne in der Feinabstimmung einem Element eine andere Basisfarbe zu.",
+        "contrastSuggestion": "Vorgeschlagene Helligkeitsstufe",
+        "contrastBrightnessOnly": "Farbton und Sättigung bleiben erhalten; nur die Helligkeit wird angepasst.",
+        "contrastAffectedRoles": "Diese Bereiche verwenden dieselbe Basisfarbe und ändern sich mit: {roles}.",
+        "contrastIntroducedIssues": "Achtung: Danach sollten auch diese Paare geprüft werden: {pairs}.",
+        "contrastNoSuggestion": "Für diese Basisfarbe gibt es innerhalb des darstellbaren Farbraums keine passende reine Helligkeitsstufe. Bitte ändere die Rollenzuordnung in der Feinabstimmung.",
+        "contrastApply": "Farbe korrigieren",
+        "roleGroup": {
+            "recommended": "Kontrastbasiert",
+            "adjusted": "Eigene Zuordnung",
+            "reset": "Auf Empfehlung zurücksetzen",
+            "resetAll": "Alle Empfehlungen anwenden",
+            "screen": {
+                "title": "App-Hintergrund",
+                "description": "Die Fläche hinter allen Seiten und Karten."
+            },
+            "cards": {
+                "title": "Karten",
+                "description": "Fläche, Text und Rahmen für Inhalte."
+            },
+            "buttons": {
+                "title": "Buttons",
+                "description": "Antworten und andere Aktionen auf Karten."
+            },
+            "navigation": {
+                "title": "Navigation",
+                "description": "Untere Leiste mit Icons und Beschriftungen."
+            },
+            "fab": {
+                "title": "Foto-Button",
+                "description": "Der runde Button zum Aufnehmen eines Fotos."
+            }
+        },
+        "roleGroupHint": "Die kontrastbasierte Zuordnung nutzt helle Farben für Flächen und dunkle Farben für gut lesbaren Text und Aktionen. Du kannst jede Rolle weiterhin frei ändern.",
+        "undoLastChange": "Letzte Änderung rückgängig",
         "venueDisplayMode": "Veranstaltungsort-Anzeige",
         "venueDisplayModeHint": "Legt fest was Gäste auf dem Home-Screen der App sehen: nur den Ortsnamen, nur die Adresse, oder beides untereinander.",
         "venueDisplayModeAddress": "Adresse",

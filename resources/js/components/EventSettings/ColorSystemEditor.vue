@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import RoleSelector from '@/components/EventSettings/RoleSelector.vue';
+import ContrastSummary from '@/components/EventSettings/ContrastSummary.vue';
+import RoleGroupEditor from '@/components/EventSettings/RoleGroupEditor.vue';
 import InfoTooltip from '@/components/InfoTooltip.vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { contrastRatio, WCAG_AA_NORMAL } from '@/lib/colorContrast';
-import { buildPalette, resolveRole, type PaletteKey } from '@/lib/colorResolver';
-import { computed } from 'vue';
+import { buildPalette, type PaletteKey } from '@/lib/colorResolver';
+import { recommendDesignRoles } from '@/lib/designRecommendations';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const colorPrimary = defineModel<string>('colorPrimary', { default: '#7c2d3e' });
@@ -24,25 +25,63 @@ const roleNavBg = defineModel<string>('roleNavBg', { default: 'secondary' });
 
 const emit = defineEmits<{
     'show-hint': [hint: string];
+    'before-confirmed-change': [];
 }>();
 
 const { t } = useI18n();
+const advancedOpen = ref(false);
 
 const palette = computed(() => buildPalette(colorPrimary.value, colorSecondary.value, colorTertiary.value));
-const resolve = (role: string | null, fallback: PaletteKey): string => resolveRole(role, fallback, palette.value);
-
 const colorOptions = computed(() => [
     { key: 'primary', label: t('event.colorPrimaryLabel'), value: palette.value.primary },
     { key: 'secondary', label: t('event.colorSecondaryLabel'), value: palette.value.secondary },
     { key: 'tertiary', label: t('event.colorTertiaryLabel'), value: palette.value.tertiary },
 ]);
 
-// WCAG AA contrast guard for the card text/background pair
-const cardText = computed(() => resolve(roleCardText.value, 'primary'));
-const cardBg = computed(() => resolve(roleCardBg.value, 'tertiary'));
-const cardContrast = computed(() => contrastRatio(cardText.value, cardBg.value));
-const cardContrastFailsAA = computed(() => cardContrast.value < WCAG_AA_NORMAL);
-const cardContrastLabel = computed(() => cardContrast.value.toFixed(1));
+const contrastRoles = computed(() => ({
+    cardBg: roleCardBg.value as PaletteKey,
+    cardText: roleCardText.value as PaletteKey,
+    cardButton: roleCardButton.value as PaletteKey,
+    cardButtonText: roleCardButtonText.value as PaletteKey,
+    navBg: roleNavBg.value as PaletteKey,
+    tabTint: roleTabTint.value as PaletteKey,
+    fab: roleFab.value as PaletteKey,
+    fabIcon: roleFabIcon.value as PaletteKey,
+}));
+
+const editableRoles = computed(() => ({
+    screenBg: roleScreenBg.value as PaletteKey,
+    cardBg: roleCardBg.value as PaletteKey,
+    cardText: roleCardText.value as PaletteKey,
+    cardButton: roleCardButton.value as PaletteKey,
+    cardButtonText: roleCardButtonText.value as PaletteKey,
+    navBg: roleNavBg.value as PaletteKey,
+    tabTint: roleTabTint.value as PaletteKey,
+    border: roleBorder.value as PaletteKey,
+    fab: roleFab.value as PaletteKey,
+    fabIcon: roleFabIcon.value as PaletteKey,
+}));
+const roleRecommendations = computed(() => recommendDesignRoles(palette.value));
+
+function applyContrastCandidate(key: PaletteKey, value: string) {
+    emit('before-confirmed-change');
+    if (key === 'primary') colorPrimary.value = value;
+    if (key === 'secondary') colorSecondary.value = value;
+    if (key === 'tertiary') colorTertiary.value = value;
+}
+
+function updateRole(key: keyof typeof editableRoles.value, value: string) {
+    if (key === 'screenBg') roleScreenBg.value = value;
+    if (key === 'cardBg') roleCardBg.value = value;
+    if (key === 'cardText') roleCardText.value = value;
+    if (key === 'cardButton') roleCardButton.value = value;
+    if (key === 'cardButtonText') roleCardButtonText.value = value;
+    if (key === 'navBg') roleNavBg.value = value;
+    if (key === 'tabTint') roleTabTint.value = value;
+    if (key === 'border') roleBorder.value = value;
+    if (key === 'fab') roleFab.value = value;
+    if (key === 'fabIcon') roleFabIcon.value = value;
+}
 
 // Forward a role control's highlight request up to Design.vue's hint system.
 function hint(key: string) {
@@ -95,88 +134,26 @@ function hint(key: string) {
             </div>
         </div>
 
-        <!-- Role selectors — one RoleSelector per role, each independently set. -->
-        <div class="space-y-3 pt-1">
-            <RoleSelector
-                :label="t('event.roleScreenBg')"
-                hint-key="screenBg"
-                fallback="secondary"
+        <ContrastSummary :palette="palette" :roles="contrastRoles" @apply="applyContrastCandidate" />
+
+        <button
+            type="button"
+            class="flex w-full items-center justify-between rounded-md border border-input px-3 py-2 text-left text-sm font-medium transition-colors hover:bg-muted/50"
+            :aria-expanded="advancedOpen"
+            @click="advancedOpen = !advancedOpen"
+        >
+            <span>{{ t('event.advancedAdjustment') }}</span>
+            <span aria-hidden="true" class="text-muted-foreground">{{ advancedOpen ? '−' : '+' }}</span>
+        </button>
+
+        <div v-if="advancedOpen" class="space-y-3 pt-1">
+            <p class="text-xs text-muted-foreground">{{ t('event.roleGroupHint') }}</p>
+            <RoleGroupEditor
+                :roles="editableRoles"
+                :recommendations="roleRecommendations"
                 :options="colorOptions"
-                v-model="roleScreenBg"
-                @hint="hint"
-            />
-            <RoleSelector
-                :label="t('event.roleCardBg')"
-                hint-key="cardBg"
-                fallback="tertiary"
-                :options="colorOptions"
-                v-model="roleCardBg"
-                @hint="hint"
-            />
-            <div>
-                <RoleSelector
-                    :label="t('event.roleCardText')"
-                    hint-key="cardText"
-                    fallback="primary"
-                    :options="colorOptions"
-                    v-model="roleCardText"
-                    @hint="hint"
-                />
-                <p
-                    v-if="cardContrastFailsAA"
-                    role="alert"
-                    class="mt-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-[11px] leading-snug text-amber-800 dark:text-amber-200"
-                >
-                    {{ t('event.contrastWarning', { ratio: cardContrastLabel }) }}
-                </p>
-            </div>
-            <RoleSelector
-                :label="t('event.roleCardButton')"
-                hint-key="cardButton"
-                fallback="primary"
-                :options="colorOptions"
-                v-model="roleCardButton"
-                @hint="hint"
-            />
-            <RoleSelector
-                :label="t('event.roleCardButtonText')"
-                hint-key="cardButtonText"
-                fallback="tertiary"
-                :options="colorOptions"
-                v-model="roleCardButtonText"
-                @hint="hint"
-            />
-            <RoleSelector
-                :label="t('event.roleNavBg')"
-                hint-key="navBg"
-                fallback="secondary"
-                :options="colorOptions"
-                v-model="roleNavBg"
-                @hint="hint"
-            />
-            <RoleSelector
-                :label="t('event.roleTabTint')"
-                hint-key="tabTint"
-                fallback="primary"
-                :options="colorOptions"
-                v-model="roleTabTint"
-                @hint="hint"
-            />
-            <RoleSelector
-                :label="t('event.roleBorder')"
-                hint-key="border"
-                fallback="primary"
-                :options="colorOptions"
-                v-model="roleBorder"
-                @hint="hint"
-            />
-            <RoleSelector :label="t('event.roleFab')" hint-key="fab" fallback="primary" :options="colorOptions" v-model="roleFab" @hint="hint" />
-            <RoleSelector
-                :label="t('event.roleFabIcon')"
-                hint-key="fabIcon"
-                fallback="tertiary"
-                :options="colorOptions"
-                v-model="roleFabIcon"
+                @update-role="updateRole"
+                @before-group-reset="emit('before-confirmed-change')"
                 @hint="hint"
             />
         </div>

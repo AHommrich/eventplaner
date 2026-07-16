@@ -11,7 +11,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useFloatingBar } from '@/composables/useFloatingBar';
 import AppLayout from '@/layouts/AppLayout.vue';
+import { contrastRatio } from '@/lib/colorContrast';
 import { buildPalette, resolveRole, type PaletteKey } from '@/lib/colorResolver';
+import { designColorWorlds } from '@/lib/designColorWorlds';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
@@ -74,6 +76,8 @@ interface StylePreset {
     role_fab_icon: string | null;
     role_nav_bg: string | null;
     font_heading: string | null;
+    design_preset: string | null;
+    role_config_version: number;
 }
 
 const props = defineProps<{ event: EventData; stylePresets: StylePreset[] }>();
@@ -103,7 +107,46 @@ const form = useForm({
     font_heading: props.event.font_heading ?? '',
     design_preset: props.event.design_preset ?? 'classic',
     cover: null as File | null,
+    remove_cover: false,
 });
+
+const DESIGN_UNDO_FIELDS = [
+    'color_primary',
+    'color_secondary',
+    'color_tertiary',
+    'color_home_text',
+    'color_home_shadow',
+    'home_shadow_opacity',
+    'role_screen_bg',
+    'role_card_bg',
+    'role_card_text',
+    'role_card_button',
+    'role_card_button_text',
+    'role_tab_tint',
+    'role_border',
+    'role_fab',
+    'role_fab_icon',
+    'role_nav_bg',
+    'font_heading',
+    'design_preset',
+] as const;
+
+type DesignUndoField = (typeof DESIGN_UNDO_FIELDS)[number];
+type DesignUndoSnapshot = Record<DesignUndoField, string | number | null>;
+
+const undoSnapshot = ref<DesignUndoSnapshot | null>(null);
+
+function rememberDesignState() {
+    undoSnapshot.value = Object.fromEntries(
+        DESIGN_UNDO_FIELDS.map((field) => [field, (form as unknown as Record<string, string | number | null>)[field]]),
+    ) as DesignUndoSnapshot;
+}
+
+function undoLastConfirmedChange() {
+    if (!undoSnapshot.value) return;
+    Object.assign(form, undoSnapshot.value);
+    undoSnapshot.value = null;
+}
 
 // App design preset — the "form language" (radius, glass, shadows, animations)
 // the guest app renders on top of the colours. Orthogonal to the palette.
@@ -120,12 +163,50 @@ const designPresets = [
     },
 ] as const;
 
+function applyColorWorld(world: (typeof designColorWorlds)[number]) {
+    rememberDesignState();
+    form.color_primary = world.primary;
+    form.color_secondary = world.secondary;
+    form.color_tertiary = world.tertiary;
+    Object.assign(form, world.roles);
+}
+
 const skipGuard = ref(false);
 const isDirty = computed(() => form.isDirty);
 
 // Hint system
 const activeHint = ref<string | null>(null);
 const previewCollapsed = ref(false);
+const activePreviewScreen = ref<'home' | 'rsvp' | 'photos' | 'settings'>('home');
+const showAllPreviewScreens = ref(true);
+const previewSize = ref<'mini' | 'compact' | 'standard' | 'large'>('mini');
+const isPreviewSideBySide = ref(false);
+const previewSizes = computed(() => [
+    { key: 'mini' as const, label: t('event.previewSizeMini') },
+    { key: 'compact' as const, label: t('event.previewSizeCompact') },
+    { key: 'standard' as const, label: t('event.previewSizeStandard') },
+    { key: 'large' as const, label: t('event.previewSizeLarge') },
+]);
+
+function applyResponsivePreviewSize() {
+    const width = window.innerWidth;
+    previewSize.value = width < 768 ? 'mini' : width < 1100 ? 'compact' : width < 1600 ? 'standard' : 'large';
+}
+
+function updatePreviewLayout() {
+    isPreviewSideBySide.value = window.matchMedia('(min-width: 1280px)').matches;
+    applyResponsivePreviewSize();
+}
+
+function choosePreviewSize(size: 'mini' | 'compact' | 'standard' | 'large') {
+    previewSize.value = size;
+}
+const previewScreens = computed(() => [
+    { key: 'home' as const, label: t('event.previewHome') },
+    { key: 'rsvp' as const, label: t('event.previewRsvp') },
+    { key: 'photos' as const, label: t('event.previewPhotos') },
+    { key: 'settings' as const, label: t('event.previewSettings') },
+]);
 let hintTimer: ReturnType<typeof setTimeout> | null = null;
 function showHint(section: string) {
     if (hintTimer) clearTimeout(hintTimer);
@@ -158,6 +239,10 @@ let removeInertiaGuard: (() => void) | null = null;
 
 onMounted(() => {
     window.addEventListener('beforeunload', handleBeforeUnload);
+    showAllPreviewScreens.value = true;
+    previewCollapsed.value = false;
+    updatePreviewLayout();
+    window.addEventListener('resize', updatePreviewLayout);
     removeInertiaGuard = router.on('before', (event) => {
         if (isDirty.value && !skipGuard.value) {
             const confirmed = window.confirm(t('drink.unsavedChangesPrompt'));
@@ -171,6 +256,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     window.removeEventListener('beforeunload', handleBeforeUnload);
+    window.removeEventListener('resize', updatePreviewLayout);
     removeInertiaGuard?.();
     floatingBarActive.value = false;
     if (previewCountdownInterval) clearInterval(previewCountdownInterval);
@@ -270,16 +356,21 @@ const cNavBg = computed(() => resolve(form.role_nav_bg, 'secondary'));
 
 // Font
 const fontOptions = [
-    { key: 'playfair', label: 'Playfair Display', family: 'Playfair Display' },
-    { key: 'cormorant', label: 'Cormorant Garamond', family: 'Cormorant Garamond' },
-    { key: 'cinzel', label: 'Cinzel', family: 'Cinzel' },
-    { key: 'dancing', label: 'Dancing Script', family: 'Dancing Script' },
-    { key: 'great_vibes', label: 'Great Vibes', family: 'Great Vibes' },
-    { key: 'raleway', label: 'Raleway', family: 'Raleway' },
-    { key: 'lora', label: 'Lora', family: 'Lora' },
-    { key: 'josefin', label: 'Josefin Sans', family: 'Josefin Sans' },
+    { key: 'playfair', label: 'Playfair Display', family: 'Playfair Display', group: 'elegant' },
+    { key: 'cormorant', label: 'Cormorant Garamond', family: 'Cormorant Garamond', group: 'elegant' },
+    { key: 'cinzel', label: 'Cinzel', family: 'Cinzel', group: 'elegant' },
+    { key: 'dancing', label: 'Dancing Script', family: 'Dancing Script', group: 'script' },
+    { key: 'great_vibes', label: 'Great Vibes', family: 'Great Vibes', group: 'script' },
+    { key: 'raleway', label: 'Raleway', family: 'Raleway', group: 'modern' },
+    { key: 'lora', label: 'Lora', family: 'Lora', group: 'modern' },
+    { key: 'josefin', label: 'Josefin Sans', family: 'Josefin Sans', group: 'modern' },
 ];
 const previewFontFamily = computed(() => fontOptions.find((f) => f.key === form.font_heading)?.family ?? 'inherit');
+const fontGroups = computed(() => [
+    { key: 'elegant', options: fontOptions.filter((font) => font.group === 'elegant') },
+    { key: 'script', options: fontOptions.filter((font) => font.group === 'script') },
+    { key: 'modern', options: fontOptions.filter((font) => font.group === 'modern') },
+]);
 
 // Tab bar icons
 // Ionicons outline — exact paths (viewBox 0 0 512 512, stroke-based)
@@ -335,25 +426,74 @@ const tabDefs = [
 // Style presets
 const presetNameInput = ref('');
 const showPresetInput = ref(false);
+const editingPreset = ref<StylePreset | null>(null);
+const activePreset = ref<StylePreset | null>(null);
+const stylePresetsOpen = ref(true);
+const additionalActionsOpen = ref(false);
+const colorWorldsOpen = ref(true);
+const isEditingPresetDirty = computed(() => {
+    if (!editingPreset.value) return false;
+
+    return (
+        presetNameInput.value.trim() !== editingPreset.value.name ||
+        STYLE_FIELDS.some((field) => (form as unknown as Record<string, unknown>)[field] !== editingPreset.value?.[field])
+    );
+});
+function isPresetDirty(preset: StylePreset): boolean {
+    return STYLE_FIELDS.some((field) => (form as unknown as Record<string, unknown>)[field] !== preset[field]);
+}
 
 function loadPreset(preset: StylePreset) {
+    rememberDesignState();
     form.color_primary = preset.color_primary ?? form.color_primary;
     form.color_secondary = preset.color_secondary ?? form.color_secondary;
     form.color_tertiary = preset.color_tertiary ?? form.color_tertiary;
     form.color_home_text = preset.color_home_text ?? form.color_home_text;
     form.color_home_shadow = preset.color_home_shadow ?? form.color_home_shadow;
     form.home_shadow_opacity = preset.home_shadow_opacity ?? form.home_shadow_opacity;
-    form.role_screen_bg = preset.role_screen_bg ?? form.role_screen_bg;
-    form.role_card_bg = preset.role_card_bg ?? form.role_card_bg;
-    form.role_card_text = preset.role_card_text ?? form.role_card_text;
-    form.role_card_button = preset.role_card_button ?? form.role_card_button;
-    form.role_card_button_text = preset.role_card_button_text ?? form.role_card_button_text;
-    form.role_tab_tint = preset.role_tab_tint ?? form.role_tab_tint;
-    form.role_border = preset.role_border ?? form.role_border;
-    form.role_fab = preset.role_fab ?? form.role_fab;
-    form.role_fab_icon = preset.role_fab_icon ?? form.role_fab_icon;
-    form.role_nav_bg = preset.role_nav_bg ?? form.role_nav_bg;
+    if (preset.role_config_version >= 2) {
+        form.role_screen_bg = preset.role_screen_bg ?? form.role_screen_bg;
+        form.role_card_bg = preset.role_card_bg ?? form.role_card_bg;
+        form.role_card_text = preset.role_card_text ?? form.role_card_text;
+        form.role_card_button = preset.role_card_button ?? form.role_card_button;
+        form.role_card_button_text = preset.role_card_button_text ?? form.role_card_button_text;
+        form.role_tab_tint = preset.role_tab_tint ?? form.role_tab_tint;
+        form.role_border = preset.role_border ?? form.role_border;
+        form.role_fab = preset.role_fab ?? form.role_fab;
+        form.role_fab_icon = preset.role_fab_icon ?? form.role_fab_icon;
+        form.role_nav_bg = preset.role_nav_bg ?? preset.role_card_bg ?? form.role_nav_bg;
+    } else {
+        applyLegacyPresetRoles(preset);
+    }
     form.font_heading = preset.font_heading ?? form.font_heading;
+    form.design_preset = preset.design_preset ?? form.design_preset;
+    activePreset.value = preset;
+    editingPreset.value = null;
+    showPresetInput.value = false;
+}
+
+function applyLegacyPresetRoles(preset: StylePreset) {
+    const colors = {
+        primary: preset.color_primary ?? form.color_primary,
+        secondary: preset.color_secondary ?? form.color_secondary,
+        tertiary: preset.color_tertiary ?? form.color_tertiary,
+    } as const;
+    const mostContrasting = (background: keyof typeof colors): keyof typeof colors =>
+        (Object.keys(colors) as Array<keyof typeof colors>).reduce((best, candidate) =>
+            contrastRatio(colors[candidate], colors[background]) > contrastRatio(colors[best], colors[background]) ? candidate : best,
+        );
+    const cardBg = 'tertiary';
+    const buttonBg = 'primary';
+    form.role_screen_bg = 'secondary';
+    form.role_card_bg = cardBg;
+    form.role_card_text = mostContrasting(cardBg);
+    form.role_card_button = buttonBg;
+    form.role_card_button_text = mostContrasting(buttonBg);
+    form.role_tab_tint = mostContrasting(cardBg);
+    form.role_border = 'primary';
+    form.role_fab = buttonBg;
+    form.role_fab_icon = mostContrasting(buttonBg);
+    form.role_nav_bg = cardBg;
 }
 
 const presetForm = useForm({
@@ -375,6 +515,7 @@ const presetForm = useForm({
     role_fab_icon: '',
     role_nav_bg: '',
     font_heading: '',
+    design_preset: '',
 });
 
 function savePreset() {
@@ -396,14 +537,29 @@ function savePreset() {
     presetForm.role_fab_icon = form.role_fab_icon;
     presetForm.role_nav_bg = form.role_nav_bg;
     presetForm.font_heading = form.font_heading;
-    presetForm.post(route('event.style-presets.store'), {
+    presetForm.design_preset = form.design_preset;
+    const options = {
         preserveScroll: true,
         onSuccess: () => {
             presetNameInput.value = '';
             showPresetInput.value = false;
+            editingPreset.value = null;
             toast.success('Stil gespeichert');
         },
-    });
+    };
+    if (editingPreset.value) {
+        if (!window.confirm('Gespeicherten Stil mit den aktuellen Einstellungen überschreiben?')) return;
+        presetForm.put(route('event.style-presets.update', editingPreset.value.id), options);
+    } else {
+        presetForm.post(route('event.style-presets.store'), options);
+    }
+}
+
+function editPreset(preset: StylePreset) {
+    if (activePreset.value?.id !== preset.id) loadPreset(preset);
+    editingPreset.value = preset;
+    presetNameInput.value = preset.name;
+    showPresetInput.value = false;
 }
 
 function deletePreset(id: number) {
@@ -431,10 +587,11 @@ const STYLE_FIELDS = [
     'role_fab_icon',
     'role_nav_bg',
     'font_heading',
+    'design_preset',
 ] as const;
 
 function exportStyle(preset?: StylePreset) {
-    const data: Record<string, unknown> = { _version: 1 };
+    const data: Record<string, unknown> = { _version: 2 };
     if (preset) {
         data._name = preset.name;
         for (const field of STYLE_FIELDS) {
@@ -464,7 +621,11 @@ function importStyle(e: Event) {
     reader.onload = () => {
         try {
             const data = JSON.parse(reader.result as string);
+            if (!data || typeof data !== 'object' || ![1, 2].includes(data._version)) {
+                throw new Error('Unsupported style export version');
+            }
             // Save directly as preset
+            presetForm.reset();
             presetForm.name = String(data._name ?? file.name.replace(/\.json$/i, ''));
             const f = presetForm as unknown as Record<string, unknown>;
             for (const field of STYLE_FIELDS) {
@@ -488,19 +649,20 @@ function importStyle(e: Event) {
     <Head :title="t('nav.appDesign')" />
     <AppLayout :breadcrumbs="breadcrumbItems">
         <!-- Split screen: mobile = preview on top (shrink-0) / form below (scroll); desktop = form left / preview right -->
-        <div class="flex h-[calc(100dvh-4rem)] flex-col overflow-hidden lg:grid lg:h-[calc(100vh-4rem)] lg:grid-cols-2 lg:gap-6 lg:px-4 lg:pt-4">
+        <div class="flex h-[calc(100dvh-4rem)] flex-col overflow-hidden xl:grid xl:h-[calc(100vh-4rem)] xl:grid-cols-2 xl:gap-6 xl:px-4 xl:pt-4">
             <!-- Form — after preview on mobile (order-last, flex-1 scroll), on the left on desktop -->
-            <div class="order-last min-h-0 flex-1 overflow-y-auto px-4 pt-2 pb-24 lg:order-first lg:px-0 lg:pt-0">
+            <div class="order-last min-h-0 flex-1 overflow-y-auto px-4 pt-2 pb-24 xl:order-first xl:px-0 xl:pt-0">
                 <div class="space-y-4">
                     <!-- Left column: form -->
-                    <form @submit.prevent="submit" class="space-y-4">
+                    <form @submit.prevent="submit" class="flex flex-col gap-4">
                         <!-- Cover upload -->
-                        <Card>
+                        <Card class="order-3">
                             <CardContent class="space-y-3 pt-6">
                                 <CoverUpload
                                     ref="coverUpload"
                                     :initial-cover-url="props.event.cover_image_url"
                                     v-model:cover="form.cover"
+                                    v-model:remove-cover="form.remove_cover"
                                     v-model:color-home-text="form.color_home_text"
                                     v-model:color-home-shadow="form.color_home_shadow"
                                     v-model:home-shadow-opacity="form.home_shadow_opacity"
@@ -510,11 +672,24 @@ function importStyle(e: Event) {
                         </Card>
 
                         <!-- Design: preset + font + colors -->
-                        <Card>
+                        <Card class="order-1">
                             <CardContent>
-                                <div class="space-y-4 pt-4">
+                                <div class="flex flex-col gap-4 pt-4">
+                                    <div class="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                                        <h2 class="text-base font-semibold">{{ t('event.appAppearance') }}</h2>
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="ghost"
+                                            class="h-7 px-2 text-xs whitespace-nowrap"
+                                            :disabled="!undoSnapshot"
+                                            @click="undoLastConfirmedChange"
+                                        >
+                                            {{ t('event.undoLastChange') }}
+                                        </Button>
+                                    </div>
                                     <!-- Design preset (form language) -->
-                                    <div class="grid gap-2">
+                                    <div class="order-3 grid gap-2">
                                         <Label>App-Design</Label>
                                         <div class="grid grid-cols-2 gap-2">
                                             <button
@@ -537,7 +712,7 @@ function importStyle(e: Event) {
                                         </div>
                                     </div>
                                     <!-- Font -->
-                                    <div class="grid gap-2">
+                                    <div class="order-4 grid gap-2">
                                         <Label>{{ t('event.fontHeading') }}</Label>
                                         <div class="grid grid-cols-3 gap-2">
                                             <button
@@ -548,24 +723,249 @@ function importStyle(e: Event) {
                                             >
                                                 {{ t('event.fontSystemDefault') }}
                                             </button>
+                                        </div>
+                                        <div v-for="group in fontGroups" :key="group.key" class="grid gap-1.5">
+                                            <span class="text-xs font-medium text-muted-foreground">{{ t(`event.fontGroup.${group.key}`) }}</span>
+                                            <div class="grid grid-cols-3 gap-2">
+                                                <button
+                                                    v-for="font in group.options"
+                                                    :key="font.key"
+                                                    type="button"
+                                                    @click="form.font_heading = font.key"
+                                                    class="rounded-lg border-2 px-2 py-2.5 text-center text-sm leading-tight transition-colors"
+                                                    :class="
+                                                        form.font_heading === font.key
+                                                            ? 'border-ring bg-muted/20'
+                                                            : 'border-input hover:border-muted-foreground'
+                                                    "
+                                                    :style="{ fontFamily: font.family }"
+                                                >
+                                                    {{ font.label }}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="order-1 grid gap-2">
+                                        <button
+                                            type="button"
+                                            class="flex w-full items-center justify-between rounded-md border border-input px-3 py-2 text-left"
+                                            :aria-expanded="colorWorldsOpen"
+                                            @click="colorWorldsOpen = !colorWorldsOpen"
+                                        >
+                                            <Label class="cursor-pointer">{{ t('event.colorWorlds') }}</Label>
+                                            <span aria-hidden="true" class="text-muted-foreground">{{ colorWorldsOpen ? '−' : '+' }}</span>
+                                        </button>
+                                        <div v-if="colorWorldsOpen" class="grid gap-2 px-1">
+                                            <p class="text-xs text-muted-foreground">{{ t('event.colorWorldsHint') }}</p>
+                                            <div class="space-y-1.5">
+                                                <button
+                                                    v-for="world in designColorWorlds"
+                                                    :key="world.id"
+                                                    type="button"
+                                                    class="flex w-full items-center gap-2 rounded-lg border border-input bg-muted/20 px-3 py-2 text-left transition-colors hover:bg-muted"
+                                                    @click="applyColorWorld(world)"
+                                                >
+                                                    <span class="flex shrink-0 gap-0.5">
+                                                        <span
+                                                            class="h-3.5 w-3.5 rounded-full border border-black/10"
+                                                            :style="{ backgroundColor: world.primary }"
+                                                        />
+                                                        <span
+                                                            class="h-3.5 w-3.5 rounded-full border border-black/10"
+                                                            :style="{ backgroundColor: world.secondary }"
+                                                        />
+                                                        <span
+                                                            class="h-3.5 w-3.5 rounded-full border border-black/10"
+                                                            :style="{ backgroundColor: world.tertiary }"
+                                                        />
+                                                    </span>
+                                                    <span class="flex-1 text-sm">{{ t(`event.colorWorld.${world.id}`) }}</span>
+                                                    <span class="shrink-0 rounded border border-input px-2 py-0.5 text-xs">{{
+                                                        t('event.applyStyle')
+                                                    }}</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="order-2 border-t border-input pt-4">
+                                        <button
+                                            type="button"
+                                            class="flex w-full items-center justify-between text-left"
+                                            :aria-expanded="stylePresetsOpen"
+                                            @click="stylePresetsOpen = !stylePresetsOpen"
+                                        >
+                                            <Label class="cursor-pointer">{{ t('event.savedStyles') }}</Label>
+                                            <span aria-hidden="true" class="text-muted-foreground">{{ stylePresetsOpen ? '−' : '+' }}</span>
+                                        </button>
+                                        <div v-if="stylePresetsOpen" class="mt-3">
                                             <button
-                                                v-for="font in fontOptions"
-                                                :key="font.key"
                                                 type="button"
-                                                @click="form.font_heading = font.key"
-                                                class="rounded-lg border-2 px-2 py-2.5 text-center text-sm leading-tight transition-colors"
-                                                :class="
-                                                    form.font_heading === font.key
-                                                        ? 'border-ring bg-muted/20'
-                                                        : 'border-input hover:border-muted-foreground'
-                                                "
-                                                :style="{ fontFamily: font.family }"
+                                                class="mb-3 flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:bg-muted"
+                                                :aria-expanded="additionalActionsOpen"
+                                                @click="additionalActionsOpen = !additionalActionsOpen"
                                             >
-                                                {{ font.label }}
+                                                <span>{{ t('event.additionalActions') }}</span>
+                                                <span aria-hidden="true">{{ additionalActionsOpen ? '−' : '+' }}</span>
                                             </button>
+                                            <div v-if="additionalActionsOpen" class="mb-3 flex items-center gap-1 px-2">
+                                                <button
+                                                    type="button"
+                                                    class="rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                                                    @click="exportStyle()"
+                                                >
+                                                    {{ t('event.export') }}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    class="rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                                                    @click="importFileInput?.click()"
+                                                >
+                                                    {{ t('event.import') }}
+                                                </button>
+                                                <input
+                                                    ref="importFileInput"
+                                                    type="file"
+                                                    accept=".json,application/json"
+                                                    class="hidden"
+                                                    @change="importStyle"
+                                                />
+                                            </div>
+                                            <div class="space-y-1.5">
+                                                <div
+                                                    v-for="preset in stylePresets"
+                                                    :key="preset.id"
+                                                    class="flex items-center gap-2 rounded-lg border border-input bg-muted/20 px-3 py-2"
+                                                >
+                                                    <div class="flex shrink-0 gap-0.5">
+                                                        <div
+                                                            class="h-3.5 w-3.5 rounded-full border border-black/10"
+                                                            :style="{ backgroundColor: preset.color_primary ?? '#7c2d3e' }"
+                                                        />
+                                                        <div
+                                                            class="h-3.5 w-3.5 rounded-full border border-black/10"
+                                                            :style="{ backgroundColor: preset.color_secondary ?? '#e8e3de' }"
+                                                        />
+                                                        <div
+                                                            class="h-3.5 w-3.5 rounded-full border border-black/10"
+                                                            :style="{ backgroundColor: preset.color_tertiary ?? '#ffffff' }"
+                                                        />
+                                                    </div>
+                                                    <Input
+                                                        v-if="editingPreset?.id === preset.id"
+                                                        v-model="presetNameInput"
+                                                        :placeholder="t('event.styleNamePlaceholder')"
+                                                        class="h-7 flex-1 text-sm"
+                                                        @keyup.enter="isEditingPresetDirty && savePreset()"
+                                                        @keyup.esc="
+                                                            editingPreset = null;
+                                                            presetNameInput = '';
+                                                        "
+                                                        autofocus
+                                                    />
+                                                    <span v-else class="flex-1 truncate text-sm">{{ preset.name }}</span>
+                                                    <button
+                                                        v-if="editingPreset?.id !== preset.id"
+                                                        type="button"
+                                                        class="shrink-0 rounded px-2 py-0.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+                                                        @click="exportStyle(preset)"
+                                                    >
+                                                        ↓
+                                                    </button>
+                                                    <button
+                                                        v-if="editingPreset?.id !== preset.id"
+                                                        type="button"
+                                                        class="shrink-0 rounded border border-input px-2 py-0.5 text-xs hover:bg-muted"
+                                                        @click="loadPreset(preset)"
+                                                    >
+                                                        {{ t('event.applyStyle') }}
+                                                    </button>
+                                                    <button
+                                                        v-if="editingPreset?.id === preset.id"
+                                                        type="button"
+                                                        class="shrink-0"
+                                                        :disabled="!isEditingPresetDirty || presetForm.processing"
+                                                        @click="savePreset"
+                                                    >
+                                                        {{ t('common.save') }}
+                                                    </button>
+                                                    <button
+                                                        v-if="editingPreset?.id === preset.id"
+                                                        type="button"
+                                                        class="shrink-0 rounded px-1.5 py-0.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+                                                        @click="
+                                                            editingPreset = null;
+                                                            presetNameInput = '';
+                                                        "
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                    <button
+                                                        v-if="editingPreset?.id !== preset.id"
+                                                        type="button"
+                                                        class="shrink-0 rounded px-1.5 py-0.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+                                                        :disabled="activePreset?.id === preset.id && !isPresetDirty(preset)"
+                                                        @click="editPreset(preset)"
+                                                    >
+                                                        {{ activePreset?.id === preset.id ? t('event.updateStyle') : t('event.editStyle') }}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        class="shrink-0 rounded px-1.5 py-0.5 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                                                        @click="deletePreset(preset.id)"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </div>
+                                                <p v-if="!stylePresets.length" class="py-1 text-xs text-muted-foreground">
+                                                    {{ t('event.noSavedStyles') }}
+                                                </p>
+                                            </div>
+                                            <div class="mt-3 border-t border-input pt-3">
+                                                <button
+                                                    v-if="!showPresetInput && !editingPreset"
+                                                    type="button"
+                                                    class="w-full rounded-lg border border-dashed border-input py-2 text-xs text-muted-foreground transition-colors hover:border-ring hover:text-foreground"
+                                                    @click="showPresetInput = true"
+                                                >
+                                                    {{ editingPreset ? t('event.updateStyle') : t('event.saveCurrentStyle') }}
+                                                </button>
+                                                <div v-else class="flex gap-2">
+                                                    <Input
+                                                        v-model="presetNameInput"
+                                                        :placeholder="t('event.styleNamePlaceholder')"
+                                                        class="h-8 flex-1 text-sm"
+                                                        @keyup.enter="presetNameInput.trim() && savePreset()"
+                                                        @keyup.esc="
+                                                            showPresetInput = false;
+                                                            presetNameInput = '';
+                                                        "
+                                                        autofocus
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        class="h-8"
+                                                        :disabled="!presetNameInput.trim() || presetForm.processing"
+                                                        @click="savePreset"
+                                                        >{{ t('common.save') }}</Button
+                                                    >
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        class="h-8"
+                                                        @click="
+                                                            showPresetInput = false;
+                                                            presetNameInput = '';
+                                                        "
+                                                        >✕</Button
+                                                    >
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     <ColorSystemEditor
+                                        class="order-3"
                                         v-model:color-primary="form.color_primary"
                                         v-model:color-secondary="form.color_secondary"
                                         v-model:color-tertiary="form.color_tertiary"
@@ -580,138 +980,8 @@ function importStyle(e: Event) {
                                         v-model:role-fab-icon="form.role_fab_icon"
                                         v-model:role-nav-bg="form.role_nav_bg"
                                         @show-hint="showHint"
+                                        @before-confirmed-change="rememberDesignState"
                                     />
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <!-- Style presets -->
-                        <Card>
-                            <CardContent class="pt-4">
-                                <!-- Header -->
-                                <div class="mb-3 flex items-center justify-between">
-                                    <Label>Stile</Label>
-                                    <div class="flex items-center gap-1">
-                                        <button
-                                            type="button"
-                                            class="rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                                            title="Aktuellen Stil als Datei exportieren"
-                                            @click="exportStyle()"
-                                        >
-                                            ↓ Export
-                                        </button>
-                                        <button
-                                            type="button"
-                                            class="rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                                            title="Stil aus Datei importieren & speichern"
-                                            @click="importFileInput?.click()"
-                                        >
-                                            ↑ Import
-                                        </button>
-                                        <input
-                                            ref="importFileInput"
-                                            type="file"
-                                            accept=".json,application/json"
-                                            class="hidden"
-                                            @change="importStyle"
-                                        />
-                                    </div>
-                                </div>
-
-                                <!-- Preset list -->
-                                <div class="space-y-1.5">
-                                    <div
-                                        v-for="preset in stylePresets"
-                                        :key="preset.id"
-                                        class="flex items-center gap-2 rounded-lg border border-input bg-muted/20 px-3 py-2"
-                                    >
-                                        <div class="flex shrink-0 gap-0.5">
-                                            <div
-                                                class="h-3.5 w-3.5 rounded-full border border-black/10"
-                                                :style="{ backgroundColor: preset.color_primary ?? '#7c2d3e' }"
-                                            />
-                                            <div
-                                                class="h-3.5 w-3.5 rounded-full border border-black/10"
-                                                :style="{ backgroundColor: preset.color_secondary ?? '#e8e3de' }"
-                                            />
-                                            <div
-                                                class="h-3.5 w-3.5 rounded-full border border-black/10"
-                                                :style="{ backgroundColor: preset.color_tertiary ?? '#ffffff' }"
-                                            />
-                                        </div>
-                                        <span class="flex-1 truncate text-sm">{{ preset.name }}</span>
-                                        <button
-                                            type="button"
-                                            class="shrink-0 rounded px-2 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                                            title="Exportieren"
-                                            @click="exportStyle(preset)"
-                                        >
-                                            ↓
-                                        </button>
-                                        <button
-                                            type="button"
-                                            class="shrink-0 rounded border border-input px-2 py-0.5 text-xs transition-colors hover:bg-muted"
-                                            @click="loadPreset(preset)"
-                                        >
-                                            Laden
-                                        </button>
-                                        <button
-                                            type="button"
-                                            class="shrink-0 rounded px-1.5 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                                            @click="deletePreset(preset.id)"
-                                        >
-                                            ✕
-                                        </button>
-                                    </div>
-
-                                    <p v-if="!stylePresets.length" class="py-1 text-xs text-muted-foreground">Noch keine Stile gespeichert.</p>
-                                </div>
-
-                                <!-- Save new style -->
-                                <div class="mt-3 border-t border-input pt-3">
-                                    <div v-if="!showPresetInput">
-                                        <button
-                                            type="button"
-                                            class="w-full rounded-lg border border-dashed border-input py-2 text-xs text-muted-foreground transition-colors hover:border-ring hover:text-foreground"
-                                            @click="showPresetInput = true"
-                                        >
-                                            + Aktuellen Stil speichern
-                                        </button>
-                                    </div>
-                                    <div v-else class="flex gap-2">
-                                        <Input
-                                            v-model="presetNameInput"
-                                            placeholder="Name des Stils…"
-                                            class="h-8 flex-1 text-sm"
-                                            @keyup.enter="presetNameInput.trim() && savePreset()"
-                                            @keyup.esc="
-                                                showPresetInput = false;
-                                                presetNameInput = '';
-                                            "
-                                            autofocus
-                                        />
-                                        <Button
-                                            type="button"
-                                            size="sm"
-                                            class="h-8"
-                                            :disabled="!presetNameInput.trim() || presetForm.processing"
-                                            @click="savePreset"
-                                        >
-                                            Speichern
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            size="sm"
-                                            variant="ghost"
-                                            class="h-8"
-                                            @click="
-                                                showPresetInput = false;
-                                                presetNameInput = '';
-                                            "
-                                        >
-                                            ✕
-                                        </Button>
-                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
@@ -720,11 +990,11 @@ function importStyle(e: Event) {
             </div>
 
             <!-- Preview — top on mobile (order-first), right on desktop (order-last) -->
-            <div class="order-first flex-shrink-0 lg:order-last lg:h-full lg:overflow-y-auto lg:pb-4">
+            <div class="order-first min-w-0 flex-shrink-0 xl:order-last xl:h-full xl:overflow-y-auto xl:pb-4">
                 <!-- Mobile: collapsible header -->
                 <button
                     type="button"
-                    class="flex w-full items-center justify-between border-b px-4 py-3 lg:hidden"
+                    class="flex w-full items-center justify-between border-b px-4 py-3 xl:hidden"
                     @click="previewCollapsed = !previewCollapsed"
                 >
                     <span class="text-sm font-semibold">{{ t('event.phonePreview') }}</span>
@@ -744,12 +1014,64 @@ function importStyle(e: Event) {
                     </svg>
                 </button>
 
-                <div v-show="!previewCollapsed" class="flex flex-col items-center gap-2 pt-2 lg:pt-0">
-                    <!-- Phones: mobile horizontal scroll, desktop 2×2 grid -->
-                    <div class="w-full overflow-x-auto lg:overflow-x-visible">
-                        <div class="flex gap-4 px-4 pb-4 lg:grid lg:grid-cols-2 lg:px-0">
+                <div v-show="!previewCollapsed" class="flex flex-col items-center gap-2 pt-2 xl:pt-0" :class="`preview-size-${previewSize}`">
+                    <div class="flex w-full flex-col items-center gap-1 px-4 pb-1 xl:flex-row xl:flex-wrap xl:justify-center">
+                        <div class="flex flex-wrap justify-center gap-1" role="tablist">
+                            <button
+                                type="button"
+                                class="rounded-md px-2 py-1 text-[11px] font-medium transition-colors sm:px-2.5 sm:py-1.5 sm:text-xs"
+                                :class="
+                                    showAllPreviewScreens
+                                        ? 'bg-primary text-primary-foreground'
+                                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                                "
+                                :aria-pressed="showAllPreviewScreens"
+                                @click="showAllPreviewScreens = true"
+                            >
+                                {{ t('event.previewAll') }}
+                            </button>
+                            <button
+                                v-for="screen in previewScreens"
+                                :key="screen.key"
+                                type="button"
+                                class="rounded-md px-2 py-1 text-[11px] font-medium transition-colors sm:px-2.5 sm:py-1.5 sm:text-xs"
+                                :class="
+                                    activePreviewScreen === screen.key && !showAllPreviewScreens
+                                        ? 'bg-primary text-primary-foreground'
+                                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                                "
+                                :aria-selected="activePreviewScreen === screen.key"
+                                role="tab"
+                                @click="
+                                    activePreviewScreen = screen.key;
+                                    showAllPreviewScreens = false;
+                                "
+                            >
+                                {{ screen.label }}
+                            </button>
+                        </div>
+                        <div class="flex rounded-md border border-input p-0.5" role="group" :aria-label="t('event.previewSizeLabel')">
+                            <button
+                                v-for="size in previewSizes"
+                                :key="size.key"
+                                type="button"
+                                class="rounded px-2 py-1 text-xs transition-colors"
+                                :class="previewSize === size.key ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'"
+                                :aria-pressed="previewSize === size.key"
+                                @click="choosePreviewSize(size.key)"
+                            >
+                                {{ size.label }}
+                            </button>
+                        </div>
+                    </div>
+                    <div class="w-full overflow-x-auto pb-2 xl:overflow-x-visible">
+                        <div
+                            class="min-w-max gap-4 px-4 pb-4"
+                            :class="showAllPreviewScreens && isPreviewSideBySide ? 'grid grid-cols-2 justify-items-center' : 'flex justify-start'"
+                        >
                             <!-- ===== SCREEN 1: HOME ===== -->
                             <PhonePreviewHome
+                                v-show="showAllPreviewScreens || activePreviewScreen === 'home'"
                                 :cover-url="displayCoverUrl"
                                 :event-name="props.event.name"
                                 :dresscode="props.event.dresscode ?? ''"
@@ -778,6 +1100,7 @@ function importStyle(e: Event) {
 
                             <!-- ===== SCREEN 2: ZUSAGE ===== -->
                             <PhonePreviewRsvp
+                                v-show="showAllPreviewScreens || activePreviewScreen === 'rsvp'"
                                 :preview-font-family="previewFontFamily"
                                 :c-screen-bg="cScreenBg"
                                 :c-primary="form.color_primary"
@@ -793,6 +1116,7 @@ function importStyle(e: Event) {
 
                             <!-- ===== SCREEN 3: FOTOS ===== -->
                             <PhonePreviewPhotos
+                                v-show="showAllPreviewScreens || activePreviewScreen === 'photos'"
                                 :preview-font-family="previewFontFamily"
                                 :c-screen-bg="cScreenBg"
                                 :c-primary="form.color_primary"
@@ -809,6 +1133,7 @@ function importStyle(e: Event) {
 
                             <!-- ===== SCREEN 4: EINSTELLUNGEN ===== -->
                             <PhonePreviewSettings
+                                v-show="showAllPreviewScreens || activePreviewScreen === 'settings'"
                                 :preview-font-family="previewFontFamily"
                                 :c-screen-bg="cScreenBg"
                                 :c-primary="form.color_primary"
@@ -874,22 +1199,52 @@ function importStyle(e: Event) {
 
 /* Phone preview sizes */
 .phone-frame-outer {
-    width: 228px;
-    height: 464px;
+    width: 300px;
+    height: 610px;
     overflow: hidden;
     flex-shrink: 0;
 }
 .phone-frame-inner {
-    transform: scale(1.9);
+    transform: scale(2.5);
     transform-origin: top left;
+}
+
+/* Preview scale changes the entire simulated device, not just its shell. */
+.preview-size-mini .phone-frame-outer {
+    width: 120px;
+    height: 244px;
+}
+.preview-size-mini .phone-frame-inner {
+    transform: scale(1);
+}
+.preview-size-compact .phone-frame-outer {
+    width: 160px;
+    height: 326px;
+}
+.preview-size-compact .phone-frame-inner {
+    transform: scale(1.33);
+}
+.preview-size-standard .phone-frame-outer {
+    width: 228px;
+    height: 464px;
+}
+.preview-size-standard .phone-frame-inner {
+    transform: scale(1.9);
+}
+.preview-size-large .phone-frame-outer {
+    width: 300px;
+    height: 610px;
+}
+.preview-size-large .phone-frame-inner {
+    transform: scale(2.5);
 }
 @media (max-width: 1023px) {
     .phone-frame-outer {
-        width: 171px;
-        height: 348px;
+        width: 228px;
+        height: 464px;
     }
     .phone-frame-inner {
-        transform: scale(1.425);
+        transform: scale(1.9);
     }
 }
 

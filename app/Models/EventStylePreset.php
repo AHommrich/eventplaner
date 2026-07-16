@@ -15,6 +15,8 @@ class EventStylePreset extends Model
         'role_tab_tint', 'role_border', 'role_fab', 'role_fab_icon',
         'role_nav_bg',
         'font_heading',
+        'design_preset',
+        'role_config_version',
     ];
 
     public function event()
