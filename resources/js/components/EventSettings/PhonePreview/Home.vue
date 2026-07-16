@@ -67,9 +67,6 @@ const coverPill = computed(() => {
 function hintBgClass(hint: string): string {
     return props.activeHint === hint ? 'preview-hint-bg' : '';
 }
-function hintFilterClass(hint: string): string {
-    return props.activeHint === hint ? 'preview-hint-filter' : '';
-}
 </script>
 
 <template>
@@ -297,7 +294,7 @@ function hintFilterClass(hint: string): string {
                                 </span>
                             </div>
                         </div>
-                        <div :class="hintFilterClass('tabTint')">
+                        <div>
                             <PreviewTabBar
                                 :tab-defs="tabDefs"
                                 :active-index="0"

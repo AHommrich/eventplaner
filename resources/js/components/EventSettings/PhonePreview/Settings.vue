@@ -142,7 +142,7 @@ function hintFilterClass(hint: string): string {
                                 </div>
                             </div>
                         </div>
-                        <div :class="hintFilterClass('tabTint')">
+                        <div>
                             <PreviewTabBar
                                 :tab-defs="tabDefs"
                                 :active-index="4"

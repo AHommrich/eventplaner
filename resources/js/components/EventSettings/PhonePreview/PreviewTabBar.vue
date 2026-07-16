@@ -66,6 +66,10 @@ const activeDiscStyle = computed(() =>
 // Active icon sits on the tint disc as a knockout revealing the bar behind it,
 // so it takes the nav_bg colour (white ring over a cover → white icon).
 const activeIconStroke = computed(() => (props.overCover ? '#ffffff' : props.cNavBg));
+// The "Navbar icons/text" hint (tab_tint) highlights ONLY the icons + labels —
+// not the whole bar (that's the nav_bg hint) — so the two controls stay
+// visually distinguishable in the editor.
+const hintIconText = computed(() => (props.activeHint === 'tabTint' ? 'preview-hint-filter' : ''));
 </script>
 
 <template>
@@ -78,7 +82,7 @@ const activeIconStroke = computed(() => (props.overCover ? '#ffffff' : props.cNa
                 borderRadius: sheetRadius,
                 backgroundColor: overCover ? 'rgba(255,255,255,0.16)' : cNavBg,
                 border: overCover ? '1px solid rgba(255,255,255,0.4)' : '1px solid rgba(255,255,255,0.5)',
-                boxShadow: sheetShadow,
+                boxShadow: overCover ? 'none' : sheetShadow,
             }"
         >
             <div v-for="(tab, i) in tabDefs" :key="'sl' + i" class="flex flex-col items-center gap-px">
@@ -94,6 +98,7 @@ const activeIconStroke = computed(() => (props.overCover ? '#ffffff' : props.cNa
                         :stroke-width="tab.strokeWidth ?? 2"
                         stroke-linecap="round"
                         stroke-linejoin="round"
+                        :class="hintIconText"
                         :stroke="i === activeIndex ? activeIconStroke : mutedColor"
                     >
                         <path v-for="(p, pi) in tab.paths" :key="pi" :d="p" />
@@ -101,6 +106,7 @@ const activeIconStroke = computed(() => (props.overCover ? '#ffffff' : props.cNa
                 </div>
                 <span
                     class="text-[4px]"
+                    :class="hintIconText"
                     :style="{ color: i === activeIndex ? activeColor : mutedColor, fontWeight: i === activeIndex ? '700' : '400' }"
                     >{{ tab.label }}</span
                 >
@@ -128,12 +134,14 @@ const activeIconStroke = computed(() => (props.overCover ? '#ffffff' : props.cNa
                 :stroke-width="tab.strokeWidth ?? 2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
+                :class="hintIconText"
                 :stroke="i === activeIndex ? activeColor : mutedColor"
             >
                 <path v-for="(p, pi) in tab.paths" :key="pi" :d="p" />
             </svg>
             <span
                 class="text-[5px]"
+                :class="hintIconText"
                 :style="{ color: i === activeIndex ? activeColor : mutedColor, fontWeight: i === activeIndex ? '700' : '400' }"
                 >{{ tab.label }}</span
             >

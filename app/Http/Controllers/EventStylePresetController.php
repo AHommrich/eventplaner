@@ -13,7 +13,16 @@ class EventStylePresetController extends Controller
         $event = $this->activeEvent();
         abort_if(! $event, 404);
 
-        $data = $request->validate([
+        $data = $request->validate($this->rules());
+
+        $event->stylePresets()->create([...$data, 'role_config_version' => 2]);
+
+        return back()->with('success', 'Stil gespeichert.');
+    }
+
+    private function rules(): array
+    {
+        return [
             'name' => 'required|string|max:100',
             'color_primary' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'color_secondary' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
@@ -35,11 +44,19 @@ class EventStylePresetController extends Controller
                 'playfair', 'cormorant', 'cinzel', 'dancing',
                 'great_vibes', 'raleway', 'lora', 'josefin',
             ])],
-        ]);
+            'design_preset' => ['nullable', Rule::in(['classic', 'soft-luxury'])],
+        ];
+    }
 
-        $preset = $event->stylePresets()->create($data);
+    public function update(Request $request, EventStylePreset $preset)
+    {
+        $event = $this->activeEvent();
+        abort_if(! $event || $preset->event_id !== $event->id, 403);
 
-        return back()->with('success', 'Stil gespeichert.');
+        $data = $request->validate($this->rules());
+        $preset->update([...$data, 'role_config_version' => 2]);
+
+        return back()->with('success', 'Stil aktualisiert.');
     }
 
     public function destroy(EventStylePreset $preset)

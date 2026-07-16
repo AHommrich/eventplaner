@@ -145,7 +145,7 @@ const groupMembers = [
                                 </div>
                             </div>
                         </div>
-                        <div :class="hintFilterClass('tabTint')">
+                        <div>
                             <PreviewTabBar
                                 :tab-defs="tabDefs"
                                 :active-index="1"
