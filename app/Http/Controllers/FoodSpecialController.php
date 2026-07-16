@@ -10,7 +10,13 @@ class FoodSpecialController extends Controller
     public function store(Request $request)
     {
         $request->validate(['name' => 'required|string|max:255']);
-        $foodSpecial = FoodSpecial::create(['name' => $request->name]);
+
+        // Always event-local: a manager can never mutate the shared template
+        // catalog (event_id = null) or another event's entries.
+        $foodSpecial = FoodSpecial::create([
+            'event_id' => $this->activeEvent()?->id,
+            'name' => $request->name,
+        ]);
 
         if ($request->wantsJson()) {
             return response()->json(['id' => $foodSpecial->id, 'name' => $foodSpecial->name]);

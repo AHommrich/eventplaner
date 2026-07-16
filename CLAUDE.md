@@ -60,13 +60,13 @@ Coolify deployt automatisch nach Push. Migrations laufen automatisch.
   - **`role_nav_bg`** (default `secondary`) = Hintergrund der Bottom-Navbar — eigene Rolle statt Ableitung. Vorher zog classic die `screen_bg`- und soft-luxury die `card`-Farbe, was beim Preset-Swap inkonsistent war; jetzt nutzen beide `role_nav_bg` (classic solid, soft-luxury frosted), und `role_tab_tint` bleibt der Vordergrund (Icons/Text/aktive Disc).
 - **User** — role: `admin` (Superadmin = André) oder null (Event-Owner)
   - **Löschung (P0.5, seit 2026-07-16):** `events.user_id` ist `ON DELETE RESTRICT` (nicht mehr CASCADE). Ein Admin kann einen User, der noch ein Event besitzt, **nicht** löschen (`Admin/UserController::destroy` blockt + schützt den letzten Superadmin). Self-Service-Kontolöschung (`Settings/ProfileController::destroy`) löscht die eigenen Events **bewusst vorher** (DSGVO Art. 17). Siehe `docs/EVENT_MANAGER_ROLE_PLAN.md` P0.5.
-- **Guest** — event_id, category_id, group_id, beer/wine, likelihood, invite, app_access (bool), drinks_access (bool)
+- **Guest** — event_id, group_id, beer/wine, likelihood, invite, app_access (bool), drinks_access (bool)
 - **Group** — event_id (früher Family)
-- **Category** — (früher Badge)
 - **InvitationToken** — group_id oder guest_id, token (32-char random)
 - **Photo** — event_id, album_id, guest_id, uploaded_by, uploader_user_id (FK users, nullable), uploader_role (nullable, Snapshot der Uploader-Rolle bei Upload — `owner|event_admin|event_manager|superadmin`; null = Gast-Upload. P0.4: Badge liest die Spalte statt dynamischer Ableitung; P0-Write nutzt primary-owner-Heuristik owner/event_manager, P1 ersetzt durch `roleOn()`), url, r2_key, description (nullable, für Präsentationsfotos)
 - **PhotoAlbum** — event_id, slug (`app_gallery`|`presentation`|`photo_game`), name, sort_order
-- **FoodSpecial**, **GuestDrink** — Pivot-Tabellen
+- **FoodSpecial** — event_id (nullable: null = globales read-only Seed-Template, für jedes Event sichtbar; non-null = event-lokaler Custom-Eintrag), name, translation_key. Delta-Modell wie `PhotoGameTaskCatalog`; Reads = Templates ∪ event-lokal, Writes immer `event_id = activeEvent()`, FK `cascadeOnDelete` (P0.1, seit 2026-07-17). Pivot `guest_food_special`. `GuestDrink` — Pivot-Tabelle
+  - Das frühere **Category**-Modell (ex-Badge) wurde 2026-07-17 (P0.1) samt Tabelle/Controller/Route entfernt — war totes Feature ohne Read-Pfad seit `guests.category_id` gedroppt wurde.
 - **Drink** — event_id, name (Getränke-Katalog pro Event)
 - **EventPhotoGame** — event_id, status (`draft`|`active`|`ended`), catalog_id (FK → Typ-Katalog, nullable)
 - **PhotoGameTaskCatalog** — event_id (null = global), name, is_base (bool), event_type (nullable: `'hochzeit'`|`'geburtstag'`). Global-Kataloge: 1× is_base=true (Allgemein, immer aktiv), n× is_base=false mit event_type (optionaler Typ-Zusatz)

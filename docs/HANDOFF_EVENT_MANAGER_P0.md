@@ -61,7 +61,46 @@ read it for the badge. Column allows the full owner|event_admin|
 event_manager|superadmin union; P1 replaces the write with roleOn().
 ```
 
-## Next: Checkpoint D — P0.1 (the big one), then E — P0.3
+## Done this session pt.2 (2026-07-17 cont.) — Checkpoints D + E (CI green, NOT committed)
+
+**P0 is now fully complete (A→E).** Full suite: **336 passed, 1 skipped**; pint/prettier/eslint/vue-tsc green; `migrate:fresh --seed` clean.
+
+- ✅ **Checkpoint D — P0.1**, split into two independent, separately-green pieces:
+  - **D1 — `categories` removed, not scoped.** The plan assumed `guests.category_id` still
+    existed; it was dropped in `4ff6b72`. `categories` was dead code (no read path, unread Inertia
+    prop, unscoped `categories.store` route). **André decided 2026-07-17: remove the feature outright.**
+    - `database/migrations/2026_07_17_130000_drop_categories_table.php` (reversible `down`).
+    - Deleted `app/Models/Category.php`, `app/Http/Controllers/CategoryController.php`.
+    - `routes/web.php` — dropped the `categories.store` route + import.
+    - `resources/js/pages/Guests/Edit.vue` — removed the unread `categories` prop.
+    - `resources/js/locales/{de,en}.json` — removed the unused `toast.categoryCreated` key.
+    - `tests/Feature/Guest/GroupCategoryTest.php` — removed the `creates a new category` test + import.
+  - **D2 — `food_specials` per-event delta model** (nullable `event_id`, exactly the plan's spec).
+    - `database/migrations/2026_07_17_140000_add_event_id_to_food_specials.php` — staged: nullable
+      column → idempotent backfill (templates = `translation_key` set → stay null; custom rows →
+      event-private via pivot, clone-and-repoint if shared; orphan custom → default event) →
+      fail-loud validation query → FK **`cascadeOnDelete`** last.
+    - `app/Models/FoodSpecial.php` — `event_id` fillable + `event()` relation.
+    - `app/Http/Controllers/FoodSpecialController.php` — `store` writes `event_id = activeEvent()`.
+    - Reads scoped to "templates ∪ event-local": `GuestController::edit` + `TableController::index`.
+    - `database/seeders/DemoDataSeeder.php` — picks food-specials from `whereNull('event_id')` templates.
+    - Tests: `tests/Feature/Guest/FoodSpecialScopingTest.php` (+1), `GroupCategoryTest` food-special
+      test now asserts `event_id`.
+- ✅ **Checkpoint E — P0.3** — `GuestController` reference validation (depends on D2).
+  - `app/Http/Controllers/GuestController.php` — new `referenceRules(?int $eventId)` helper used by
+    `store` + `update`: `group_id` strict own-event `exists`; `food_specials.*` accepts own-event
+    OR global templates (`event_id IS NULL`), rejects foreign-private.
+  - `tests/Feature/Guest/GuestReferenceValidationTest.php` (+6: foreign group rejected, foreign-private
+    food-special rejected on create + update, template accepted, own-local accepted).
+- ✅ Docs: `docs/DECISIONS.md` (3 entries: food-specials delta, categories removal, P0.3 scoping);
+  `CLAUDE.md` data-model (removed stale `category_id`/`Category`, added the food-specials delta note).
+
+### ⚠️ Ops for André before prod deploy (P0.1 is data surgery)
+The plan (§11 P0.1 step 5) requires **a DB backup + a staging dry-run before prod** for the
+food_specials backfill. On local dev the backfill is a no-op (all 14 rows are seeded templates), but
+prod may hold event-private custom food-specials → verify the clone-and-repoint on staging first.
+
+## (Historical) Original next-step notes for Checkpoint D/E — now done above
 
 **D must precede E.** Full spec in `docs/EVENT_MANAGER_ROLE_PLAN.md` §11 P0.1 / P0.3 and the review
 rounds §13.3–§13.5 — read them, they contain hard corrections. Key facts verified this session:

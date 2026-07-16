@@ -90,3 +90,31 @@ took real effort to discover.
   one's own data), so it must still succeed and therefore removes owned events
   on purpose. Also guards against deleting the last superadmin. First slice of
   the P0 multi-tenancy hardening (see `docs/EVENT_MANAGER_ROLE_PLAN.md`).
+
+- **2026-07-17** — (P0.1) Make `food_specials` a per-event delta catalog
+  (nullable `event_id`: null = global read-only seeded template auto-visible to
+  every event, non-null = event-local custom entry; reads = templates ∪
+  event-local; writes always `event_id = activeEvent()`; FK
+  `cascadeOnDelete`). **Why:** the catalog was global, so one event's writes /
+  reads leaked across every event. The delta model (mirrors
+  `PhotoGameTaskCatalog`) isolates custom entries while keeping the seeded i18n
+  templates shared, and solves "new events have no defaults" for free. Cascade
+  (not nullOnDelete) so deleting an event drops its private rows instead of
+  nulling them into global templates — that would leak private free-text. See
+  `docs/EVENT_MANAGER_ROLE_PLAN.md` §11 P0.1 / §13.5 #1.
+
+- **2026-07-17** — (P0.1) Drop the `categories` table and its
+  model/controller/route/prop entirely instead of scoping it per event.
+  **Why:** the plan assumed `guests.category_id` still existed, but that column
+  was dropped in an earlier refactor (`4ff6b72`). What remained was dead code —
+  no read path, an unread Inertia prop, and an unscoped `categories.store`
+  route reachable by any member. Removing it eliminates the cross-event write
+  hole outright rather than scoping a feature nobody uses (André, 2026-07-17).
+
+- **2026-07-17** — (P0.3) Scope `GuestController` store/update reference
+  validation to the active event: `group_id` strict own-event `exists`;
+  `food_specials.*` accepts own-event rows OR global templates
+  (`event_id IS NULL`), rejecting other events' private rows.
+  **Why:** `exists:groups,id` / `exists:food_specials,id` accepted a foreign
+  event's row — a cross-event write hole route-gating does not catch. Depends
+  on the P0.1 `event_id` column. See `docs/EVENT_MANAGER_ROLE_PLAN.md` §11 P0.3.

@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DrinkController;
 use App\Http\Controllers\EventAccessController;
@@ -58,7 +57,6 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::patch('photos/projector-album', [PhotoController::class, 'updateProjectorAlbum'])->name('photos.projector-album');
     Route::patch('photos/projector-name-mode', [PhotoController::class, 'updateProjectorNameMode'])->name('photos.projector-name-mode');
     Route::post('photos/projector-token/regenerate', [PhotoController::class, 'regenerateProjectorToken'])->name('photos.projector-token.regenerate');
-    Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
     Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
     Route::patch('/groups/{group}/schedule-visibility', [GroupController::class, 'updateScheduleVisibility'])->name('groups.schedule-visibility');
     Route::delete('/groups/{group}', [GroupController::class, 'destroy'])->name('groups.destroy');

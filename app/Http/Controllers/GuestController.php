@@ -8,6 +8,7 @@ use App\Models\Group;
 use App\Models\Guest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Laravel\Sanctum\PersonalAccessToken;
 
@@ -28,13 +29,7 @@ class GuestController extends Controller
     {
         $event = $this->activeEvent();
 
-        $data = $request->validate([
-            'firstname' => 'required|string|max:255',
-            'lastname' => 'nullable|string|max:255',
-            'group_id' => 'nullable|exists:groups,id',
-            'food_specials' => 'nullable|array',
-            'food_specials.*' => 'exists:food_specials,id',
-        ]);
+        $data = $request->validate($this->referenceRules($event?->id));
 
         if (! empty($data['group_id']) && empty($data['lastname'])) {
             $group = Group::find($data['group_id']);
@@ -93,21 +88,17 @@ class GuestController extends Controller
             'guest' => $guestData,
             'qr_url' => $qrUrl,
             'groups' => $event ? $event->groups()->with(['guests' => fn ($q) => $q->select('id', 'group_id', 'firstname')])->orderBy('name')->get(['id', 'name']) : collect(),
-            'food_specials' => FoodSpecial::orderBy('name')->get(['id', 'name', 'translation_key']),
+            'food_specials' => FoodSpecial::where(fn ($q) => $q->whereNull('event_id')->orWhere('event_id', $event?->id))
+                ->orderBy('name')->get(['id', 'name', 'translation_key']),
         ]);
     }
 
     public function update(Request $request, Guest $guest)
     {
-        abort_if($guest->event_id !== $this->activeEvent()?->id, 403);
+        $event = $this->activeEvent();
+        abort_if($guest->event_id !== $event?->id, 403);
 
-        $data = $request->validate([
-            'firstname' => 'required|string|max:255',
-            'lastname' => 'nullable|string|max:255',
-            'group_id' => 'nullable|exists:groups,id',
-            'food_specials' => 'nullable|array',
-            'food_specials.*' => 'exists:food_specials,id',
-        ]);
+        $data = $request->validate($this->referenceRules($event?->id));
 
         $guest->update([
             'firstname' => $data['firstname'],
@@ -194,6 +185,29 @@ class GuestController extends Controller
         DrinkLog::where('guest_id', $guest->id)->delete();
 
         return redirect()->route('guests.edit', $guest->id);
+    }
+
+    /**
+     * Validation rules shared by store/update. Group and food-special
+     * references are scoped to the active event so a cross-event id is rejected
+     * (a hole route-gating does NOT catch):
+     *   - groups have no templates → strict own-event existence.
+     *   - food_specials must ALSO accept the global templates (event_id = null),
+     *     valid for every event; other events' private rows stay rejected.
+     */
+    private function referenceRules(?int $eventId): array
+    {
+        return [
+            'firstname' => 'required|string|max:255',
+            'lastname' => 'nullable|string|max:255',
+            'group_id' => ['nullable', Rule::exists('groups', 'id')->where('event_id', $eventId)],
+            'food_specials' => 'nullable|array',
+            'food_specials.*' => [
+                Rule::exists('food_specials', 'id')->where(
+                    fn ($q) => $q->where('event_id', $eventId)->orWhereNull('event_id')
+                ),
+            ],
+        ];
     }
 
     private function hasActiveAppToken(Guest $guest): bool

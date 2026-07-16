@@ -265,7 +265,6 @@
         "confirm": "Confirm"
     },
     "toast": {
-        "categoryCreated": "Category created",
         "groupCreated": "Group created",
         "groupDeleted": "Group deleted",
         "foodSpecialCreated": "Food special created",

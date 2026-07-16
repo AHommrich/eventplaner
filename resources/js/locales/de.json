@@ -265,7 +265,6 @@
         "confirm": "Bestätigen"
     },
     "toast": {
-        "categoryCreated": "Kategorie erstellt",
         "groupCreated": "Gruppe erstellt",
         "groupDeleted": "Gruppe gelöscht",
         "foodSpecialCreated": "Essensbesonderheit erstellt",
