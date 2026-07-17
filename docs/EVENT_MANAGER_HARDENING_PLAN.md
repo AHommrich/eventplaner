@@ -587,3 +587,18 @@ segments; the ACTIVE segment is filled maroon (cardButton) with light text, inac
 transparent with muted text — like the "Eintragen | Rangliste" control in `app/(tabs)/drinks.tsx`.
 Reuse/extract that segmented-control component for the album switcher in
 `components/gallery/GalleryAlbumPicker.tsx` instead of the current three bordered pills.
+
+**⏳ NEXT (fresh session, high priority) — extract ONE shared photo lightbox (André: guest = source of truth):**
+The organizer photo detail must be the **exact same component** as the guest lightbox — no second
+detail logic. The guest lightbox in `app/(tabs)/photos.tsx` (~270 lines: reanimated shared values
+`dragY`/`entryOpacity`, gesture-handler Pan dismiss + native FlatList pager with
+`simultaneousWithExternalGesture`, spring + haptics) is perfect and is the source of truth.
+- Extract it verbatim into `components/gallery/PhotoLightbox.tsx` with props:
+  `photos`, `initialIndex`, `onClose`, `gestureEnabled` (guest passes `!reportingPhoto`), and a
+  **footer slot** (render-prop / children) for screen-specific actions.
+- Guest screen renders its report/hide footer; organizer renders the "Foto löschen" footer + name.
+  Guest and organizer then use the SAME viewer/gestures — only the footer differs.
+- Replace the organizer's current bespoke paging viewer (`app/organizer/photos.tsx` Modal +
+  ZoomableGalleryImage pager) with `PhotoLightbox`.
+- **Risk:** this touches the guest screen (the app's core feature). Do it carefully in a fresh
+  session with full budget; keep guest photo tests + organizer tests green + `lib/` ≥ 90 %.
