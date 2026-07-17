@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\FetchExpoPushReceipts;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -19,7 +20,19 @@ Schedule::command('app:prune-invitation-tokens')->weekly()->sundays()->at('03:15
 Schedule::command('app:prune-declined-guests')->weekly()->sundays()->at('03:30');
 Schedule::command('guests:purge-expired-erasures')->daily()->at('03:45');
 Schedule::command('app:prune-photo-reports')->weekly()->sundays()->at('03:50');
+Schedule::command('app:prune-notes')->weekly()->sundays()->at('03:55');
 Schedule::command('sanctum:prune-expired --hours=24')->daily();
+Schedule::command('app:prune-device-pairings')->daily()->at('04:05');
+Schedule::command('queue:prune-failed --hours='.(24 * (int) config('retention.failed_jobs_days', 7)))
+    ->daily()
+    ->at('04:10');
+Schedule::job(new FetchExpoPushReceipts)->everyFiveMinutes();
+
+// Low-volume deployment: drain the database queue from the existing scheduler
+// instead of requiring a second long-running process in the web container.
+Schedule::command('queue:work --stop-when-empty --max-time=50 --tries=3')
+    ->everyMinute()
+    ->withoutOverlapping();
 
 // Accidental-delete protection: weekly snapshot of photos/ + covers/ into
 // snapshots/YYYY-MM-DD/ inside the same bucket. See app/Console/Commands/BackupPhotoBucket.php

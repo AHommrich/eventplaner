@@ -1,6 +1,7 @@
 {
     "nav": {
         "platform": "Platform",
+        "eventSection": "Event",
         "forms": "Overview",
         "guests": "Guests",
         "drinks": "Drinks",
@@ -15,7 +16,8 @@
         "requestEvent": "Request event",
         "photoGame": "Photo Game",
         "appSection": "App",
-        "appDesign": "Design"
+        "appDesign": "Design",
+        "notes": "Notes & ToDos"
     },
     "schedule": {
         "title": "Schedule",
@@ -265,7 +267,6 @@
         "confirm": "Confirm"
     },
     "toast": {
-        "categoryCreated": "Category created",
         "groupCreated": "Group created",
         "groupDeleted": "Group deleted",
         "foodSpecialCreated": "Food special created",
@@ -275,8 +276,8 @@
         "drinkAdded": "Drink added",
         "drinkDeleted": "Drink deleted",
         "drinksSaved": "Drinks saved",
-        "userAdded": "User added to event",
         "roleChanged": "Role changed to \"{role}\"",
+        "approvalChanged": "Approval updated",
         "userDeleted": "User deleted",
         "accessAdded": "User added",
         "accessRemoved": "Access removed",
@@ -622,25 +623,45 @@
         "emailPlaceholder": "User's email address",
         "currentAccess": "Current access",
         "owner": "Owner",
-        "coOrganizerInfo": "Co-organizers have the same access as you — they can manage guests, photos and settings. The owner (you) cannot be removed.",
+        "coOrganizerInfo": "Event admins manage all settings (design, schedule, access). Event managers handle guests, photos and drinks, but not event settings. The owner cannot be removed.",
         "none": "Nobody else has access yet.",
         "removeTitle": "Remove {name}?",
-        "removeDescription": "The user will lose access to this event."
+        "removeDescription": "The user will lose access to this event.",
+        "roleOwner": "Owner",
+        "roleAdmin": "Event Admin",
+        "roleManager": "Event Manager",
+        "deviceLoginTitle": "Connect an app device",
+        "deviceLoginDescription": "Create a short-lived QR code for this event and scan it in the eveplan app.",
+        "deviceLabel": "Device name",
+        "deviceLabelPlaceholder": "e.g. My iPhone",
+        "generatePairing": "Create pairing QR",
+        "pairingQrAlt": "QR code for connecting the Organizer app",
+        "pairingHint": "Open the QR scanner in the app. This code can be used only once.",
+        "pairingExpires": "Valid until {time}.",
+        "myDevices": "My devices for this event",
+        "eventDevices": "All devices for this event",
+        "unknownDevice": "Unknown device",
+        "noPairedDevices": "No connected devices yet.",
+        "lastUsedAt": "Last used: {date}",
+        "expiresAt": "Expires: {date}",
+        "active": "Active",
+        "expired": "Expired",
+        "revokeDeviceTitle": "Revoke device access?",
+        "revokeDeviceDescription": "The device will be signed out of the Organizer app immediately.",
+        "revokeDevice": "Revoke access",
+        "deviceRevoked": "Device access revoked."
     },
     "admin": {
         "title": "User Management",
-        "addToEvent": "Add user",
-        "emailPlaceholder": "User's email address",
-        "selectEvent": "Select event …",
-        "selectEventLabel": "Select event",
-        "selectEventHint": "Select an event to view and manage its members.",
         "allUsers": "All users ({count})",
         "registered": "Registered",
         "user": "User",
         "admin": "Admin",
+        "approved": "Approved",
         "deleteTitle": "Delete {name}?",
         "deleteDescription": "The account will be permanently deleted and cannot be restored.",
-        "allUsersLabel": "All users"
+        "allUsersLabel": "All users",
+        "accessMovedHint": "Event access and roles are now managed per event under \"Manage access\" — pick the event in the switcher above and open its access page there."
     },
     "onboarding": {
         "title": "Welcome!",
@@ -706,7 +727,30 @@
         "deleteWarningDesc": "Please proceed with caution, this cannot be undone.",
         "deleteAccountBtn": "Delete account",
         "deleteConfirmTitle": "Are you sure you want to delete your account?",
-        "deleteConfirmDesc": "Once your account is deleted, all of its resources and data will also be permanently deleted. Please enter your password to confirm."
+        "deleteConfirmDesc": "Once your account is deleted, all of its resources and data will also be permanently deleted. Please enter your password to confirm.",
+        "events": "My Events",
+        "eventsTitle": "My Events",
+        "eventsDesc": "Every event you can access, with your role on each.",
+        "switchTo": "Switch",
+        "activeEvent": "Active",
+        "noEvents": "You do not have access to any event yet.",
+        "devices": "Devices",
+        "devicesTitle": "Paired devices",
+        "devicesDesc": "Connect the management app once by QR code and revoke lost devices individually.",
+        "deviceLabel": "Device name (optional)",
+        "deviceLabelPlaceholder": "e.g. Andre's iPhone",
+        "generatePairing": "Generate pairing QR",
+        "pairingQrAlt": "One-time pairing QR code",
+        "pairingHint": "Scan this code in the management app. It can only be used once.",
+        "pairingExpires": "Valid until {time}",
+        "pairedDevices": "Active devices",
+        "unknownDevice": "Unknown device",
+        "pairedAt": "Paired: {date}",
+        "noPairedDevices": "No device has been paired yet.",
+        "revokeDeviceTitle": "Revoke device?",
+        "revokeDeviceDesc": "This device's management session will end immediately.",
+        "revokeDevice": "Revoke device",
+        "deviceRevoked": "Device revoked"
     },
     "auth": {
         "loginTitle": "Log in to your account",
@@ -760,7 +804,46 @@
         "forkReplaceDesc": "All tasks in your custom catalog will be replaced with the tasks from this template. This cannot be undone.",
         "oneCatalogHint": "Only one custom catalog is allowed per event.",
         "oneCatalogExists": "You already have a custom catalog. Open it below to edit tasks.",
-        "tasks": "Task Management",
+        "tasks": {
+            "general": {
+                "laughing": "Someone laughing",
+                "dancing": "Someone dancing",
+                "talking": "Two people in conversation",
+                "funnyGroup": "A funny group photo",
+                "hug": "A hug",
+                "weirdPose": "Someone in an unusual pose",
+                "twoGenerations": "Two generations together",
+                "drink": "A drink",
+                "mustHave": "Something no party can be without",
+                "eating": "Someone eating",
+                "buffet": "The buffet / snacks",
+                "decoration": "The decorations",
+                "reunited": "Two people who haven't seen each other in a long time",
+                "playing": "Someone playing a game",
+                "candid": "Someone who doesn't know they're being photographed"
+            },
+            "hochzeit": {
+                "firstDance": "The couple's first dance",
+                "tableNeighbor": "Selfie with your table neighbor",
+                "cake": "The wedding cake",
+                "rings": "The rings",
+                "entireParty": "The entire wedding party (if possible)",
+                "somethingBlue": "Something blue at the wedding",
+                "eldersDancing": "Two older guests dancing",
+                "kiss": "A kiss",
+                "flowerDeco": "The floral decorations"
+            },
+            "geburtstag": {
+                "birthdayCake": "The birthday cake",
+                "withChild": "A photo with the birthday child",
+                "singing": "Someone singing",
+                "bestWrapping": "The most beautiful gift wrapping",
+                "colorfulOutfit": "The most colorful outfit",
+                "oldestYoungest": "The oldest and youngest guest together",
+                "groupPhoto": "A group photo with at least 5 people",
+                "presents": "The gifts"
+            }
+        },
         "manageTasks": "Manage tasks",
         "submissions": "Submissions",
         "submissionDeleted": "Submission deleted",
@@ -806,47 +889,7 @@
         "editTask": "Edit",
         "originalText": "Original",
         "overrideSaved": "Task customized",
-        "overrideDeleted": "Task reset",
-        "tasks": {
-            "general": {
-                "laughing": "Someone laughing",
-                "dancing": "Someone dancing",
-                "talking": "Two people in conversation",
-                "funnyGroup": "A funny group photo",
-                "hug": "A hug",
-                "weirdPose": "Someone in an unusual pose",
-                "twoGenerations": "Two generations together",
-                "drink": "A drink",
-                "mustHave": "Something no party can be without",
-                "eating": "Someone eating",
-                "buffet": "The buffet / snacks",
-                "decoration": "The decorations",
-                "reunited": "Two people who haven't seen each other in a long time",
-                "playing": "Someone playing a game",
-                "candid": "Someone who doesn't know they're being photographed"
-            },
-            "hochzeit": {
-                "firstDance": "The couple's first dance",
-                "tableNeighbor": "Selfie with your table neighbor",
-                "cake": "The wedding cake",
-                "rings": "The rings",
-                "entireParty": "The entire wedding party (if possible)",
-                "somethingBlue": "Something blue at the wedding",
-                "eldersDancing": "Two older guests dancing",
-                "kiss": "A kiss",
-                "flowerDeco": "The floral decorations"
-            },
-            "geburtstag": {
-                "birthdayCake": "The birthday cake",
-                "withChild": "A photo with the birthday child",
-                "singing": "Someone singing",
-                "bestWrapping": "The most beautiful gift wrapping",
-                "colorfulOutfit": "The most colorful outfit",
-                "oldestYoungest": "The oldest and youngest guest together",
-                "groupPhoto": "A group photo with at least 5 people",
-                "presents": "The gifts"
-            }
-        }
+        "overrideDeleted": "Task reset"
     },
     "pending": {
         "title": "Account pending approval",
@@ -911,5 +954,27 @@
             "note": "With Google Account · No credit card · Get started right away",
             "footer": "© {year} eveplan · eveplan.de"
         }
+    },
+    "notes": {
+        "title": "Notes & ToDos",
+        "addTitle": "Add new",
+        "info": "Personal notes and todos are private to you. Owners and event admins can assign todos to event managers — those show up for the person as \"From the organizer for you\".",
+        "typeTodo": "ToDo",
+        "typeNote": "Note",
+        "titlePlaceholder": "Title",
+        "bodyPlaceholder": "Details (optional)",
+        "assignSelf": "For me",
+        "assignTo": "To {name}",
+        "created": "Note saved",
+        "deleted": "Note deleted",
+        "hideDone": "Hide done",
+        "mine": "My notes & todos",
+        "team": "Assigned to team",
+        "empty": "Nothing here yet.",
+        "teamEmpty": "No tasks assigned yet.",
+        "fromOrganizer": "From the organizer for you",
+        "assignedTo": "Assigned to {name}",
+        "deleteTitle": "Delete note?",
+        "deleteDescription": "This note will be removed."
     }
 }

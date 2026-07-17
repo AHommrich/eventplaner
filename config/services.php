@@ -27,6 +27,15 @@ return [
         'key' => env('RESEND_KEY'),
     ],
 
+    'expo' => [
+        'send_url' => env('EXPO_PUSH_SEND_URL', 'https://exp.host/--/api/v2/push/send'),
+        'receipts_url' => env('EXPO_PUSH_RECEIPTS_URL', 'https://exp.host/--/api/v2/push/getReceipts'),
+        'access_token' => env('EXPO_ACCESS_TOKEN'),
+        'timeout_seconds' => (int) env('EXPO_PUSH_TIMEOUT_SECONDS', 10),
+        'receipt_delay_minutes' => (int) env('EXPO_RECEIPT_DELAY_MINUTES', 15),
+        'receipt_max_age_hours' => (int) env('EXPO_RECEIPT_MAX_AGE_HOURS', 24),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

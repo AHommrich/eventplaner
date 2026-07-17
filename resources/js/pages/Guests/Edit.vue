@@ -12,7 +12,6 @@ import { toast } from 'vue-sonner';
 
 const props = defineProps<{
     guest: any;
-    categories: any[];
     groups: any[];
     food_specials: any[];
     qr_url: string | null;

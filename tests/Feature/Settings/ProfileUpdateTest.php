@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Settings;
 
+use App\Models\Event;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -77,6 +78,28 @@ class ProfileUpdateTest extends TestCase
 
         $this->assertGuest();
         $this->assertNull($user->fresh());
+    }
+
+    public function test_deleting_own_account_also_deletes_owned_events()
+    {
+        // Self-service erasure (GDPR Art. 17): the events.user_id FK is RESTRICT
+        // (P0.5), so deleting one's own account must remove owned events
+        // explicitly rather than 500 on the constraint.
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user, 'owner')->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->delete('/settings/profile', [
+                'password' => 'password',
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect('/');
+
+        $this->assertNull($user->fresh());
+        $this->assertDatabaseMissing('events', ['id' => $event->id]);
     }
 
     public function test_correct_password_must_be_provided_to_delete_account()

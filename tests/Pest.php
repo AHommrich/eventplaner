@@ -43,9 +43,26 @@ pest()->beforeEach(function () {
  */
 function actingAsGuest(\App\Models\Guest $guest): \Tests\TestCase
 {
-    $token = $guest->createToken('test')->plainTextToken;
+    $token = $guest->createToken('test', ['role:guest'])->plainTextToken;
 
     return test()->withHeader('Authorization', 'Bearer '.$token);
+}
+
+/** Issue a complete event-bound management device session for API feature tests. */
+function managementTokenFor(\App\Models\User $user, ?\App\Models\Event $event = null): string
+{
+    $event ??= $user->accessibleEvents()->first();
+    $event ??= \App\Models\Event::factory()->for($user, 'owner')->create();
+
+    return app(\App\Services\ManagementTokenService::class)
+        ->issue($user, $event, 'management-test')
+        ->plainTextToken;
+}
+
+/** X-Event-ID header for management API feature tests. */
+function managementHeaders(\App\Models\Event $event): array
+{
+    return ['X-Event-ID' => (string) $event->id];
 }
 
 /**

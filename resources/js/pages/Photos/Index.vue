@@ -15,7 +15,7 @@ interface Photo {
     id: number;
     url: string;
     guest_name: string | null;
-    organizer_role: 'owner' | 'co_organizer' | null;
+    organizer_role: 'owner' | 'event_admin' | 'event_manager' | 'superadmin' | null;
     description: string | null;
     created_at: string;
 }
@@ -36,6 +36,14 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
+
+// Uploader-role badge label. owner/superadmin render as "Veranstalter";
+// event_admin/event_manager render as "Mitveranstalter" (P0 label kept until P1 relabels tiers).
+function organizerLabel(role: Photo['organizer_role']): string | null {
+    if (role === 'owner' || role === 'superadmin') return t('photo.organizer');
+    if (role === 'event_admin' || role === 'event_manager') return t('photo.coOrganizer');
+    return null;
+}
 
 // --- Collapsible sections ---
 const slideshowOpen = ref(false);
@@ -354,8 +362,9 @@ function updateProjectorNameMode(mode: string) {
                                     <template v-if="activeTab === 'presentation' && photo.description">{{ photo.description }}</template>
                                     <template v-else-if="photo.guest_name">
                                         {{ photo.guest_name
-                                        }}<template v-if="photo.organizer_role === 'owner'"> ({{ t('photo.organizer') }})</template
-                                        ><template v-else-if="photo.organizer_role === 'co_organizer'"> ({{ t('photo.coOrganizer') }})</template>
+                                        }}<template v-if="organizerLabel(photo.organizer_role)">
+                                            ({{ organizerLabel(photo.organizer_role) }})</template
+                                        >
                                     </template>
                                     <template v-else>{{ t('photo.uploadedByOrganizer') }}</template>
                                 </div>
@@ -396,8 +405,9 @@ function updateProjectorNameMode(mode: string) {
                 <DialogHeader class="border-b px-4 py-3">
                     <DialogTitle>
                         {{ selected?.guest_name ?? t('photo.uploadedByOrganizer')
-                        }}<template v-if="selected?.organizer_role === 'owner'"> ({{ t('photo.organizer') }})</template
-                        ><template v-else-if="selected?.organizer_role === 'co_organizer'"> ({{ t('photo.coOrganizer') }})</template>
+                        }}<template v-if="selected && organizerLabel(selected.organizer_role)">
+                            ({{ organizerLabel(selected.organizer_role) }})</template
+                        >
                     </DialogTitle>
                     <p v-if="selected?.description" class="text-sm font-normal">{{ selected.description }}</p>
                     <p class="text-sm text-muted-foreground">{{ selected?.created_at }}</p>

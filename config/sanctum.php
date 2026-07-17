@@ -68,6 +68,12 @@ return [
 
     'guest_token_ttl_days' => (int) env('SANCTUM_GUEST_TOKEN_TTL_DAYS', 90),
 
+    /* Management app bearers expire independently from guest credentials. */
+    'management_token_ttl_days' => (int) env('SANCTUM_MANAGEMENT_TOKEN_TTL_DAYS', 90),
+
+    // Short-lived bootstrap QR; the redeemed bearer uses the management TTL above.
+    'pairing_token_ttl_minutes' => (int) env('SANCTUM_PAIRING_TOKEN_TTL_MINUTES', 10),
+
     /*
     |--------------------------------------------------------------------------
     | Token Prefix

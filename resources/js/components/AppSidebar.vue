@@ -3,6 +3,7 @@ import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import OnboardingModal from '@/components/OnboardingModal.vue';
 import RequestEventModal from '@/components/RequestEventModal.vue';
+import RoleBadge from '@/components/RoleBadge.vue';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import {
     Sidebar,
@@ -33,6 +34,7 @@ import {
     Images,
     KeyRound,
     LayoutDashboard,
+    ListTodo,
     Palette,
     Plus,
     QrCode,
@@ -52,6 +54,8 @@ const { isMobile, state } = useSidebar();
 const { open: requestModalOpen } = useEventRequestModal();
 const { open: onboardingOpen } = useOnboardingModal();
 
+type EventRole = 'owner' | 'event_admin' | 'event_manager' | 'superadmin' | null;
+
 const isAdmin = computed(() => (page.props.auth as any)?.user?.role === 'admin');
 const activeEvent = computed(
     () =>
@@ -59,13 +63,15 @@ const activeEvent = computed(
             id: number;
             name: string;
             user_id?: number;
+            my_role?: EventRole;
             drink_game_enabled?: boolean;
             photo_game_enabled?: boolean;
         } | null,
 );
-const currentUserId = computed(() => (page.props.auth as any)?.user?.id);
-const isEventOwner = computed(() => !isAdmin.value && activeEvent.value?.user_id === currentUserId.value);
-const accessibleEvents = computed(() => (page.props as any).accessible_events as { id: number; name: string }[]);
+// Administer tier = owner ∪ event_admin ∪ superadmin. Drives which deep-config
+// nav items are shown; the server policy remains authoritative.
+const canAdminister = computed(() => isAdmin.value || ['owner', 'event_admin'].includes(activeEvent.value?.my_role ?? ''));
+const accessibleEvents = computed(() => (page.props as any).accessible_events as { id: number; name: string; my_role?: EventRole }[]);
 
 interface EventRequestItem {
     id: number;
@@ -106,7 +112,7 @@ function switchEvent(eventId: number) {
     search.value = '';
 }
 
-const mainNavItems = computed<NavItem[]>(() => [
+const eventNavItems = computed<NavItem[]>(() => [
     { title: t('nav.forms'), href: '/dashboard', icon: LayoutDashboard },
     { title: t('nav.guests'), href: '/guests', icon: Users },
     { title: t('nav.invitations'), href: '/invitations', icon: QrCode },
@@ -114,24 +120,20 @@ const mainNavItems = computed<NavItem[]>(() => [
     ...(activeEvent.value?.drink_game_enabled ? [{ title: t('nav.drinkGame'), href: '/drinks/game', icon: Trophy }] : []),
     { title: t('nav.photos'), href: '/photos', icon: Images },
     ...(activeEvent.value?.photo_game_enabled ? [{ title: t('nav.photoGame'), href: '/photos/game', icon: Camera }] : []),
-    { title: t('nav.eventSettings'), href: '/event/settings', icon: Settings2 },
+    { title: t('nav.notes'), href: '/notes', icon: ListTodo },
+    { title: t('nav.manageAccess'), href: '/event/access', icon: KeyRound },
+    { title: t('nav.requests'), href: '/requests', icon: Undo2, badge: pendingNotifications.value.total },
+    // Deep event settings is administer-only.
+    ...(canAdminister.value ? [{ title: t('nav.eventSettings'), href: '/event/settings', icon: Settings2 }] : []),
 ]);
 
-// "App" section — everything shaping the guest companion app.
+// "App" section — everything shaping the guest companion app. Administer-only.
 const appNavItems = computed<NavItem[]>(() => [
     { title: t('nav.appDesign'), href: '/app/design', icon: Palette },
     { title: t('nav.schedule'), href: '/schedule', icon: CalendarClock },
 ]);
 
-const adminNavItems = computed<NavItem[]>(() => [
-    { title: t('nav.userManagement'), href: '/admin/users', icon: ShieldCheck },
-    { title: t('nav.requests'), href: '/requests', icon: Undo2, badge: pendingNotifications.value.total },
-]);
-
-const eventOwnerNavItems = computed<NavItem[]>(() => [
-    { title: t('nav.manageAccess'), href: '/event/access', icon: KeyRound },
-    { title: t('nav.requests'), href: '/requests', icon: Undo2, badge: pendingNotifications.value.total },
-]);
+const platformNavItems = computed<NavItem[]>(() => [{ title: t('nav.userManagement'), href: '/admin/users', icon: ShieldCheck }]);
 </script>
 
 <template>
@@ -187,7 +189,8 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
                             <DropdownMenuItem v-for="ev in filteredEvents" :key="ev.id" @click="switchEvent(ev.id)" class="cursor-pointer">
                                 <Check v-if="ev.id === activeEvent.id" class="mr-2 size-4" />
                                 <span v-else class="mr-2 size-4" />
-                                {{ ev.name }}
+                                <span class="truncate">{{ ev.name }}</span>
+                                <RoleBadge :role="ev.my_role ?? null" class="ml-auto" />
                             </DropdownMenuItem>
                             <p v-if="filteredEvents.length === 0" class="px-2 py-3 text-center text-xs text-muted-foreground">
                                 {{ t('event.notFound') }}
@@ -230,7 +233,7 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
         <SidebarContent>
             <!-- User without event: button opens modal -->
             <SidebarGroup v-if="!activeEvent && !isAdmin" class="px-2 py-0">
-                <SidebarGroupLabel>{{ t('nav.platform') }}</SidebarGroupLabel>
+                <SidebarGroupLabel>{{ t('nav.eventSection') }}</SidebarGroupLabel>
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton @click="requestModalOpen = true" :tooltip="t('nav.requestEvent')">
@@ -241,10 +244,9 @@ const eventOwnerNavItems = computed<NavItem[]>(() => [
                 </SidebarMenu>
             </SidebarGroup>
 
-            <NavMain v-if="activeEvent || isAdmin" :items="mainNavItems" />
-            <NavMain v-if="activeEvent || isAdmin" :items="appNavItems" label="nav.appSection" />
-            <NavMain v-if="activeEvent && isEventOwner" :items="eventOwnerNavItems" />
-            <NavMain v-if="isAdmin" :items="adminNavItems" />
+            <NavMain v-if="activeEvent" :items="eventNavItems" label="nav.eventSection" />
+            <NavMain v-if="activeEvent && canAdminister" :items="appNavItems" label="nav.appSection" />
+            <NavMain v-if="isAdmin" :items="platformNavItems" label="nav.platform" />
         </SidebarContent>
 
         <SidebarFooter>

@@ -1,6 +1,6 @@
 # Sub-Processor Register
 
-_Last reviewed: 2026-07-08. Sentry EU covers Laravel backend + Vue web frontend. Helsinki cross-region backup is prepared in code but deferred pending budget._
+_Last reviewed: 2026-07-17. Expo Push Service is documented for organizer push notifications. Helsinki cross-region backup is prepared in code but deferred pending budget._
 
 This register lists every third party that processes personal data on behalf of eveplan. It is the authoritative source the user-facing privacy policy (`/datenschutz`) quotes from. **Any new sub-processor must be added here before the integration ships to production** — otherwise the published privacy policy becomes a lie.
 
@@ -49,6 +49,18 @@ GDPR Art. 28 requires a written data-processing agreement with each processor. A
   - DPA on file with the maintainer (not in repository).
 - **Free-tier limits enforced:** 5 000 error events/month, 10 000 trace spans/month, 30-day event retention — shared across both projects. `SENTRY_TRACES_SAMPLE_RATE=0.1` (backend) and `VITE_SENTRY_TRACES_SAMPLE_RATE=0.05` (frontend) keep ingest inside the tier.
 - **Provider privacy notice:** https://sentry.io/privacy/
+
+### 650 Industries, Inc. d/b/a Expo
+- **Purpose:** Optional push notifications to organizer devices when a note or ToDo is assigned. Expo accepts the notification from eveplan and relays it to Apple Push Notification Service (iOS) or Google Firebase Cloud Messaging (Android).
+- **Data categories:** Expo push token, device platform, generic notification title/body, and opaque event/note identifiers used by the authenticated app to open the correct screen. Note titles, note bodies, guest data, event names and actor names are deliberately never included in the push payload or lock-screen text.
+- **Provider address / location of processing:** United States. Expo's own current sub-processor list identifies Amazon AWS and Google cloud infrastructure in the USA and Apple/Google in the USA for push delivery. Push delivery therefore involves a third-country transfer to Expo and, depending on the device, Apple or Google.
+- **Data Processing Agreement / transfer safeguard:** Expo Terms of Service §3.2 (effective 2025-06-30) make Expo a processor for end-user data and incorporate the EU Standard Contractual Clauses, module two (controller-to-processor). Expo's Trust Center also states that MSA/DPA terms are available.
+  - Terms / incorporated SCCs: https://expo.dev/terms
+  - Current Expo sub-processors: https://expo.dev/privacy/subprocessors
+  - The binding public Terms are linked above; no signed contract PDF is committed to this repository.
+- **Retention / minimisation:** Expo states that notification contents are held only in memory and queues for delivery, not stored in a notification-content database. Expo retains push tokens to operate the service. eveplan stores tokens only while the user remains opted in and removes tokens reported as `DeviceNotRegistered` by Expo receipts.
+- **Provider privacy notice:** https://expo.dev/privacy
+- **Technical service documentation:** https://docs.expo.dev/push-notifications/sending-notifications/
 
 ### GitHub, Inc.
 - **Purpose:** Source-code hosting and CI execution. **No production user data**, but commit metadata is technically personal data of the contributor (commit author name + email).

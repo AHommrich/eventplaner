@@ -18,6 +18,8 @@ use Symfony\Component\Yaml\Yaml;
  * Retention numbers from config/retention.php are interpolated into the body
  * via {{retention.invitation_tokens_days}} / {{retention.declined_guests_days}}
  * / {{retention.guest_erasure_grace_days}} / {{retention.photo_reports_days}}
+ * / {{auth.management_token_ttl_days}} / {{retention.failed_jobs_days}}
+ * / {{retention.device_pairings_hours}}
  * placeholders so the user-facing text cannot drift from the actual scheduled
  * command windows.
  *
@@ -113,6 +115,9 @@ class LegalDocumentLoader
             '{{retention.declined_guests_days}}' => (string) config('retention.declined_guests_after_event_days'),
             '{{retention.guest_erasure_grace_days}}' => (string) config('retention.guest_erasure_grace_days'),
             '{{retention.photo_reports_days}}' => (string) config('retention.photo_reports_after_event_days'),
+            '{{auth.management_token_ttl_days}}' => (string) config('sanctum.management_token_ttl_days'),
+            '{{retention.failed_jobs_days}}' => (string) config('retention.failed_jobs_days'),
+            '{{retention.device_pairings_hours}}' => (string) config('retention.expired_device_pairings_hours'),
         ];
 
         return strtr($body, $replacements);

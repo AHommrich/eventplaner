@@ -156,6 +156,9 @@ class DrinkController extends Controller
 
     public function destroy(Drink $drink)
     {
+        // cross-event guard: a route-model-bound drink could belong to a foreign event (P0.2)
+        abort_if($drink->event_id !== $this->activeEvent()?->id, 403);
+
         $drink->delete();
 
         return redirect()->back()->with('success', 'Getränk entfernt.');

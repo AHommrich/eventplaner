@@ -24,7 +24,8 @@ class TableController extends Controller
             'guests' => $query->get(),
             'groups' => $event ? $event->groups()->with(['guests' => fn ($q) => $q->select('id', 'group_id', 'firstname')])->orderBy('name')->get(['id', 'name']) : collect(),
             'unused_groups' => $unusedGroups,
-            'food_specials' => FoodSpecial::orderBy('name')->get(['id', 'name', 'translation_key']),
+            'food_specials' => FoodSpecial::where(fn ($q) => $q->whereNull('event_id')->orWhere('event_id', $event?->id))
+                ->orderBy('name')->get(['id', 'name', 'translation_key']),
         ]);
     }
 }

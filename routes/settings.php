@@ -20,6 +20,11 @@ Route::middleware('auth')->group(function () {
         return Inertia::render('settings/Appearance');
     })->name('appearance');
 
+    // "My Events" — accessible events + the user's role on each (badges via shared props).
+    Route::get('settings/events', function () {
+        return Inertia::render('settings/Events');
+    })->name('settings.events');
+
     // GDPR right-of-access (Art. 15) + data portability (Art. 20).
     Route::get('settings/export-data', [DataExportController::class, 'download'])
         ->middleware('throttle:6,1')

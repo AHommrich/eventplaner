@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Guest;
 use Closure;
 use Illuminate\Http\Request;
 
@@ -18,7 +19,11 @@ class EnsureGuestHasAppAccess
     {
         $guest = $request->user();
 
-        if ($guest && ! $guest->app_access) {
+        if (! $guest instanceof Guest || ! $guest->tokenCan('role:guest')) {
+            return response()->json(['message' => 'This token is not authorized for guest access.'], 403);
+        }
+
+        if (! $guest->app_access) {
             return response()->json(['message' => 'Der App-Zugang wurde für diesen Gast deaktiviert.', 'code' => 'app_blocked'], 403);
         }
 
