@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Api\DevicePairingController;
 use App\Http\Controllers\Settings\DataExportController;
+use App\Http\Controllers\Settings\DeviceController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -24,6 +26,13 @@ Route::middleware('auth')->group(function () {
     Route::get('settings/events', function () {
         return Inertia::render('settings/Events');
     })->name('settings.events');
+
+    Route::get('settings/devices', [DeviceController::class, 'index'])->name('settings.devices');
+    Route::post('settings/devices/pairings', [DevicePairingController::class, 'store'])
+        ->middleware('throttle:6,1')
+        ->name('settings.devices.pairings');
+    Route::delete('settings/devices/{devicePairing}', [DevicePairingController::class, 'destroy'])
+        ->name('settings.devices.destroy');
 
     // GDPR right-of-access (Art. 15) + data portability (Art. 20).
     Route::get('settings/export-data', [DataExportController::class, 'download'])

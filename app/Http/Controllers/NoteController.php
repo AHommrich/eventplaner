@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\NotifyAssignedNote;
 use App\Models\Event;
 use App\Models\Note;
 use App\Models\User;
@@ -19,14 +20,14 @@ use Inertia\Inertia;
  */
 class NoteController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $event = $this->activeEvent();
+        $event = $this->eventFor($request);
         if (! $event) {
             return redirect()->route('dashboard');
         }
 
-        $user = auth()->user();
+        $user = $request->user();
         $this->authorize('manage', $event);
 
         $canAssign = $user->can('assignNote', $event);
@@ -63,18 +64,24 @@ class NoteController extends Controller
                 ->map(fn (User $u) => ['id' => $u->id, 'name' => $u->name])
             : collect();
 
-        return Inertia::render('Notes/Index', [
+        $payload = [
             'personal' => $personal,
             'assigned_to_me' => $assignedToMe,
             'assigned_team' => $assignedTeam,
             'can_assign' => $canAssign,
             'managers' => $managers,
-        ]);
+        ];
+
+        if ($request->expectsJson()) {
+            return response()->json($payload);
+        }
+
+        return Inertia::render('Notes/Index', $payload);
     }
 
     public function store(Request $request)
     {
-        $event = $this->activeEvent();
+        $event = $this->eventFor($request);
         abort_unless($event !== null, 404);
         $user = $request->user();
         $this->authorize('manage', $event);
@@ -92,21 +99,29 @@ class NoteController extends Controller
             $this->assertValidAssignee($event, $assigneeId);
         }
 
-        $event->notes()->create([
+        $note = $event->notes()->create([
             'author_user_id' => $user->id,
             'author_name' => $user->name,
             'assignee_user_id' => $assigneeId,
-            'type' => $data['type'],
+            'type' => $assigneeId !== null ? 'todo' : $data['type'],
             'title' => $data['title'],
             'body' => $data['body'] ?? null,
         ]);
+
+        if ($assigneeId !== null) {
+            NotifyAssignedNote::dispatch($note->id, $assigneeId);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['note' => $this->serialize($note)], 201);
+        }
 
         return redirect()->back()->with('success', 'Notiz gespeichert.');
     }
 
     public function update(Request $request, Note $note)
     {
-        $event = $this->activeEvent();
+        $event = $this->eventFor($request);
         abort_if($note->event_id !== $event?->id, 403);
         $user = $request->user();
         $this->authorize('manage', $event);
@@ -122,6 +137,10 @@ class NoteController extends Controller
             $done = $request->validate(['is_done' => 'required|boolean'])['is_done'];
             $note->update(['is_done' => $done, 'done_at' => $done ? now() : null]);
 
+            if ($request->expectsJson()) {
+                return response()->json(['note' => $this->serialize($note->fresh())]);
+            }
+
             return redirect()->back()->with('success', 'Aktualisiert.');
         }
 
@@ -133,6 +152,8 @@ class NoteController extends Controller
             'assignee_user_id' => 'sometimes|nullable|integer',
         ]);
 
+        $previousAssigneeId = $note->assignee_user_id;
+
         // Reassignment goes through the same guard as creation.
         if (array_key_exists('assignee_user_id', $data) && $data['assignee_user_id'] !== $note->assignee_user_id) {
             if ($data['assignee_user_id'] !== null) {
@@ -142,7 +163,9 @@ class NoteController extends Controller
             $note->assignee_user_id = $data['assignee_user_id'];
         }
 
-        $effectiveType = $data['type'] ?? $note->type;
+        // Assigned entries are always completable todos, regardless of a
+        // stale or malicious client sending type=note.
+        $effectiveType = $note->assignee_user_id !== null ? 'todo' : ($data['type'] ?? $note->type);
         if (array_key_exists('is_done', $data)) {
             if ($effectiveType !== 'todo') {
                 throw ValidationException::withMessages(['is_done' => 'Nur ToDos können abgehakt werden.']);
@@ -151,10 +174,10 @@ class NoteController extends Controller
             $note->done_at = $data['is_done'] ? now() : null;
         }
 
-        if (isset($data['type'])) {
-            $note->type = $data['type'];
+        if (isset($data['type']) || $note->assignee_user_id !== null) {
+            $note->type = $effectiveType;
             // A note is never "done"; clear the flag when switching away from todo.
-            if ($data['type'] !== 'todo') {
+            if ($effectiveType !== 'todo') {
                 $note->is_done = false;
                 $note->done_at = null;
             }
@@ -168,20 +191,38 @@ class NoteController extends Controller
 
         $note->save();
 
+        if ($note->assignee_user_id !== null && $note->assignee_user_id !== $previousAssigneeId) {
+            NotifyAssignedNote::dispatch($note->id, $note->assignee_user_id);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['note' => $this->serialize($note)]);
+        }
+
         return redirect()->back()->with('success', 'Notiz aktualisiert.');
     }
 
-    public function destroy(Note $note)
+    public function destroy(Request $request, Note $note)
     {
-        $event = $this->activeEvent();
+        $event = $this->eventFor($request);
         abort_if($note->event_id !== $event?->id, 403);
-        $user = auth()->user();
+        $user = $request->user();
         $this->authorize('manage', $event);
         abort_unless($this->canEditNote($user, $event, $note), 403);
 
         $note->delete();
 
+        if ($request->expectsJson()) {
+            return response()->noContent();
+        }
+
         return redirect()->back()->with('success', 'Notiz gelöscht.');
+    }
+
+    /** Resolve the API header event when present, otherwise the web session event. */
+    private function eventFor(Request $request): ?Event
+    {
+        return $request->attributes->get('management_event') ?? $this->activeEvent();
     }
 
     /**

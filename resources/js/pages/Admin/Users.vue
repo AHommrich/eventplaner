@@ -14,6 +14,7 @@ interface User {
     name: string;
     email: string;
     role: string;
+    is_approved: boolean;
     created_at: string;
 }
 
@@ -28,6 +29,12 @@ const approvedUsers = computed(() => props.users);
 // --- Change global platform role ---
 function updateRole(user: User, role: string) {
     useForm({ role }).put(route('admin.users.update', user.id), { onSuccess: () => toast.success(t('toast.roleChanged', { role })) });
+}
+
+function updateApproval(user: User, isApproved: boolean) {
+    useForm({ is_approved: isApproved }).put(route('admin.users.update', user.id), {
+        onSuccess: () => toast.success(t('toast.approvalChanged')),
+    });
 }
 
 // --- Delete user ---
@@ -62,6 +69,7 @@ function doDelete() {
                                 <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('common.name') }}</th>
                                 <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('common.email') }}</th>
                                 <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('common.role') }}</th>
+                                <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('admin.approved') }}</th>
                                 <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('admin.registered') }}</th>
                                 <th class="h-10 px-6"></th>
                             </tr>
@@ -79,6 +87,16 @@ function doDelete() {
                                         <option value="user">{{ t('admin.user') }}</option>
                                         <option value="admin">{{ t('admin.admin') }}</option>
                                     </select>
+                                </td>
+                                <td class="px-6 py-3">
+                                    <input
+                                        type="checkbox"
+                                        :checked="user.role === 'admin' || user.is_approved"
+                                        :disabled="user.role === 'admin'"
+                                        :aria-label="t('admin.approved')"
+                                        class="h-4 w-4 rounded border-input accent-primary disabled:opacity-50"
+                                        @change="updateApproval(user, ($event.target as HTMLInputElement).checked)"
+                                    />
                                 </td>
                                 <td class="px-6 py-3 text-xs text-muted-foreground">{{ new Date(user.created_at).toLocaleDateString('de-DE') }}</td>
                                 <td class="px-6 py-3 text-right">

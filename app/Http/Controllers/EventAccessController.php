@@ -122,6 +122,10 @@ class EventAccessController extends Controller
             return redirect()->back()->with('error', 'Der Owner kann nicht entfernt werden.');
         }
 
+        if (! $event->users()->where('users.id', $user->id)->exists()) {
+            return redirect()->back()->with('error', 'Diese Person ist kein Mitglied dieses Events.');
+        }
+
         if (! auth()->user()->can('removeMember', [$event, $user])) {
             abort(403);
         }

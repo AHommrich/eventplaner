@@ -50,6 +50,27 @@ class UserDataExporter
                 ->get()
                 ->map(fn (Note $n) => $this->serializeNote($n, $user))
                 ->all(),
+            // Pairing secrets and Sanctum bearer tokens are deliberately omitted.
+            'device_pairings' => $user->devicePairings()
+                ->get()
+                ->map(fn ($pairing) => [
+                    'id' => $pairing->id,
+                    'device_label' => $pairing->device_label,
+                    'expires_at' => optional($pairing->expires_at)->toIso8601String(),
+                    'redeemed_at' => optional($pairing->redeemed_at)->toIso8601String(),
+                    'created_at' => optional($pairing->created_at)->toIso8601String(),
+                ])
+                ->all(),
+            'push_tokens' => $user->pushTokens()
+                ->get()
+                ->map(fn ($token) => [
+                    'id' => $token->id,
+                    'expo_token' => $token->expo_token,
+                    'platform' => $token->platform,
+                    'last_used_at' => optional($token->last_used_at)->toIso8601String(),
+                    'created_at' => optional($token->created_at)->toIso8601String(),
+                ])
+                ->all(),
         ];
     }
 

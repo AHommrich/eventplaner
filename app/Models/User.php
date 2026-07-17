@@ -6,11 +6,19 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
+
+    protected static function booted(): void
+    {
+        // Sanctum's tokenable morph has no FK, so account deletion must clean
+        // bearer tokens explicitly instead of leaving orphaned credentials.
+        static::deleting(fn (User $user) => $user->revokeApiTokens());
+    }
 
     protected $fillable = [
         'name',
@@ -54,6 +62,22 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sharedEvents()
     {
         return $this->belongsToMany(Event::class)->withPivot('role');
+    }
+
+    public function devicePairings()
+    {
+        return $this->hasMany(DevicePairing::class);
+    }
+
+    public function pushTokens()
+    {
+        return $this->hasMany(PushToken::class);
+    }
+
+    /** User tokens are management credentials; revoke all in one place. */
+    public function revokeApiTokens(): void
+    {
+        $this->tokens()->delete();
     }
 
     /** All events the user has access to (own + shared) */

@@ -43,6 +43,22 @@ it('returns the English privacy policy when locale=en', function () use ($expect
     expect($verantwortlich['heading'])->toBe('Data Controller');
 });
 
+it('discloses optional Expo push processing without exposing note content', function () {
+    $response = $this->getJson('/api/legal/privacy?locale=de')->assertOk();
+
+    $collection = collect($response->json('sections'));
+    $data = $collection->firstWhere('id', 'datenerhebung');
+    $processors = $collection->firstWhere('id', 'drittanbieter');
+
+    expect($data['body_markdown'])
+        ->toContain('Optionale Push-Benachrichtigungen')
+        ->toContain('nur einen allgemeinen Hinweis')
+        ->toContain('Push kann in der App jederzeit deaktiviert werden');
+    expect($processors['body_markdown'])
+        ->toContain('650 Industries, Inc. (Expo)')
+        ->toContain('keine Notiztexte');
+});
+
 it('falls back to German for unknown locales', function () {
     $this->getJson('/api/legal/privacy?locale=fr')
         ->assertOk()
@@ -59,6 +75,9 @@ it('interpolates retention placeholders from config', function () {
     config()->set('retention.invitation_tokens_after_event_days', 42);
     config()->set('retention.declined_guests_after_event_days', 365);
     config()->set('retention.guest_erasure_grace_days', 14);
+    config()->set('sanctum.management_token_ttl_days', 60);
+    config()->set('retention.expired_device_pairings_hours', 12);
+    config()->set('retention.failed_jobs_days', 5);
 
     $response = $this->getJson('/api/legal/privacy?locale=de');
 
@@ -67,7 +86,10 @@ it('interpolates retention placeholders from config', function () {
     expect($speicherdauer['body_markdown'])
         ->toContain('42 Tage')
         ->and($speicherdauer['body_markdown'])->toContain('365 Tage')
-        ->and($speicherdauer['body_markdown'])->toContain('14 Tage');
+        ->and($speicherdauer['body_markdown'])->toContain('14 Tage')
+        ->and($speicherdauer['body_markdown'])->toContain('60 Tagen')
+        ->and($speicherdauer['body_markdown'])->toContain('12 Stunden')
+        ->and($speicherdauer['body_markdown'])->toContain('5 Tagen');
 });
 
 it('returns updated_at as an ISO-8601 UTC string', function () {

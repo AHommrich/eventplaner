@@ -78,9 +78,9 @@ took real effort to discover.
   the app background solely by slot produces unusable, visually heavy designs.
 
 - **2026-07-16** — (P0.5) Change the `events.user_id` FK from `ON DELETE
-  CASCADE` to `RESTRICT`, and split user-deletion behaviour by actor: an admin
-  deleting *another* user is refused while that user owns an event
-  (`Admin/UserController::destroy`); a user deleting *their own* account has
+CASCADE` to `RESTRICT`, and split user-deletion behaviour by actor: an admin
+  deleting _another_ user is refused while that user owns an event
+  (`Admin/UserController::destroy`); a user deleting _their own_ account has
   their owned events removed explicitly first
   (`Settings/ProfileController::destroy`).
   **Why:** the cascade let an admin (or, once co-ownership lands, any deletion)
@@ -150,10 +150,76 @@ took real effort to discover.
   deletes; `author_user_id`/`assignee_user_id` nullable + `nullOnDelete` because
   User deletion is a hard delete; `author_name` snapshot for readable history).
   Personal notes are private to the author; assigned todos go through
-  `EventPolicy::assignNote` (event_admin ∪ owner ∪ superadmin) and the assignee
-  must be an *active* event_manager (validated against `event_user` at write
+  `EventPolicy::assignNote` (event*admin ∪ owner ∪ superadmin) and the assignee
+  must be an \_active* event_manager (validated against `event_user` at write
   time). Assignee may read + toggle `is_done` only — any other field in the
   payload is a 403. Retention: `app:prune-notes` +
   `RETENTION_NOTES_DAYS` (default 30); soft-deleted notes stay in the Art. 15
   export (with `deleted_at`) until purged. Mobile API + push are P4/P5, not
   shipped here. See `docs/EVENT_MANAGER_ROLE_PLAN.md` §4, §10, §11 P2.
+
+- **2026-07-17** — (P4) Keep Guest and organizer bearer auth on Sanctum but
+  isolate the surfaces by tokenable type plus explicit abilities (`role:guest`
+  vs. `management:*`). Every event-scoped management request carries
+  `X-Event-ID` and is fully re-authorized (verified, approved, ability,
+  `roleOn()`, policy tier); role/access/approval changes revoke User tokens.
+  Pairing secrets are SHA-256-only, expire after 10 minutes, redeem atomically
+  once, and retain the minted token id for per-device revoke. **Why:** User and
+  Guest share one Sanctum guard and organizer tokens expose event-wide personal
+  data; long-lived login state must never bypass a later membership or account
+  change. `roleOn()` is mandatory because primary owners are often absent from
+  `event_user`. The paired session remains a bearer token, not cryptographic
+  device binding. See `docs/ARCHITECTURE.md` §2b.
+
+- **2026-07-17** — (P5) Use Expo Push Service for optional organizer task
+  notifications with a two-phase ticket/receipt lifecycle. Registration is a
+  user-scoped management endpoint; `enabled=false`, account deletion and Expo
+  `DeviceNotRegistered` responses delete the token. Payloads contain only
+  generic lock-screen copy plus technical event/note IDs — never note content,
+  guest data, event name or actor name. Assignment jobs re-check the current
+  assignee, platform approval and event-manager membership before sending.
+  Successful Expo ticket IDs are checked after 15 minutes, expire after Expo's
+  24-hour receipt window and are purged seven days after resolution. The
+  existing once-per-minute scheduler drains the low-volume DB queue, avoiding
+  an unsupervised extra process in the current container. **Why:** a token alone
+  is not proof of ongoing permission or event access, lock-screen content is a
+  privacy leak, and Expo's synchronous tickets do not prove downstream delivery.
+  Expo (USA), its SCC basis and Apple/Google relay chain were added to the
+  authoritative processor register and public DE/EN privacy text before code.
+  See `docs/ARCHITECTURE.md` §2c and `docs/EVENT_MANAGER_ROLE_PLAN.md` §5/§10.
+
+- **2026-07-17** — Expose only one-time QR pairing for native Organizer onboarding until password
+  and OAuth account login can ship together. The prominent password screen and any separate
+  Organizer entry are removed; the existing scanner recognizes the fixed token contracts (32-char
+  Guest invitation, 64-char alphanumeric management pairing) and opens the matching app area. The
+  rate-limited backend `POST /api/auth/login` contract remains available for future use. **Why:** a
+  password-only native path excludes OAuth-only eveplan accounts and creates an inconsistent
+  second-class login flow. Pairing already works for every approved web account, regardless of how
+  that account authenticated. Local contract detection also avoids sending a management secret in
+  a Guest-auth URL. A future direct-login slice must include native OAuth redirect/deep-link/session
+  exchange and password fallback as one coherent feature.
+
+- **2026-07-17** — (P4/P5 hardening) Treat the Sanctum management PAT as the root of one revocable
+  device context. Every password login and redeemed pairing creates a visible `device_pairings`
+  session row; that row and its single Expo destination both reference the PAT with
+  `cascadeOnDelete`. Management PATs expire after 90 days by default. Pairing hashes are cleared on
+  redemption, and mobile bearers cannot mint more pairing challenges. Expired PATs are excluded from
+  device inventory and push delivery even before the daily physical prune. Pairing creation remains on
+  the authenticated, CSRF-protected web settings surface without a password check because new
+  Google-OAuth users have an unknown random password and pairing is their only native login path.
+  Provider-neutral fresh re-auth needs a separate identity-linking slice. **Why:** device lock,
+  logout, expiry and access/role/account revocation must all remove push delivery atomically without
+  excluding OAuth-only organizers.
+
+- **2026-07-17** — (P5/P6 hardening) Make organizer push an explicit installation-level opt-in.
+  Expo token rotation replaces the one destination bound to the current PAT; Android messages name
+  the `organizer-tasks` channel. A successful logout relies on the PAT cascade. An offline logout
+  clears the interactive session but queues dedicated non-interactive bearer copies and retries
+  every server revocation on later app starts. **Why:** deleting the only local revocation credential while
+  offline orphaned a live server push token, while deleting the installation token/preference on
+  every logout made consent state unreliable across sessions.
+
+- **2026-07-17** — (P4 hardening) Serialize pairing replacement, per-PAT push upsert and the full
+  last-superadmin demotion/deletion checks with database row locks. Assigned entries are coerced to
+  `todo` on every create/update path. **Why:** UI validation and ordinary count-before-write checks
+  do not protect server invariants under stale clients or concurrent requests.
