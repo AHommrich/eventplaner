@@ -575,3 +575,15 @@ differently. **Rework it to reuse the guest presentation, do not keep a bespoke 
   `components/gallery/GalleryAlbumPicker.tsx`; restyle to match `app/(tabs)/drinks.tsx` tab treatment.
 - ⏳ **Detail viewer with swipe** — organizer still uses its own detail (setSelectedPhoto); reuse the
   guest swipe/zoom lightbox from `app/(tabs)/photos.tsx` (extract shared component). Bigger job.
+- ⏳ **Drop the card wrapper around the grid** — organizer wraps the grid in a green album card
+  (header "App Galerie / count"); guest renders the grid full-bleed. Remove the card container so the
+  organizer grid matches the guest layout (`app/organizer/photos.tsx` album section).
+- ⏳ **One shared detail view** — the organizer's bespoke delete-modal (screenshot) must be replaced by
+  the guest swipe/zoom lightbox; the delete action moves into that shared viewer. Single component.
+
+**Album-tab style CLARIFIED (André, screenshot 22:00):** use the **drink-game segmented toggle**
+look, not separate pills. That is a SINGLE rounded bar (light/secondary background) split into
+segments; the ACTIVE segment is filled maroon (cardButton) with light text, inactive segments are
+transparent with muted text — like the "Eintragen | Rangliste" control in `app/(tabs)/drinks.tsx`.
+Reuse/extract that segmented-control component for the album switcher in
+`components/gallery/GalleryAlbumPicker.tsx` instead of the current three bordered pills.
