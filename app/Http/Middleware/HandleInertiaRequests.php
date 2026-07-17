@@ -61,6 +61,10 @@ class HandleInertiaRequests extends Middleware
             'id' => $event->id,
             'name' => $event->name,
             'user_id' => $event->user_id,
+            // The user's effective tier on the active event: owner | event_admin |
+            // event_manager | superadmin. Drives cosmetic frontend gating; the
+            // server-side policy remains authoritative.
+            'my_role' => $user->roleOn($event),
             'drink_game_enabled' => (bool) $event->drink_game_enabled,
             'photo_game_enabled' => (bool) $event->photo_game_enabled,
         ];
@@ -73,7 +77,14 @@ class HandleInertiaRequests extends Middleware
             return [];
         }
 
-        return $user->accessibleEvents()->get(['id', 'name'])->toArray();
+        // user_id is needed for roleOn()'s primary-owner check.
+        return $user->accessibleEvents()->get(['id', 'name', 'user_id'])
+            ->map(fn (Event $event) => [
+                'id' => $event->id,
+                'name' => $event->name,
+                'my_role' => $user->roleOn($event),
+            ])
+            ->all();
     }
 
     private function resolveUserEventRequests(Request $request): array
@@ -116,9 +127,13 @@ class HandleInertiaRequests extends Middleware
         if ($isAdmin) {
             $photoReports = \App\Models\PhotoReport::where('status', 'open')->count();
         } elseif ($activeEventId) {
-            $photoReports = \App\Models\PhotoReport::where('status', 'open')
-                ->where('event_id', $activeEventId)
-                ->count();
+            // Photo reports are administer-level — managers don't see the badge.
+            $activeEvent = Event::find($activeEventId);
+            if ($activeEvent && $user->canAdminister($activeEvent)) {
+                $photoReports = \App\Models\PhotoReport::where('status', 'open')
+                    ->where('event_id', $activeEventId)
+                    ->count();
+            }
         }
 
         $eventRequests = $isAdmin

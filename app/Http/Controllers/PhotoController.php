@@ -101,9 +101,10 @@ class PhotoController extends Controller
             $albumId = $partyAlbum?->id;
         }
 
-        // Snapshot the uploader's role (P0.4). Pivot roles / roleOn() land in P1;
-        // until then use the primary-owner heuristic (owner vs. event_manager).
-        $uploaderRole = $request->user()->id === $event->user_id ? 'owner' : 'event_manager';
+        // Snapshot the uploader's real tier at upload time (P1). roleOn() covers
+        // superadmin precedence, co-owners and the event_admin tier — the badge
+        // reads this column verbatim rather than re-deriving it later.
+        $uploaderRole = $request->user()->roleOn($event);
 
         Photo::create([
             'event_id' => $event?->id,

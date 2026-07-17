@@ -4,6 +4,7 @@ namespace Tests\Feature\Settings;
 
 use App\Models\Event;
 use App\Models\Guest;
+use App\Models\Note;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -63,6 +64,28 @@ class DataExportTest extends TestCase
         $this->assertStringNotContainsString('remember_token', $body);
         $this->assertStringNotContainsString('bob@example.com', $body);
         $this->assertStringNotContainsString("Bob's Party", $body);
+    }
+
+    public function test_export_includes_notes_with_soft_deleted_marked(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::create([
+            'user_id' => $user->id,
+            'name' => 'Noted Wedding',
+            'slug' => 'noted-wedding',
+            'date' => now()->addMonth(),
+        ]);
+        Note::factory()->create(['event_id' => $event->id, 'author_user_id' => $user->id, 'title' => 'Live note']);
+        $trashed = Note::factory()->create(['event_id' => $event->id, 'author_user_id' => $user->id, 'title' => 'Trashed note']);
+        $trashed->delete();
+
+        $response = $this->actingAs($user)->get(route('settings.export-data'));
+        $payload = json_decode($response->streamedContent(), true);
+
+        $this->assertCount(2, $payload['notes']);
+        $trashedExport = collect($payload['notes'])->firstWhere('title', 'Trashed note');
+        $this->assertNotNull($trashedExport['deleted_at']);
+        $this->assertSame('author', $trashedExport['relation']);
     }
 
     public function test_export_filename_carries_user_id_and_date(): void

@@ -15,7 +15,8 @@
         "requestEvent": "Event beantragen",
         "photoGame": "Fotospiel",
         "appSection": "App",
-        "appDesign": "Design"
+        "appDesign": "Design",
+        "notes": "Notizen & ToDos"
     },
     "schedule": {
         "title": "Zeitplan",
@@ -274,7 +275,6 @@
         "drinkAdded": "Getränk hinzugefügt",
         "drinkDeleted": "Getränk gelöscht",
         "drinksSaved": "Getränke gespeichert",
-        "userAdded": "User zum Event hinzugefügt",
         "roleChanged": "Rolle auf \"{role}\" geändert",
         "userDeleted": "User gelöscht",
         "accessAdded": "User hinzugefügt",
@@ -621,25 +621,24 @@
         "emailPlaceholder": "Email-Adresse des Users",
         "currentAccess": "Aktueller Zugang",
         "owner": "Owner",
-        "coOrganizerInfo": "Mitveranstalter haben denselben Zugang wie du — sie können Gäste, Fotos und Einstellungen verwalten. Der Owner (du) kann nicht entfernt werden.",
+        "coOrganizerInfo": "Event-Admins können alle Einstellungen verwalten (Design, Zeitplan, Zugang). Event-Manager verwalten Gäste, Fotos und Getränke, aber keine Event-Einstellungen. Der Owner kann nicht entfernt werden.",
         "none": "Noch niemand anderes hat Zugang.",
         "removeTitle": "{name} entfernen?",
-        "removeDescription": "Der User verliert den Zugang zu diesem Event."
+        "removeDescription": "Der User verliert den Zugang zu diesem Event.",
+        "roleOwner": "Owner",
+        "roleAdmin": "Event-Admin",
+        "roleManager": "Event-Manager"
     },
     "admin": {
         "title": "User-Verwaltung",
-        "addToEvent": "User hinzufügen",
-        "emailPlaceholder": "Email-Adresse des Users",
-        "selectEvent": "Event auswählen …",
-        "selectEventLabel": "Event auswählen",
-        "selectEventHint": "Wähle ein Event um die Mitglieder zu sehen und zu verwalten.",
         "allUsers": "Alle User ({count})",
         "registered": "Registriert",
         "user": "User",
         "admin": "Admin",
         "deleteTitle": "{name} löschen?",
         "deleteDescription": "Der Account wird dauerhaft gelöscht und kann nicht wiederhergestellt werden.",
-        "allUsersLabel": "Alle User"
+        "allUsersLabel": "Alle User",
+        "accessMovedHint": "Event-Zugang und Rollen werden jetzt pro Event unter „Zugang verwalten\" gepflegt — wähle das Event oben im Umschalter und öffne dort die Zugangsseite."
     },
     "onboarding": {
         "title": "Willkommen!",
@@ -705,7 +704,13 @@
         "deleteWarningDesc": "Bitte mit Vorsicht vorgehen, dies kann nicht rückgängig gemacht werden.",
         "deleteAccountBtn": "Account löschen",
         "deleteConfirmTitle": "Account wirklich löschen?",
-        "deleteConfirmDesc": "Nach dem Löschen werden alle Daten dauerhaft entfernt. Bitte Passwort eingeben um zu bestätigen."
+        "deleteConfirmDesc": "Nach dem Löschen werden alle Daten dauerhaft entfernt. Bitte Passwort eingeben um zu bestätigen.",
+        "events": "Meine Events",
+        "eventsTitle": "Meine Events",
+        "eventsDesc": "Alle Events, auf die du Zugriff hast, mit deiner jeweiligen Rolle.",
+        "switchTo": "Wechseln",
+        "activeEvent": "Aktiv",
+        "noEvents": "Du hast noch keinen Zugriff auf ein Event."
     },
     "auth": {
         "loginTitle": "Anmelden",
@@ -759,7 +764,46 @@
         "forkReplaceDesc": "Alle Aufgaben in deinem eigenen Katalog werden durch die Aufgaben dieser Vorlage ersetzt. Das kann nicht rückgängig gemacht werden.",
         "oneCatalogHint": "Pro Event ist nur ein eigener Katalog möglich.",
         "oneCatalogExists": "Du hast bereits einen eigenen Katalog. Öffne ihn unten um Aufgaben zu bearbeiten.",
-        "tasks": "Aufgaben-Verwaltung",
+        "tasks": {
+            "general": {
+                "laughing": "Jemanden beim Lachen",
+                "dancing": "Jemanden beim Tanzen",
+                "talking": "Zwei Menschen im Gespräch",
+                "funnyGroup": "Ein lustiges Gruppenbild",
+                "hug": "Eine Umarmung",
+                "weirdPose": "Jemanden in ungewöhnlicher Pose",
+                "twoGenerations": "Zwei Generationen zusammen",
+                "drink": "Ein Getränk",
+                "mustHave": "Etwas das auf keiner Party fehlen darf",
+                "eating": "Jemanden beim Essen",
+                "buffet": "Das Buffet / die Snacks",
+                "decoration": "Die Deko im Überblick",
+                "reunited": "Zwei Menschen die sich lange nicht / noch nie gesehen haben",
+                "playing": "Jemanden beim Spielen",
+                "candid": "Jemanden der gerade nicht weiß dass er fotografiert wird"
+            },
+            "hochzeit": {
+                "firstDance": "Das Brautpaar beim ersten Tanz",
+                "tableNeighbor": "Selfie mit dem Tischnachbarn",
+                "cake": "Die Torte",
+                "rings": "Die Ringe",
+                "entireParty": "Die ganze Hochzeitsgesellschaft (wenn möglich)",
+                "somethingBlue": "Etwas Blaues auf der Hochzeit",
+                "eldersDancing": "Zwei ältere Gäste beim Tanzen",
+                "kiss": "Ein Kuss",
+                "flowerDeco": "Die Blumendeko"
+            },
+            "geburtstag": {
+                "birthdayCake": "Den Geburtstagskuchen",
+                "withChild": "Ein Foto mit dem Geburtstagskind",
+                "singing": "Jemanden beim Singen",
+                "bestWrapping": "Die schönste Geschenkverpackung",
+                "colorfulOutfit": "Das bunteste Outfit",
+                "oldestYoungest": "Den ältesten und den jüngsten Gast zusammen",
+                "groupPhoto": "Ein Gruppenphoto mit mindestens 5 Personen",
+                "presents": "Die Geschenke"
+            }
+        },
         "manageTasks": "Aufgaben verwalten",
         "submissions": "Einreichungen",
         "submissionDeleted": "Einreichung gelöscht",
@@ -805,47 +849,7 @@
         "editTask": "Bearbeiten",
         "originalText": "Original",
         "overrideSaved": "Aufgabe angepasst",
-        "overrideDeleted": "Aufgabe zurückgesetzt",
-        "tasks": {
-            "general": {
-                "laughing": "Jemanden beim Lachen",
-                "dancing": "Jemanden beim Tanzen",
-                "talking": "Zwei Menschen im Gespräch",
-                "funnyGroup": "Ein lustiges Gruppenbild",
-                "hug": "Eine Umarmung",
-                "weirdPose": "Jemanden in ungewöhnlicher Pose",
-                "twoGenerations": "Zwei Generationen zusammen",
-                "drink": "Ein Getränk",
-                "mustHave": "Etwas das auf keiner Party fehlen darf",
-                "eating": "Jemanden beim Essen",
-                "buffet": "Das Buffet / die Snacks",
-                "decoration": "Die Deko im Überblick",
-                "reunited": "Zwei Menschen die sich lange nicht / noch nie gesehen haben",
-                "playing": "Jemanden beim Spielen",
-                "candid": "Jemanden der gerade nicht weiß dass er fotografiert wird"
-            },
-            "hochzeit": {
-                "firstDance": "Das Brautpaar beim ersten Tanz",
-                "tableNeighbor": "Selfie mit dem Tischnachbarn",
-                "cake": "Die Torte",
-                "rings": "Die Ringe",
-                "entireParty": "Die ganze Hochzeitsgesellschaft (wenn möglich)",
-                "somethingBlue": "Etwas Blaues auf der Hochzeit",
-                "eldersDancing": "Zwei ältere Gäste beim Tanzen",
-                "kiss": "Ein Kuss",
-                "flowerDeco": "Die Blumendeko"
-            },
-            "geburtstag": {
-                "birthdayCake": "Den Geburtstagskuchen",
-                "withChild": "Ein Foto mit dem Geburtstagskind",
-                "singing": "Jemanden beim Singen",
-                "bestWrapping": "Die schönste Geschenkverpackung",
-                "colorfulOutfit": "Das bunteste Outfit",
-                "oldestYoungest": "Den ältesten und den jüngsten Gast zusammen",
-                "groupPhoto": "Ein Gruppenphoto mit mindestens 5 Personen",
-                "presents": "Die Geschenke"
-            }
-        }
+        "overrideDeleted": "Aufgabe zurückgesetzt"
     },
     "pending": {
         "title": "Account wird geprüft",
@@ -910,5 +914,27 @@
             "note": "Mit Google-Account · Keine Kreditkarte · Sofort loslegen",
             "footer": "© {year} eveplan · eveplan.de"
         }
+    },
+    "notes": {
+        "title": "Notizen & ToDos",
+        "addTitle": "Neu anlegen",
+        "info": "Persönliche Notizen und ToDos siehst nur du. Veranstalter und Event-Admins können ToDos an Event-Manager zuweisen — diese erscheinen bei der Person als „Vom Veranstalter für dich\".",
+        "typeTodo": "ToDo",
+        "typeNote": "Notiz",
+        "titlePlaceholder": "Titel",
+        "bodyPlaceholder": "Details (optional)",
+        "assignSelf": "Für mich",
+        "assignTo": "An {name}",
+        "created": "Notiz gespeichert",
+        "deleted": "Notiz gelöscht",
+        "hideDone": "Erledigte ausblenden",
+        "mine": "Meine Notizen & ToDos",
+        "team": "An Team zugewiesen",
+        "empty": "Noch nichts vorhanden.",
+        "teamEmpty": "Noch keine Aufgaben zugewiesen.",
+        "fromOrganizer": "Vom Veranstalter für dich",
+        "assignedTo": "Zugewiesen an {name}",
+        "deleteTitle": "Notiz löschen?",
+        "deleteDescription": "Diese Notiz wird entfernt."
     }
 }

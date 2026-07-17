@@ -36,4 +36,11 @@ return [
      * their guest/photo FKs and do not need a dedicated pruner.
      */
     'photo_reports_after_event_days' => (int) env('RETENTION_PHOTO_REPORTS_DAYS', 180),
+
+    /*
+     * Notes & todos (organizer task list). `app:prune-notes` hard-purges rows
+     * this many days after they were soft-deleted, and purges an event's whole
+     * note list this many days after the event date.
+     */
+    'notes_after_delete_days' => (int) env('RETENTION_NOTES_DAYS', 30),
 ];

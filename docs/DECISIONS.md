@@ -118,3 +118,42 @@ took real effort to discover.
   **Why:** `exists:groups,id` / `exists:food_specials,id` accepted a foreign
   event's row — a cross-event write hole route-gating does not catch. Depends
   on the P0.1 `event_id` column. See `docs/EVENT_MANAGER_ROLE_PLAN.md` §11 P0.3.
+
+- **2026-07-17** — (P1) Per-event authorization backbone. Added
+  `event_user.role` (`owner`|`event_admin`|`event_manager`, default
+  `event_manager`), the project's first policy (`EventPolicy`), a
+  `can_administer` middleware, and split `routes/web.php` into manage vs.
+  administer. Co-ownership = `events.user_id` (primary) ∪ pivot `owner`, all
+  owners equal. `EventAccessService` owns transactional writes + the last-owner
+  invariant (`lockForUpdate`). `changeAccess`/`removeMember` are the central,
+  server-side, target-aware checkpoint; frontend `my_role` gating is cosmetic.
+  Superadmin `before()` short-circuits only the coarse gates
+  (view/manage/administer/manageAccess), never the fine-grained grant/transfer/
+  delete abilities. **Why:** existing "co-organizer" pivot members were
+  undifferentiated full-access; managers must not touch deep settings, design,
+  schedule, access, guest deletion, projector config or photo-report
+  adjudication. **Rollout risk:** the `event_manager` backfill silently
+  downgrades today's full-access co-organizers — review production `event_user`
+  before deploy and promote spouses/partners to `owner`. See
+  `docs/EVENT_MANAGER_ROLE_PLAN.md` §2, §11 P1.
+
+- **2026-07-17** — (P1 §8.1) Split `/admin/users` into pure global user admin;
+  moved all per-event access + tiers to `/event/access`. Dropped
+  `UserController::addToEvent`/`removeFromEvent` + their routes and the
+  `event_access`/`events` Inertia payload. **Why:** the admin screen mixed a
+  platform concern (global role, delete) with an event concern (membership),
+  which blurred as the tier model landed. Superadmins now manage any event's
+  access via the event switcher → `/event/access`, which carries the full role
+  selector. See `docs/EVENT_MANAGER_ROLE_PLAN.md` §8.1.
+
+- **2026-07-17** — (P2) Notes & ToDos subsystem (web). New `notes` table (soft
+  deletes; `author_user_id`/`assignee_user_id` nullable + `nullOnDelete` because
+  User deletion is a hard delete; `author_name` snapshot for readable history).
+  Personal notes are private to the author; assigned todos go through
+  `EventPolicy::assignNote` (event_admin ∪ owner ∪ superadmin) and the assignee
+  must be an *active* event_manager (validated against `event_user` at write
+  time). Assignee may read + toggle `is_done` only — any other field in the
+  payload is a 403. Retention: `app:prune-notes` +
+  `RETENTION_NOTES_DAYS` (default 30); soft-deleted notes stay in the Art. 15
+  export (with `deleted_at`) until purged. Mobile API + push are P4/P5, not
+  shipped here. See `docs/EVENT_MANAGER_ROLE_PLAN.md` §4, §10, §11 P2.

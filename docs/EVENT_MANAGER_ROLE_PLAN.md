@@ -13,8 +13,58 @@ concept into a scoped **Event Manager** role, and adds a **Notes & ToDos** subsy
 **For a fresh agent (new session or another tool) picking up this work.** Your memory of earlier
 turns is gone — this section + `AGENTS.md` + the plan below are the whole context.
 
-**Where we are:** implementing **P0** (multi-tenancy cleanup) in the ordered commit checkpoints from
-§11. Each checkpoint = one green-CI commit, safe to push on its own.
+**Where we are:** **P0 complete + committed** (A–E, up to `9a23e4c`). **P1 (authorization backbone),
+the §8.1 `/admin/users` split, P2 (Notes & ToDos, web), and P3 (My Events overview + switcher role
+badges) are all implemented and CI-green in the working tree — NOT yet committed** (André commits
+after hours). Full suite **377 passed, 1 skipped**; pint/prettier/eslint/vue-tsc green.
+
+**P3 (My Events + role badges) — delivered this session:**
+- `resolveAccessibleEvents` now carries `my_role` per event (selects `user_id` for the roleOn check).
+- Reusable `RoleBadge.vue` (superadmin rendered as Owner — internal tier). New `/settings/events`
+  page (`pages/settings/Events.vue`) in the settings layout listing every accessible event with role
+  badge + switch action; nav item added to `settings/Layout.vue`. Role badge also shown in the
+  sidebar event-switcher dropdown. DE/EN locale keys. Test: `MyEventsTest`.
+
+**Next up:** P4 (management API + auth — the Codex-blocker-heavy phase), P5 (push), P6 (mobile app).
+
+**P2 (Notes & ToDos, web) — delivered this session:**
+- Migration `2026_07_17_160000_create_notes_table` (soft deletes; nullable `author_user_id`/
+  `assignee_user_id` + `nullOnDelete`; `author_name` snapshot; indices). `Note` model + `NoteFactory`;
+  `Event::notes()`; `RETENTION_NOTES_DAYS` config key.
+- `EventPolicy::assignNote` (event_admin ∪ owner ∪ superadmin). `NoteController` (index/store/update/
+  destroy) with cross-event guards, active-manager assignee validation, assignee = read + toggle
+  `is_done` only (any other field → 403), server-side type/transition validation. Routes under manage.
+- `pages/Notes/Index.vue` (My + Assigned-to-team lists, todo checkbox, hide-done filter) + sidebar nav
+  item + DE/EN locale keys.
+- `app:prune-notes` command + schedule (Sun 03:55); `UserDataExporter` extended (notes incl.
+  soft-deleted with `deleted_at` marker). Tests: `NoteTest` (9), `PruneNotesTest` (2),
+  `DataExportTest` (+1). Docs: CLAUDE.md data model, DECISIONS.md, ARCHITECTURE (pending §2a note).
+- **Not in P2 (later phases):** mobile management API (P4), Expo push + `NotifyAssignedNote` (P5).
+
+**P1 delivered (earlier this session):**
+
+- `event_user.role` migration (`2026_07_17_150000`, default `event_manager`); `User::roleOn()`/
+  `canManage()`/`canAdminister()`; `Event::owners()`/`isOwnedBy()`; `withPivot('role')`.
+- `app/Policies/EventPolicy.php` (first policy) + `can_administer` middleware + registration in
+  `AppServiceProvider`; base `Controller` now uses `AuthorizesRequests`.
+- `routes/web.php` split into manage vs. administer (per-route `can_administer` on projector config,
+  `groups/schedule-visibility`, `DELETE guests/{guest}`).
+- `EventAccessController` rewritten (roles, invite-with-role, `updateRole`, policy-gated remove) +
+  `App\Services\EventAccessService` (transactional last-owner invariant). New route `event.access.role`.
+- `RequestController`: photo-reports → administer (resolve/delete + `index` omits them for managers).
+- `HandleInertiaRequests`: shares `active_event.my_role`; photo-report badge gated to administer.
+- Frontend: `AppSidebar.vue` role gating; `Event/Access.vue` role selector + copy; locale role labels.
+- Tests: `EventPolicyTest` (7) + `EventRoleGatingTest` (18). Full suite **361 passed, 1 skipped**;
+  pint/prettier/eslint/vue-tsc green.
+
+**§8.1 `/admin/users` split — DONE this session:** `/admin/users` is now purely global user admin
+(role + delete); all per-event access + tiers moved to `/event/access`. Dropped `addToEvent`/
+`removeFromEvent` + routes + the `event_access`/`events` payload; unused admin locale keys removed;
+`UserAdminSplitTest` added. **Before prod deploy:** review production `event_user` — the
+`event_manager` backfill silently downgrades today's full-access co-organizers (promote
+spouses/partners to `owner`).
+
+**Historical P0 checkpoints (all done + committed):**
 
 - ✅ **Checkpoint A — P0.5 (user deletion / FK RESTRICT)** — DONE & COMMITTED (`cb1fe74`).
 - ✅ **Checkpoint B — P0.2 (`DrinkController::destroy` cross-event guard)** — DONE, CI green,

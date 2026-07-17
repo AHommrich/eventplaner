@@ -68,6 +68,7 @@ Coolify deployt automatisch nach Push. Migrations laufen automatisch.
 - **FoodSpecial** — event_id (nullable: null = globales read-only Seed-Template, für jedes Event sichtbar; non-null = event-lokaler Custom-Eintrag), name, translation_key. Delta-Modell wie `PhotoGameTaskCatalog`; Reads = Templates ∪ event-lokal, Writes immer `event_id = activeEvent()`, FK `cascadeOnDelete` (P0.1, seit 2026-07-17). Pivot `guest_food_special`. `GuestDrink` — Pivot-Tabelle
   - Das frühere **Category**-Modell (ex-Badge) wurde 2026-07-17 (P0.1) samt Tabelle/Controller/Route entfernt — war totes Feature ohne Read-Pfad seit `guests.category_id` gedroppt wurde.
 - **Drink** — event_id, name (Getränke-Katalog pro Event)
+- **Note** (P2) — event_id (cascade), author_user_id (nullable, `nullOnDelete`), author_name (Snapshot für lesbare Historie nach Account-Löschung), assignee_user_id (nullable, `nullOnDelete`), type (`note|todo`), title, body (nullable), is_done, done_at, `SoftDeletes`. `assignee_user_id = null` = persönliche Notiz (privat für den Autor); non-null = vom Owner/Event-Admin zugewiesenes ToDo für einen aktiven `event_manager`. Zuweisung gated durch `EventPolicy::assignNote` (event_admin ∪ owner ∪ superadmin); Assignee darf nur lesen + abhaken, nicht editieren/löschen. Retention: `app:prune-notes` (`config('retention.notes_after_delete_days')`, default 30) hard-purged soft-deleted Notes nach N Tagen + alle Notes eines Events N Tage nach Event-Datum. Art. 15-Export enthält soft-deleted Notes (mit `deleted_at`-Marker) bis zum Purge.
 - **EventPhotoGame** — event_id, status (`draft`|`active`|`ended`), catalog_id (FK → Typ-Katalog, nullable)
 - **PhotoGameTaskCatalog** — event_id (null = global), name, is_base (bool), event_type (nullable: `'hochzeit'`|`'geburtstag'`). Global-Kataloge: 1× is_base=true (Allgemein, immer aktiv), n× is_base=false mit event_type (optionaler Typ-Zusatz)
 - **PhotoGameTask** — catalog_id, description, is_active
@@ -78,13 +79,32 @@ Coolify deployt automatisch nach Push. Migrations laufen automatisch.
 
 ## Zugriffsrollen
 
-| Rolle | Zugriff |
+Globale Rolle (`users.role`): `admin` (Superadmin) oder null. Pro-Event-Tier steht im Pivot
+`event_user.role` (`owner` | `event_admin` | `event_manager`, default `event_manager`) — seit P1.
+
+| Tier | Zugriff |
 |---|---|
-| Superadmin (`role=admin`) | Alles, inkl. `/admin/users` (globale User-Verwaltung) |
-| Event-Owner | Hauptapp (dashboard, table, guests, photos, invitations) für eigene Events |
+| Superadmin (`role=admin`) | Alles, inkl. `/admin/users` (globale User-Verwaltung); `before()`-Kurzschluss auf allen Coarse-Gates |
+| Owner (`events.user_id` **oder** Pivot `owner`) | Volle Event-Kontrolle inkl. Deep-Settings, Design, Zeitplan, Zugang, Event-Löschung, Rollen-/Owner-Vergabe |
+| Event-Admin (Pivot `event_admin`) | Wie Owner, aber **kein** Grant/Revoke von `event_admin`/`owner`; darf nur `event_manager` verwalten |
+| Event-Manager (Pivot `event_manager`) | Manage-Level: Gäste (außer Volllöschung), Fotos, Getränke, Spiele-Toggles, Rücknahme-Anfragen — **keine** Deep-Settings/Design/Zeitplan/Zugang/Projektor-Config/Photo-Reports |
 | Ohne Event | Nur Onboarding-Seite |
 
-Middleware-Aliase: `admin` = EnsureUserIsAdmin, `has_event` = EnsureHasEventAccess
+- **Rollen-Auflösung:** `User::roleOn(Event)` (Präzedenz superadmin → owner → event_admin/event_manager),
+  `User::canManage()`/`canAdminister()`, `Event::owners()`/`isOwnedBy()`. Owner = Primär-Owner
+  (`events.user_id`) ∪ Pivot-`owner` (alle Owner sind gleichwertig; André = Primär, Tabea = Pivot-`owner`).
+- **`EventPolicy`** (`app/Policies/EventPolicy.php`, erste Policy im Projekt): `view`/`manage`/`administer`/
+  `manageAccess` (Coarse) + `changeAccess`/`removeMember`/`grantOwner`/`transferOwnership`/`deleteEvent`
+  (target-aware, kein Blanket-Superadmin-Grant). Der zentrale Access-Checkpoint `changeAccess` ist
+  server-autoritativ; Frontend-Gating ist kosmetisch. Last-Owner-Schutz + transaktionale Writes in
+  `App\Services\EventAccessService` (`lockForUpdate`).
+- **Frontend:** `active_event.my_role` (via `HandleInertiaRequests`) steuert Sidebar-/Seiten-Gating.
+- **§8.1-Split (erledigt):** `/admin/users` ist rein globale User-Verwaltung (Rolle/Löschung);
+  Event-Zugang + Tiers laufen komplett über `/event/access` (`EventAccessController`). Superadmins
+  erreichen jede Event-Zugangsseite über den Event-Switcher.
+
+Middleware-Aliase: `admin` = EnsureUserIsAdmin, `has_event` = EnsureHasEventAccess,
+`can_administer` = EnsureCanAdministerEvent (Session-Event → `administer`-Gate für Routen ohne `{event}`-Binding)
 
 ---
 

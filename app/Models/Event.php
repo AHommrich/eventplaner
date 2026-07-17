@@ -63,7 +63,37 @@ class Event extends Model
 
     public function users()
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsToMany(User::class)->withPivot('role');
+    }
+
+    /**
+     * All owners of the event: the primary owner (events.user_id) plus every
+     * pivot member with role 'owner'. All owners are equal in capability.
+     *
+     * @return \Illuminate\Support\Collection<int, User>
+     */
+    public function owners()
+    {
+        $owners = User::where('id', $this->user_id)
+            ->orWhereHas('sharedEvents', function ($q) {
+                $q->where('events.id', $this->id)->where('event_user.role', 'owner');
+            })
+            ->get();
+
+        return $owners;
+    }
+
+    /** True when the user is the primary owner or a pivot 'owner' co-owner. */
+    public function isOwnedBy(User $user): bool
+    {
+        if ($this->user_id === $user->id) {
+            return true;
+        }
+
+        return $this->users()
+            ->where('users.id', $user->id)
+            ->where('event_user.role', 'owner')
+            ->exists();
     }
 
     public function groups()
@@ -104,5 +134,10 @@ class Event extends Model
     public function scheduleItems()
     {
         return $this->hasMany(ScheduleItem::class)->orderBy('sort_order');
+    }
+
+    public function notes()
+    {
+        return $this->hasMany(Note::class);
     }
 }

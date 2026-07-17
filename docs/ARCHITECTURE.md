@@ -67,10 +67,38 @@ Two auth models coexist:
 |---|---|---|
 | `admin` | `App\Http\Middleware\EnsureUserIsAdmin` | Protects `/admin/*` (user management) |
 | `has_event` | `App\Http\Middleware\EnsureHasEventAccess` | Protects the main app — user needs access to at least one event |
+| `can_administer` | `App\Http\Middleware\EnsureCanAdministerEvent` | Session-event `administer` gate for routes without an `{event}` binding |
 | `auth:sanctum` + `EnsureGuestHasAppAccess` | `app/Http/Middleware/EnsureGuestHasAppAccess.php` | API routes that require `app_access=true` on the guest |
 | `auth:sanctum` + `EnsureGuestHasDrinksAccess` | `app/Http/Middleware/EnsureGuestHasDrinksAccess.php` | Additional gate for drink tracking |
 
 The QR-login flow is two-step for families — details in [`app/Http/Controllers/Api/QrAuthController.php`](../app/Http/Controllers/Api/QrAuthController.php).
+
+### 2a. Per-event tiers (`EventPolicy`)
+
+Beyond the global `users.role`, each event has a **tier** stored in the `event_user`
+pivot (`role`: `owner` | `event_admin` | `event_manager`, default `event_manager`).
+Ownership is the primary owner (`events.user_id`) **plus** any pivot `owner` row — all
+owners are equal ([`Event::owners()`](../app/Models/Event.php) / `isOwnedBy()`).
+
+- [`User::roleOn(Event)`](../app/Models/User.php) resolves the effective tier
+  (precedence: superadmin → owner → event_admin/event_manager), with `canManage()` /
+  `canAdminister()` wrappers.
+- [`EventPolicy`](../app/Policies/EventPolicy.php) is the project's first policy. Coarse
+  abilities `view` / `manage` / `administer` / `manageAccess`; fine-grained,
+  target-aware `changeAccess` / `removeMember` / `grantOwner` / `transferOwnership` /
+  `deleteEvent`. A `before()` hook short-circuits **only** the coarse abilities for
+  superadmins — the fine-grained ones run their own checks so the global admin tier is
+  never handed out through an access change.
+- **Manage** (all tiers): guests, photos, drinks, games, revocation requests.
+  **Administer** (event_admin ∪ owner): deep settings, design, schedule, event access,
+  guest deletion, projector config, photo-report adjudication. `routes/web.php` splits
+  these; the sprinkled administer routes (projector, schedule-visibility, guest delete)
+  are gated per-route with `can_administer`.
+- Membership writes go through [`EventAccessService`](../app/Services/EventAccessService.php),
+  which enforces the **last-owner invariant** transactionally (`lockForUpdate`), so
+  concurrent demote/remove can't race an event down to zero owners.
+- Frontend gating uses the shared `active_event.my_role` prop — cosmetic only; the
+  policy + service are authoritative.
 
 ---
 
