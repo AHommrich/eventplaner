@@ -15,6 +15,7 @@ erDiagram
     User ||--o{ Event : "owner"
     User ||--o{ EventAccess : "co-organizer"
     User ||--o{ DevicePairing : "management devices"
+    Event ||--o{ DevicePairing : "bound organizer sessions"
     Event ||--o{ EventAccess : ""
 
     Event ||--o{ Guest : ""
@@ -59,7 +60,7 @@ Two auth models coexist:
 
 | Actor                             | Auth mechanism                                                     | Storage                                                            |
 | --------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------ |
-| User (owner / event tier / admin) | Web session; management bearer via password or one-time pairing QR | `App\Models\User` is `HasApiTokens`; bearer ability `management:*` |
+| User (owner / event tier / admin) | Web session; event-bound management bearer via one-time pairing QR | `App\Models\User` is `HasApiTokens`; bearer ability `management:event:{id}` |
 | Guest                             | Sanctum bearer token via guest QR login                            | `App\Models\Guest` is `HasApiTokens`; bearer ability `role:guest`  |
 
 **Middleware aliases** are registered in `bootstrap/app.php`:
@@ -69,8 +70,8 @@ Two auth models coexist:
 | `admin`                                       | `App\Http\Middleware\EnsureUserIsAdmin`              | Protects `/admin/*` (user management)                                                 |
 | `has_event`                                   | `App\Http\Middleware\EnsureHasEventAccess`           | Protects the main app — user needs access to at least one event                       |
 | `can_administer`                              | `App\Http\Middleware\EnsureCanAdministerEvent`       | Session-event `administer` gate for routes without an `{event}` binding               |
-| `management_user`                             | `App\Http\Middleware\EnsureManagementUser`           | User actor + `management:*` + verified/approved on user-scoped management routes      |
-| `management_event`                            | `App\Http\Middleware\ResolveManagementEvent`         | Resolves `X-Event-ID` and rechecks account, ability, role and policy tier per request |
+| `management_user`                             | `App\Http\Middleware\EnsureManagementUser`           | User actor + PAT-bound pairing/event ability + verified/approved/current membership  |
+| `management_event`                            | `App\Http\Middleware\ResolveManagementEvent`         | Matches `X-Event-ID` to the bound event and rechecks role/policy tier per request     |
 | `auth:sanctum` + `EnsureGuestHasAppAccess`    | `app/Http/Middleware/EnsureGuestHasAppAccess.php`    | API routes that require `app_access=true` on the guest                                |
 | `auth:sanctum` + `EnsureGuestHasDrinksAccess` | `app/Http/Middleware/EnsureGuestHasDrinksAccess.php` | Additional gate for drink tracking                                                    |
 
@@ -110,43 +111,54 @@ endpoint is under `/api/management/*`, and both surfaces validate the Sanctum to
 class **and** its ability. A User token cannot call Guest routes; a Guest token cannot
 call management routes.
 
-Password login (`POST /api/auth/login`) requires verified email + platform approval and
-is rate-limited, but the native client intentionally does not expose a password-only login
-until OAuth account login can ship with it. All approved users, including OAuth-only users,
-bootstrap a phone from the authenticated, CSRF-protected `/settings/devices` web surface: the web app creates a 64-character secret, stores only
-its SHA-256 hash in `device_pairings`, and renders the plaintext once as a QR.
+Organizer login is QR-only; there is no dormant password-token endpoint. All approved users,
+including OAuth-only users, bootstrap their own phone from the authenticated, CSRF-protected
+`/event/access` page for the currently selected event. Every active member can pair and revoke only
+their own devices; owners and event admins additionally receive the event-wide inventory and may
+revoke any device in that event. The removed `/settings/devices` user setting has no compatibility
+route. The web app creates a 64-character secret,
+stores only its SHA-256 hash plus `user_id` and `event_id` in `device_pairings`, and renders the
+plaintext once as a QR. A request cannot choose another target user.
 The native scanner distinguishes that fixed 64-character alphanumeric contract from the
 32-character Guest invitation contract before selecting the auth endpoint; no separate mode input
 is shown and a management secret is never probed against the Guest URL.
 `POST /api/auth/pair` locks that row and, in one DB transaction, checks the 10-minute TTL, marks it
-redeemed, creates exactly one 90-day (configurable) `management:*` token, clears the pairing hash
-and stores its `personal_access_token_id`. Password login creates the same visible device/session
-record. Both the session row and its optional push token cascade from that PAT. Logout or selective
+redeemed, rechecks current event membership and creates exactly one 90-day (configurable)
+`management:event:{id}` token, clears the pairing hash and stores its `personal_access_token_id`.
+Both the session row and its optional push token cascade from that PAT. Logout or selective
 revocation deletes the whole context immediately; expiry immediately removes API/push eligibility,
 and the daily Sanctum prune then cascade-deletes the stored context. It is an expiring bearer session in secure mobile
 storage, **not** cryptographic device binding.
 
 For event-scoped requests, [`ResolveManagementEvent`](../app/Http/Middleware/ResolveManagementEvent.php)
 requires `X-Event-ID` even on reads and repeats all authorization on every request:
-User type, verified email, approval, ability, current `roleOn($event)` and the route's
+User type, PAT→pairing, verified email, approval, exact event ability, current `roleOn($event)` and the route's
 `manage`/`administer` policy tier. It intentionally uses `roleOn()` rather than querying
 `event_user` directly because the primary owner lives in `events.user_id`. Only
-`/management/me` and `/management/me/events` omit
-the header. Event removal/role change, platform deactivation and account deletion revoke
+`/management/me`, `/management/me/events` and push registration omit the header but still derive
+exactly one event from the current PAT's pairing. Event removal/role change, platform deactivation and account deletion revoke
 User tokens immediately; the middleware remains the defense-in-depth backstop.
 
 Notes reuse the existing web `NoteController`, so personal-note privacy, assign-tier
 rules and assignee-only completion cannot drift between transports. Photo management has
-a separate controller and may delete across all three galleries; every batch target is
-validated against the resolved event before any deletion, and `PhotoObserver` removes the
-object-storage blob.
+a separate controller and may view/delete across all three galleries; generic uploads are
+limited to the resolved event's `app_gallery` and `presentation` albums. `photo_game`
+uploads remain assignment-aware. Every batch target is validated against the resolved
+event before any deletion, and `PhotoObserver` removes the object-storage blob. The
+dedicated management schedule endpoint returns the bound event's complete timetable for
+read-only display; no native schedule mutation route exists.
+
+Guest event-info and the management bootstrap both obtain their theme block from
+[`EventThemePresenter`](../app/Services/EventThemePresenter.php). Palette, semantic roles, cover
+overlay, font and design preset therefore cannot drift between the two actors.
 
 ### 2c. Organizer push notifications (P5)
 
 Organizer push is an optional, User-authenticated extension of the management API. The
 mobile client registers an Expo token only after explicit opt-in and OS permission and may remove it
 again via the same `/api/management/push/register` contract. One Expo token is bound to one current
-management PAT; token rotation replaces that row instead of accumulating duplicate destinations.
+management PAT and its event; assignment delivery filters device sessions by the note's event.
+Token rotation replaces that row instead of accumulating duplicate destinations.
 Expo is a US sub-processor; the current
 processing chain and SCC basis are documented in the authoritative
 [`sub-processors.md`](legal/sub-processors.md) register and the public DE/EN privacy text.
@@ -166,7 +178,9 @@ required for the current single-container deployment.
 
 ## 3. Active event (session pattern)
 
-A web user may have access to multiple events. The web UI keeps the active choice in the session; bearer management clients instead send `X-Event-ID` on every event-scoped request (see §2b).
+A web user may have access to multiple events. The web UI keeps the active choice in the session;
+each bearer management device is pinned to one of those events and echoes it through `X-Event-ID`
+on every event-scoped request (see §2b).
 
 - The helper [`Controller::activeEvent()`](../app/Http/Controllers/Controller.php) reads `session('active_event_id')` and verifies the event is still accessible. Fallback is the first accessible event.
 - [`HandleInertiaRequests::share()`](../app/Http/Middleware/HandleInertiaRequests.php) shares `active_event` and `accessible_events` globally with every Inertia page.
@@ -238,7 +252,9 @@ Every event has a fully configurable theme that feeds both the web app and the R
 
 **Cover overlay** — `color_home_text`, `color_home_shadow` and `home_shadow_opacity` are optional and only relevant when a cover image is set.
 
-**Runtime resolution** — the API returns ready-made hex values so clients don't have to resolve themselves: [`app/Http/Controllers/Api/EventInfoController.php`](../app/Http/Controllers/Api/EventInfoController.php) resolves the nine role keys against the palette and emits `color_screen_bg`, `color_card`, … prepared.
+**Runtime resolution** — [`EventThemePresenter`](../app/Services/EventThemePresenter.php) returns
+ready-made hex values so clients don't have to resolve themselves. Guest event-info and Organizer
+bootstrap consume the same presenter and emit identical `color_screen_bg`, `color_card`, … fields.
 
 ---
 

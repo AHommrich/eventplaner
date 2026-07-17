@@ -223,3 +223,59 @@ CASCADE` to `RESTRICT`, and split user-deletion behaviour by actor: an admin
   last-superadmin demotion/deletion checks with database row locks. Assigned entries are coerced to
   `todo` on every create/update path. **Why:** UI validation and ordinary count-before-write checks
   do not protect server invariants under stale clients or concurrent requests.
+
+- **2026-07-17** — (P6 UX) Keep Guest and Organizer in one native app with one root event-theme
+  contract and one shared tab shell. Guest and Organizer use different authenticated data adapters and
+  tab manifests, but reuse the same palette roles, design preset, typography, cards, buttons and tab
+  chrome. All organizer roles get Übersicht, Ablauf, Fotos, Aufgaben and Einstellungen; role
+  differences are actions inside a screen and remain server-authoritative. **Why:** event-bound
+  authorization must not fork the product into a second app or let styling drift when the web event
+  design changes.
+
+- **2026-07-17** — (P4/P6 event-bound Organizer) Make QR pairing opaque, one-use, self-service and
+  bound to the authenticated member plus one selected event; mint only `management:event:{id}` PATs
+  and revalidate that event on every management route. An administrator can inventory/revoke event
+  devices but cannot mint a bearer that acts as another user. Revoke legacy unbound management
+  sessions during rollout and remove password login instead of leaving a dormant user-scoped path.
+  Generic Organizer uploads may target app gallery or presentation; photo-game uploads require an
+  assignment-aware flow. **Why:** a one-event UI is not a security boundary by itself, delegated token
+  minting would corrupt actor attribution, and bypassing the photo-game assignment model would create
+  photos with ambiguous task state.
+
+- **2026-07-17** — (P6 Checkpoint 5 implementation) Resolve every management request from the current
+  PAT's required `device_pairings.event_id` and exact `management:event:{id}` ability. Deployment
+  revokes all legacy User PATs rather than guessing an event; `/me/events` returns one event, and
+  assignment pushes filter device sessions by the note's event. Guest and Organizer theme payloads
+  now share `EventThemePresenter`, while the native root provider selects the authenticated source
+  and clears it on logout. **Why:** hiding an event switcher is not authorization, cross-event pushes
+  would still leak event activity, and duplicated theme serializers would inevitably drift.
+
+- **2026-07-17** — (Checkpoint 6 backend) Add `POST /api/management/photos`
+  (upload) and `GET /api/management/schedule` (read-only) under the
+  event-bound `management_event:manage` group. Generic upload accepts only
+  `app_gallery` / `presentation` album targets that belong to the resolved
+  event; `photo_game` is rejected (422) because a game photo without a
+  `PhotoGameAssignment` would be an orphan. Upload reuses `PhotoSanitizer`
+  (EXIF strip), snapshots `uploader_role` via `roleOn()`, and deletes the
+  stored object if the DB write fails. The schedule endpoint returns the
+  event's **full** station list (no guest group-visibility filtering) and has
+  **no** mutation route — schedule editing stays web-only. See
+  `docs/EVENT_MANAGER_HARDENING_PLAN.md` §6.3 / §6.4.
+
+- **2026-07-17** — (Checkpoint 6 app) Render Guest and Organizer route groups through one
+  event-themed tab shell and keep the five-tab Organizer manifest identical for owner,
+  event-admin and manager. Share schedule, generic settings and gallery presentation/picker
+  primitives while retaining separate Guest and management API adapters. Organizer may browse
+  all albums but generic upload is offered only for `app_gallery` and `presentation`; Guest keeps
+  an album-shaped gallery model while exposing only `app_gallery`. **Why:** role differences are
+  capabilities inside one product, not a reason to fork navigation or styling, and sharing visual
+  primitives must never broaden an actor's server authorization.
+
+- **2026-07-17** — (Checkpoint 7 web) Move Organizer device bootstrap and inventory from the
+  user-level `/settings/devices` area into the selected event's `/event/access` page. Every active
+  member may create a pairing only for themselves and revoke their own event-bound sessions;
+  `manageAccess` users additionally see identities across the event and may revoke those sessions.
+  Remove the old settings route instead of keeping two competing entry points, and regroup the
+  sidebar so event tools live under Event while Platform contains only global user management.
+  **Why:** Organizer login assigns one device to one event, so its lifecycle belongs to that event;
+  the server-side ownership and active-event checks remain the security boundary.

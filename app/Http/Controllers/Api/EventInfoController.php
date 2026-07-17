@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ScheduleItem;
-use App\Services\ColorRoleResolver;
+use App\Services\EventThemePresenter;
 use App\Services\ScheduleVisibilityService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -18,13 +18,13 @@ use Illuminate\Http\Request;
  *    (DE order differs from international). Legacy fallback to
  *    `venue_address` (free text).
  *  - Colors: palette unchanged + all 10 roles already resolved to hex
- *    (see {@see ColorRoleResolver}) so clients don't need to map anything.
+ *    (see {@see EventThemePresenter}) so clients don't need to map anything.
  *  - Date fields as ISO-8601.
  */
 class EventInfoController extends Controller
 {
     public function __construct(
-        private readonly ColorRoleResolver $colors,
+        private readonly EventThemePresenter $themes,
         private readonly ScheduleVisibilityService $schedule,
     ) {}
 
@@ -38,8 +38,6 @@ class EventInfoController extends Controller
         $event = $guest->event;
 
         abort_if(! $event, 404, 'Kein Event gefunden.');
-
-        $colors = $this->colors->resolve($event);
 
         $stations = $this->schedule->visibleStations($event, $guest->group);
 
@@ -72,27 +70,7 @@ class EventInfoController extends Controller
                 'lat' => $s->location_lat,
                 'lng' => $s->location_lng,
             ])->values(),
-            // palette
-            'color_primary' => $colors['palette']['primary'],
-            'color_secondary' => $colors['palette']['secondary'],
-            'color_tertiary' => $colors['palette']['tertiary'],
-            // resolved roles
-            'color_screen_bg' => $colors['roles']['role_screen_bg'],
-            'color_card' => $colors['roles']['role_card_bg'],
-            'color_card_text' => $colors['roles']['role_card_text'],
-            'color_card_button' => $colors['roles']['role_card_button'],
-            'color_card_button_text' => $colors['roles']['role_card_button_text'],
-            'color_tab_tint' => $colors['roles']['role_tab_tint'],
-            'color_border' => $colors['roles']['role_border'],
-            'color_fab' => $colors['roles']['role_fab'],
-            'color_fab_icon' => $colors['roles']['role_fab_icon'],
-            'color_nav_bg' => $colors['roles']['role_nav_bg'],
-            // cover overlay
-            'color_home_text' => $colors['cover']['home_text'],
-            'color_home_shadow' => $colors['cover']['home_shadow'],
-            'home_shadow_opacity' => $colors['cover']['home_shadow_opacity'],
-            'font_heading' => $event->font_heading,
-            'design_preset' => $event->design_preset ?? 'classic',
+            ...$this->themes->present($event),
             'venue_display_mode' => $event->venue_display_mode ?? 'both',
             'drink_game_enabled' => (bool) $event->drink_game_enabled,
             'drink_game_end_time' => $event->drink_game_end_time ? Carbon::parse($event->drink_game_end_time)->toIso8601String() : null,

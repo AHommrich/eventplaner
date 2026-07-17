@@ -104,8 +104,10 @@ class DataExportTest extends TestCase
     public function test_export_includes_device_pairing_metadata_without_secrets(): void
     {
         $user = User::factory()->create();
+        $event = Event::factory()->for($user, 'owner')->create();
         DevicePairing::create([
             'user_id' => $user->id,
+            'event_id' => $event->id,
             'token_hash' => hash('sha256', 'never-export-this'),
             'device_label' => 'My phone',
             'expires_at' => now()->addMinutes(10),
@@ -116,6 +118,7 @@ class DataExportTest extends TestCase
         $encoded = json_encode($payload);
 
         $this->assertSame('My phone', $payload['device_pairings'][0]['device_label']);
+        $this->assertSame($event->id, $payload['device_pairings'][0]['event_id']);
         $this->assertStringNotContainsString('never-export-this', $encoded);
         $this->assertStringNotContainsString(hash('sha256', 'never-export-this'), $encoded);
     }

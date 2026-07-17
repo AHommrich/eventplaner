@@ -25,6 +25,7 @@ class ExpoPushService
             ->whereHas('accessToken', fn ($query) => $query->where(
                 fn ($expiry) => $expiry->whereNull('expires_at')->orWhere('expires_at', '>', now())
             ))
+            ->whereHas('devicePairing', fn ($query) => $query->where('event_id', $note->event_id))
             ->orderBy('id')
             ->chunkById(100, function ($tokens) use ($note, &$sent) {
                 $messages = $tokens->map(fn (PushToken $token) => [

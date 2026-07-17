@@ -50,11 +50,13 @@ class UserDataExporter
                 ->get()
                 ->map(fn (Note $n) => $this->serializeNote($n, $user))
                 ->all(),
-            // Pairing secrets and Sanctum bearer tokens are deliberately omitted.
+            // Pairing secrets and Sanctum bearer tokens are deliberately omitted;
+            // the event binding is ordinary session metadata and remains visible.
             'device_pairings' => $user->devicePairings()
                 ->get()
                 ->map(fn ($pairing) => [
                     'id' => $pairing->id,
+                    'event_id' => $pairing->event_id,
                     'device_label' => $pairing->device_label,
                     'expires_at' => optional($pairing->expires_at)->toIso8601String(),
                     'redeemed_at' => optional($pairing->redeemed_at)->toIso8601String(),

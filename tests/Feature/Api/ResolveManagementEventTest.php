@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\ResolveManagementEvent;
+use App\Models\DevicePairing;
 use App\Models\Event;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -9,7 +10,7 @@ function runManagementEventMiddleware(
     ?User $user,
     ?Event $event,
     string $tier = 'manage',
-    array $abilities = ['management:*'],
+    ?array $abilities = null,
 ) {
     $request = Request::create('/api/management/testing', 'GET');
 
@@ -18,7 +19,17 @@ function runManagementEventMiddleware(
     }
 
     if ($user) {
+        $abilities ??= $event ? ['management:event:'.$event->id] : ['management:event:0'];
         $token = $user->createToken('management-test', $abilities)->accessToken;
+        if ($event) {
+            DevicePairing::create([
+                'user_id' => $user->id,
+                'event_id' => $event->id,
+                'expires_at' => now()->addDays(90),
+                'redeemed_at' => now(),
+                'personal_access_token_id' => $token->id,
+            ]);
+        }
         $user->withAccessToken($token);
         $request->setUserResolver(fn () => $user);
     }
@@ -85,4 +96,29 @@ it('enforces the requested event policy tier', function () {
 
     expect(runManagementEventMiddleware($manager, $event, 'administer')->getStatusCode())->toBe(403)
         ->and(runManagementEventMiddleware($eventAdmin, $event, 'administer')->getStatusCode())->toBe(200);
+});
+
+it('rejects a valid bound token when the event header names another event', function () {
+    $owner = User::factory()->create(['is_approved' => true]);
+    $bound = Event::factory()->for($owner, 'owner')->create();
+    $foreign = Event::factory()->for($owner, 'owner')->create();
+    $request = Request::create('/api/management/testing', 'GET');
+    $request->headers->set('X-Event-ID', (string) $foreign->id);
+    $token = $owner->createToken('management-test', ['management:event:'.$bound->id])->accessToken;
+    DevicePairing::create([
+        'user_id' => $owner->id,
+        'event_id' => $bound->id,
+        'expires_at' => now()->addDays(90),
+        'redeemed_at' => now(),
+        'personal_access_token_id' => $token->id,
+    ]);
+    $owner->withAccessToken($token);
+    $request->setUserResolver(fn () => $owner);
+
+    $response = app(ResolveManagementEvent::class)->handle(
+        $request,
+        fn () => response()->noContent(),
+    );
+
+    expect($response->getStatusCode())->toBe(403);
 });

@@ -31,6 +31,11 @@ class PushToken extends Model
         return $this->belongsTo(\Laravel\Sanctum\PersonalAccessToken::class, 'personal_access_token_id');
     }
 
+    public function devicePairing()
+    {
+        return $this->hasOne(DevicePairing::class, 'personal_access_token_id', 'personal_access_token_id');
+    }
+
     public function tickets()
     {
         return $this->hasMany(PushTicket::class);

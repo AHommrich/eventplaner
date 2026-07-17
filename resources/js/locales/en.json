@@ -1,6 +1,7 @@
 {
     "nav": {
         "platform": "Platform",
+        "eventSection": "Event",
         "forms": "Overview",
         "guests": "Guests",
         "drinks": "Drinks",
@@ -628,7 +629,27 @@
         "removeDescription": "The user will lose access to this event.",
         "roleOwner": "Owner",
         "roleAdmin": "Event Admin",
-        "roleManager": "Event Manager"
+        "roleManager": "Event Manager",
+        "deviceLoginTitle": "Connect an app device",
+        "deviceLoginDescription": "Create a short-lived QR code for this event and scan it in the eveplan app.",
+        "deviceLabel": "Device name",
+        "deviceLabelPlaceholder": "e.g. My iPhone",
+        "generatePairing": "Create pairing QR",
+        "pairingQrAlt": "QR code for connecting the Organizer app",
+        "pairingHint": "Open the QR scanner in the app. This code can be used only once.",
+        "pairingExpires": "Valid until {time}.",
+        "myDevices": "My devices for this event",
+        "eventDevices": "All devices for this event",
+        "unknownDevice": "Unknown device",
+        "noPairedDevices": "No connected devices yet.",
+        "lastUsedAt": "Last used: {date}",
+        "expiresAt": "Expires: {date}",
+        "active": "Active",
+        "expired": "Expired",
+        "revokeDeviceTitle": "Revoke device access?",
+        "revokeDeviceDescription": "The device will be signed out of the Organizer app immediately.",
+        "revokeDevice": "Revoke access",
+        "deviceRevoked": "Device access revoked."
     },
     "admin": {
         "title": "User Management",
