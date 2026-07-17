@@ -41,8 +41,11 @@ Route::get('/auth/qr/{token}', [QrAuthController::class, 'login']);
 // Family picker: guest selects themselves, token is only now issued
 Route::post('/auth/qr/{token}/select', [QrAuthController::class, 'select']);
 
+// Higher per-IP limit than a typical auth route: several organizer devices are
+// paired from the same venue WLAN (same public IP) in quick succession. The
+// 64-char one-time secret is the real protection; this only blunts abuse.
 Route::post('/auth/pair', [DevicePairingController::class, 'redeem'])
-    ->middleware('throttle:6,1');
+    ->middleware('throttle:20,1');
 
 // Logout: deletes the current bearer token server-side
 // Requires: Authorization: Bearer {token} in the header — no body

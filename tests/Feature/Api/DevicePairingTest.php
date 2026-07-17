@@ -182,7 +182,7 @@ it('does not expose the removed password login endpoint', function () {
 it('rate limits pairing redemption attempts', function () {
     $this->withServerVariables(['REMOTE_ADDR' => '192.0.2.77']);
 
-    for ($attempt = 1; $attempt <= 6; $attempt++) {
+    for ($attempt = 1; $attempt <= 20; $attempt++) {
         $this->postJson('/api/auth/pair', [
             'token' => str_pad((string) $attempt, 64, 'x'),
             'device_name' => 'Unknown',

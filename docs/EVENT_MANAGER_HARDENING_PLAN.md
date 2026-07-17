@@ -545,3 +545,33 @@ not re-touched.
 - **⚠️ Timing — DECIDED (André): option (2).** Codex ships the current note|todo model as-is for now;
   **F3 is a clean rework afterwards**, not built speculatively mid-flight. Sequence F3 after
   Checkpoints 5–7 land.
+
+---
+
+## Checkpoint 6.3 REWORK — organizer gallery must reuse guest gallery UI (André, 2026-07-17, screenshots)
+
+First build of the organizer photo tab (6.3) diverged from the guest gallery and looks/behaves
+differently. **Rework it to reuse the guest presentation, do not keep a bespoke gallery.**
+
+- **Grid, not a card list.** The organizer album view must render the **same multi-column photo grid**
+  the guest gallery uses (`app/(tabs)/photos.tsx` grid), not the current single-column large-card list.
+  Extract the guest grid into a shared primitive and use it for both.
+- **Detail viewer = the guest one, with swipe.** Reuse the guest photo detail/lightbox component
+  (swipe-to-dismiss + swipe between photos, haptics). Do **not** ship a separate organizer detail view.
+- **Folder tabs styled like the drink-game tabs.** The album switcher (Präsentation / App Galerie /
+  Fotospiel) should adopt the **drink-game tab look** (light/pill background + that button styling),
+  not the current maroon segmented buttons. Match `app/(tabs)/drinks.tsx` / drink-game tab treatment.
+- Keep the organizer-only capabilities (per-folder **upload** FAB, **delete**), and keep guest-only
+  controls (report/hide) out. Reuse via extracted shared components; do not fork the guest screen.
+- **Acceptance:** organizer gallery grid + detail are the extracted guest components (shared, not
+  duplicated); album tabs match the drink-game styling; upload/delete still work per folder; Jest
+  covers it and `lib/` stays ≥ 90 % branches.
+
+**Progress (2026-07-17, Claude, low-token):**
+- ✅ **Grid** — organizer gallery now renders the dense 3-column thumbnail grid (guest look), text
+  cards removed (`app/organizer/photos.tsx`: TILE_SIZE→/3, per-tile photoInfo dropped). typecheck/
+  lint/organizer-photos test green.
+- ⏳ **Album tabs → drink-game look** — still the maroon segmented buttons in
+  `components/gallery/GalleryAlbumPicker.tsx`; restyle to match `app/(tabs)/drinks.tsx` tab treatment.
+- ⏳ **Detail viewer with swipe** — organizer still uses its own detail (setSelectedPhoto); reuse the
+  guest swipe/zoom lightbox from `app/(tabs)/photos.tsx` (extract shared component). Bigger job.
