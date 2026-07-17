@@ -9,6 +9,7 @@ use App\Services\ManagementTokenService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
 class DevicePairingController extends Controller
@@ -23,16 +24,23 @@ class DevicePairingController extends Controller
         ]);
         $plainToken = Str::random(64);
         $expiresAt = now()->addMinutes(config('sanctum.pairing_token_ttl_minutes', 10));
+        $event = $this->activeEvent();
+        abort_unless($event && Gate::forUser($request->user())->allows('manage', $event), 403);
 
-        $pairing = DB::transaction(function () use ($request, $data, $plainToken, $expiresAt) {
+        $pairing = DB::transaction(function () use ($request, $event, $data, $plainToken, $expiresAt) {
             $user = User::query()->lockForUpdate()->find($request->user()->id);
             abort_unless($user instanceof User && $user->hasVerifiedEmail() && $user->isApproved(), 403);
+            abort_unless($user->roleOn($event) !== null, 403);
 
             // The user-row lock serializes concurrent tabs so exactly one
             // pending QR survives as the newest challenge.
-            $user->devicePairings()->whereNull('redeemed_at')->delete();
+            $user->devicePairings()
+                ->where('event_id', $event->id)
+                ->whereNull('redeemed_at')
+                ->delete();
 
             return $user->devicePairings()->create([
+                'event_id' => $event->id,
                 'token_hash' => hash('sha256', $plainToken),
                 'device_label' => $data['device_label'] ?? null,
                 'expires_at' => $expiresAt,
@@ -65,11 +73,17 @@ class DevicePairingController extends Controller
             }
 
             $user = $pairing->user;
-            if (! $user instanceof User || ! $user->hasVerifiedEmail() || ! $user->isApproved()) {
+            $event = $pairing->event;
+            if (! $user instanceof User
+                || ! $event
+                || ! $user->hasVerifiedEmail()
+                || ! $user->isApproved()
+                || $user->roleOn($event) === null
+                || ! Gate::forUser($user)->allows('manage', $event)) {
                 return ['forbidden' => true];
             }
 
-            $accessToken = $this->tokens->issue($user, $data['device_name'], $pairing);
+            $accessToken = $this->tokens->issue($user, $event, $data['device_name'], $pairing);
 
             return [
                 'token' => $accessToken->plainTextToken,
@@ -77,6 +91,12 @@ class DevicePairingController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
+                ],
+                'event' => [
+                    'id' => $event->id,
+                    'name' => $event->name,
+                    'date' => $event->date,
+                    'my_role' => $user->roleOn($event),
                 ],
             ];
         });
@@ -95,7 +115,16 @@ class DevicePairingController extends Controller
     /** Revoke exactly the Sanctum token minted for this paired device. */
     public function destroy(Request $request, DevicePairing $devicePairing)
     {
-        abort_if($devicePairing->user_id !== $request->user()->id, 403);
+        $event = $this->activeEvent();
+        $mayRevoke = $event
+            && ($devicePairing->user_id === $request->user()->id
+                || Gate::forUser($request->user())->allows('manageAccess', $event));
+        abort_if(
+            ! $event
+            || $devicePairing->event_id !== $event->id
+            || ! $mayRevoke,
+            403,
+        );
 
         DB::transaction(function () use ($devicePairing) {
             $accessToken = $devicePairing->accessToken;

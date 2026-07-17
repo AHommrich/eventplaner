@@ -27,7 +27,7 @@ Sortiert von „technisch interessant" zu „UX-Polish". Jeder Punkt verlinkt au
 2. **Abgestufte Autorisierung pro Event** — Owner, Event-Admin und Event-Manager sind getrennte Event-Rollen mit einer autoritativen Policy-/Service-Schicht. Owner können operative Arbeit delegieren, ohne Deep-Settings, Zugangsverwaltung oder Ownership-Kontrollen freizugeben.
    → [`app/Policies/EventPolicy.php`](app/Policies/EventPolicy.php), [`app/Services/EventAccessService.php`](app/Services/EventAccessService.php)
 
-3. **Isolierte mobile Management-API** — freigegebene, verifizierte Veranstalter koppeln die App getrennt von Gästen über einen kurzlebigen Einmal-QR aus ihrem angemeldeten Webkonto. Jede eventbezogene Anfrage wird anhand von `X-Event-ID` neu autorisiert; Notizen/ToDos, galerieübergreifendes Foto-Löschen und optionale Expo-Pushes verwenden diesen Namespace. Der Backend-Passwortvertrag bleibt verfügbar; die native App verschiebt direkten Account-Login bewusst, bis OAuth gleichzeitig angeboten werden kann.
+3. **Isolierte mobile Management-API** — freigegebene, verifizierte Veranstalter koppeln die App getrennt von Gästen über einen kurzlebigen Einmal-QR für genau ein ausgewähltes Event. Der resultierende `management:event:{id}`-Bearer ist an dieses Event gebunden und wird bei jeder Anfrage gegen `X-Event-ID` neu autorisiert. Der Veranstalter-Login ist QR-only; ein paralleler Passwort-Token-Endpunkt bleibt nicht bestehen.
    → [`routes/api.php`](routes/api.php), [`app/Http/Middleware/ResolveManagementEvent.php`](app/Http/Middleware/ResolveManagementEvent.php)
 
 4. **Fotospiel mit Delta-Override-Modell** — globale Task-Kataloge (Allgemein + Event-Typ) plus pro-Event Overrides (`hidden` / `modified` / `added`). Standard-Aufgaben bleiben an einer Stelle pflegbar, Events speichern nur Deltas.
@@ -188,7 +188,7 @@ Test-Aufbau, Coverage-Ziele und Strategie pro Schicht stehen in [`docs/SHOWCASE_
 
 ## Companion-App (React Native)
 
-Die mobile App liegt unter [**github.com/AHommrich/eventplaner-app**](https://github.com/AHommrich/eventplaner-app) und teilt sich mit der Web-App nur die HTTP-API. Der Gastmodus deckt QR-Login, RSVP, Ablauf, Fotos, Spiele und Datenschutz-Self-Service ab. Der Veranstaltermodus verwendet eine isolierte Management-Session, erlaubt den Wechsel zwischen freigegebenen Events, verwaltet Notizen/ToDos und löscht Fotos galerieübergreifend; optional empfängt er datenschutzminimierte Aufgaben-Pushes. Das Mobile-Repo dokumentiert seine Client-Grenzen in [`docs/ARCHITECTURE.md`](https://github.com/AHommrich/eventplaner-app/blob/main/docs/ARCHITECTURE.md).
+Die mobile App liegt unter [**github.com/AHommrich/eventplaner-app**](https://github.com/AHommrich/eventplaner-app) und teilt sich mit der Web-App nur die HTTP-API. Der Gastmodus deckt QR-Login, RSVP, Ablauf, Fotos, Spiele und Datenschutz-Self-Service ab. Der Veranstaltermodus verwendet eine isolierte Ein-Event-Management-Session, verwaltet Notizen/ToDos und Fotos, empfängt optional datenschutzminimierte Aufgaben-Pushes und nutzt denselben Event-Theme-Vertrag wie der Gastmodus. Das Mobile-Repo dokumentiert seine Client-Grenzen in [`docs/ARCHITECTURE.md`](https://github.com/AHommrich/eventplaner-app/blob/main/docs/ARCHITECTURE.md).
 
 ---
 

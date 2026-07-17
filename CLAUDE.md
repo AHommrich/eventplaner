@@ -60,10 +60,10 @@ Coolify deployt automatisch nach Push. Migrations laufen automatisch.
     - Legacy-Feld `venue_address` bleibt in DB (Fallback in EventInfoController)
 - **Event Farbsystem** — 3 Palette-Felder (`color_primary`, `color_secondary`, `color_tertiary`) + 10 Rollen-Felder die Keys `'primary'|'secondary'|'tertiary'` speichern: `role_screen_bg`, `role_card_bg`, `role_card_text`, `role_card_button`, `role_card_button_text`, `role_tab_tint`, `role_border`, `role_fab`, `role_fab_icon`, `role_nav_bg`. Dazu `color_home_text`, `color_home_shadow`, `home_shadow_opacity` (Cover-Overlay, nur relevant wenn Cover gesetzt).
     - **`role_nav_bg`** (default `secondary`) = Hintergrund der Bottom-Navbar — eigene Rolle statt Ableitung. Vorher zog classic die `screen_bg`- und soft-luxury die `card`-Farbe, was beim Preset-Swap inkonsistent war; jetzt nutzen beide `role_nav_bg` (classic solid, soft-luxury frosted), und `role_tab_tint` bleibt der Vordergrund (Icons/Text/aktive Disc).
-- **User** — role: `admin` (Superadmin = André) oder null (Event-Owner); `HasApiTokens` für die strikt getrennte Management-API (`management:*` Sanctum-Ability)
+- **User** — role: `admin` (Superadmin = André) oder null (Event-Owner); `HasApiTokens` für die strikt getrennte Management-API (`management:event:{id}` Sanctum-Ability)
     - **Löschung (P0.5, seit 2026-07-16):** `events.user_id` ist `ON DELETE RESTRICT` (nicht mehr CASCADE). Ein Admin kann einen User, der noch ein Event besitzt, **nicht** löschen (`Admin/UserController::destroy` blockt + schützt den letzten Superadmin). Self-Service-Kontolöschung (`Settings/ProfileController::destroy`) löscht die eigenen Events **bewusst vorher** (DSGVO Art. 17). Siehe `docs/EVENT_MANAGER_ROLE_PLAN.md` P0.5.
 - **Guest** — event_id, group_id, beer/wine, likelihood, invite, app_access (bool), drinks_access (bool)
-- **DevicePairing** (P4) — user_id, `token_hash` (SHA-256; Plaintext wird nie gespeichert), device_label, expires_at (Default 10 Min.), redeemed_at, personal_access_token_id (nullable FK → Sanctum-Token, `nullOnDelete`). Einmaliger, atomar eingelöster Bootstrap für die Management-App; kein kryptographisches Device-Binding. Pairing-Metadaten (ohne Secret/Bearer) sind im Art.-15-Export.
+- **DevicePairing** (P4/P6) — user_id, **event_id** (required, cascade), `token_hash` (SHA-256; Plaintext wird nie gespeichert), device_label, expires_at (Default 10 Min.), redeemed_at, personal_access_token_id (nullable FK → Sanctum-Token, `cascadeOnDelete`). Einmaliger, atomar eingelöster Bootstrap für genau einen User + ein Event; kein kryptographisches Device-Binding. Pairing-Metadaten inkl. Eventbezug (ohne Secret/Bearer) sind im Art.-15-Export. Legacy-`management:*`-Sessions werden beim Event-Binding fail-closed widerrufen.
 - **PushToken** (P5) — user_id (cascade), `expo_token` (global unique; beim Accountwechsel dem aktuellen User zugeordnet), platform (`ios|android`), last_used_at. Registrierung/Refresh/Opt-out über `POST /api/management/push/register`; Opt-out löscht die Zeile. Im Art.-15-Export enthalten.
 - **PushTicket** (P5) — push_token_id (nullable, `nullOnDelete`), `expo_ticket_id` (unique), receipt_status/error_code/error_message/checked_at. Speichert Expos synchrones Ticket bis zur verzögerten Receipt-Abfrage. `DeviceNotRegistered` löscht den PushToken; erledigte Diagnosedaten werden nach `RETENTION_PUSH_TICKETS_DAYS` (Default 7) entfernt.
 - **Group** — event_id (früher Family)
@@ -110,8 +110,8 @@ Globale Rolle (`users.role`): `admin` (Superadmin) oder null. Pro-Event-Tier ste
 
 Middleware-Aliase: `admin` = EnsureUserIsAdmin, `has_event` = EnsureHasEventAccess,
 `can_administer` = EnsureCanAdministerEvent (Session-Event → `administer`-Gate für Routen ohne `{event}`-Binding),
-`management_user` = User-Typ + `management:*` + verified/approved,
-`management_event` = `X-Event-ID`-Auflösung + vollständige erneute Konto-/Token-/Rollen-/Policy-Prüfung pro Request.
+`management_user` = User-Typ + vorhandene DevicePairing-Zeile + exakt passende `management:event:{id}`-Ability + verified/approved + aktuelle Event-Mitgliedschaft,
+`management_event` = gebundenes Event + identisches `X-Event-ID` + vollständige erneute Konto-/Token-/Rollen-/Policy-Prüfung pro Request.
 
 ---
 
@@ -130,10 +130,9 @@ Middleware-Aliase: `admin` = EnsureUserIsAdmin, `has_event` = EnsureHasEventAcce
 | `/api/auth/qr/{token}`                 | GET                   | QR-Login Schritt 1: gibt Gästeliste + is_active zurück, erstellt KEINE Tokens                        |
 | `/api/auth/qr/{token}/select`          | POST                  | QR-Login Schritt 2 (nur Familie): `{guest_id}` → erstellt Token für gewählten Gast                   |
 | `/api/auth/logout`                     | DELETE                | Token serverseitig löschen (Bearer im Header)                                                        |
-| `/api/auth/login`                      | POST                  | Verifizierter + freigegebener User: E-Mail/Passwort → `management:*` Sanctum-Token (rate-limited)    |
-| `/api/auth/pair`                       | POST                  | Gehashten, 10 Min. gültigen Pairing-Token atomar einmalig gegen Management-Token tauschen            |
-| `/api/management/me`                   | GET                   | Management-Profil + gekoppelte Geräte (kein `X-Event-ID`)                                            |
-| `/api/management/me/events`            | GET                   | Zugängliche Events + `my_role` (Bootstrap; kein `X-Event-ID`)                                        |
+| `/api/auth/pair`                       | POST                  | Gehashten, 10 Min. gültigen Pairing-Token atomar einmalig gegen eventgebundenen Management-Token tauschen |
+| `/api/management/me`                   | GET                   | Management-Profil + gebundenes Event/Theme + dessen eigene Geräte (kein `X-Event-ID`)                |
+| `/api/management/me/events`            | GET                   | Exakt das gebundene Event + `my_role` + Theme (Bootstrap; kein `X-Event-ID`)                          |
 | `/api/management/push/register`        | POST                  | Expo-Token registrieren/auffrischen oder mit `enabled=false` vollständig löschen (kein `X-Event-ID`) |
 | `/api/management/notes[/{note}]`       | GET/POST/PATCH/DELETE | Notes/ToDos mit denselben P2-Regeln wie im Web                                                       |
 | `/api/management/photos[/{photo}]`     | GET/DELETE            | Alle Alben lesen; Einzel-/Batch-Löschung über alle Galerien                                          |
@@ -149,11 +148,12 @@ Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
 ### Management-API (P4)
 
 - Namespace strikt `/api/management/*`; die vorhandene Guest-API `/api/*` bleibt getrennt.
-- User-Tokens tragen `management:*`, Guest-Tokens `role:guest`; beide Seiten prüfen **Tokenable-Typ und Ability** (Actor-Isolation).
-- Alle event-scoped Management-Endpunkte verlangen `X-Event-ID`, auch Reads. Ausnahme: user-scoped Bootstrap/Profile (`/me`, `/me/events`) und Push-Registrierung.
-- `ResolveManagementEvent` prüft pro Request: User-Typ, E-Mail-Verifizierung, Freigabe, Ability, `roleOn($event)` (inkl. Primär-Owner außerhalb des Pivots) und den verlangten `manage`-/`administer`-Policy-Tier. Fehlende Auth = 401, alle Autorisierungsfehler = 403.
+- User-Tokens tragen ausschließlich `management:event:{id}`, Guest-Tokens `role:guest`; beide Seiten prüfen **Tokenable-Typ und Ability** (Actor-Isolation). Das frühere `management:*` wird nicht mehr akzeptiert.
+- Alle event-scoped Management-Endpunkte verlangen `X-Event-ID`, auch Reads, und der Header muss dem Pairing-Event entsprechen. Ausnahme: gebundener Bootstrap/Profile (`/me`, `/me/events`) und Push-Registrierung; auch diese lösen ihr Event serverseitig aus dem PAT/Pairing auf.
+- `EnsureManagementUser`/`ResolveManagementEvent` prüfen pro Request: User-Typ, PAT→DevicePairing, gebundene Event-Ability, E-Mail-Verifizierung, Freigabe, aktuelle `roleOn($event)` (inkl. Primär-Owner außerhalb des Pivots) und den verlangten `manage`-/`administer`-Policy-Tier. Fehlende Auth = 401, alle Autorisierungsfehler = 403.
 - Entfernen/Rollenwechsel eines Event-Mitglieds, Verlust der Plattformfreigabe und Account-Löschung widerrufen User-Sanctum-Tokens sofort. Die Per-Request-Prüfung bleibt Defense-in-depth.
-- Web: Die authentifizierte, CSRF-geschützte Seite `/settings/devices` erzeugt den einmaligen QR und sperrt gekoppelte Geräte einzeln. Mobile Bearer dürfen keine weiteren Pairings erzeugen. Keine Passwortbestätigung erzwingen: Google-OAuth-only User besitzen ein unbekanntes Zufallspasswort und Pairing ist ihr einziger nativer Pfad. Jeder Passwort-Login und jedes eingelöste Pairing erhält einen sichtbaren Session-Datensatz; Session und Push-Token hängen per Cascade am 90 Tage gültigen (env-konfigurierbaren) PAT. Der QR ist nur Bootstrap; die resultierende Sitzung ist **nicht kryptografisch device-bound**.
+- Web: Die authentifizierte, CSRF-geschützte Event-Seite `/event/access` erzeugt den QR selbstbezogen für das aktuell gewählte Event. Jedes aktive Mitglied sieht und sperrt dort die eigenen Geräte; Owner/Event-Admins sehen das eventweite Inventar und dürfen jedes Gerät dieses Events sperren. Mobile Bearer dürfen keine Pairings erzeugen. Die native Anmeldung ist endgültig **QR-only**; `/api/auth/login` und die frühere User-Einstellung `/settings/devices` sind entfernt. Session und Push-Token hängen per Cascade am 90 Tage gültigen (env-konfigurierbaren) PAT. Der QR ist nur Bootstrap; die resultierende Sitzung ist **nicht kryptografisch device-bound**.
+- Guest-Event-Info und Management-Bootstrap nutzen gemeinsam `EventThemePresenter`; damit sind Palette, alle semantischen Farbrollen, Cover-Farben, Font und `design_preset` transportidentisch.
 
 ### Push-Infrastruktur (P5)
 
@@ -199,13 +199,12 @@ Auth: Sanctum Bearer Token. Guest-Modell ist tokenable. Guard: `web`.
   Ablauf, Fotogalerie mit Upload/Moderation, Fotospiel, Getränke-Log, Einstellungen und native
   DSGVO-Surfaces (Einwilligungen, Art.-15-Export, Art.-17-Löschantrag). Dynamisches Theming via
   `/api/event/info` (Palette + aufgelöste Rollen).
-- **Veranstaltermodus (P6):** strikt getrennte User-Session in `expo-secure-store`; natives
-  Onboarding ausschließlich per Einmal-Pairing-QR. Derselbe Scanner erkennt Gast-Einladungen
-  (32-Zeichen-Token) und Management-Pairings (64 alphanumerische Zeichen) automatisch;
-  Event-Bootstrap über `/api/management/me/events`; zentraler Axios-Client setzt Management-Bearer
-    - `X-Event-ID`. Screens für Eventwechsel, Notizen/ToDos und galerieübergreifende Fotoverwaltung.
-      Der vorhandene Backend-Passwort-Endpunkt wird in der App bewusst erst zusammen mit OAuth-Parität
-      angeboten.
+- **Veranstaltermodus (P6):** strikt getrennte, QR-only User-Session in `expo-secure-store`. Derselbe
+  Scanner erkennt Gast-Einladungen (32 Zeichen) und eventgebundene Management-Pairings (64
+  alphanumerische Zeichen) automatisch. `/api/management/me/events` liefert exakt ein Event; kein
+  Eventwechsel. Der zentrale Axios-Client setzt Management-Bearer + dessen `X-Event-ID`. Der eine
+  Root-`EventThemeProvider` lädt Guest- oder Management-Theme aus demselben Backend-Vertrag; Organizer
+  nutzt keine zweite statische Palette.
 - **Push (P6):** `expo-notifications` registriert nur nach explizitem Organizer-Opt-in und OS-Freigabe,
   behandelt Token-Rotation und wiederholt einen offline fehlgeschlagenen Session-Widerruf. Ein `assigned_note`-Tap wechselt zuerst das
   Event und öffnet die hervorgehobene Aufgabe; Lock-Screen-Copy bleibt inhaltsfrei (§ Management-API).

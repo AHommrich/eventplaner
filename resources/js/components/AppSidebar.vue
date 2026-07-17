@@ -112,7 +112,7 @@ function switchEvent(eventId: number) {
     search.value = '';
 }
 
-const mainNavItems = computed<NavItem[]>(() => [
+const eventNavItems = computed<NavItem[]>(() => [
     { title: t('nav.forms'), href: '/dashboard', icon: LayoutDashboard },
     { title: t('nav.guests'), href: '/guests', icon: Users },
     { title: t('nav.invitations'), href: '/invitations', icon: QrCode },
@@ -121,6 +121,8 @@ const mainNavItems = computed<NavItem[]>(() => [
     { title: t('nav.photos'), href: '/photos', icon: Images },
     ...(activeEvent.value?.photo_game_enabled ? [{ title: t('nav.photoGame'), href: '/photos/game', icon: Camera }] : []),
     { title: t('nav.notes'), href: '/notes', icon: ListTodo },
+    { title: t('nav.manageAccess'), href: '/event/access', icon: KeyRound },
+    { title: t('nav.requests'), href: '/requests', icon: Undo2, badge: pendingNotifications.value.total },
     // Deep event settings is administer-only.
     ...(canAdminister.value ? [{ title: t('nav.eventSettings'), href: '/event/settings', icon: Settings2 }] : []),
 ]);
@@ -131,18 +133,7 @@ const appNavItems = computed<NavItem[]>(() => [
     { title: t('nav.schedule'), href: '/schedule', icon: CalendarClock },
 ]);
 
-const adminNavItems = computed<NavItem[]>(() => [
-    { title: t('nav.userManagement'), href: '/admin/users', icon: ShieldCheck },
-    ...(activeEvent.value ? [{ title: t('nav.manageAccess'), href: '/event/access', icon: KeyRound }] : []),
-    { title: t('nav.requests'), href: '/requests', icon: Undo2, badge: pendingNotifications.value.total },
-]);
-
-// Event members (non-admin): everyone handles revocation requests; only the
-// administer tier manages access.
-const eventMemberNavItems = computed<NavItem[]>(() => [
-    ...(canAdminister.value ? [{ title: t('nav.manageAccess'), href: '/event/access', icon: KeyRound }] : []),
-    { title: t('nav.requests'), href: '/requests', icon: Undo2, badge: pendingNotifications.value.total },
-]);
+const platformNavItems = computed<NavItem[]>(() => [{ title: t('nav.userManagement'), href: '/admin/users', icon: ShieldCheck }]);
 </script>
 
 <template>
@@ -242,7 +233,7 @@ const eventMemberNavItems = computed<NavItem[]>(() => [
         <SidebarContent>
             <!-- User without event: button opens modal -->
             <SidebarGroup v-if="!activeEvent && !isAdmin" class="px-2 py-0">
-                <SidebarGroupLabel>{{ t('nav.platform') }}</SidebarGroupLabel>
+                <SidebarGroupLabel>{{ t('nav.eventSection') }}</SidebarGroupLabel>
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton @click="requestModalOpen = true" :tooltip="t('nav.requestEvent')">
@@ -253,10 +244,9 @@ const eventMemberNavItems = computed<NavItem[]>(() => [
                 </SidebarMenu>
             </SidebarGroup>
 
-            <NavMain v-if="activeEvent || isAdmin" :items="mainNavItems" />
-            <NavMain v-if="(activeEvent || isAdmin) && canAdminister" :items="appNavItems" label="nav.appSection" />
-            <NavMain v-if="activeEvent && !isAdmin" :items="eventMemberNavItems" />
-            <NavMain v-if="isAdmin" :items="adminNavItems" />
+            <NavMain v-if="activeEvent" :items="eventNavItems" label="nav.eventSection" />
+            <NavMain v-if="activeEvent && canAdminister" :items="appNavItems" label="nav.appSection" />
+            <NavMain v-if="isAdmin" :items="platformNavItems" label="nav.platform" />
         </SidebarContent>
 
         <SidebarFooter>

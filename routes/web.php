@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Api\DevicePairingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DrinkController;
 use App\Http\Controllers\EventAccessController;
@@ -66,10 +67,18 @@ Route::middleware(['auth', 'verified', 'has_event'])->group(function () {
     Route::delete('/groups/{group}', [GroupController::class, 'destroy'])->name('groups.destroy');
     Route::post('/foodspecials', [FoodSpecialController::class, 'store'])->name('foodspecials.store');
 
-    // event access — coarse gate is administer (owner ∪ event_admin ∪ superadmin);
-    // the fine-grained target rules live in EventPolicy::changeAccess/removeMember.
+    // Every active member may open the event access page to pair/revoke their
+    // own app device. Membership editing remains administer-only below.
+    Route::get('/event/access', [EventAccessController::class, 'index'])->name('event.access');
+    Route::post('/event/access/pairings', [DevicePairingController::class, 'store'])
+        ->middleware('throttle:6,1')
+        ->name('event.access.pairings');
+    Route::delete('/event/access/devices/{devicePairing}', [DevicePairingController::class, 'destroy'])
+        ->name('event.access.devices.destroy');
+
+    // Role/member writes stay administer-only; fine-grained target rules live
+    // in EventPolicy::changeAccess/removeMember.
     Route::middleware('can_administer')->group(function () {
-        Route::get('/event/access', [EventAccessController::class, 'index'])->name('event.access');
         Route::post('/event/access/invite', [EventAccessController::class, 'invite'])->name('event.access.invite');
         Route::patch('/event/access/{user}/role', [EventAccessController::class, 'updateRole'])->name('event.access.role');
         Route::delete('/event/access/{user}', [EventAccessController::class, 'remove'])->name('event.access.remove');

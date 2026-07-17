@@ -2,8 +2,8 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Event;
 use App\Models\User;
+use App\Services\ManagementSessionResolver;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -18,14 +18,17 @@ use Illuminate\Support\Facades\Gate;
  */
 class ResolveManagementEvent
 {
+    public function __construct(private readonly ManagementSessionResolver $sessions) {}
+
     public function handle(Request $request, Closure $next, string $tier = 'manage')
     {
         $user = $request->user();
+        $pairing = $this->sessions->resolve($request);
+        $event = $pairing?->event;
 
         if (! $user instanceof User
-            || ! $user->hasVerifiedEmail()
-            || ! $user->isApproved()
-            || ! $user->tokenCan('management:*')) {
+            || ! $pairing
+            || ! $event) {
             return response()->json(['message' => 'Management access is forbidden.'], 403);
         }
 
@@ -34,14 +37,13 @@ class ResolveManagementEvent
         }
 
         $eventId = $request->header('X-Event-ID');
-        $event = is_numeric($eventId) ? Event::find((int) $eventId) : null;
-
-        if (! $event
-            || $user->roleOn($event) === null
+        if (! is_numeric($eventId)
+            || (int) $eventId !== $event->id
             || ! Gate::forUser($user)->allows($tier, $event)) {
             return response()->json(['message' => 'Management access is forbidden.'], 403);
         }
 
+        $request->attributes->set('management_pairing', $pairing);
         $request->attributes->set('management_event', $event);
 
         return $next($request);

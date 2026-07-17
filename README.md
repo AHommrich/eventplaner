@@ -27,7 +27,7 @@ Sorted from "technically interesting" to "UX polish". Each item links to the cen
 2. **Tiered per-event authorization** — Owner, Event Admin and Event Manager are separate event roles with one authoritative policy/service layer. Owners can delegate operational work without exposing deep settings, access administration or ownership controls.
    → [`app/Policies/EventPolicy.php`](app/Policies/EventPolicy.php), [`app/Services/EventAccessService.php`](app/Services/EventAccessService.php)
 
-3. **Isolated mobile management API** — approved, verified organizers pair the app separately from guests through a short-lived, one-time QR generated in the authenticated web account. Every event-scoped request is re-authorized from `X-Event-ID`; Notes/ToDos, cross-gallery photo deletion and optional Expo pushes use this namespace. The backend password contract remains available, but the native client intentionally defers direct account login until OAuth can ship alongside it.
+3. **Isolated mobile management API** — approved, verified organizers pair the app separately from guests through a short-lived, one-time QR for one selected event. The resulting `management:event:{id}` bearer is pinned to that event and re-authorized against `X-Event-ID` on every scoped request. Organizer login is QR-only; no parallel password-token endpoint remains.
    → [`routes/api.php`](routes/api.php), [`app/Http/Middleware/ResolveManagementEvent.php`](app/Http/Middleware/ResolveManagementEvent.php)
 
 4. **Photo game with a delta-override model** — global task catalogs (general + event-type specific) plus per-event overrides (`hidden` / `modified` / `added`). The standard tasks stay maintainable in a single place; events only store deltas.
@@ -188,7 +188,7 @@ Test isolation is enforced at the database level: a `TestCase` guard rejects any
 
 ## Companion app (React Native)
 
-The mobile app lives at [**github.com/AHommrich/eventplaner-app**](https://github.com/AHommrich/eventplaner-app) and shares only the HTTP API with the web app. Guest mode covers QR login, RSVP, schedule, photos, games and privacy self-service. Organizer mode uses an isolated management session, lets an authorized user switch between accessible events, manage Notes/ToDos and delete photos across galleries, and can receive privacy-minimized assignment pushes. The mobile repo documents its client-side boundaries in [`docs/ARCHITECTURE.md`](https://github.com/AHommrich/eventplaner-app/blob/main/docs/ARCHITECTURE.md).
+The mobile app lives at [**github.com/AHommrich/eventplaner-app**](https://github.com/AHommrich/eventplaner-app) and shares only the HTTP API with the web app. Guest mode covers QR login, RSVP, schedule, photos, games and privacy self-service. Organizer mode uses an isolated one-event management session, manages Notes/ToDos and photos, receives privacy-minimized assignment pushes, and renders through the same event theme contract as Guest mode. The mobile repo documents its client-side boundaries in [`docs/ARCHITECTURE.md`](https://github.com/AHommrich/eventplaner-app/blob/main/docs/ARCHITECTURE.md).
 
 ---
 

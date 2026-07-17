@@ -6,6 +6,7 @@ use App\Models\PushTicket;
 use App\Models\PushToken;
 use App\Models\User;
 use App\Services\ExpoPushService;
+use App\Services\ManagementTokenService;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -23,7 +24,9 @@ function pushAssignmentFixture(): array
         'title' => 'Secret task title',
         'body' => 'Secret task body',
     ]);
-    $accessToken = $manager->createToken('manager phone', ['management:*'])->accessToken;
+    $accessToken = app(ManagementTokenService::class)
+        ->issue($manager, $event, 'manager phone')
+        ->accessToken;
     $token = PushToken::create([
         'user_id' => $manager->id,
         'personal_access_token_id' => $accessToken->id,
@@ -92,6 +95,31 @@ it('does not send to a device whose management bearer has expired', function () 
     expect(app(ExpoPushService::class)->sendAssignedNote($manager, $note))->toBe(0);
 
     Http::assertNothingSent();
+});
+
+it('sends an assignment only to devices paired with the notes event', function () {
+    [$owner, $manager, $event, $note, $boundToken] = pushAssignmentFixture();
+    $otherEvent = Event::factory()->for($owner, 'owner')->create();
+    $otherEvent->users()->attach($manager, ['role' => 'event_manager']);
+    $otherAccessToken = app(ManagementTokenService::class)
+        ->issue($manager, $otherEvent, 'other event phone')
+        ->accessToken;
+    PushToken::create([
+        'user_id' => $manager->id,
+        'personal_access_token_id' => $otherAccessToken->id,
+        'expo_token' => 'ExponentPushToken[other-event-device]',
+        'platform' => 'ios',
+        'last_used_at' => now(),
+    ]);
+    Http::fake([
+        config('services.expo.send_url') => Http::response([
+            'data' => [['status' => 'ok', 'id' => 'event-ticket']],
+        ]),
+    ]);
+
+    expect(app(ExpoPushService::class)->sendAssignedNote($manager, $note))->toBe(1);
+    Http::assertSent(fn (Request $request) => count($request->data()) === 1
+        && $request->data()[0]['to'] === $boundToken->expo_token);
 });
 
 it('fetches receipts later and removes DeviceNotRegistered tokens', function () {

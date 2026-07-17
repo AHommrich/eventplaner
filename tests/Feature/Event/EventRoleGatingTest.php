@@ -43,7 +43,6 @@ dataset('administer_pages', [
     'event settings' => ['event.settings'],
     'app design' => ['app.design'],
     'schedule' => ['schedule.index'],
-    'event access' => ['event.access'],
 ]);
 
 it('blocks a manager from administer pages', function (string $routeName) {
@@ -71,6 +70,7 @@ it('allows a manager on manage-level pages', function () {
     test()->get(route('guests.index'))->assertOk();
     test()->get(route('photos'))->assertOk();
     test()->get(route('requests.index'))->assertOk();
+    test()->get(route('event.access'))->assertOk();
 });
 
 // ---------------------------------------------------------------------------

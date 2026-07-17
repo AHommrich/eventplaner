@@ -8,10 +8,10 @@ use App\Http\Controllers\Api\GuestContentHideController;
 use App\Http\Controllers\Api\GuestDataExportController;
 use App\Http\Controllers\Api\GuestErasureController;
 use App\Http\Controllers\Api\LegalController;
-use App\Http\Controllers\Api\ManagementAuthController;
 use App\Http\Controllers\Api\ManagementPhotoController;
 use App\Http\Controllers\Api\ManagementProfileController;
 use App\Http\Controllers\Api\ManagementPushTokenController;
+use App\Http\Controllers\Api\ManagementScheduleController;
 use App\Http\Controllers\Api\PhotoController;
 use App\Http\Controllers\Api\PhotoGameController as ApiPhotoGameController;
 use App\Http\Controllers\Api\PhotoReportController;
@@ -41,9 +41,6 @@ Route::get('/auth/qr/{token}', [QrAuthController::class, 'login']);
 // Family picker: guest selects themselves, token is only now issued
 Route::post('/auth/qr/{token}/select', [QrAuthController::class, 'select']);
 
-// Organizer login: User bearer token for the separate management API.
-Route::post('/auth/login', [ManagementAuthController::class, 'login'])
-    ->middleware('throttle:5,1');
 Route::post('/auth/pair', [DevicePairingController::class, 'redeem'])
     ->middleware('throttle:6,1');
 
@@ -70,8 +67,11 @@ Route::prefix('management')->middleware(['auth:sanctum', 'management_user'])->gr
         Route::delete('/notes/{note}', [NoteController::class, 'destroy']);
 
         Route::get('/photos', [ManagementPhotoController::class, 'index']);
+        Route::post('/photos', [ManagementPhotoController::class, 'store']);
         Route::delete('/photos', [ManagementPhotoController::class, 'destroyBatch']);
         Route::delete('/photos/{photo}', [ManagementPhotoController::class, 'destroy']);
+
+        Route::get('/schedule', [ManagementScheduleController::class, 'index']);
     });
 });
 

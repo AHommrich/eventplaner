@@ -140,4 +140,9 @@ class Event extends Model
     {
         return $this->hasMany(Note::class);
     }
+
+    public function devicePairings()
+    {
+        return $this->hasMany(DevicePairing::class);
+    }
 }

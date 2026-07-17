@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Event;
 use App\Models\PushToken;
 use App\Models\User;
 use App\Services\ManagementTokenService;
@@ -164,7 +165,8 @@ it('rejects stateful web auth because push registration must bind to a bearer', 
 
 it('cascades online logout through the device session and push token', function () {
     $user = User::factory()->create(['is_approved' => true]);
-    $issued = app(ManagementTokenService::class)->issue($user, 'Logout phone');
+    $event = Event::factory()->for($user, 'owner')->create();
+    $issued = app(ManagementTokenService::class)->issue($user, $event, 'Logout phone');
 
     $this->withToken($issued->plainTextToken)
         ->postJson('/api/management/push/register', [

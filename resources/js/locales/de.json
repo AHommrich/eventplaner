@@ -1,6 +1,7 @@
 {
     "nav": {
         "platform": "Plattform",
+        "eventSection": "Event",
         "forms": "Übersicht",
         "guests": "Gäste",
         "drinks": "Getränke",
@@ -628,7 +629,27 @@
         "removeDescription": "Der User verliert den Zugang zu diesem Event.",
         "roleOwner": "Owner",
         "roleAdmin": "Event-Admin",
-        "roleManager": "Event-Manager"
+        "roleManager": "Event-Manager",
+        "deviceLoginTitle": "App-Gerät verbinden",
+        "deviceLoginDescription": "Erzeuge einen kurzlebigen QR-Code für dieses Event und scanne ihn in der eveplan App.",
+        "deviceLabel": "Gerätename",
+        "deviceLabelPlaceholder": "z. B. Mein iPhone",
+        "generatePairing": "Pairing-QR erzeugen",
+        "pairingQrAlt": "QR-Code zum Verbinden der Organizer-App",
+        "pairingHint": "Öffne den QR-Scanner in der App. Dieser Code kann nur einmal verwendet werden.",
+        "pairingExpires": "Gültig bis {time} Uhr.",
+        "myDevices": "Meine Geräte für dieses Event",
+        "eventDevices": "Alle Geräte dieses Events",
+        "unknownDevice": "Unbekanntes Gerät",
+        "noPairedDevices": "Noch keine verbundenen Geräte.",
+        "lastUsedAt": "Zuletzt verwendet: {date}",
+        "expiresAt": "Läuft ab: {date}",
+        "active": "Aktiv",
+        "expired": "Abgelaufen",
+        "revokeDeviceTitle": "Gerätezugang widerrufen?",
+        "revokeDeviceDescription": "Das Gerät wird sofort aus der Organizer-App abgemeldet.",
+        "revokeDevice": "Zugang widerrufen",
+        "deviceRevoked": "Gerätezugang widerrufen."
     },
     "admin": {
         "title": "User-Verwaltung",

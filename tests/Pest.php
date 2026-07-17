@@ -48,10 +48,15 @@ function actingAsGuest(\App\Models\Guest $guest): \Tests\TestCase
     return test()->withHeader('Authorization', 'Bearer '.$token);
 }
 
-/** Issue a management bearer token for API feature tests. */
-function managementTokenFor(\App\Models\User $user): string
+/** Issue a complete event-bound management device session for API feature tests. */
+function managementTokenFor(\App\Models\User $user, ?\App\Models\Event $event = null): string
 {
-    return $user->createToken('management-test', ['management:*'])->plainTextToken;
+    $event ??= $user->accessibleEvents()->first();
+    $event ??= \App\Models\Event::factory()->for($user, 'owner')->create();
+
+    return app(\App\Services\ManagementTokenService::class)
+        ->issue($user, $event, 'management-test')
+        ->plainTextToken;
 }
 
 /** X-Event-ID header for management API feature tests. */

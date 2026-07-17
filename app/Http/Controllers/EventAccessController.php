@@ -11,11 +11,11 @@ use Inertia\Inertia;
 /**
  * Manage per-event membership + tiers.
  *
- * The coarse "may open this screen" gate is the `can_administer` route middleware
- * (owner ∪ event_admin ∪ superadmin). The fine-grained, target-aware decisions
- * (which tier the actor may assign/remove) run through {@see \App\Policies\EventPolicy}
- * (changeAccess / removeMember). Transactional writes + the last-owner invariant
- * live in {@see EventAccessService}. Frontend gating is cosmetic; this is authoritative.
+ * Every active member may open this screen to pair or revoke their own device.
+ * Membership and event-wide device management stay behind `manageAccess`; the
+ * fine-grained target decisions run through {@see \App\Policies\EventPolicy}.
+ * Transactional writes + the last-owner invariant live in {@see EventAccessService}.
+ * Frontend gating is cosmetic; this is authoritative.
  */
 class EventAccessController extends Controller
 {
@@ -28,30 +28,59 @@ class EventAccessController extends Controller
         }
 
         $user = auth()->user();
-        $this->authorize('manageAccess', $event);
+        abort_unless($user->roleOn($event) !== null, 403);
+        $canManageAccess = $user->can('manageAccess', $event);
 
-        $primaryOwner = $event->owner;
+        $primaryOwner = $canManageAccess ? $event->owner : null;
+        $members = $canManageAccess
+            ? $event->users()
+                ->get(['users.id', 'users.name', 'users.email'])
+                ->map(fn (User $m) => [
+                    'id' => $m->id,
+                    'name' => $m->name,
+                    'email' => $m->email,
+                    'role' => $m->pivot->role,
+                ])
+            : collect();
 
-        $members = $event->users()
-            ->get(['users.id', 'users.name', 'users.email'])
-            ->map(fn (User $m) => [
-                'id' => $m->id,
-                'name' => $m->name,
-                'email' => $m->email,
-                'role' => $m->pivot->role,
+        $deviceQuery = $event->devicePairings()
+            ->whereNotNull('redeemed_at')
+            ->whereNotNull('personal_access_token_id')
+            ->when(! $canManageAccess, fn ($query) => $query->where('user_id', $user->id));
+
+        $devices = $deviceQuery
+            ->with(['accessToken', 'user'])
+            ->latest('redeemed_at')
+            ->get()
+            ->map(fn ($pairing) => [
+                'id' => $pairing->id,
+                'device_label' => $pairing->device_label,
+                'paired_at' => $pairing->redeemed_at?->toIso8601String(),
+                'last_used_at' => $pairing->accessToken?->last_used_at?->toIso8601String(),
+                'expires_at' => $pairing->accessToken?->expires_at?->toIso8601String(),
+                'is_expired' => $pairing->accessToken?->expires_at?->isPast() ?? false,
+                'is_own' => $pairing->user_id === $user->id,
+                'user' => [
+                    'id' => $pairing->user_id,
+                    'name' => $pairing->user?->name,
+                    'email' => $pairing->user?->email,
+                ],
             ]);
 
         return Inertia::render('Event/Access', [
             'event' => ['id' => $event->id, 'name' => $event->name],
-            'owner' => [
+            'owner' => $primaryOwner ? [
                 'id' => $primaryOwner->id,
                 'name' => $primaryOwner->name,
                 'email' => $primaryOwner->email,
-            ],
+            ] : null,
             'members' => $members,
+            'my_devices' => $devices->where('is_own', true)->values(),
+            'event_devices' => $canManageAccess ? $devices : [],
             // Cosmetic capability flags for the UI; the server checkpoint is authoritative.
             'my_role' => $user->roleOn($event),
-            'can_assign_admin' => $event->isOwnedBy($user) || $user->isAdmin(),
+            'can_manage_access' => $canManageAccess,
+            'can_assign_admin' => $canManageAccess && ($event->isOwnedBy($user) || $user->isAdmin()),
         ]);
     }
 

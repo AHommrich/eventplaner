@@ -1,20 +1,38 @@
 # Event Manager — P4/P5/P6 Hardening Plan
 
-Status: **Checkpoints 0–3 implemented; Checkpoint 4 (build/delivery readiness) OPEN — not test-ready** ·
+Status: **Checkpoints 0–2 + 4.1/4.2 + 5–7 done (code); 4.3/4.4 ops-open** ·
 Created: 2026-07-17 · Author: André + critical review (Codex) + independent verification (Claude).
 
-> **Reality check (2026-07-17, second audit):** unit/Jest suites are green, but this is **not**
-> end-to-end test-ready. The companion app's committed lockfile pins SDK-55 packages and `expo-doctor`
-> fails (14/18), so no reliable native build exists → push cannot be tested. There is also an
-> orphaned-assigned-notes bug and an unverified production scheduler dependency. See **Checkpoint 4**.
-> "Test suites green" ≠ "build-ready / verified end-to-end". Do not label this feature "green" until
-> Checkpoint 4 clears and André's own build + CI pass.
+> **Reality check (updated 2026-07-17):** the hardening code (Checkpoints 1–2, 4.1, 4.2) is in and the
+> suites are green — `expo-doctor` is now **17/18** (last check is the `app.json` heuristic
+> false-positive), the orphaned-notes bug is fixed. **Still not end-to-end test-ready for push:** the
+> two remaining items are **ops** (4.3 production scheduler unverified; 4.4 needs a dev/preview build +
+> APNs/FCM). **Checkpoints 5–6 (event-bound QR/theme plus Organizer tabs, gallery and read-only
+> schedule) and **Checkpoint 7 (web device/sidebar regrouping) are implemented.** Do not label
+> anything "green" for the owner until André's own build + CI pass.
 
 Follow-up to `docs/EVENT_MANAGER_ROLE_PLAN.md`. P1–P7 are implemented across both repos
 (backend `eventplaner`, app `eventplaner-app`), but have **not yet been independently verified**;
 a critical re-analysis found real gaps in the **device / push revocation lifecycle** and a few correctness /
 legal-accuracy issues. This document is the abarbeitbare (workable) fix plan — usable by any tool
 (Claude Code, Codex, OpenCode).
+
+## ⚠️ SCOPE FENCE — current build vs. out of scope (read before touching anything)
+
+**IN SCOPE for the active build (build in order):** **Checkpoint 5 → 6 → 7.** These are the event-bound
+QR, shared theming, organizer tab rebuild, per-folder photo upload, read-only schedule, and web
+sidebar/device-QR regrouping. Everything needed is fully specced below.
+
+**OUT OF SCOPE — do NOT build now (the "Follow-ups" section at the end):**
+- **F1 (i18n lint guard)** and **F2 (legal back-link)** are independent polish — schedule them only
+  **after** Checkpoints 5–7 land. They touch different files; do not fold them into the current build.
+- **F3 (Notes/ToDos → task-centric rework)** is **explicitly deferred (André: "option (2)")**: ship
+  the **existing `note|todo` model as-is** in the organizer "Aufgaben" tab (Checkpoint 5.5/6.1). **Do
+  NOT** migrate the model, drop the `note` type, or build the ToDo-list rework mid-flight. The rework
+  is a clean, separate task after 5–7. Building it now would collide with the tab work in progress.
+
+Boundary rule: if a change is not required by Checkpoint 5, 6, or 7 as written, it belongs in
+Follow-ups — leave it there.
 
 ## How to work this plan (read first)
 
@@ -94,15 +112,19 @@ will exercise first, and they are currently broken/misleading. Fix these before 
 Tests may run before these, but **do not ship to production without them.**
 
 ### 2.1 [backend] Complete, revocable session inventory + hardened pairing creation
-- **Problem:** `/api/management/me/pairings` (`routes/api.php:57`) lets any valid management **bearer**
-  mint new pairing tokens — a stolen bearer can create extra sessions before being revoked.
-  `/api/auth/login` (`app/Http/Controllers/Api/ManagementAuthController.php:35`) mints tokens with **no**
-  `DevicePairing`, so password-login sessions never appear in the device list, which only lists
-  pairings (`app/Http/Controllers/Settings/DeviceController.php:14`). "Active devices" is therefore not
-  a complete session list.
+> **⚠️ Superseded in part by §5.4 (QR-only login):** password login is being removed, so the
+> "password-login sessions" concern below is moot. The remaining, still-valid requirement is: **every
+> management PAT has a revocable `device_pairings` session row (PAT + push token cascade), and pairing
+> creation is not mintable by a mobile bearer.** With §5.1, every session is a redeemed QR pairing, so
+> the inventory is complete by construction. Keep this checkpoint's revocation/cascade guarantees;
+> ignore its password-login wording.
+- **Problem (original, pre-§5.4):** `/api/management/me/pairings` (`routes/api.php:57`) let any valid
+  management **bearer** mint new pairing tokens. `/api/auth/login` minted tokens with **no**
+  `DevicePairing`, so password-login sessions never appeared in the device list. "Active devices" was
+  therefore not a complete session list.
 - **Locked fix:** `device_pairings` represents both pending pairing challenges and redeemed credential
-  sessions. Every management PAT (password login or pairing redemption) gets a redeemed row; the row
-  and its push token reference that PAT with `cascadeOnDelete`. Pending rows have no PAT and are never
+  sessions. Every management PAT gets a redeemed row; the row and its push token reference that PAT
+  with `cascadeOnDelete`. Pending rows have no PAT and are never
   shown as active sessions. Restrict pairing creation to the authenticated, CSRF-protected web
   settings route and remove the mobile-bearer creation route entirely. Do not require a password:
   Google-OAuth-only users have an unknown random password and pairing is their only native path.
@@ -254,9 +276,272 @@ yet.** Test-suite-green ≠ build-ready. Independently reverified against the co
 - App ESLint: zero errors; three pre-existing warnings remain in `lib/legal.ts` and
   `lib/monitoring.ts`, outside this hardening slice.
 
-**Open blockers (Checkpoint 4), independently verified 2026-07-17:**
-- ✗ `expo-doctor` **14/18** — committed lockfile pins SDK-55 packages, `react-dom` missing, duplicate
-  native modules, `app.json`/`app.config.js` conflict → **no reliable native build → push untestable**.
-- ✗ Assigned notes orphaned on member removal/demotion (`EventAccessService`) — not cleaned up.
-- ? Production scheduler/queue (`schedule:run` every minute) unverified → push may never be delivered.
-- ℹ Push requires a dev/preview build + APNs/FCM credentials (not testable in Expo Go).
+**Checkpoint 4 status (updated 2026-07-17):**
+- ✅ 4.1 Expo deps — reconciled to SDK 54, `react-dom` added, deduped, `expo-doctor` **17/18** (last
+  check is the `app.json`/`app.config.js` heuristic false-positive).
+- ✅ 4.2 Assigned notes orphaned — fixed in `EventAccessService.detachAssignedNotes()`.
+- ⏳ 4.3 Production scheduler/queue (`schedule:run` every minute) — **ops, unverified** (André).
+- ⏳ 4.4 Push requires a dev/preview build + APNs/FCM credentials — **ops** (André).
+
+---
+
+## Checkpoint 5 — Event-bound devices + organizer theming — ✅ DONE (2026-07-17)
+
+**Product decision (André, 2026-07-17):** this remains **one native app and one design system**.
+"One device = one event" describes the organizer session's authorization scope, not a separate app
+or a separate visual language. Guest and organizer requests keep their separate auth actors and API
+guards, but both surfaces use the same root theme contract, tab chrome, cards, buttons and typography.
+Only the tab manifest, data source and permitted actions differ. Today the pairing QR is **user-scoped**
+(`device_pairings.user_id` only) and `GET /api/management/me/events` returns *all* of the user's
+`accessibleEvents()`, so an owner of many events sees the full switcher. Move to **event-scoped
+pairing** without forking the app.
+
+### 5.1 [backend] Event-scoped pairing + token
+- Migration: add `event_id` to `device_pairings` as an event FK with `cascadeOnDelete`. It may be
+  nullable only during the rollout migration; after legacy sessions are revoked it is required for
+  every new management device session.
+- Pairing **creation moves to the selected event's access page** (`/event/access`), not the user-level
+  `/settings/devices` and not a mobile bearer (aligns with §2.1). It is self-service: every active
+  event member may create a QR **only for their own user and the currently selected event**. Do not
+  accept a target `user_id`; otherwise an administrator could mint a token that acts and audits as
+  another person. Keep membership management and the all-device inventory behind `administer`;
+  managers see only their own pairing/device section.
+- The QR remains an opaque, random 64-character one-time secret with the existing short TTL. Do not
+  embed or trust a client-provided event/role claim: redemption derives user, event and role from the
+  hashed, locked `device_pairings` row and rechecks current membership and issuer permissions.
+- `DevicePairingController::redeem` / `ManagementTokenService::issue`: mint the token with an
+  **event-scoped ability** `management:event:{id}` and persist `event_id` on the session row.
+- Update `EnsureManagementUser`, `ResolveManagementEvent` and every management route that does not
+  currently pass through `ResolveManagementEvent` (`/me`, `/me/events`, push registration/revocation)
+  to accept only the bound `management:event:{id}` ability and to resolve that same device event.
+  `X-Event-ID` must equal the bound event when present; a foreign value is 403. Keep the existing
+  per-request account/approval/role/tier checks.
+- `GET /api/management/me/events` returns **exactly the bound event**, after a fresh membership,
+  approval and role check. It must not call unrestricted `accessibleEvents()` for a bound PAT.
+- Rollout is fail-closed: revoke/delete all legacy unbound `management:*` PATs and their device/push
+  rows before making `event_id` required. Users pair again per event; do not silently infer an event
+  for an old multi-event token.
+- **Acceptance (Pest):** opaque QR redemption binds the authenticated creator and selected event
+  once; a creator cannot mint for another user or a foreign/inactive event; the token ability is
+  `management:event:{id}`; `/me`,
+  `/me/events`, push and every event endpoint reject a foreign event; membership/approval changes and
+  device revoke drop PAT + push token; no usable legacy `management:*` token survives migration.
+
+### 5.2 [backend] Expose the bound event's resolved theme to the management API
+- `/api/event/info` stays guest-only, but Guest and Organizer must receive the **same presentation
+  contract** from one backend serializer/service. Reuse `ColorRoleResolver` and the existing event
+  presentation rules; do not create a second palette mapper for management.
+- The management `me` payload for its one bound event returns every value consumed by
+  `EventThemeProvider`: raw primary/secondary/tertiary colours; resolved semantic roles
+  (`screenBg`, `card`, `cardText`, `cardButton`, `cardButtonText`, `border`, `fab`, `fabIcon`, `navBg`,
+  `tabTint`); cover text/shadow colours; `fontFamily`; and `design_preset`/derived theme `variant`.
+- Name and JSON shape should be shared with the Guest event-info resource so a future theme field
+  cannot be added to one actor and omitted from the other unnoticed.
+- **Acceptance (Pest):** for the same event, Guest event-info and the bound management `me` resource
+  serialize an identical theme block, including both `classic` and `soft-luxury` presets and resolved
+  fallbacks when optional styling fields are absent.
+
+### 5.3 [app] Bind the device to one event + adopt guest theming
+- Pairing redeem stores the bound `event_id`; the organizer session pins to it and renders **no event
+  switcher or event-selection state**. `GET /api/management/me/events` returning one event is an API
+  invariant, not merely a UI convention.
+- Extend the app's **existing root** `EventThemeProvider` (`lib/EventThemeContext.tsx`) to choose one
+  authenticated source: Guest event-info for a Guest session, or management `me` for a bound
+  Organizer session. Do not nest a second provider around `app/organizer/**` and do not keep a static
+  maroon/beige Organizer palette.
+- Both session types produce the same `EventTheme` object and therefore the same screen gradient,
+  `cardSurfaceStyle`, button/FAB/nav colours, font and classic-vs-soft-luxury radii/tab treatment.
+  Static app colours remain valid only for semantic states such as error, warning or disabled—not
+  for event branding or layout surfaces.
+- **Acceptance (Jest):** Guest and Organizer sessions for the same event produce the same theme;
+  the Organizer renders no switcher; source changes/logout cannot leak the prior event's theme; both
+  presets and missing-field fallbacks are covered; keep `lib/` ≥ 90 % branch coverage.
+
+### 5.4 Auth model — FINAL (André, 2026-07-17): QR-only, per-event
+- **The app login stays QR-only — no password login.** The QR moves to **event level**: each event
+  has its **own QR** (generated on that event's access page for a specific member). Scanning it logs
+  the organizer into **that one event** on that device. Token is event-bound (`management:event:{id}`),
+  **no switcher** — one device = one event.
+- **No password login in the app** → remove `/api/auth/login`, `ManagementAuthController`, its tests,
+  request types and documentation in the same checkpoint. Do not leave a dormant user-scoped token
+  path. This also **resolves the OAuth-owner edge case**: nobody needs a password; everyone scans the
+  event QR.
+- **Multi-event switching is deferred (future).** Real need only for planner agencies; normal users
+  are together on one event. Do **not** build the in-app switcher now — a bound device shows its one
+  event. (If planner-agency multi-event lands later, add a planner-level session then.)
+
+### 5.5 [app] Notes & ToDos — confirm, do not rebuild
+- Owner→manager assignment already exists (`EventPolicy::assignNote` + `NoteController`, backed by
+  tests). The Organizer tab set is identical for all organizer roles. Inside "Aufgaben",
+  owner/event-admin/superadmin may assign todos; an event-manager sees and updates only the entries
+  already allowed by the API. Frontend gating is cosmetic; retain the server policy tests. Verify
+  `app/organizer/notes.tsx` visibly separates notes vs todos. No backend change expected.
+
+**Checkpoint 5 verification:** backend Pint + full Pest **450 passed / 1 skipped**. App TypeScript,
+coverage (**329 tests / 52 suites; `lib/` 90.55% branches**), ESLint (0 errors; 3 locked pre-existing
+warnings) and Prettier green. `expo-doctor` remains the locked **17/18** `app.json` heuristic described
+in Checkpoint 4.1; its configuration files were deliberately not re-touched without a native build.
+
+---
+
+## Checkpoint 6 — Organizer app UX (navigation, settings, photo parity) (added 2026-07-17)
+
+The organizer surface currently feels rough (a single home screen + two tool buttons). Give it a
+proper structure that reuses the guest app's building blocks and the event theme (Checkpoint 5.2/5.3).
+
+### 6.1 [app] Navigation + styling — DECIDED
+- Keep one Expo Router app. Extract the current Guest tab chrome (`SoftTabBar`, classic tab-bar
+  treatment, `TabBarIcon`/icon mapping and inset behavior) from `app/(tabs)/_layout.tsx` into a shared
+  `EventTabShell`/`EventTabBar` used by both route groups. Do not copy those implementations into an
+  Organizer-only layout.
+- Guest keeps its current/dynamic tab manifest. Every organizer role gets the **same five tabs**:
+  **Übersicht, Ablauf, Fotos, Aufgaben, Einstellungen**. Owner/event-admin/manager differences are
+  actions inside those screens, never separate navigation or a visually different app.
+- All Organizer screens use the existing `useEventTheme()` parameters for screen, card, tab, button,
+  FAB, icon, typography and `variant`. Reuse the existing card/button primitives or extract small
+  shared presentation components where the Guest implementation is screen-private. Do not introduce
+  Organizer-specific brand tokens.
+- **Acceptance (Jest):** the exact tab manifest is asserted for owner, event-admin and manager; Guest
+  tabs remain unchanged; the same shared tab shell renders Organizer in classic and soft-luxury;
+  forbidden actions stay hidden in UI and independently 403 in backend policy tests.
+
+### 6.2 [app] Settings screen = generic guest-style — DECIDED (André, 2026-07-17)
+- The organizer app gets **no event-configuration screen**. Its "Einstellungen" mirror the guest
+  app's app-settings only: **logout, Impressum, Datenschutzerklärung, DE/EN language toggle**.
+  **No account deletion.** Extract/reuse the generic settings rows and existing legal screens, rather
+  than mounting the whole Guest settings screen: Guest-only export, erasure, visibility and invitation
+  actions must not leak into Organizer. Logout must revoke the bound device session with the existing
+  offline-retry behavior and then clear its event theme.
+
+### 6.3 [app+backend] Photo-management tab = administrative gallery — DECIDED (André, 2026-07-17)
+> **DONE (Claude backend + Codex app, 2026-07-17):** `POST /api/management/photos` plus the
+> Organizer grid/detail/delete/upload UI and folder picker are implemented and tested.
+- The "Fotos verwalten" tab is an **administrative version of the guest gallery**: grid + **detail
+  view** + delete, across all three albums (`app_gallery`, `presentation`, `photo_game`). Owners and
+  managers may upload to `app_gallery` or `presentation`. A generic upload must not create an orphan
+  `photo_game` photo without a `PhotoGameAssignment`; upload to that album is available only through
+  an assignment-aware flow. The album remains viewable/deletable here.
+- **Backend [new]:** add `POST /api/management/photos` (management_event, `manage` tier) taking a
+  target `album_id` that must belong to the resolved event, allow only the two generic-upload album
+  types above, and reuse the existing MIME/size validation, `PhotoSanitizer` (EXIF strip) and
+  object-storage conventions. On a failed DB write, remove the uploaded object. Keep every existing
+  cross-event guard and snapshot uploader identity/role consistently with other uploads.
+- **App:** extract pure Guest gallery presentation primitives (grid, detail viewer, loading/empty
+  states, picker/compression) and keep Guest and management API adapters separate. Organizer never
+  receives Guest report/hide controls. The folder picker may view all three albums but offers only
+  valid upload targets.
+- **Acceptance:** Pest covers both roles, valid albums, foreign-event/foreign-album rejection,
+  forbidden `photo_game` generic upload, validation, EXIF sanitization and storage cleanup; Jest covers
+  view/detail/delete/upload, role actions and both theme variants; keep `lib/` ≥ 90 % branches.
+
+### 6.4 [app+backend] Timetable — read-only view — DECIDED (André, 2026-07-17)
+> **DONE (Claude backend + Codex app, 2026-07-17):** `GET /api/management/schedule` plus the
+> shared read-only schedule presentation are implemented and tested; no mutation route exists.
+- The organizer app shows a **read-only** timetable (schedule) for the bound event. **All editing
+  stays in the web app** — no edit UI, no schedule-mutation calls from the app, so no role-model
+  conflict. Reuse the guest schedule display component. Expose the bound event's schedule for reading
+  via a dedicated `GET /api/management/schedule` endpoint resolved from the bound PAT/event. The
+  Organizer gets the event's complete schedule; do not reuse Guest group filtering in the data adapter.
+  Extract/reuse the schedule presentation component only. No management schedule mutation route exists.
+- **Acceptance:** Pest proves only the bound event can be read and no mutation route is exposed; Jest
+  proves the shared presentation renders the full management data without Guest-group filtering.
+
+### 6.5 [app] Guest gallery folder selection — PREPARE ONLY — DECIDED (André, 2026-07-17)
+- **Not shipped to guests now.** Guests keep **only the `app_gallery` folder** for free
+  browsing/use. Build the gallery so a folder selector can be added later without a rewrite
+  (**photo_game** next, **presentation** after) — structure the components/data for multiple albums,
+  but **expose only `app_gallery`** for now. Presentation stays host-curated (view-only, no guest
+  upload) when it lands. No guest-visible behavior change in this checkpoint.
+
+**Checkpoint 6 verification:** backend Pint + full Pest **458 passed / 1 skipped / 1522 assertions**.
+App TypeScript, coverage (**345 tests / 58 suites; `lib/` 90.81% branches**), ESLint (0 errors; 3
+locked pre-existing warnings) and Prettier green. `expo-doctor` remains the locked **17/18**
+`app.json` heuristic; the configuration was not re-touched.
+
+---
+
+## Checkpoint 7 — Role model simplification, sidebar regrouping, device-login relocation — ✅ DONE (2026-07-17)
+
+### 7.1 [none] Role model — KEEP AS BUILT (confirmed André, 2026-07-17) — NO CHANGE
+- André's model = exactly the P1 three tiers: **root owner** = primary `owner` (`events.user_id`),
+  can add `event_admin`s; **event_admin** = a "co-owner" the root adds, owner-like but may **only add
+  managers** (never other event_admins); **event_manager** = limited. Superadmin = platform (André).
+- This is already implemented in `EventPolicy::changeAccess` (only owner-tier grants `event_admin`;
+  `event_admin` grants only `event_manager`). **No code change.** The earlier "simplify to
+  owner+manager" idea is dropped. The three tiers are barely visible to end users, which is fine.
+- **Selector nuance — RESOLVED (Claude, delegated by André): keep as built.** The access selector
+  keeps the full co-owner "Owner" grant option, and any owner-tier (not only the primary) may grant
+  `event_admin`. Rationale: Tabea is already a real pivot-`owner` (see `CLAUDE.md`); dropping the
+  Owner grant would risk that live co-ownership. A purely cosmetic 3-tier selector is an optional
+  later follow-up, not part of this plan.
+
+### 7.2 [web] Relocate device pairing out of user settings — DECIDED (André, 2026-07-17)
+- The app's concept is "event assignment via QR login", so the QR belongs to the **event**, not the
+  eveplan user settings. Move QR/device generation from `/settings/devices` into the **event access
+  page** (`/event/access`). **Remove the `/settings/devices` user-level device section.** The page may
+  expose a narrowly scoped self-pairing/device panel to every active member, while its access/role
+  editor and event-wide device inventory remain owner/event-admin-gated. A member may revoke their own
+  devices; administrators may revoke any device for this event. Show target identity, last-used and
+  expiry state, and preserve all Checkpoint 1/2 revoke guarantees. Password login is dropped (§5.4)
+  — the per-event self-service QR is the only login.
+
+### 7.3 [web] Sidebar/nav regrouping — DECIDED (André, 2026-07-17)
+- Current sidebar mixes event-specific and platform items under one "Plattform" group. Regroup:
+  - **Event group** (everyone with event access, tier-gated per item): guests, invitations, drinks,
+    photos, notes, plus **event access ("Zugang verwalten")** and **requests/reports ("Meldungen")** —
+    these are event-scoped, not platform.
+  - **Platform group** (superadmin/André only): global **user management ("User-Verwaltung")**.
+  - Keep the existing per-item role gating; this is purely grouping/labeling clarity.
+
+**Checkpoint 7 implementation:** `/event/access` is now available to every active event member for
+self-pairing and own-device revocation. Its membership editor and event-wide device inventory remain
+`manageAccess`-gated; administrators may revoke any device only inside the active event. The former
+`/settings/devices` page/routes were removed. The sidebar now groups event-scoped tools under Event
+and leaves only global user management under Platform. The existing three-tier role model was not
+changed.
+
+**Checkpoint 7 verification:** backend Pint + full Pest **457 passed / 1 skipped / 1563 assertions**;
+web Prettier, ESLint and vue-tsc green. The unchanged app remains green with TypeScript, coverage
+(**345 tests / 58 suites; `lib/` 90.81% branches**), ESLint (0 errors; 3 locked pre-existing warnings)
+and Prettier. `expo-doctor` remains the locked **17/18** `app.json` heuristic; its configuration was
+not re-touched.
+
+---
+
+## Follow-ups (post Checkpoint 5–7, captured 2026-07-17 — not blocking the current build)
+
+### F1 [web+app] Enforce i18n — catch hardcoded user-facing strings
+- **Problem (André):** hardcoded texts keep slipping in that the translation layer (`vue-i18n` web /
+  `i18n-js` app) never sees, so they can't be translated and drift silently.
+- **Fix:** add an automated guard, not just manual review. Web: an ESLint rule against bare string
+  literals in Vue templates (e.g. `@intlify/vue-i18n/no-raw-text`) + a CI step. App: an equivalent
+  lint/test that flags literal user-facing strings in JSX outside `t(...)`. Wire both into the existing
+  CI gates. Also sweep + fix the current offenders the rule surfaces.
+- **Acceptance:** the lint fails on a newly introduced raw user-facing string in both repos; existing
+  offenders fixed; DE/EN key parity check stays green.
+
+### F2 [web] Legal pages "back" link goes home instead of to the referrer
+- **Problem (André):** on `/impressum` and `/datenschutz` the top-left back link returns to the home
+  page, not to where the user came from. Check whether this is a general pattern (other sub-pages too).
+- **Fix:** make the back affordance return to the previous location (history back / stored referrer)
+  and fall back to home only when there is no in-app history. Verify it does not break deep-link/direct
+  entry. Note: guest app has its own legal screens — check the same there if applicable.
+
+### F3 [backend+app] Notes & ToDos rework — ToDo-first; notes concept in question — ⚠️ DECISION PENDING
+- **Context:** today it is a **single `Note` model** with `type` (`note`|`todo`) + `is_done` +
+  `assignee_user_id` + `body`. A "note" is effectively a todo without a checkbox, so the two types
+  feel redundant (André: "zwei identische Models, gleicher Wert").
+- **Wanted:** a **solid ToDo list** as a reminder aid — per owner/manager, shows what's still open,
+  checkable, with standard quality-of-life (open/done filter, sensible sort, "assigned to me" section;
+  optional due date). Owner→manager assignment stays (already built).
+- **Direction — DECIDED (André + competitor best-practice, 2026-07-17): Option A, task-centric.**
+  Collapse to a **single ToDo list**; every item is a checkable task with title + optional free-text
+  **`body` (the former "note" content survives here)** + assignee + QoL (open/done filter, sort,
+  "assigned to me", optional due date). Drop the separate `note` type from the UI; migrate existing
+  `type='note'` rows to todos (kept unchecked) — do not lose their `body`. This mirrors how
+  task-centric tools (Todoist/Asana/Things/Notion) attach the note as a task description rather than
+  maintaining a second note entity. Note-first apps (Apple Notes/Keep) embed checklists in notes —
+  rejected: worse for "who does what / what's open" team coordination.
+- **⚠️ Timing — DECIDED (André): option (2).** Codex ships the current note|todo model as-is for now;
+  **F3 is a clean rework afterwards**, not built speculatively mid-flight. Sequence F3 after
+  Checkpoints 5–7 land.

@@ -9,6 +9,7 @@ class DevicePairing extends Model
 {
     protected $fillable = [
         'user_id',
+        'event_id',
         'token_hash',
         'device_label',
         'expires_at',
@@ -26,6 +27,11 @@ class DevicePairing extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function event()
+    {
+        return $this->belongsTo(Event::class);
     }
 
     public function accessToken()
