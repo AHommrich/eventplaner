@@ -36,4 +36,20 @@ return [
      * their guest/photo FKs and do not need a dedicated pruner.
      */
     'photo_reports_after_event_days' => (int) env('RETENTION_PHOTO_REPORTS_DAYS', 180),
+
+    /*
+     * Notes & todos (organizer task list). `app:prune-notes` hard-purges rows
+     * this many days after they were soft-deleted, and purges an event's whole
+     * note list this many days after the event date.
+     */
+    'notes_after_delete_days' => (int) env('RETENTION_NOTES_DAYS', 30),
+
+    /* Resolved Expo ticket/receipt diagnostics contain no notification body. */
+    'push_tickets_days' => (int) env('RETENTION_PUSH_TICKETS_DAYS', 7),
+
+    /* Expired, unredeemed pairing challenges retain only a short audit grace. */
+    'expired_device_pairings_hours' => (int) env('RETENTION_DEVICE_PAIRINGS_HOURS', 24),
+
+    /* Failed async jobs can contain organizer user/note IDs in their payload. */
+    'failed_jobs_days' => (int) env('RETENTION_FAILED_JOBS_DAYS', 7),
 ];

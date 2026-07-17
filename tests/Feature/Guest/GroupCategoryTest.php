@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Category;
 use App\Models\Event;
 use App\Models\FoodSpecial;
 use App\Models\Group;
@@ -41,22 +40,14 @@ it('rejects deleting a group of another event', function () {
     $this->delete(route('groups.destroy', $foreign))->assertStatus(403);
 });
 
-it('creates a new category', function () {
-    actingAsOwner();
-
-    $this->post(route('categories.store'), ['title' => 'VIP'])
-        ->assertRedirect();
-
-    expect(Category::where('title', 'VIP')->exists())->toBeTrue();
-});
-
-it('creates a food special', function () {
-    actingAsOwner();
+it('creates a food special scoped to the active event', function () {
+    $user = actingAsOwner();
+    $event = $user->ownedEvents()->first();
 
     $this->post(route('foodspecials.store'), ['name' => 'Vegetarisch'])
         ->assertRedirect();
 
-    expect(FoodSpecial::where('name', 'Vegetarisch')->exists())->toBeTrue();
+    expect(FoodSpecial::where('name', 'Vegetarisch')->where('event_id', $event->id)->exists())->toBeTrue();
 });
 
 it('returns JSON when food special creation is requested with wantsJson()', function () {

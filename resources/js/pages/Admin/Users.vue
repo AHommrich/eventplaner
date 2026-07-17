@@ -2,11 +2,10 @@
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import { Trash2 } from 'lucide-vue-next';
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
@@ -15,24 +14,11 @@ interface User {
     name: string;
     email: string;
     role: string;
+    is_approved: boolean;
     created_at: string;
 }
-interface Event {
-    id: number;
-    name: string;
-}
-interface Member {
-    id: number;
-    name: string;
-    email: string;
-}
-interface EventAccess {
-    event: { id: number; name: string };
-    owner: Member | null;
-    members: Member[];
-}
 
-const props = defineProps<{ users: User[]; events: Event[]; event_access: EventAccess | null }>();
+const props = defineProps<{ users: User[] }>();
 
 const { t } = useI18n();
 const selectClass =
@@ -40,30 +26,15 @@ const selectClass =
 
 const approvedUsers = computed(() => props.users);
 
-// --- Manage access (unified) ---
-const addForm = useForm({ email: '', event_id: String(props.event_access?.event.id ?? '') });
-function addToEvent() {
-    addForm.post(route('admin.users.addToEvent'), {
-        onSuccess: () => {
-            addForm.reset('email');
-            toast.success(t('toast.userAdded'));
-        },
-    });
-}
-
-// When event changes in dropdown → reload members list
-watch(
-    () => addForm.event_id,
-    (eventId) => {
-        if (eventId) {
-            router.get(route('admin.users.index'), { event_id: eventId }, { preserveState: true, only: ['event_access'] });
-        }
-    },
-);
-
-// --- Change role ---
+// --- Change global platform role ---
 function updateRole(user: User, role: string) {
     useForm({ role }).put(route('admin.users.update', user.id), { onSuccess: () => toast.success(t('toast.roleChanged', { role })) });
+}
+
+function updateApproval(user: User, isApproved: boolean) {
+    useForm({ is_approved: isApproved }).put(route('admin.users.update', user.id), {
+        onSuccess: () => toast.success(t('toast.approvalChanged')),
+    });
 }
 
 // --- Delete user ---
@@ -77,87 +48,14 @@ function doDelete() {
     if (pendingUser.value)
         useForm({}).delete(route('admin.users.destroy', pendingUser.value.id), { onSuccess: () => toast.success(t('toast.userDeleted')) });
 }
-
-// --- Remove user from selected event ---
-const removeConfirmOpen = ref(false);
-const pendingRemoveMember = ref<Member | null>(null);
-function askRemove(member: Member) {
-    pendingRemoveMember.value = member;
-    removeConfirmOpen.value = true;
-}
-function doRemove() {
-    if (!pendingRemoveMember.value) return;
-    useForm({ event_id: addForm.event_id }).delete(route('admin.users.removeFromEvent', pendingRemoveMember.value.id), {
-        onSuccess: () => toast.success(t('toast.accessRemoved')),
-    });
-}
 </script>
 
 <template>
     <Head :title="t('admin.title')" />
     <AppLayout>
         <div class="m-4 space-y-4">
-            <!-- Manage event access -->
-            <Card>
-                <CardHeader
-                    ><CardTitle>{{ t('access.manageTitle') }}</CardTitle></CardHeader
-                >
-                <CardContent class="space-y-0">
-                    <!-- 1. Event selection -->
-                    <div class="pb-4">
-                        <p class="mb-1.5 text-xs font-medium text-muted-foreground">{{ t('admin.selectEventLabel') }}</p>
-                        <select v-model="addForm.event_id" :class="selectClass + ' w-full'">
-                            <option value="">{{ t('admin.selectEvent') }}</option>
-                            <option v-for="event in events" :key="event.id" :value="String(event.id)">{{ event.name }}</option>
-                        </select>
-                    </div>
-
-                    <!-- 2. Members list of the selected event -->
-                    <template v-if="event_access">
-                        <div class="border-t pt-4 pb-2">
-                            <p class="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">{{ t('access.currentAccess') }}</p>
-                            <ul class="divide-y">
-                                <li v-if="event_access.owner" class="flex items-center justify-between py-2.5">
-                                    <div>
-                                        <p class="text-sm font-medium">{{ event_access.owner.name }}</p>
-                                        <p class="text-xs text-muted-foreground">{{ event_access.owner.email }}</p>
-                                    </div>
-                                    <span class="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">{{
-                                        t('access.owner')
-                                    }}</span>
-                                </li>
-                                <li v-for="member in event_access.members" :key="member.id" class="flex items-center justify-between py-2.5">
-                                    <div>
-                                        <p class="text-sm font-medium">{{ member.name }}</p>
-                                        <p class="text-xs text-muted-foreground">{{ member.email }}</p>
-                                    </div>
-                                    <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="askRemove(member)"
-                                        ><Trash2 class="h-4 w-4"
-                                    /></Button>
-                                </li>
-                                <li v-if="event_access.members.length === 0" class="py-3 text-sm text-muted-foreground">
-                                    {{ t('access.none') }}
-                                </li>
-                            </ul>
-                        </div>
-
-                        <!-- 3. Add user -->
-                        <div class="border-t pt-4">
-                            <p class="mb-1.5 text-xs font-medium text-muted-foreground">{{ t('admin.addToEvent') }}</p>
-                            <form @submit.prevent="addToEvent" class="flex gap-2">
-                                <Input v-model="addForm.email" type="email" :placeholder="t('admin.emailPlaceholder')" required class="flex-1" />
-                                <Button type="submit" :disabled="addForm.processing" class="whitespace-nowrap">{{ t('common.add') }}</Button>
-                            </form>
-                            <p v-if="addForm.errors.email" class="mt-1 text-xs text-destructive">{{ addForm.errors.email }}</p>
-                            <p v-if="addForm.errors.event_id" class="mt-1 text-xs text-destructive">{{ addForm.errors.event_id }}</p>
-                        </div>
-                    </template>
-
-                    <div v-else class="border-t pt-4 pb-2 text-sm text-muted-foreground">
-                        {{ t('admin.selectEventHint') }}
-                    </div>
-                </CardContent>
-            </Card>
+            <!-- Per-event access moved to /event/access (reachable via the event switcher). -->
+            <p class="text-sm text-muted-foreground">{{ t('admin.accessMovedHint') }}</p>
 
             <!-- All users -->
             <Card>
@@ -171,6 +69,7 @@ function doRemove() {
                                 <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('common.name') }}</th>
                                 <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('common.email') }}</th>
                                 <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('common.role') }}</th>
+                                <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('admin.approved') }}</th>
                                 <th class="h-10 px-6 text-left align-middle font-medium text-muted-foreground">{{ t('admin.registered') }}</th>
                                 <th class="h-10 px-6"></th>
                             </tr>
@@ -188,6 +87,16 @@ function doRemove() {
                                         <option value="user">{{ t('admin.user') }}</option>
                                         <option value="admin">{{ t('admin.admin') }}</option>
                                     </select>
+                                </td>
+                                <td class="px-6 py-3">
+                                    <input
+                                        type="checkbox"
+                                        :checked="user.role === 'admin' || user.is_approved"
+                                        :disabled="user.role === 'admin'"
+                                        :aria-label="t('admin.approved')"
+                                        class="h-4 w-4 rounded border-input accent-primary disabled:opacity-50"
+                                        @change="updateApproval(user, ($event.target as HTMLInputElement).checked)"
+                                    />
                                 </td>
                                 <td class="px-6 py-3 text-xs text-muted-foreground">{{ new Date(user.created_at).toLocaleDateString('de-DE') }}</td>
                                 <td class="px-6 py-3 text-right">
@@ -209,15 +118,6 @@ function doRemove() {
             :confirm-label="t('common.delete')"
             destructive
             @confirm="doDelete"
-        />
-
-        <ConfirmDialog
-            v-model:open="removeConfirmOpen"
-            :title="t('access.removeTitle', { name: pendingRemoveMember?.name })"
-            :description="t('access.removeDescription')"
-            :confirm-label="t('common.remove')"
-            destructive
-            @confirm="doRemove"
         />
     </AppLayout>
 </template>

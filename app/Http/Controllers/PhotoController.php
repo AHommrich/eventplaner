@@ -33,8 +33,6 @@ class PhotoController extends Controller
             ]);
         }
 
-        $ownerId = $event->user_id;
-
         $albums = $event->photoAlbums()
             ->with(['photos' => function ($q) {
                 $q->with('guest')->latest();
@@ -51,10 +49,10 @@ class PhotoController extends Controller
                     'guest_name' => $photo->guest
                         ? trim(($photo->guest->firstname ?? '').' '.($photo->guest->lastname ?? ''))
                         : ($photo->uploaded_by ?? null),
+                    // read the snapshot column (P0.4); fall back to owner for legacy
+                    // user uploads that predate the column and lack an uploader_user_id
                     'organizer_role' => $photo->guest === null && $photo->uploaded_by !== null
-                        ? ($photo->uploader_user_id !== null && $photo->uploader_user_id !== $ownerId
-                            ? 'co_organizer'
-                            : 'owner')
+                        ? ($photo->uploader_role ?? 'owner')
                         : null,
                     'description' => $photo->description,
                     'created_at' => $photo->created_at->format('d.m.Y H:i'),
@@ -103,12 +101,18 @@ class PhotoController extends Controller
             $albumId = $partyAlbum?->id;
         }
 
+        // Snapshot the uploader's real tier at upload time (P1). roleOn() covers
+        // superadmin precedence, co-owners and the event_admin tier — the badge
+        // reads this column verbatim rather than re-deriving it later.
+        $uploaderRole = $request->user()->roleOn($event);
+
         Photo::create([
             'event_id' => $event?->id,
             'album_id' => $albumId,
             'guest_id' => null,
             'uploaded_by' => $request->user()->name,
             'uploader_user_id' => $request->user()->id,
+            'uploader_role' => $uploaderRole,
             'url' => Storage::disk('s3')->url($path),
             'r2_key' => $path,
             'description' => $request->input('description') ?: null,

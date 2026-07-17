@@ -21,10 +21,15 @@ class RequestController extends Controller
     public function index(Request $request)
     {
         $event = $this->activeEvent();
-        $isAdmin = auth()->user()->isAdmin();
+        $user = auth()->user();
+        $isAdmin = $user->isAdmin();
 
         // non-admin strictly needs an active event
         abort_if(! $event && ! $isAdmin, 404);
+
+        // Photo reports are adjudicated at administer level. Managers handle
+        // revocations but do not see guest complaints they cannot act on.
+        $canSeePhotoReports = $isAdmin || ($event && $user->canAdminister($event));
 
         // revocation requests (only if an event exists)
         $revocations = $event ? Guest::where('event_id', $event->id)
@@ -65,40 +70,44 @@ class RequestController extends Controller
         }
 
         // photo reports (App Store Guideline 1.2). Sysadmin sees them across
-        // all events; regular owners are scoped to the active event.
-        $photoReportsQuery = PhotoReport::query()
-            ->where('status', 'open')
-            ->with(['photo.album', 'reporter', 'reportedGuest', 'event']);
-        if (! $isAdmin) {
-            $photoReportsQuery->where('event_id', $event->id);
+        // all events; owners/event_admins are scoped to the active event; managers
+        // do not see them at all.
+        $photoReports = collect();
+        if ($canSeePhotoReports) {
+            $photoReportsQuery = PhotoReport::query()
+                ->where('status', 'open')
+                ->with(['photo.album', 'reporter', 'reportedGuest', 'event']);
+            if (! $isAdmin) {
+                $photoReportsQuery->where('event_id', $event->id);
+            }
+            $photoReports = $photoReportsQuery
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(fn (PhotoReport $r) => [
+                    'id' => $r->id,
+                    'type' => 'photo_report',
+                    'event_id' => $r->event_id,
+                    'event_name' => $isAdmin ? $r->event?->name : null,
+                    'photo' => [
+                        'id' => $r->photo_id,
+                        'url' => $r->photo?->url,
+                        'album_slug' => $r->photo?->album?->slug,
+                    ],
+                    'reporter' => $r->reporter ? [
+                        'id' => $r->reporter->id,
+                        'firstname' => $r->reporter->firstname,
+                        'lastname' => $r->reporter->lastname,
+                    ] : null,
+                    'reported_uploader' => $r->reportedGuest ? [
+                        'id' => $r->reportedGuest->id,
+                        'firstname' => $r->reportedGuest->firstname,
+                        'lastname' => $r->reportedGuest->lastname,
+                    ] : null,
+                    'reason' => $r->reason,
+                    'message' => $r->message,
+                    'created_at' => $r->created_at->toIso8601String(),
+                ]);
         }
-        $photoReports = $photoReportsQuery
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(fn (PhotoReport $r) => [
-                'id' => $r->id,
-                'type' => 'photo_report',
-                'event_id' => $r->event_id,
-                'event_name' => $isAdmin ? $r->event?->name : null,
-                'photo' => [
-                    'id' => $r->photo_id,
-                    'url' => $r->photo?->url,
-                    'album_slug' => $r->photo?->album?->slug,
-                ],
-                'reporter' => $r->reporter ? [
-                    'id' => $r->reporter->id,
-                    'firstname' => $r->reporter->firstname,
-                    'lastname' => $r->reporter->lastname,
-                ] : null,
-                'reported_uploader' => $r->reportedGuest ? [
-                    'id' => $r->reportedGuest->id,
-                    'firstname' => $r->reportedGuest->firstname,
-                    'lastname' => $r->reportedGuest->lastname,
-                ] : null,
-                'reason' => $r->reason,
-                'message' => $r->message,
-                'created_at' => $r->created_at->toIso8601String(),
-            ]);
 
         return Inertia::render('Requests/Index', [
             'revocations' => $revocations,
@@ -189,9 +198,7 @@ class RequestController extends Controller
     public function resolvePhotoReport(Request $request, PhotoReport $photoReport)
     {
         $user = $request->user();
-        $isAdmin = $user->isAdmin();
-        $isEventOwner = $photoReport->event?->user_id === $user->id;
-        abort_unless($isAdmin || $isEventOwner, 403);
+        abort_unless($photoReport->event && $user->canAdminister($photoReport->event), 403);
         abort_if($photoReport->status !== 'open', 422);
 
         $photoReport->update([
@@ -212,9 +219,7 @@ class RequestController extends Controller
     public function deletePhotoFromReport(Request $request, PhotoReport $photoReport)
     {
         $user = $request->user();
-        $isAdmin = $user->isAdmin();
-        $isEventOwner = $photoReport->event?->user_id === $user->id;
-        abort_unless($isAdmin || $isEventOwner, 403);
+        abort_unless($photoReport->event && $user->canAdminister($photoReport->event), 403);
         abort_if($photoReport->status !== 'open', 422);
 
         $photo = $photoReport->photo;

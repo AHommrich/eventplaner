@@ -49,6 +49,19 @@ it('removes a single drink', function () {
     expect(Drink::find($drink->id))->toBeNull();
 });
 
+it('rejects deleting a drink from a foreign event', function () {
+    actingAsOwner();
+    $otherEvent = Event::factory()->create();
+
+    $catalog = DrinkCatalog::factory()->create();
+    $size = DrinkCatalogSize::create(['catalog_id' => $catalog->id, 'amount_liter' => 0.5, 'is_default' => true, 'sort_order' => 0]);
+    $foreignDrink = Drink::create(['event_id' => $otherEvent->id, 'drink_catalog_id' => $catalog->id, 'size_id' => $size->id]);
+
+    $this->delete(route('drinks.destroy', $foreignDrink))->assertForbidden();
+
+    expect(Drink::find($foreignDrink->id))->not->toBeNull();
+});
+
 it('only shows drinks for the active event', function () {
     $user = actingAsOwner();
     $event = $user->ownedEvents()->first();

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\DevicePairingController;
 use App\Http\Controllers\Api\DrinkLogController;
 use App\Http\Controllers\Api\EventInfoController;
 use App\Http\Controllers\Api\GuestApiController;
@@ -7,12 +8,18 @@ use App\Http\Controllers\Api\GuestContentHideController;
 use App\Http\Controllers\Api\GuestDataExportController;
 use App\Http\Controllers\Api\GuestErasureController;
 use App\Http\Controllers\Api\LegalController;
+use App\Http\Controllers\Api\ManagementAuthController;
+use App\Http\Controllers\Api\ManagementPhotoController;
+use App\Http\Controllers\Api\ManagementProfileController;
+use App\Http\Controllers\Api\ManagementPushTokenController;
 use App\Http\Controllers\Api\PhotoController;
 use App\Http\Controllers\Api\PhotoGameController as ApiPhotoGameController;
 use App\Http\Controllers\Api\PhotoReportController;
 use App\Http\Controllers\Api\QrAuthController;
+use App\Http\Controllers\NoteController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Laravel\Sanctum\PersonalAccessToken;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,13 +41,39 @@ Route::get('/auth/qr/{token}', [QrAuthController::class, 'login']);
 // Family picker: guest selects themselves, token is only now issued
 Route::post('/auth/qr/{token}/select', [QrAuthController::class, 'select']);
 
+// Organizer login: User bearer token for the separate management API.
+Route::post('/auth/login', [ManagementAuthController::class, 'login'])
+    ->middleware('throttle:5,1');
+Route::post('/auth/pair', [DevicePairingController::class, 'redeem'])
+    ->middleware('throttle:6,1');
+
 // Logout: deletes the current bearer token server-side
 // Requires: Authorization: Bearer {token} in the header — no body
 Route::delete('/auth/logout', function (Request $request) {
-    $request->user()->currentAccessToken()->delete();
+    $accessToken = $request->user()->currentAccessToken();
+    abort_unless($accessToken instanceof PersonalAccessToken, 403);
+    $accessToken->delete();
 
     return response()->json(['message' => 'Logged out.']);
 })->middleware('auth:sanctum');
+
+Route::prefix('management')->middleware(['auth:sanctum', 'management_user'])->group(function () {
+    Route::get('/me', [ManagementProfileController::class, 'show']);
+    Route::get('/me/events', [ManagementProfileController::class, 'events']);
+    Route::post('/push/register', [ManagementPushTokenController::class, 'store'])
+        ->middleware('throttle:30,1');
+
+    Route::middleware('management_event:manage')->group(function () {
+        Route::get('/notes', [NoteController::class, 'index']);
+        Route::post('/notes', [NoteController::class, 'store']);
+        Route::patch('/notes/{note}', [NoteController::class, 'update']);
+        Route::delete('/notes/{note}', [NoteController::class, 'destroy']);
+
+        Route::get('/photos', [ManagementPhotoController::class, 'index']);
+        Route::delete('/photos', [ManagementPhotoController::class, 'destroyBatch']);
+        Route::delete('/photos/{photo}', [ManagementPhotoController::class, 'destroy']);
+    });
+});
 
 // GDPR Art. 17 revocation: unauthenticated — the erasure request revoked
 // the guest's Sanctum token, so we authenticate them by the one-time recovery

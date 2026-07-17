@@ -84,6 +84,9 @@ it('interpolates retention placeholders from config', function () {
     config()->set('retention.declined_guests_after_event_days', 365);
     config()->set('retention.guest_erasure_grace_days', 14);
     config()->set('retention.photo_reports_after_event_days', 90);
+    config()->set('sanctum.management_token_ttl_days', 60);
+    config()->set('retention.expired_device_pairings_hours', 12);
+    config()->set('retention.failed_jobs_days', 5);
 
     $doc = (new LegalDocumentLoader)->load('privacy', 'de');
     $speicherdauer = collect($doc['sections'])->firstWhere('id', 'speicherdauer');
@@ -92,7 +95,10 @@ it('interpolates retention placeholders from config', function () {
         ->toContain('42 Tage')
         ->and($speicherdauer['body_markdown'])->toContain('365 Tage')
         ->and($speicherdauer['body_markdown'])->toContain('14 Tage')
-        ->and($speicherdauer['body_markdown'])->toContain('90 Tage');
+        ->and($speicherdauer['body_markdown'])->toContain('90 Tage')
+        ->and($speicherdauer['body_markdown'])->toContain('60 Tagen')
+        ->and($speicherdauer['body_markdown'])->toContain('12 Stunden')
+        ->and($speicherdauer['body_markdown'])->toContain('5 Tagen');
 });
 
 it('leaves no placeholder tokens in the rendered markdown', function () {
@@ -100,6 +106,7 @@ it('leaves no placeholder tokens in the rendered markdown', function () {
 
     foreach ($doc['sections'] as $section) {
         expect($section['body_markdown'])->not->toContain('{{retention.');
+        expect($section['body_markdown'])->not->toContain('{{auth.');
     }
 });
 

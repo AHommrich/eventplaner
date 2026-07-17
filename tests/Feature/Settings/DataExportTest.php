@@ -2,8 +2,11 @@
 
 namespace Tests\Feature\Settings;
 
+use App\Models\DevicePairing;
 use App\Models\Event;
 use App\Models\Guest;
+use App\Models\Note;
+use App\Models\PushToken;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -65,6 +68,28 @@ class DataExportTest extends TestCase
         $this->assertStringNotContainsString("Bob's Party", $body);
     }
 
+    public function test_export_includes_notes_with_soft_deleted_marked(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::create([
+            'user_id' => $user->id,
+            'name' => 'Noted Wedding',
+            'slug' => 'noted-wedding',
+            'date' => now()->addMonth(),
+        ]);
+        Note::factory()->create(['event_id' => $event->id, 'author_user_id' => $user->id, 'title' => 'Live note']);
+        $trashed = Note::factory()->create(['event_id' => $event->id, 'author_user_id' => $user->id, 'title' => 'Trashed note']);
+        $trashed->delete();
+
+        $response = $this->actingAs($user)->get(route('settings.export-data'));
+        $payload = json_decode($response->streamedContent(), true);
+
+        $this->assertCount(2, $payload['notes']);
+        $trashedExport = collect($payload['notes'])->firstWhere('title', 'Trashed note');
+        $this->assertNotNull($trashedExport['deleted_at']);
+        $this->assertSame('author', $trashedExport['relation']);
+    }
+
     public function test_export_filename_carries_user_id_and_date(): void
     {
         $user = User::factory()->create();
@@ -74,5 +99,43 @@ class DataExportTest extends TestCase
         $disposition = $response->headers->get('Content-Disposition');
         $this->assertStringContainsString('eveplan-export-'.$user->id.'-', $disposition);
         $this->assertStringContainsString('.json', $disposition);
+    }
+
+    public function test_export_includes_device_pairing_metadata_without_secrets(): void
+    {
+        $user = User::factory()->create();
+        DevicePairing::create([
+            'user_id' => $user->id,
+            'token_hash' => hash('sha256', 'never-export-this'),
+            'device_label' => 'My phone',
+            'expires_at' => now()->addMinutes(10),
+        ]);
+
+        $response = $this->actingAs($user)->get(route('settings.export-data'));
+        $payload = json_decode($response->streamedContent(), true);
+        $encoded = json_encode($payload);
+
+        $this->assertSame('My phone', $payload['device_pairings'][0]['device_label']);
+        $this->assertStringNotContainsString('never-export-this', $encoded);
+        $this->assertStringNotContainsString(hash('sha256', 'never-export-this'), $encoded);
+    }
+
+    public function test_export_includes_push_token_metadata(): void
+    {
+        $user = User::factory()->create();
+        $accessToken = $user->createToken('export phone', ['management:*'])->accessToken;
+        PushToken::create([
+            'user_id' => $user->id,
+            'personal_access_token_id' => $accessToken->id,
+            'expo_token' => 'ExponentPushToken[export-device]',
+            'platform' => 'android',
+            'last_used_at' => now(),
+        ]);
+
+        $response = $this->actingAs($user)->get(route('settings.export-data'));
+        $payload = json_decode($response->streamedContent(), true);
+
+        $this->assertSame('ExponentPushToken[export-device]', $payload['push_tokens'][0]['expo_token']);
+        $this->assertSame('android', $payload['push_tokens'][0]['platform']);
     }
 }

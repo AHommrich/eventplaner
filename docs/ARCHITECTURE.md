@@ -14,6 +14,7 @@ Everything hangs off an **Event**. A user can own multiple events or have co-org
 erDiagram
     User ||--o{ Event : "owner"
     User ||--o{ EventAccess : "co-organizer"
+    User ||--o{ DevicePairing : "management devices"
     Event ||--o{ EventAccess : ""
 
     Event ||--o{ Guest : ""
@@ -56,27 +57,116 @@ erDiagram
 
 Two auth models coexist:
 
-| Actor | Auth mechanism | Storage |
-|---|---|---|
-| User (owner / admin) | Email + password, session cookies via Sanctum | `App\Models\User` with a `role` column (`admin` = superadmin, otherwise event owner) |
-| Guest | Sanctum bearer token via QR login | `App\Models\Guest` is `HasApiTokens`, guard stays `web` |
+| Actor                             | Auth mechanism                                                     | Storage                                                            |
+| --------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| User (owner / event tier / admin) | Web session; management bearer via password or one-time pairing QR | `App\Models\User` is `HasApiTokens`; bearer ability `management:*` |
+| Guest                             | Sanctum bearer token via guest QR login                            | `App\Models\Guest` is `HasApiTokens`; bearer ability `role:guest`  |
 
 **Middleware aliases** are registered in `bootstrap/app.php`:
 
-| Alias | Class | Purpose |
-|---|---|---|
-| `admin` | `App\Http\Middleware\EnsureUserIsAdmin` | Protects `/admin/*` (user management) |
-| `has_event` | `App\Http\Middleware\EnsureHasEventAccess` | Protects the main app — user needs access to at least one event |
-| `auth:sanctum` + `EnsureGuestHasAppAccess` | `app/Http/Middleware/EnsureGuestHasAppAccess.php` | API routes that require `app_access=true` on the guest |
-| `auth:sanctum` + `EnsureGuestHasDrinksAccess` | `app/Http/Middleware/EnsureGuestHasDrinksAccess.php` | Additional gate for drink tracking |
+| Alias                                         | Class                                                | Purpose                                                                               |
+| --------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `admin`                                       | `App\Http\Middleware\EnsureUserIsAdmin`              | Protects `/admin/*` (user management)                                                 |
+| `has_event`                                   | `App\Http\Middleware\EnsureHasEventAccess`           | Protects the main app — user needs access to at least one event                       |
+| `can_administer`                              | `App\Http\Middleware\EnsureCanAdministerEvent`       | Session-event `administer` gate for routes without an `{event}` binding               |
+| `management_user`                             | `App\Http\Middleware\EnsureManagementUser`           | User actor + `management:*` + verified/approved on user-scoped management routes      |
+| `management_event`                            | `App\Http\Middleware\ResolveManagementEvent`         | Resolves `X-Event-ID` and rechecks account, ability, role and policy tier per request |
+| `auth:sanctum` + `EnsureGuestHasAppAccess`    | `app/Http/Middleware/EnsureGuestHasAppAccess.php`    | API routes that require `app_access=true` on the guest                                |
+| `auth:sanctum` + `EnsureGuestHasDrinksAccess` | `app/Http/Middleware/EnsureGuestHasDrinksAccess.php` | Additional gate for drink tracking                                                    |
 
 The QR-login flow is two-step for families — details in [`app/Http/Controllers/Api/QrAuthController.php`](../app/Http/Controllers/Api/QrAuthController.php).
+
+### 2a. Per-event tiers (`EventPolicy`)
+
+Beyond the global `users.role`, each event has a **tier** stored in the `event_user`
+pivot (`role`: `owner` | `event_admin` | `event_manager`, default `event_manager`).
+Ownership is the primary owner (`events.user_id`) **plus** any pivot `owner` row — all
+owners are equal ([`Event::owners()`](../app/Models/Event.php) / `isOwnedBy()`).
+
+- [`User::roleOn(Event)`](../app/Models/User.php) resolves the effective tier
+  (precedence: superadmin → owner → event_admin/event_manager), with `canManage()` /
+  `canAdminister()` wrappers.
+- [`EventPolicy`](../app/Policies/EventPolicy.php) is the project's first policy. Coarse
+  abilities `view` / `manage` / `administer` / `manageAccess`; fine-grained,
+  target-aware `changeAccess` / `removeMember` / `grantOwner` / `transferOwnership` /
+  `deleteEvent`. A `before()` hook short-circuits **only** the coarse abilities for
+  superadmins — the fine-grained ones run their own checks so the global admin tier is
+  never handed out through an access change.
+- **Manage** (all tiers): guests, photos, drinks, games, revocation requests.
+  **Administer** (event_admin ∪ owner): deep settings, design, schedule, event access,
+  guest deletion, projector config, photo-report adjudication. `routes/web.php` splits
+  these; the sprinkled administer routes (projector, schedule-visibility, guest delete)
+  are gated per-route with `can_administer`.
+- Membership writes go through [`EventAccessService`](../app/Services/EventAccessService.php),
+  which enforces the **last-owner invariant** transactionally (`lockForUpdate`), so
+  concurrent demote/remove can't race an event down to zero owners.
+- Frontend gating uses the shared `active_event.my_role` prop — cosmetic only; the
+  policy + service are authoritative.
+
+### 2b. Management bearer API (P4)
+
+The management client is deliberately separate from the Guest API: every organizer
+endpoint is under `/api/management/*`, and both surfaces validate the Sanctum tokenable
+class **and** its ability. A User token cannot call Guest routes; a Guest token cannot
+call management routes.
+
+Password login (`POST /api/auth/login`) requires verified email + platform approval and
+is rate-limited, but the native client intentionally does not expose a password-only login
+until OAuth account login can ship with it. All approved users, including OAuth-only users,
+bootstrap a phone from the authenticated, CSRF-protected `/settings/devices` web surface: the web app creates a 64-character secret, stores only
+its SHA-256 hash in `device_pairings`, and renders the plaintext once as a QR.
+The native scanner distinguishes that fixed 64-character alphanumeric contract from the
+32-character Guest invitation contract before selecting the auth endpoint; no separate mode input
+is shown and a management secret is never probed against the Guest URL.
+`POST /api/auth/pair` locks that row and, in one DB transaction, checks the 10-minute TTL, marks it
+redeemed, creates exactly one 90-day (configurable) `management:*` token, clears the pairing hash
+and stores its `personal_access_token_id`. Password login creates the same visible device/session
+record. Both the session row and its optional push token cascade from that PAT. Logout or selective
+revocation deletes the whole context immediately; expiry immediately removes API/push eligibility,
+and the daily Sanctum prune then cascade-deletes the stored context. It is an expiring bearer session in secure mobile
+storage, **not** cryptographic device binding.
+
+For event-scoped requests, [`ResolveManagementEvent`](../app/Http/Middleware/ResolveManagementEvent.php)
+requires `X-Event-ID` even on reads and repeats all authorization on every request:
+User type, verified email, approval, ability, current `roleOn($event)` and the route's
+`manage`/`administer` policy tier. It intentionally uses `roleOn()` rather than querying
+`event_user` directly because the primary owner lives in `events.user_id`. Only
+`/management/me` and `/management/me/events` omit
+the header. Event removal/role change, platform deactivation and account deletion revoke
+User tokens immediately; the middleware remains the defense-in-depth backstop.
+
+Notes reuse the existing web `NoteController`, so personal-note privacy, assign-tier
+rules and assignee-only completion cannot drift between transports. Photo management has
+a separate controller and may delete across all three galleries; every batch target is
+validated against the resolved event before any deletion, and `PhotoObserver` removes the
+object-storage blob.
+
+### 2c. Organizer push notifications (P5)
+
+Organizer push is an optional, User-authenticated extension of the management API. The
+mobile client registers an Expo token only after explicit opt-in and OS permission and may remove it
+again via the same `/api/management/push/register` contract. One Expo token is bound to one current
+management PAT; token rotation replaces that row instead of accumulating duplicate destinations.
+Expo is a US sub-processor; the current
+processing chain and SCC basis are documented in the authoritative
+[`sub-processors.md`](legal/sub-processors.md) register and the public DE/EN privacy text.
+
+Push payloads are intentionally content-free: a generic assignment notice plus opaque
+`event_id`/`note_id` navigation data. Note title/body, guest data, event name and actor name
+never leave the backend in a push. Successful Expo tickets are persisted, receipts are
+queried asynchronously after Expo's recommended delay, and tokens yielding
+`DeviceNotRegistered` are deleted. Resolved delivery records are retained only for the
+short configured diagnostics window. Expired pairing challenges and failed queue jobs are pruned
+after their configured 24-hour and seven-day windows. The existing once-per-minute Laravel scheduler
+drains the low-volume database queue with `queue:work --stop-when-empty`; every fifth
+minute it also queues the unique receipt-fetch job. A separate daemon is therefore not
+required for the current single-container deployment.
 
 ---
 
 ## 3. Active event (session pattern)
 
-A user may have access to multiple events. Which event is currently "active" is **not** passed per request — instead the choice lives in the session.
+A web user may have access to multiple events. The web UI keeps the active choice in the session; bearer management clients instead send `X-Event-ID` on every event-scoped request (see §2b).
 
 - The helper [`Controller::activeEvent()`](../app/Http/Controllers/Controller.php) reads `session('active_event_id')` and verifies the event is still accessible. Fallback is the first accessible event.
 - [`HandleInertiaRequests::share()`](../app/Http/Middleware/HandleInertiaRequests.php) shares `active_event` and `accessible_events` globally with every Inertia page.
@@ -93,14 +183,14 @@ Game mechanic: guests are assigned a random task through the app, photograph the
 **Data model**:
 
 - `photo_game_task_catalogs` holds the global catalogs (`event_id = null`):
-  - exactly one `is_base = true` (general, always in the pool)
-  - multiple type-specific catalogs (`event_type = 'hochzeit' | 'geburtstag' …`)
+    - exactly one `is_base = true` (general, always in the pool)
+    - multiple type-specific catalogs (`event_type = 'hochzeit' | 'geburtstag' …`)
 - `photo_game_tasks` belong to a catalog
 - `event_photo_games.catalog_id` points to the type catalog chosen by the event
 - `event_task_overrides` stores only deltas per event:
-  - `hidden` — task is removed from the pool
-  - `modified` — description is replaced
-  - `added` — new task, `task_id` is `null`
+    - `hidden` — task is removed from the pool
+    - `modified` — description is replaced
+    - `added` — new task, `task_id` is `null`
 
 **Pool building** in [`app/Http/Controllers/Api/PhotoGameController.php`](../app/Http/Controllers/Api/PhotoGameController.php) (`buildAssignPool()`):
 
@@ -117,6 +207,7 @@ Game mechanic: guests are assigned a random task through the app, photograph the
 Guests log drinks; the drinking game ranks them by points. [`app/Services/DrinkScoreService.php`](../app/Services/DrinkScoreService.php) carries all the logic.
 
 **Alcoholic formula**:
+
 ```
 base = round(amount_liter × alcohol_percent × 10)
 ```
@@ -158,9 +249,9 @@ For the actual party there's a fullscreen slideshow opened on a projector machin
 - **Public route** — every event has a `projector_token` (auto-generated, regeneratable). The route `/projector/{token}` is accessible without login because the projector machine has no user account.
 - **Auto-poll** every 10 seconds for new photos, **crossfade** 5 seconds between images.
 - **Contextual label** depending on the album slug:
-  - `app_gallery` — guest name; mode configurable (`first | full | none` via `projector_name_mode`)
-  - `presentation` — optional description on the photo
-  - `photo_game` — task text from the assignment
+    - `app_gallery` — guest name; mode configurable (`first | full | none` via `projector_name_mode`)
+    - `presentation` — optional description on the photo
+    - `photo_game` — task text from the assignment
 
 Frontend lives in [`resources/js/pages/Projector/Show.vue`](../resources/js/pages/Projector/Show.vue), backend in [`app/Http/Controllers/ProjectorController.php`](../app/Http/Controllers/ProjectorController.php).
 
@@ -184,12 +275,12 @@ Used in [`app/Http/Controllers/Api/PhotoGameController.php`](../app/Http/Control
 
 Before the refactor, every size (0.3 l pils / 0.5 l pils / …) required its own catalog row — type and size were mixed. That made both the per-event selection and the point calculation messy. Today:
 
-| Table | Purpose |
-|---|---|
-| `drink_catalog` | one row per type (pils, wheat beer, water, …) — no sizes anymore |
-| `drink_catalog_sizes` | `(catalog_id, amount_liter, is_default)` — N sizes per type |
-| `drinks` | `(event_id, drink_catalog_id, size_id)` — event picks individual sizes |
-| `drink_logs` | `guest_id`, `drink_id`, `size_id`, `amount_liter` (denormalized for historical stability) |
+| Table                 | Purpose                                                                                   |
+| --------------------- | ----------------------------------------------------------------------------------------- |
+| `drink_catalog`       | one row per type (pils, wheat beer, water, …) — no sizes anymore                          |
+| `drink_catalog_sizes` | `(catalog_id, amount_liter, is_default)` — N sizes per type                               |
+| `drinks`              | `(event_id, drink_catalog_id, size_id)` — event picks individual sizes                    |
+| `drink_logs`          | `guest_id`, `drink_id`, `size_id`, `amount_liter` (denormalized for historical stability) |
 
 The denormalized `amount_liter` in `drink_logs` is intentional: if the default size of a type changes later, historic points stay untouched.
 

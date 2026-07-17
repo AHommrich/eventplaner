@@ -153,8 +153,9 @@ class DemoDataSeeder extends Seeder
                 InvitationToken::create(['group_id' => $group->id, 'guest_id' => null, 'token' => Str::random(32)]);
             }
 
-            // Food specials on a handful of guests.
-            $foodIds = FoodSpecial::inRandomOrder()->limit(5)->pluck('id');
+            // Food specials on a handful of guests — pick from the global
+            // templates (event_id = null), which are valid for every event.
+            $foodIds = FoodSpecial::whereNull('event_id')->inRandomOrder()->limit(5)->pluck('id');
             $allGuests->random(8)->each(function (Guest $g) use ($foodIds) {
                 $g->foodSpecials()->syncWithoutDetaching($foodIds->random(rand(1, 2))->all());
             });

@@ -43,9 +43,21 @@ pest()->beforeEach(function () {
  */
 function actingAsGuest(\App\Models\Guest $guest): \Tests\TestCase
 {
-    $token = $guest->createToken('test')->plainTextToken;
+    $token = $guest->createToken('test', ['role:guest'])->plainTextToken;
 
     return test()->withHeader('Authorization', 'Bearer '.$token);
+}
+
+/** Issue a management bearer token for API feature tests. */
+function managementTokenFor(\App\Models\User $user): string
+{
+    return $user->createToken('management-test', ['management:*'])->plainTextToken;
+}
+
+/** X-Event-ID header for management API feature tests. */
+function managementHeaders(\App\Models\Event $event): array
+{
+    return ['X-Event-ID' => (string) $event->id];
 }
 
 /**

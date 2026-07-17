@@ -135,20 +135,20 @@ watch(cover, (val) => {
 </script>
 
 <template>
-    <p class="text-muted-foreground text-sm">{{ t('event.coverHint') }}</p>
+    <p class="text-sm text-muted-foreground">{{ t('event.coverHint') }}</p>
 
-    <div v-if="displayCoverUrl" class="bg-muted/30 flex items-center gap-3 rounded-lg border px-3 py-2">
+    <div v-if="displayCoverUrl" class="flex items-center gap-3 rounded-lg border bg-muted/30 px-3 py-2">
         <img :src="displayCoverUrl" class="h-12 w-20 shrink-0 rounded object-cover" />
         <div class="min-w-0 flex-1">
             <p class="truncate text-xs font-medium">{{ coverFilename }}</p>
-            <p class="text-muted-foreground text-xs">
+            <p class="text-xs text-muted-foreground">
                 {{ coverPreview ? t('event.coverSelected') : t('event.coverCurrent') }}
             </p>
         </div>
         <Button v-if="coverPreview" variant="ghost" size="sm" class="shrink-0" @click="clearSelectedFile">
             {{ t('common.remove') }}
         </Button>
-        <Button v-else variant="ghost" size="sm" class="text-destructive hover:text-destructive shrink-0" @click="requestCoverRemoval">
+        <Button v-else variant="ghost" size="sm" class="shrink-0 text-destructive hover:text-destructive" @click="requestCoverRemoval">
             {{ t('common.remove') }}
         </Button>
     </div>
@@ -157,7 +157,7 @@ watch(cover, (val) => {
         class="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-6 text-center transition-all"
         :class="[
             coverConverting ? 'pointer-events-none opacity-50' : '',
-            isDraggingCover ? 'border-ring bg-muted/30 scale-[1.01]' : 'border-input hover:border-muted-foreground hover:bg-muted/20',
+            isDraggingCover ? 'scale-[1.01] border-ring bg-muted/30' : 'border-input hover:border-muted-foreground hover:bg-muted/20',
         ]"
         @dragover.prevent
         @dragenter.prevent="isDraggingCover = true"
@@ -166,7 +166,7 @@ watch(cover, (val) => {
     >
         <input type="file" class="hidden" accept="image/jpeg,image/png,image/heic,image/heif" @change="onFileSelect" :disabled="coverConverting" />
         <svg
-            class="text-muted-foreground h-6 w-6"
+            class="h-6 w-6 text-muted-foreground"
             :class="{ 'animate-bounce': isDraggingCover }"
             viewBox="0 0 24 24"
             fill="none"
@@ -190,32 +190,32 @@ watch(cover, (val) => {
                         : t('event.coverUpload')
             }}
         </span>
-        <span v-if="!isDraggingCover && !coverConverting" class="text-muted-foreground text-xs">
+        <span v-if="!isDraggingCover && !coverConverting" class="text-xs text-muted-foreground">
             {{ t('event.coverDragHint') }}
         </span>
     </label>
-    <p class="text-muted-foreground text-xs">{{ t('event.coverSaveHint') }}</p>
+    <p class="text-xs text-muted-foreground">{{ t('event.coverSaveHint') }}</p>
 
     <!-- Home screen color — only when cover is present -->
     <div v-if="displayCoverUrl" class="grid gap-1.5 pt-1">
-        <span class="text-muted-foreground text-xs">{{ t('event.colorHomeText') }}</span>
+        <span class="text-xs text-muted-foreground">{{ t('event.colorHomeText') }}</span>
         <div class="flex items-center gap-2">
-            <input type="color" v-model="colorHomeText" class="border-input h-9 w-10 shrink-0 cursor-pointer rounded border bg-transparent p-0.5" />
+            <input type="color" v-model="colorHomeText" class="h-9 w-10 shrink-0 cursor-pointer rounded border border-input bg-transparent p-0.5" />
             <Input v-model="colorHomeText" class="px-2 font-mono text-xs uppercase" maxlength="7" placeholder="#ffffff" />
         </div>
     </div>
     <div v-if="displayCoverUrl" class="grid gap-2">
         <Label>{{ t('event.colorHomeShadow') }}</Label>
         <div class="flex items-center gap-2">
-            <input type="color" v-model="colorHomeShadow" class="border-input h-9 w-10 shrink-0 cursor-pointer rounded border bg-transparent p-0.5" />
+            <input type="color" v-model="colorHomeShadow" class="h-9 w-10 shrink-0 cursor-pointer rounded border border-input bg-transparent p-0.5" />
             <Input v-model="colorHomeShadow" maxlength="7" class="font-mono uppercase" placeholder="#000000" />
         </div>
     </div>
     <div v-if="displayCoverUrl" class="grid gap-2">
         <Label
-            >{{ t('event.homeShadowOpacity') }} <span class="text-muted-foreground text-xs font-normal">{{ homeShadowOpacity }}%</span></Label
+            >{{ t('event.homeShadowOpacity') }} <span class="text-xs font-normal text-muted-foreground">{{ homeShadowOpacity }}%</span></Label
         >
         <input type="range" v-model.number="homeShadowOpacity" min="0" max="100" step="5" class="w-full" />
-        <p class="text-muted-foreground -mt-1 text-xs">{{ t('event.homeShadowOpacityHint') }}</p>
+        <p class="-mt-1 text-xs text-muted-foreground">{{ t('event.homeShadowOpacityHint') }}</p>
     </div>
 </template>

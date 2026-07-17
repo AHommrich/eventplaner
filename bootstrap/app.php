@@ -21,6 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
             'has_event' => \App\Http\Middleware\EnsureHasEventAccess::class,
+            'can_administer' => \App\Http\Middleware\EnsureCanAdministerEvent::class,
+            'management_user' => \App\Http\Middleware\EnsureManagementUser::class,
+            'management_event' => \App\Http\Middleware\ResolveManagementEvent::class,
         ]);
 
         $middleware->web(append: [
