@@ -90,6 +90,31 @@ it('lets a guest report a visible photo from their event', function () {
     });
 });
 
+it('still reports the photo when the owner notification fails', function () {
+    // Simulate a mail/queue failure at dispatch time (e.g. a sync queue driver
+    // hitting a transient transport error). The report + auto-hide are already
+    // persisted, so the endpoint must still return 201 — never a 500 that makes
+    // the guest think their report failed when it actually went through.
+    Mail::shouldReceive('to')->andThrow(new RuntimeException('mail transport down'));
+
+    $owner = User::factory()->create();
+    $event = Event::factory()->for($owner, 'owner')->create();
+    $album = makeGalleryAlbum($event);
+    $reporter = Guest::factory()->create(['event_id' => $event->id]);
+    $uploader = Guest::factory()->create(['event_id' => $event->id]);
+    $photo = makeGuestPhoto($event, $album, $uploader, 'https://example.test/p.jpg');
+
+    actingAsGuest($reporter)
+        ->postJson("/api/photos/{$photo->id}/report", ['reason' => 'other'])
+        ->assertCreated()
+        ->assertJson(['auto_hidden' => true]);
+
+    expect(PhotoReport::where('photo_id', $photo->id)->exists())->toBeTrue();
+    expect(PhotoHide::where('viewer_guest_id', $reporter->id)
+        ->where('photo_id', $photo->id)
+        ->exists())->toBeTrue();
+});
+
 it('allows reports on owner uploads and stores reported_guest_id as null', function () {
     $owner = User::factory()->create();
     $event = Event::factory()->for($owner, 'owner')->create();
