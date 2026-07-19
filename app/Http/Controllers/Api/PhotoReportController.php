@@ -10,6 +10,7 @@ use App\Models\PhotoHide;
 use App\Models\PhotoReport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 /**
@@ -56,9 +57,23 @@ class PhotoReportController extends Controller
 
         // notify the event owner. Anonymous — the mail contains no reporter
         // identity so guests are not deterred from flagging content.
+        //
+        // The notification must NEVER fail the request: the report + auto-hide
+        // are already persisted at this point, so a mail/queue hiccup (e.g. a
+        // sync queue driver hitting a transient Resend error) is logged and
+        // swallowed instead of bubbling up as a 500. Otherwise the guest sees
+        // "could not send" even though their report went through.
         if ($photo->event && $photo->event->owner) {
-            Mail::to($photo->event->owner->email)
-                ->send(new PhotoReportedMail($report, $photo->event));
+            try {
+                Mail::to($photo->event->owner->email)
+                    ->send(new PhotoReportedMail($report, $photo->event));
+            } catch (\Throwable $e) {
+                Log::warning('Photo report owner notification failed', [
+                    'report_id' => $report->id,
+                    'event_id' => $photo->event_id,
+                    'exception' => $e->getMessage(),
+                ]);
+            }
         }
 
         return response()->json([
