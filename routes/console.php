@@ -61,7 +61,8 @@ Schedule::command('photos:backup-to-prefix --target=hel1 --keep=8')
 // gesetzte SCHEDULER_HEARTBEAT_URL inert (Muster wie der Backup-Job oben).
 Schedule::call(function () {
     try {
-        Http::timeout(5)->get((string) env('SCHEDULER_HEARTBEAT_URL'));
+        // GlitchTip erwartet einen POST (leerer Body); ein GET beantwortet der Endpoint mit 405.
+        Http::timeout(5)->post((string) env('SCHEDULER_HEARTBEAT_URL'));
     } catch (\Throwable) {
         // best effort — ein nicht erreichbarer Heartbeat-Endpoint darf den Lauf nicht scheitern lassen
     }
