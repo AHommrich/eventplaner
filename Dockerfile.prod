@@ -1,4 +1,4 @@
-from php:8.3-fpm
+from php:8.4-fpm
 
 # Production Dockerfile – nginx + php-fpm + Vite build
 # Systempakete + Nginx + PHP-Extensions
