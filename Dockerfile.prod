@@ -137,6 +137,13 @@ expose 80
 # first successful boot, and `File exists` is the expected error path).
 # DrinkCatalogSeeder is idempotent (`upsert()` in the seeder), so a
 # re-run on redeploy is safe and must fail loudly if it does break.
+#
+# Scheduler runs IN the container as a self-restarting background loop
+# (`schedule:work`, same pattern as hommrich-hub's entrypoint). This replaces
+# Coolify's per-minute SSH "Scheduled Task", which was fragile under SSH load
+# (brute-force flood vs. MaxStartups → exit 255). The queue is drained by the
+# scheduler itself (queue:work --stop-when-empty in routes/console.php).
+# After deploying this, DISABLE the Coolify Scheduled Task for eventplaner.
 cmd ["/bin/sh","-lc", "set -e; \
   php -v; nginx -t; php-fpm -v; \
   echo 'Waiting for app warmup...' ; \
@@ -152,6 +159,7 @@ cmd ["/bin/sh","-lc", "set -e; \
   php artisan view:cache; \
   php artisan migrate --force; \
   php artisan db:seed --class=DrinkCatalogSeeder --force; \
+  ( while true; do su -s /bin/sh www-data -c 'php artisan schedule:work' || true; echo '[schedule] scheduler beendet – Neustart in 2s'; sleep 2; done ) & \
   php-fpm -D; \
   exec nginx -g 'daemon off;' \
 "]
