@@ -279,3 +279,17 @@ CASCADE` to `RESTRICT`, and split user-deletion behaviour by actor: an admin
   sidebar so event tools live under Event while Platform contains only global user management.
   **Why:** Organizer login assigns one device to one event, so its lifecycle belongs to that event;
   the server-side ownership and active-event checks remain the security boundary.
+
+- **2026-11-04** — (Incident: lost photos) Staging and production shared the bucket
+  `eveplan-photos-prod` with separate databases. Since the in-container scheduler (`cb2a9fb`,
+  2026-10-07) also ran on staging, staging's weekly `photos:cleanup-orphans` deleted every blob
+  only production knew about (4 photos from July). Independently, the sweep only protected
+  `photos.r2_key`, so 6 legacy rows without `r2_key` lost their blob too. The snapshot backup ran
+  one hour *after* the sweep (keep=4) and the hel1 backup was never configured, so nothing was
+  recoverable. Fixes: staging got its own bucket `eveplan-photos-staging`; the sweep now only
+  deletes in a bucket whose `.eventplaner-owner` marker equals `APP_URL` (claimed once via
+  `--claim`), aborts above `--max-delete`, protects keys derived from `photos.url` and covers,
+  and runs after both snapshots; new weekly `photos:check-missing` reports DB↔bucket drift to
+  GlitchTip; web and app render missing blobs as a non-openable placeholder. **Why:** `APP_ENV`
+  is `production` on both instances, so environment checks cannot tell them apart — ownership has
+  to live with the bucket itself, and a destructive job must fail closed.

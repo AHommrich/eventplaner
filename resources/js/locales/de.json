@@ -594,7 +594,9 @@
         "projectorNameFirst": "Nur Vorname",
         "projectorNameFull": "Vollständiger Name",
         "projectorNameNone": "Kein Name",
-        "projectorNameModeHint": "Gilt nur für App-Galerie-Fotos"
+        "projectorNameModeHint": "Gilt nur für App-Galerie-Fotos",
+        "unavailable": "Bild nicht verfügbar",
+        "unavailableRemove": "Eintrag entfernen"
     },
     "invitation": {
         "title": "Einladungen",

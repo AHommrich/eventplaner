@@ -28,8 +28,6 @@ The contents of this site are created with great care. However, I do not guarant
 
 Content and works created by the site operator are subject to German copyright law. Where content on this site was not created by the operator, third-party copyrights are respected.
 
-## Online Dispute Resolution {#dispute-resolution}
-
-The European Commission provides an online dispute resolution platform: https://ec.europa.eu/consumers/odr
+## Consumer Dispute Resolution {#dispute-resolution}
 
 I am neither obliged nor willing to participate in dispute resolution proceedings before a consumer arbitration board.

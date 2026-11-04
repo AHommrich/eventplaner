@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { ChevronDown } from 'lucide-vue-next';
+import { ChevronDown, ImageOff } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
@@ -112,9 +112,25 @@ function openPhoto(photo: Photo) {
     selected.value = photo;
 }
 
+// Photos whose image failed to load (blob missing in object storage). They stay
+// selectable for deletion but never open the viewer.
+const brokenIds = ref<Set<number>>(new Set());
+
+function markBroken(id: number) {
+    brokenIds.value = new Set(brokenIds.value).add(id);
+}
+
+function activateTile(photo: Photo) {
+    if (selectionMode.value) {
+        toggleSelection(photo.id);
+    } else if (!brokenIds.value.has(photo.id)) {
+        openPhoto(photo);
+    }
+}
+
 function navigatePhoto(dir: 1 | -1) {
     if (!selected.value) return;
-    const photos = sortedPhotos.value;
+    const photos = sortedPhotos.value.filter((p) => !brokenIds.value.has(p.id));
     const idx = photos.findIndex((p) => p.id === selected.value!.id);
     const next = photos[idx + dir];
     if (next) selected.value = next;
@@ -348,14 +364,34 @@ function updateProjectorNameMode(mode: string) {
                         <div
                             v-for="photo in sortedPhotos"
                             :key="photo.id"
-                            class="group relative aspect-square cursor-pointer overflow-hidden rounded-lg border bg-muted"
-                            :class="{ 'ring-2 ring-primary ring-offset-1': selectedIds.has(photo.id) }"
-                            @click="selectionMode ? toggleSelection(photo.id) : openPhoto(photo)"
+                            class="group relative aspect-square overflow-hidden rounded-lg border bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+                            :class="{
+                                'ring-2 ring-primary ring-offset-1': selectedIds.has(photo.id),
+                                'cursor-pointer': selectionMode || !brokenIds.has(photo.id),
+                            }"
+                            :role="selectionMode || !brokenIds.has(photo.id) ? 'button' : undefined"
+                            :tabindex="selectionMode || !brokenIds.has(photo.id) ? 0 : undefined"
+                            :aria-pressed="selectionMode ? selectedIds.has(photo.id) : undefined"
+                            @click="activateTile(photo)"
+                            @keydown.enter.prevent="activateTile(photo)"
+                            @keydown.space.prevent="activateTile(photo)"
                         >
+                            <div
+                                v-if="brokenIds.has(photo.id)"
+                                class="flex h-full w-full flex-col items-center justify-center gap-2 p-3 text-center text-muted-foreground"
+                            >
+                                <ImageOff class="h-6 w-6" aria-hidden="true" />
+                                <span class="text-xs">{{ t('photo.unavailable') }}</span>
+                                <Button v-if="!selectionMode" variant="outline" size="sm" class="h-7 text-xs" @click.stop="askDelete(photo.id)">
+                                    {{ t('photo.unavailableRemove') }}
+                                </Button>
+                            </div>
                             <img
+                                v-else
                                 :src="photo.url"
                                 :alt="photo.guest_name ?? undefined"
                                 class="h-full w-full object-cover transition-transform group-hover:scale-105"
+                                @error="markBroken(photo.id)"
                             />
                             <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-xs text-white">
                                 <div class="truncate font-medium">

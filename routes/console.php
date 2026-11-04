@@ -16,7 +16,6 @@ Artisan::command('inspire', function () {
  * or `php artisan schedule:work` in dev. See docs/gdpr/ for the rationale
  * behind each retention / cleanup job.
  */
-Schedule::command('photos:cleanup-orphans')->weekly()->sundays()->at('03:00');
 Schedule::command('app:prune-invitation-tokens')->weekly()->sundays()->at('03:15');
 Schedule::command('app:prune-declined-guests')->weekly()->sundays()->at('03:30');
 Schedule::command('guests:purge-expired-erasures')->daily()->at('03:45');
@@ -53,6 +52,13 @@ Schedule::command('photos:backup-to-prefix --target=hel1 --keep=8')
     ->weekly()->sundays()->at('04:30')
     ->when(fn () => filled(env('AWS_BACKUP_BUCKET')));
 
+// Destructive sweep runs only AFTER both snapshots, so anything it removes is still
+// in this week's backup. It refuses to delete unless the bucket is claimed by this
+// instance (see CleanupOrphanPhotos). The missing-blob check then reports rows
+// whose file is gone (DB ↔ bucket drift) to GlitchTip.
+Schedule::command('photos:cleanup-orphans')->weekly()->sundays()->at('05:00');
+Schedule::command('photos:check-missing')->weekly()->sundays()->at('05:15');
+
 // Scheduler-Heartbeat: bestätigt bei JEDEM Lauf die Lebendigkeit des Schedulers an GlitchTip
 // (Heartbeat-Monitor). Der Sinn: Stirbt schedule:run auf Prozessebene (OOM/Container-Kill, Deploy) —
 // der Fall, den ein PHP-Exception-Tracker prinzipiell NICHT sehen kann, weil kein PHP mehr läuft —,
@@ -63,7 +69,7 @@ Schedule::call(function () {
     try {
         // GlitchTip erwartet einen POST (leerer Body); ein GET beantwortet der Endpoint mit 405.
         Http::timeout(5)->post((string) env('SCHEDULER_HEARTBEAT_URL'));
-    } catch (\Throwable) {
+    } catch (Throwable) {
         // best effort — ein nicht erreichbarer Heartbeat-Endpoint darf den Lauf nicht scheitern lassen
     }
 })->everyMinute()
