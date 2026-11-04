@@ -73,7 +73,7 @@ return new class extends Migration
         if ($isMysql) {
             try {
                 DB::statement('ALTER TABLE drinks DROP FOREIGN KEY drinks_size_id_foreign');
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
             }
             DB::statement('ALTER TABLE drinks MODIFY COLUMN size_id bigint(20) unsigned NOT NULL');
             DB::statement('ALTER TABLE drinks ADD CONSTRAINT drinks_size_id_foreign FOREIGN KEY (size_id) REFERENCES drink_catalog_sizes(id) ON DELETE CASCADE');
@@ -88,11 +88,11 @@ return new class extends Migration
         if ($isMysql) {
             try {
                 DB::statement('ALTER TABLE drinks DROP INDEX drinks_event_id_drink_catalog_id_unique');
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
             }
             try {
                 DB::statement('ALTER TABLE drinks DROP INDEX drinks_event_id_size_id_unique');
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
             }
             DB::statement('ALTER TABLE drinks ADD UNIQUE KEY drinks_event_id_size_id_unique (event_id, size_id)');
         } else {

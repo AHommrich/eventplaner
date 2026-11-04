@@ -17,6 +17,8 @@ use App\Http\Controllers\Api\PhotoGameController as ApiPhotoGameController;
 use App\Http\Controllers\Api\PhotoReportController;
 use App\Http\Controllers\Api\QrAuthController;
 use App\Http\Controllers\NoteController;
+use App\Http\Middleware\EnsureGuestHasAppAccess;
+use App\Http\Middleware\EnsureGuestHasDrinksAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -86,7 +88,7 @@ Route::post('/guest/erasure/revoke', [GuestErasureController::class, 'revoke'])
     ->middleware('throttle:6,1');
 
 // Photos: upload and fetch
-Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureGuestHasAppAccess::class])->group(function () {
+Route::middleware(['auth:sanctum', EnsureGuestHasAppAccess::class])->group(function () {
     Route::post('/photos', [PhotoController::class, 'store']);
     Route::get('/photos', [PhotoController::class, 'index']);
     Route::delete('/photos/{photo}', [PhotoController::class, 'destroy']);
@@ -121,7 +123,7 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureGuestHasAppAccess:
     Route::post('/game/photo/submit', [ApiPhotoGameController::class, 'submit']);
 
     // Drink tracking (drinks_access guard)
-    Route::middleware(\App\Http\Middleware\EnsureGuestHasDrinksAccess::class)->group(function () {
+    Route::middleware(EnsureGuestHasDrinksAccess::class)->group(function () {
         Route::get('/drinks', [DrinkLogController::class, 'index']);
         Route::post('/drinks/log', [DrinkLogController::class, 'log']);
         Route::get('/drinks/stats', [DrinkLogController::class, 'stats']);

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Controllers\Controller;
 use App\Models\Event;
 use Closure;
 use Illuminate\Http\Request;
@@ -11,7 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
  * Gate for administer-level routes that resolve the event from the session
  * (no {event} route binding to hang a `can:administer,event` on).
  *
- * Mirrors {@see \App\Http\Controllers\Controller::activeEvent()} resolution, then
+ * Mirrors {@see Controller::activeEvent()} resolution, then
  * requires the user to pass EventPolicy::administer (event_admin ∪ owner ∪
  * superadmin). Runs inside the `has_event` group, so an accessible event always
  * exists by the time this runs; a manager (or lower) hitting it gets a 403.

@@ -8,6 +8,7 @@ use App\Services\PhotoSanitizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 /**
@@ -81,7 +82,7 @@ class PhotoController extends Controller
             'album_id' => [
                 'nullable',
                 'integer',
-                \Illuminate\Validation\Rule::exists('photo_albums', 'id')->where('event_id', $event->id),
+                Rule::exists('photo_albums', 'id')->where('event_id', $event->id),
             ],
             'description' => ['nullable', 'string', 'max:500'],
         ]);
@@ -162,7 +163,7 @@ class PhotoController extends Controller
             'album_id' => [
                 'required',
                 'integer',
-                \Illuminate\Validation\Rule::exists('photo_albums', 'id')->where('event_id', $event->id),
+                Rule::exists('photo_albums', 'id')->where('event_id', $event->id),
             ],
         ]);
 

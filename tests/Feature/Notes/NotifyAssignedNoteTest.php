@@ -4,6 +4,7 @@ use App\Jobs\NotifyAssignedNote;
 use App\Models\Event;
 use App\Models\Note;
 use App\Models\User;
+use App\Services\ExpoPushService;
 use Illuminate\Support\Facades\Queue;
 
 it('queues a push when an assign-tier user creates an assigned todo', function () {
@@ -65,7 +66,7 @@ it('drops a queued notification when the assignment is stale', function () {
         return [$owner, $manager, $event, $note];
     })();
     $note->update(['assignee_user_id' => null]);
-    $service = Mockery::mock(\App\Services\ExpoPushService::class);
+    $service = Mockery::mock(ExpoPushService::class);
     $service->shouldNotReceive('sendAssignedNote');
 
     (new NotifyAssignedNote($note->id, $manager->id))->handle($service);

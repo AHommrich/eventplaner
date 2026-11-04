@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\User;
+use App\Policies\EventPolicy;
 use App\Services\EventAccessService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,7 +14,7 @@ use Inertia\Inertia;
  *
  * Every active member may open this screen to pair or revoke their own device.
  * Membership and event-wide device management stay behind `manageAccess`; the
- * fine-grained target decisions run through {@see \App\Policies\EventPolicy}.
+ * fine-grained target decisions run through {@see EventPolicy}.
  * Transactional writes + the last-owner invariant live in {@see EventAccessService}.
  * Frontend gating is cosmetic; this is authoritative.
  */

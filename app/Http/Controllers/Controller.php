@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\Event;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
@@ -16,7 +17,7 @@ abstract class Controller
      * if the session is empty or the stored event is no longer accessible, and
      * persists the choice back to the session.
      *
-     * Mirrored by {@see \App\Http\Middleware\HandleInertiaRequests}, which
+     * Mirrored by {@see HandleInertiaRequests}, which
      * shares `active_event` globally with all Vue pages — controller methods can
      * rely on knowing the event without additional request parameters.
      * Null only when the user has no event yet (→ onboarding flow).

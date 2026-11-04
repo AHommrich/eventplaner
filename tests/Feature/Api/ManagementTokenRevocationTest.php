@@ -2,6 +2,7 @@
 
 use App\Models\Event;
 use App\Models\User;
+use Laravel\Sanctum\PersonalAccessToken;
 
 it('revokes all User tokens when event access is removed', function () {
     $owner = User::factory()->create();
@@ -94,5 +95,5 @@ it('revokes orphan-prone Sanctum tokens when a User account is deleted', functio
 
     $user->delete();
 
-    expect(\Laravel\Sanctum\PersonalAccessToken::whereKey($tokenId)->exists())->toBeFalse();
+    expect(PersonalAccessToken::whereKey($tokenId)->exists())->toBeFalse();
 });

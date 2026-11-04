@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ColorRoleResolver;
 use App\Services\PhotoSanitizer;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 /**
@@ -23,7 +27,7 @@ use Inertia\Inertia;
  * station) — see {@see ScheduleController}.
  *
  * Color roles store palette keys (`primary` / `secondary` / `tertiary`), not hex —
- * resolution is handled by {@see \App\Services\ColorRoleResolver} for the API response.
+ * resolution is handled by {@see ColorRoleResolver} for the API response.
  */
 class EventSettingsController extends Controller
 {
@@ -115,21 +119,21 @@ class EventSettingsController extends Controller
             'color_home_text' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'color_home_shadow' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'home_shadow_opacity' => 'nullable|integer|min:0|max:100',
-            'role_screen_bg' => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
-            'role_card_bg' => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
-            'role_card_text' => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
-            'role_card_button' => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
-            'role_card_button_text' => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
-            'role_tab_tint' => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
-            'role_border' => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
-            'role_fab' => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
-            'role_fab_icon' => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
-            'role_nav_bg' => ['nullable', \Illuminate\Validation\Rule::in(['primary', 'secondary', 'tertiary'])],
-            'font_heading' => ['nullable', \Illuminate\Validation\Rule::in([
+            'role_screen_bg' => ['nullable', Rule::in(['primary', 'secondary', 'tertiary'])],
+            'role_card_bg' => ['nullable', Rule::in(['primary', 'secondary', 'tertiary'])],
+            'role_card_text' => ['nullable', Rule::in(['primary', 'secondary', 'tertiary'])],
+            'role_card_button' => ['nullable', Rule::in(['primary', 'secondary', 'tertiary'])],
+            'role_card_button_text' => ['nullable', Rule::in(['primary', 'secondary', 'tertiary'])],
+            'role_tab_tint' => ['nullable', Rule::in(['primary', 'secondary', 'tertiary'])],
+            'role_border' => ['nullable', Rule::in(['primary', 'secondary', 'tertiary'])],
+            'role_fab' => ['nullable', Rule::in(['primary', 'secondary', 'tertiary'])],
+            'role_fab_icon' => ['nullable', Rule::in(['primary', 'secondary', 'tertiary'])],
+            'role_nav_bg' => ['nullable', Rule::in(['primary', 'secondary', 'tertiary'])],
+            'font_heading' => ['nullable', Rule::in([
                 'playfair', 'cormorant', 'cinzel', 'dancing',
                 'great_vibes', 'raleway', 'lora', 'josefin',
             ])],
-            'design_preset' => ['nullable', \Illuminate\Validation\Rule::in(['classic', 'soft-luxury'])],
+            'design_preset' => ['nullable', Rule::in(['classic', 'soft-luxury'])],
             'cover' => 'nullable|file|mimes:jpeg,jpg,png,heic,heif|max:10240',
             'remove_cover' => 'nullable|boolean',
         ]);
@@ -149,7 +153,7 @@ class EventSettingsController extends Controller
      * Re-encode an uploaded cover to EXIF-free JPEG, replace any existing blob
      * in object storage and persist the new URL/key on the event.
      */
-    private function storeCover($event, \Illuminate\Http\UploadedFile $file, PhotoSanitizer $sanitizer): void
+    private function storeCover($event, UploadedFile $file, PhotoSanitizer $sanitizer): void
     {
         // Re-encode to JPEG without EXIF — see PhotoSanitizer.
         $contents = $sanitizer->toJpegWithoutExif($file->getPathname());
@@ -207,7 +211,7 @@ class EventSettingsController extends Controller
              + 0.0722 * $linearize($b);
     }
 
-    public function deleteCover(): \Illuminate\Http\JsonResponse
+    public function deleteCover(): JsonResponse
     {
         $event = $this->activeEvent();
         abort_if(! $event, 404);

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class Event extends Model
@@ -70,7 +71,7 @@ class Event extends Model
      * All owners of the event: the primary owner (events.user_id) plus every
      * pivot member with role 'owner'. All owners are equal in capability.
      *
-     * @return \Illuminate\Support\Collection<int, User>
+     * @return Collection<int, User>
      */
     public function owners()
     {

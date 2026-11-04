@@ -20,7 +20,7 @@ use Illuminate\Support\Str;
  *  - GET  /api/photos  → list of all app-gallery photos of the event (with uploader's first name)
  *
  * Album routing: uploads automatically land in the default album with slug
- * {@see \App\Models\PhotoAlbum::APP_GALLERY}. Other album slugs (presentation,
+ * {@see PhotoAlbum::APP_GALLERY}. Other album slugs (presentation,
  * photo game) are reserved for the organizer or the photo-game flow.
  */
 class PhotoController extends Controller
