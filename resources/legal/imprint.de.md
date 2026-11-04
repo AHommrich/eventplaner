@@ -28,8 +28,6 @@ Die Inhalte dieser Seite werden mit größtmöglicher Sorgfalt erstellt. Für di
 
 Die durch den Seitenbetreiber erstellten Inhalte und Werke auf dieser Seite unterliegen dem deutschen Urheberrecht. Soweit Inhalte auf dieser Seite nicht vom Betreiber erstellt wurden, werden die Urheberrechte Dritter beachtet.
 
-## Online-Streitbeilegung {#dispute-resolution}
-
-Die EU-Kommission stellt eine Plattform zur Online-Streitbeilegung bereit: https://ec.europa.eu/consumers/odr
+## Verbraucherstreitbeilegung {#dispute-resolution}
 
 Ich bin nicht verpflichtet und nicht bereit, an einem Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.

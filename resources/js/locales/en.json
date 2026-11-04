@@ -594,7 +594,9 @@
         "projectorNameFirst": "First name only",
         "projectorNameFull": "Full name",
         "projectorNameNone": "No name",
-        "projectorNameModeHint": "Applies to app gallery photos only"
+        "projectorNameModeHint": "Applies to app gallery photos only",
+        "unavailable": "Image unavailable",
+        "unavailableRemove": "Remove entry"
     },
     "invitation": {
         "title": "Invitations",
