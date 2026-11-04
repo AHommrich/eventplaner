@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
 
 /**
@@ -52,7 +53,7 @@ class ProjectorController extends Controller
         return response()->json(['data' => $photos]);
     }
 
-    private function buildProjectorPhotos($album, string $nameMode = 'first'): \Illuminate\Support\Collection
+    private function buildProjectorPhotos($album, string $nameMode = 'first'): Collection
     {
         $query = $album->photos()->latest();
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\FoodSpecial;
+use App\Models\Guest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -14,7 +15,7 @@ class TableController extends Controller
 
         $query = $event
             ? $event->guests()->with(['group', 'foodSpecials'])
-            : \App\Models\Guest::with(['group', 'foodSpecials'])->whereNull('id');
+            : Guest::with(['group', 'foodSpecials'])->whereNull('id');
 
         $unusedGroups = $event
             ? $event->groups()->whereDoesntHave('guests')->orderBy('name')->get(['id', 'name'])

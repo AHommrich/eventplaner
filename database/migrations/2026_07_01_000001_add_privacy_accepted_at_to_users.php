@@ -20,9 +20,9 @@ return new class extends Migration
         // Back-fill: anyone who was already registered before this column landed
         // implicitly accepted the policy at signup — copy from created_at so
         // existing rows aren't indistinguishable from "explicitly rejected".
-        \DB::table('users')
+        DB::table('users')
             ->whereNull('privacy_accepted_at')
-            ->update(['privacy_accepted_at' => \DB::raw('created_at')]);
+            ->update(['privacy_accepted_at' => DB::raw('created_at')]);
     }
 
     public function down(): void

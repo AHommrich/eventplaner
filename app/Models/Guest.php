@@ -77,7 +77,7 @@ class Guest extends Model implements AuthenticatableContract
 
     public function rsvpSetByUser()
     {
-        return $this->belongsTo(\App\Models\User::class, 'rsvp_set_by_user_id');
+        return $this->belongsTo(User::class, 'rsvp_set_by_user_id');
     }
 
     /** QR token: group token if in a group, otherwise own token */

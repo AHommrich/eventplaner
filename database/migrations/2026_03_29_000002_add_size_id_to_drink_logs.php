@@ -35,11 +35,11 @@ return new class extends Migration
         Schema::table('drink_logs', function (Blueprint $table) {
             try {
                 $table->dropForeign('drink_logs_size_id_foreign');
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
             }
             try {
                 $table->dropIndex('drink_logs_size_id_index');
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
             }
             $table->dropColumn(['size_id', 'amount_liter']);
         });

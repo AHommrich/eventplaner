@@ -6,6 +6,7 @@ use App\Models\EventPhotoGame;
 use App\Models\EventTaskOverride;
 use App\Models\PhotoGameAssignment;
 use App\Models\PhotoGameTaskCatalog;
+use App\Services\PhotoGameTaskPool;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -13,7 +14,7 @@ use Inertia\Inertia;
 /**
  * Organizer view on the photo game (admin endpoints, Inertia).
  *
- *  - `index()` → game status, pool preview (see {@see \App\Services\PhotoGameTaskPool}),
+ *  - `index()` → game status, pool preview (see {@see PhotoGameTaskPool}),
  *                submissions, override management
  *  - `start()` / `end()` → set status to active / ended (lifecycle)
  *  - `updateCatalog()` → select the event-type catalog (wedding / birthday / ...)

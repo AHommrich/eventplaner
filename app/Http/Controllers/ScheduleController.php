@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ScheduleItem;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 /**
@@ -61,7 +62,7 @@ class ScheduleController extends Controller
             'venue_city' => 'nullable|string|max:255',
             'venue_state' => 'nullable|string|max:255',
             'venue_country' => 'nullable|string|max:100',
-            'venue_display_mode' => ['nullable', \Illuminate\Validation\Rule::in(['address', 'name', 'both'])],
+            'venue_display_mode' => ['nullable', Rule::in(['address', 'name', 'both'])],
         ]);
 
         $event->update($data);

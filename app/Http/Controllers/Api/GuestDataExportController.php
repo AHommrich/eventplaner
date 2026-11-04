@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Guest;
 use App\Services\GuestDataExporter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,7 +21,7 @@ class GuestDataExportController extends Controller
      */
     public function export(Request $request, GuestDataExporter $exporter): JsonResponse
     {
-        /** @var \App\Models\Guest $guest */
+        /** @var Guest $guest */
         $guest = $request->user();
 
         return response()->json($exporter->export($guest));

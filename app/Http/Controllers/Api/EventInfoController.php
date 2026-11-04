@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Event;
+use App\Models\Guest;
 use App\Models\ScheduleItem;
 use App\Services\EventThemePresenter;
 use App\Services\ScheduleVisibilityService;
@@ -33,7 +35,7 @@ class EventInfoController extends Controller
      */
     public function show(Request $request): JsonResponse
     {
-        /** @var \App\Models\Guest $guest */
+        /** @var Guest $guest */
         $guest = $request->user();
         $event = $guest->event;
 
@@ -78,7 +80,7 @@ class EventInfoController extends Controller
         ]);
     }
 
-    private function assembleVenueAddress(\App\Models\Event $event): ?string
+    private function assembleVenueAddress(Event $event): ?string
     {
         return $this->assembleAddress(
             $event->venue_street,

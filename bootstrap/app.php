@@ -1,12 +1,19 @@
 <?php
 
+use App\Http\Middleware\EnsureCanAdministerEvent;
+use App\Http\Middleware\EnsureHasEventAccess;
+use App\Http\Middleware\EnsureManagementUser;
+use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\ResolveManagementEvent;
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use Sentry\Laravel\Integration;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,11 +26,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         $middleware->alias([
-            'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
-            'has_event' => \App\Http\Middleware\EnsureHasEventAccess::class,
-            'can_administer' => \App\Http\Middleware\EnsureCanAdministerEvent::class,
-            'management_user' => \App\Http\Middleware\EnsureManagementUser::class,
-            'management_event' => \App\Http\Middleware\ResolveManagementEvent::class,
+            'admin' => EnsureUserIsAdmin::class,
+            'has_event' => EnsureHasEventAccess::class,
+            'can_administer' => EnsureCanAdministerEvent::class,
+            'management_user' => EnsureManagementUser::class,
+            'management_event' => ResolveManagementEvent::class,
         ]);
 
         $middleware->web(append: [
@@ -33,7 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         // Add HSTS/CSP/XFO/etc. to every response globally.
-        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+        $middleware->append(SecurityHeaders::class);
 
         $middleware->trustProxies(
             at: '*',
@@ -44,5 +51,5 @@ return Application::configure(basePath: dirname(__DIR__))
         );
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        \Sentry\Laravel\Integration::handles($exceptions);
+        Integration::handles($exceptions);
     })->create();

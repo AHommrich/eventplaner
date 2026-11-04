@@ -7,6 +7,7 @@ use App\Models\DrinkCatalog;
 use App\Models\DrinkCatalogSize;
 use App\Models\DrinkLog;
 use App\Services\DrinkScoreService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -86,8 +87,8 @@ class DrinkController extends Controller
         $guestStats = $event ? [
             'total' => $event->guests()->count(),
             'confirmed' => $event->guests()->where('rsvp_status', 'accepted')->count(),
-            'rsvp_deadline' => $event->rsvp_deadline ? \Carbon\Carbon::parse($event->rsvp_deadline)->toDateString() : null,
-            'event_date' => $event->date ? \Carbon\Carbon::parse($event->date)->toDateString() : null,
+            'rsvp_deadline' => $event->rsvp_deadline ? Carbon::parse($event->rsvp_deadline)->toDateString() : null,
+            'event_date' => $event->date ? Carbon::parse($event->date)->toDateString() : null,
         ] : ['total' => 0, 'confirmed' => 0, 'rsvp_deadline' => null, 'event_date' => null];
 
         return Inertia::render('Drinks/Index', [
@@ -267,7 +268,7 @@ class DrinkController extends Controller
             'leaderboard' => $leaderboard,
             'guest_totals' => $guestTotals,
             'drink_game_end_time' => $event?->drink_game_end_time
-                ? \Carbon\Carbon::parse($event->drink_game_end_time)->format('Y-m-d\TH:i')
+                ? Carbon::parse($event->drink_game_end_time)->format('Y-m-d\TH:i')
                 : null,
         ]);
     }
