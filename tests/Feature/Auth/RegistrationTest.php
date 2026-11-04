@@ -5,6 +5,7 @@ namespace Tests\Feature\Auth;
 use App\Models\User;
 use Illuminate\Contracts\Notifications\Dispatcher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 
 class RegistrationTest extends TestCase
@@ -43,7 +44,7 @@ class RegistrationTest extends TestCase
             'privacy_accepted' => true,
         ]);
 
-        $user = \App\Models\User::where('email', 'privacy@example.com')->first();
+        $user = User::where('email', 'privacy@example.com')->first();
         $this->assertNotNull($user);
         $this->assertNotNull($user->privacy_accepted_at);
     }
@@ -58,7 +59,7 @@ class RegistrationTest extends TestCase
                 'password_confirmation' => 'password',
                 'privacy_accepted' => true,
             ]);
-            \Illuminate\Support\Facades\Auth::logout();
+            Auth::logout();
         }
 
         $this->post('/register', [

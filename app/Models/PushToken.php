@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class PushToken extends Model
 {
@@ -28,7 +29,7 @@ class PushToken extends Model
 
     public function accessToken()
     {
-        return $this->belongsTo(\Laravel\Sanctum\PersonalAccessToken::class, 'personal_access_token_id');
+        return $this->belongsTo(PersonalAccessToken::class, 'personal_access_token_id');
     }
 
     public function devicePairing()

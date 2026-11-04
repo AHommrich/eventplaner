@@ -1,8 +1,13 @@
 <?php
 
+use App\Models\Event;
+use App\Models\Guest;
+use App\Models\User;
+use App\Services\ManagementTokenService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Tests\TestCase;
 
 /*
 |--------------------------------------------------------------------------
@@ -10,11 +15,11 @@ use Illuminate\Support\Facades\Storage;
 |--------------------------------------------------------------------------
 */
 
-pest()->extend(Tests\TestCase::class)
+pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in('Feature');
 
-pest()->extend(Tests\TestCase::class)->in('Unit');
+pest()->extend(TestCase::class)->in('Unit');
 
 /*
 |--------------------------------------------------------------------------
@@ -41,7 +46,7 @@ pest()->beforeEach(function () {
  * Authenticates a guest via Sanctum bearer token and sets the header.
  * Usage: actingAsGuest($guest)->get('/api/event/info')
  */
-function actingAsGuest(\App\Models\Guest $guest): \Tests\TestCase
+function actingAsGuest(Guest $guest): TestCase
 {
     $token = $guest->createToken('test', ['role:guest'])->plainTextToken;
 
@@ -49,18 +54,18 @@ function actingAsGuest(\App\Models\Guest $guest): \Tests\TestCase
 }
 
 /** Issue a complete event-bound management device session for API feature tests. */
-function managementTokenFor(\App\Models\User $user, ?\App\Models\Event $event = null): string
+function managementTokenFor(User $user, ?Event $event = null): string
 {
     $event ??= $user->accessibleEvents()->first();
-    $event ??= \App\Models\Event::factory()->for($user, 'owner')->create();
+    $event ??= Event::factory()->for($user, 'owner')->create();
 
-    return app(\App\Services\ManagementTokenService::class)
+    return app(ManagementTokenService::class)
         ->issue($user, $event, 'management-test')
         ->plainTextToken;
 }
 
 /** X-Event-ID header for management API feature tests. */
-function managementHeaders(\App\Models\Event $event): array
+function managementHeaders(Event $event): array
 {
     return ['X-Event-ID' => (string) $event->id];
 }
@@ -69,10 +74,10 @@ function managementHeaders(\App\Models\Event $event): array
  * Authenticates an event owner and sets their event as the active event in the session.
  * Usage: $user = actingAsOwner(); $event = $user->ownedEvents->first();
  */
-function actingAsOwner(?\App\Models\Event $event = null): \App\Models\User
+function actingAsOwner(?Event $event = null): User
 {
-    $user = \App\Models\User::factory()->create(['email_verified_at' => now()]);
-    $event ??= \App\Models\Event::factory()->for($user, 'owner')->create();
+    $user = User::factory()->create(['email_verified_at' => now()]);
+    $event ??= Event::factory()->for($user, 'owner')->create();
     test()->actingAs($user)->withSession(['active_event_id' => $event->id]);
 
     return $user;
@@ -81,9 +86,9 @@ function actingAsOwner(?\App\Models\Event $event = null): \App\Models\User
 /**
  * Authenticates an admin user (role=admin).
  */
-function actingAsAdmin(): \App\Models\User
+function actingAsAdmin(): User
 {
-    $admin = \App\Models\User::factory()->create(['role' => 'admin', 'email_verified_at' => now()]);
+    $admin = User::factory()->create(['role' => 'admin', 'email_verified_at' => now()]);
     test()->actingAs($admin);
 
     return $admin;

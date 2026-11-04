@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Api\GuestApiController;
 use App\Models\DrinkLog;
 use App\Models\FoodSpecial;
 use App\Models\Group;
@@ -16,7 +17,7 @@ use Laravel\Sanctum\PersonalAccessToken;
  * CRUD + admin actions for the guests of an event.
  *
  * Organizer view (Inertia): create / edit / delete, manual RSVP setting
- * (without deadline check, in contrast to {@see \App\Http\Controllers\Api\GuestApiController}),
+ * (without deadline check, in contrast to {@see GuestApiController}),
  * toggles for `app_access` and `drinks_access`, reset of a guest's app login
  * and drink logs.
  *

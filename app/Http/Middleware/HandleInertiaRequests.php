@@ -2,7 +2,11 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\EventRequest;
+use App\Models\Guest;
+use App\Models\PhotoReport;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -13,7 +17,7 @@ use Tighten\Ziggy\Ziggy;
  *
  * Important shared keys:
  *  - `auth.user`            — logged-in user or null
- *  - `active_event`         — session-based active event (see {@see \App\Http\Controllers\Controller::activeEvent()})
+ *  - `active_event`         — session-based active event (see {@see Controller::activeEvent()})
  *  - `accessible_events`    — all events the user has access to (owner + co-organizer); sidebar shows switcher when >1
  *  - `user_event_requests`  — pending/declined event access requests for the onboarding flow (non-admins only)
  *  - `pending_notifications` — per-type open counts (revocations, event_requests, photo_reports, total) for sidebar badge + dashboard card
@@ -94,7 +98,7 @@ class HandleInertiaRequests extends Middleware
             return [];
         }
 
-        return \App\Models\EventRequest::where('user_id', $user->id)
+        return EventRequest::where('user_id', $user->id)
             ->whereIn('status', ['pending', 'declined'])
             ->orderBy('created_at', 'desc')
             ->get(['id', 'event_name', 'status', 'created_at'])
@@ -120,24 +124,24 @@ class HandleInertiaRequests extends Middleware
         $revocations = 0;
         $photoReports = 0;
         if ($activeEventId) {
-            $revocations = \App\Models\Guest::where('event_id', $activeEventId)
+            $revocations = Guest::where('event_id', $activeEventId)
                 ->where('rsvp_status', 'revocation_requested')
                 ->count();
         }
         if ($isAdmin) {
-            $photoReports = \App\Models\PhotoReport::where('status', 'open')->count();
+            $photoReports = PhotoReport::where('status', 'open')->count();
         } elseif ($activeEventId) {
             // Photo reports are administer-level — managers don't see the badge.
             $activeEvent = Event::find($activeEventId);
             if ($activeEvent && $user->canAdminister($activeEvent)) {
-                $photoReports = \App\Models\PhotoReport::where('status', 'open')
+                $photoReports = PhotoReport::where('status', 'open')
                     ->where('event_id', $activeEventId)
                     ->count();
             }
         }
 
         $eventRequests = $isAdmin
-            ? \App\Models\EventRequest::where('status', 'pending')->count()
+            ? EventRequest::where('status', 'pending')->count()
             : 0;
 
         return [

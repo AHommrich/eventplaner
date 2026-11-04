@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\EventTaskOverride;
+use App\Models\PhotoGameTask;
 use App\Models\PhotoGameTaskCatalog;
 use Illuminate\Support\Collection;
 
@@ -66,7 +67,7 @@ class PhotoGameTaskPool
     }
 
     /**
-     * @param  \App\Models\PhotoGameTask  $t
+     * @param  PhotoGameTask  $t
      * @return array{task_id: int, override_id: null, description: string, description_en: ?string, translation_key: ?string}
      */
     private function toItem($t): array

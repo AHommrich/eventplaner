@@ -6,13 +6,14 @@ use App\Models\PhotoAlbum;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Tests\TestCase;
 
 function uploadAlbum(Event $event, string $slug): PhotoAlbum
 {
     return PhotoAlbum::create(['event_id' => $event->id, 'slug' => $slug, 'name' => $slug, 'sort_order' => 1]);
 }
 
-function ownerUploadClient(Event $event, User $user): \Tests\TestCase
+function ownerUploadClient(Event $event, User $user): TestCase
 {
     return test()->withToken(managementTokenFor($user, $event))->withHeaders(managementHeaders($event));
 }

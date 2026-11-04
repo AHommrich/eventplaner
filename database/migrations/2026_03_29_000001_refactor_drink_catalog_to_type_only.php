@@ -131,7 +131,7 @@ return new class extends Migration
                 // MariaDB has a composite index on it — dropIndex by name if present
                 try {
                     $table->dropUnique('drink_catalog_type_amount_liter_unique');
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                 }
                 $table->dropColumn('amount_liter');
             });
@@ -145,7 +145,7 @@ return new class extends Migration
                 Schema::table('drink_catalog', function (Blueprint $table) {
                     $table->unique('type', 'drink_catalog_type_unique');
                 });
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 // index already exists in a different form — ignore.
             }
         }

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Event;
 use App\Models\Note;
 use App\Models\User;
+use App\Policies\EventPolicy;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -12,7 +13,7 @@ use Illuminate\Validation\ValidationException;
  * Transactional writes for event membership + tiers.
  *
  * Authorization (who may assign/remove which tier) is decided by
- * {@see \App\Policies\EventPolicy} at the call site. This service owns the
+ * {@see EventPolicy} at the call site. This service owns the
  * *data invariant* — an event must never drop below one owner — and enforces it
  * transactionally with a row lock, so two concurrent "remove the other owner"
  * requests can't both read count=2 and race the event down to zero owners.

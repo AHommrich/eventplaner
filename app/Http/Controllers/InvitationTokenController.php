@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Api\QrAuthController;
 use App\Models\Group;
 use App\Models\Guest;
 use App\Models\InvitationToken;
@@ -11,7 +12,7 @@ use Illuminate\Support\Str;
  * Generates and regenerates invitation tokens for groups and solo guests.
  *
  * Token = 32-char random string embedded in the QR code of the invitation and
- * checked by {@see \App\Http\Controllers\Api\QrAuthController} for authentication.
+ * checked by {@see QrAuthController} for authentication.
  *
  *  - `generate()`          → one token per group and per solo guest (idempotent via updateOrCreate)
  *  - `generateForGroup()`  → single regeneration of a group (old token is replaced)

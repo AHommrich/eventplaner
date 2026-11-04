@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Mail\RevocationRequestMail;
+use App\Models\Guest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -30,7 +31,7 @@ class GuestApiController extends Controller
      */
     public function me(Request $request): JsonResponse
     {
-        /** @var \App\Models\Guest $guest */
+        /** @var Guest $guest */
         $guest = $request->user();
         $guest->load(['group.guests.rsvpSetByGuest', 'rsvpSetByGuest', 'rsvpSetByUser']);
 
@@ -60,7 +61,7 @@ class GuestApiController extends Controller
      */
     public function rsvp(Request $request): JsonResponse
     {
-        /** @var \App\Models\Guest $guest */
+        /** @var Guest $guest */
         $guest = $request->user();
 
         $this->assertDeadlineNotPassed($guest);
@@ -90,7 +91,7 @@ class GuestApiController extends Controller
      */
     public function rsvpForMember(Request $request, int $guestId): JsonResponse
     {
-        /** @var \App\Models\Guest $actor */
+        /** @var Guest $actor */
         $actor = $request->user();
 
         abort_if(
@@ -99,7 +100,7 @@ class GuestApiController extends Controller
             'Du musst selbst zugesagt haben, um andere Familienmitglieder anzumelden.'
         );
 
-        $target = \App\Models\Guest::findOrFail($guestId);
+        $target = Guest::findOrFail($guestId);
 
         abort_if(
             $target->group_id !== $actor->group_id || $actor->group_id === null,
@@ -136,7 +137,7 @@ class GuestApiController extends Controller
      */
     public function revoke(Request $request): JsonResponse
     {
-        /** @var \App\Models\Guest $guest */
+        /** @var Guest $guest */
         $guest = $request->user();
 
         abort_if(
@@ -162,7 +163,7 @@ class GuestApiController extends Controller
 
     // --- Helpers ---
 
-    private function formatGuest(\App\Models\Guest $g): array
+    private function formatGuest(Guest $g): array
     {
         return [
             'guest_id' => $g->id,
@@ -173,7 +174,7 @@ class GuestApiController extends Controller
         ];
     }
 
-    private function formatSetter(\App\Models\Guest $g): ?array
+    private function formatSetter(Guest $g): ?array
     {
         if ($g->rsvp_set_by_guest_id) {
             $setter = $g->rsvpSetByGuest;
@@ -189,7 +190,7 @@ class GuestApiController extends Controller
         return null;
     }
 
-    private function assertDeadlineNotPassed(\App\Models\Guest $guest): void
+    private function assertDeadlineNotPassed(Guest $guest): void
     {
         $deadline = $guest->event?->rsvp_deadline;
         if ($deadline && now()->isAfter($deadline)) {

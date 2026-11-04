@@ -3,6 +3,7 @@
 use App\Models\User;
 use Laravel\Socialite\Contracts\User as SocialiteUser;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\GoogleProvider;
 
 function mockSocialiteWith(string $email, string $name = 'Test User', string $googleId = 'google-123'): void
 {
@@ -11,7 +12,7 @@ function mockSocialiteWith(string $email, string $name = 'Test User', string $go
     $socialiteUser->shouldReceive('getEmail')->andReturn($email);
     $socialiteUser->shouldReceive('getName')->andReturn($name);
 
-    $provider = Mockery::mock(\Laravel\Socialite\Two\GoogleProvider::class);
+    $provider = Mockery::mock(GoogleProvider::class);
     $provider->shouldReceive('user')->andReturn($socialiteUser);
     $provider->shouldReceive('redirect')->andReturn(redirect('https://accounts.google.com/oauth'));
 

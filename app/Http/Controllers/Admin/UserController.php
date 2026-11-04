@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\EventAccessController;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +13,7 @@ use Inertia\Inertia;
 /**
  * Global user administration (superadmin only): platform role + account deletion.
  *
- * Per-event access + tiers live entirely in {@see \App\Http\Controllers\EventAccessController}
+ * Per-event access + tiers live entirely in {@see EventAccessController}
  * (`/event/access`) since the P1 §8.1 split — a superadmin reaches any event's
  * access page via the event switcher. This screen no longer touches `event_user`.
  */
