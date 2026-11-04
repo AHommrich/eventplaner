@@ -28,8 +28,16 @@ class CheckMissingPhotos extends Command
     {
         $disk = Storage::disk('s3');
 
-        $missing = Photo::query()->orderBy('id')->get()
-            ->filter(fn (Photo $p) => ($key = $p->storageKey()) !== null && ! $disk->exists($key));
+        [$checkable, $skipped] = Photo::query()->orderBy('id')->get()
+            ->partition(fn (Photo $p) => $p->storageKey() !== null);
+
+        // Never skip silently: a row that cannot be mapped to this bucket is either
+        // external (demo data) or a misconfigured AWS_URL — both worth seeing.
+        if ($skipped->isNotEmpty()) {
+            $this->warn("Skipped {$skipped->count()} row(s) not stored on this bucket: #".$skipped->pluck('id')->implode(', #'));
+        }
+
+        $missing = $checkable->filter(fn (Photo $p) => ! $disk->exists($p->storageKey()));
 
         foreach ($missing as $photo) {
             $this->line("  - #{$photo->id} event {$photo->event_id} album {$photo->album_id} {$photo->created_at} {$photo->storageKey()}");
