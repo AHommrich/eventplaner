@@ -21,12 +21,15 @@ class PhotoObserver
 {
     public function deleting(Photo $photo): void
     {
-        if (! $photo->r2_key) {
+        // storageKey() also covers legacy rows without r2_key (derived from the URL).
+        $key = $photo->storageKey();
+
+        if (! $key) {
             return;
         }
 
         // The configured disk is named "s3" and points at Hetzner Object Storage
         // via AWS_ENDPOINT / AWS_BUCKET — see config/filesystems.php.
-        Storage::disk('s3')->delete($photo->r2_key);
+        Storage::disk('s3')->delete($key);
     }
 }
