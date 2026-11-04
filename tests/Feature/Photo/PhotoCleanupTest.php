@@ -125,6 +125,7 @@ class PhotoCleanupTest extends TestCase
         $foreign->update(['url' => 'https://picsum.photos/seed/demo/800/600']);
 
         $this->artisan('photos:check-missing')
+            ->expectsOutputToContain('Skipped 1 row(s) not stored on this bucket: #'.$foreign->id)
             ->expectsOutputToContain('photos/gone.jpg')
             ->assertExitCode(1);
 
